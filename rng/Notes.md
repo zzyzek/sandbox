@@ -19,14 +19,14 @@ Definitions
 
 $$
 \begin{array}{l}
-B(x,r) = \{ y | \delta(x,y) < r \} \\
-\bar{B}(x,r) = \{ y | \delta(x,y) < r \} \\
+B(x,r) = \\{ y | \delta(x,y) < r \\} \\
+\bar{B}(x,r) = \\{ y | \delta(x,y) \le r \\} \\
 \Lambda _ {p,q} = B(p, \delta _ {p,q}) \cap B(q, \delta _ {q,p}) \\
-RNG(V) = \{ (p,q) | \Lambda _ {p,q} \cap V = \emptyset \} \\
+RNG(V) = \\{ (p,q) | \Lambda _ {p,q} \cap V = \emptyset \\} \\
 \Gamma _ {p,q} = B( \frac{p+q}{2}, \frac{ \delta _ {p,q} }{2} ) \\
-GG(V) = \{ (p,q) | \Gamma _ {p,q} \cap V = \emptyset \} \\
+GG(V) = \\{ (p,q) | \Gamma _ {p,q} \cap V = \emptyset \\} \\
 U _ {p,q} (\beta) = B( p + \beta \frac{q-p}{2}, \beta \frac{ \delta _ {p,q} }{2} ) \cap B( q + \beta \frac{p-q}{2}, \beta \frac{ \delta _ {q,p} }{2} ) \\
-G _ { \beta } (V) = \{ (p,q) | U _ {p,q} (\beta) \cap V = \emptyset \} \\
+G _ { \beta } (V) = \\{ (p,q) | U _ {p,q} (\beta) \cap V = \emptyset \\} \\
 \end{array}
 $$
 
