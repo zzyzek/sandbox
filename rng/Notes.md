@@ -109,6 +109,86 @@ Some takeaways:
 * Now they believe the KN85 algorithm was 8 regions, not 6 for some reason
 * GNG has now turned into ARN (all region neighbors)
 
+On futher reading, I suspect this gives an $O(n)$ algorithm for $d=2, L _ 2$, and points in generic position.
+I also suspect that this can be adapted pretty easily to 3d, but I need to investigate more.
+
+The following focuses on $d=2, L _ 2$ and generic point positions.
+
+The basis of the algorithm is:
+
+* Assume $n$ points on unit square $((0,0), (1,0), (1,1), (0,1))$
+* Partition the grid into $\frac{1}{\sqrt{n}}$ sized cells, using a linked list
+  to store multiple points
+* For each point $p = (x _ p, y _ p)$, create 8 radial regions centered at $p$
+* Add virtual points $((0, y _ p), (1, y _ p), (x _ p, 0), (x _ p, 1))$ as sentials
+  for edge detection
+* Spiral walk out from $p$, cataloging nearest point $q _ i$ in each region
+  - Call a radial region "closed" if a $q _ j$ point is found in it
+* Do this until no two adjacent radial regions are open or until the grid cells have
+  been exhausted
+* Call $SI _ p$ the square ("influence") centered at $p$ with side length $8 \cdot \max _ {j} ( d _ {\infty} (p, q _ j) )$
+* Walk all grid cells in $SI _ p$ and collect points into list $L$
+* Use the $q _ j$ and $L$ to find the $RNG(p)$
+
+The idea is that, for a point $p$, the $RNG(p)$ is a sub graph if the $ARN(p)$, both of which are degree bounded.
+Constructing the $ARN(p)$ might need to walk many cells if, say, $p$ was near the boundary (conider $p$ near the
+bottom left edge, with the radial region creating a thin sliver of cells all the way up to top left).
+
+With the condition that no two radial regions are open, we get some guarantees about how far we need to search
+to find all $RNG(p)$ points.
+Specifically, creating a square of radius $4 \cdot \max _ j ( d _ {\infty} (p,q _ j) )$ (total
+side $8 \cdot \max _ j ( d _ {\infty} (p,q _ j) )$) gives us a small region to scan to guarantee
+to find the $RNG(p)$ points.
+
+The idea is that for points $p,q,v$, if the angle formed by $\theta(p,v,q) \ge \frac{\pi}{2}$, then $v \in \text{lune}(p,q)$.
+Meaning, if the angle is too sharp between three points, the edge between the endpoints must be booted out of the $RNG$.
+
+> [This] ... is a direct consequence of the cosine law of triangles
+
+So if you have a point $q$ that's outside of $SI _ p$, there are a few cases:
+
+* If $q$ is within a closed radial region, the point closer to $p$ that closed it precludes $(p,q)$ from being in the $RNG$
+* If $q$ is in an open radial region, that means the neighboring radial regions, $R _ l, R _ r$, must be closed
+  - naively, you might think there's a "worst case" scenario if the points closing $R _ l$ and $R _ r$ leave a narrow
+    $\frac{\pi}{12}$ sliver because the $\frac{\pi}{3}$ angle they sweep only encroaches $\frac{\pi}{6}$ past the radial boundary,
+    but in this extreme case, the points in $R _ l$ and $R _ r$ would preclude $p$ because of the triangle inequality,
+    giving us more wiggle room and more information to work with
+
+I think there's a nice picture that can be drawn, but I'm going to use words and hope that I have the inclination to do the
+picture later:
+
+* Consider $p$, $SI _ p$ with the "radius" of $SI _ p$ to be $4 c$ (total width $8 c$)
+  - $c = c _ { \text{max},p } = \text{max} _ { j } ( d _ {\infty} (p, q _ j) )$, where $j$ is over closed radial regions only
+* w.l.o.g. consider $q$ to be the point in the radial region $R _ 1$, with $R _ 1$ "open" and $R _ 2$ and $R _ 8$ closded
+* Call $q _ 2$ and $q _ 8$ the points in $R _ 1$ and $R _ 8$ that closed them
+* $|p,q _ 2| \le \sqrt{2} c$, $|p, q _ 8| \le \sqrt{2} c$, $|p, q| \ge 2 c$
+
+Hm, I might be missing something but the way I see it, the $\theta _ 2 = \text{ang}(q,q _ 2,p)$ and $\theta _ 8 = \text{ang}(q, q _ 8, p)$
+would exclude $(p,q)$ if the outer square is $3c$ radius ($6c$ on a side total).
+
+That is, the worst case happens when $q _ 2$ is directly above $p$ (in radial region $R _ 2$), and when $q _ 8$ diagonal down from $p$,
+making regions above the $q _ 2$ horizontal line and to the right of the diganal line of perpendicular to $q _ 8$ regions where
+$q$ would imply $\theta _ 2$ and $\theta _ 8$ to be greater than $\frac{\pi}{2}$.
+In this case, it means either $q _ 2$ or $q _ 8$ is in the lune of $(p,q)$, excluding $(p,q)$ from the $RNG$.
+
+The region to avoid is when $q$ is inside a box of radius $3c$ (side $6c$), so I'm confused as to the $4c$ requirement in the paper.
+
+| |
+|---|
+| ![KNT, lemma 2](img/rng_knt_lemma2.svg) |
+
+This hasn't exploited the fact that there's a potential angle restriction for $\theta(q _ 2, p, q _ 8)$ but I'm not sure that
+gives actionable information.
+
+At any rate, the idea is that past a certain point, in the case that $R _ 2$ and $R _ 8$ are closed,
+any $q$ chosen in radial region $R _ 1$ will have an angle too large
+for one of $\theta _ 2 = \theta(q, q _ 2, p)$ or $\theta _ 8 = \theta(q, q _ 8, p)$ so that $q _ 2$ or $q _ 8$ falls
+within the lune of $(p,q)$, excluding $(p,q)$ from the $RNG$.
+
+Once we have our $ARN$ with no two open radial regions next to each other, we can then bound the box to sweep/check
+for other points.
+
+
 
 ### BEY91
 
