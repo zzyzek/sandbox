@@ -168,5 +168,9 @@ We'd need some canonical examples to test out the method:
 * various logic gates with paths through corridors
   - make sure they're solvable on the small scale
   - scale up to see they can still be solved
+* oarpgo with hard boundary conditions
+  - the frame is the one that causes big problems, so
+    seeing how it does in those middle frame regions
+
 
 
