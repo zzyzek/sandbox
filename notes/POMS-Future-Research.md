@@ -37,6 +37,58 @@ This might even make tiered bit packing feasible.
 
 
 
+Automated Biome Selection via Spectral Clustering (theoretical)
+---
+
+The idea:
+
+* Take the tile constraints and create an implied adjacency matrix
+  - Though not clear what method is "best", one simple method
+    is to create a vertex for every tile and connect two tiles
+    together if they share a tile constraint in any direction
+* Run the matrix through a spectral clustering algorithm
+* Use the resulting labels to infer tile groupings (i.e. "biomes")
+
+The idea is that there's a lot of information encoded in the implied
+tile constraint graph, however it's interpreted, which can then be used
+to find groupings of tiles.
+For example, for the OARPGO tile set, water tiles will tend to cluster with
+water tiles, green forest tiles will tend to cluster with other green forest
+tiles, etc.
+
+In principle, the resulting grouped tiles can then be weighted by regions to prefer one
+biome or another.
+It's not clear (to me) how to guess the biome count (maybe some relative
+eigenvalue size, some eigenvalue cutoff, etc?) but if you make a best effort
+guess, you can then use it to differentiate individual tiles into groupings/biomes.
+
+The spectral clustering itself is very nearly a "one-liner" in Python:
+
+```
+A = []
+N = len(poms_data["weight"])
+for r in range(N):
+  A.append([])
+  for c in range(N):
+    A[r].append(0)
+
+for rule in poms_data["rule"]:
+  src_tile = rule[0]
+  dst_tile = rule[1]
+  idir = rule[2]
+  val = rule[3]
+  if (val < 0.5): continue
+
+  A[src_tile][dst_tile] = 1
+  A[dst_tile][src_tile] = 1
+
+model = skl_cluster.SpectralClustering(n_clusters=N_CLUSTER, affinity='precomputed', assign_labels='cluster_qr')
+labels = model.fit_predict(A)
+```
+
+Fiddling with individual tile probabilities is notoriously finicky, so there's some work
+to do to figure out how to actually use the information effectively.
+
 Kintsugi Method (theoretical)
 ---
 
