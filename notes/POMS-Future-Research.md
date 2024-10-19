@@ -110,7 +110,7 @@ As the grid grows, the chance of finding a solution in reasonable
 time, or at all, becomes small.
 
 The paths from either endcap go through a random (self avoiding) walk.
-Small grids, the path has a good chance of just randomely joining together.
+Small grids, the path has a good chance of just randomly joining together.
 As the grid gets bigger, the chance that the two random walks collide (in
 reasonable time) gets more difficult.
 
@@ -137,7 +137,7 @@ If $N _ 0$ is small enough, this should be likely.
 
 Once a solution has been found for $N _ 0$, break the solution apart from the middle, horizontally
 and vertically, and fill in the middle section (in the shape of a "plus") with indeterminate
-cells to createa a new grid of size $N _ 1 \times N _ 1$.
+cells to create a new grid of size $N _ 1 \times N _ 1$.
 
 Once a solution has been found for $N _ 1 \times N _ 1$, repeat until $N \times N$ is reached.
 
@@ -190,7 +190,7 @@ and maybe a seam can be chosen with some cost function informed by
 the ambient or edge 'constraidedness' factor.
 
 Calculating a cost heuristic to carve a seam might be difficult and finicky.
-Instead, you can just do it randomely, trying to randomely grow the rectangular cuboid
+Instead, you can just do it randomly, trying to randomly grow the rectangular cuboid
 and seeing if it gets stitched up.
 
 For example:
@@ -205,7 +205,7 @@ this operation, but it's something to look out for.
 ---
 
 Here the parameters would be the minimum homogeneous region to start this process,
-how much we increment the region each step and a randomness paramter to adjust
+how much we increment the region each step and a randomness parameter to adjust
 how aggressive we are at picking breaks horizontally or vertically away from center.
 Another parameter might be picked to prefer horizontal or vertical splits.
 One could save homogeneous regions and use that in backtracking.
@@ -216,7 +216,7 @@ We'd need some canonical examples to test out the method:
 * 3d path with endpoints at opposite corners
 * joined path with restricted barrier (as in example above)
 * 2+ paths with left endpoint for each through a barrier
-  to a perumted endpoints on right
+  to a permuted endpoints on right
 * various logic gates with paths through corridors
   - make sure they're solvable on the small scale
   - scale up to see they can still be solved
@@ -225,4 +225,25 @@ We'd need some canonical examples to test out the method:
     seeing how it does in those middle frame regions
 
 
+---
 
+Thinking about it more, there are many tricky details.
+Consider a path tileset with a "frame" on the border
+of the grid that isn't homogeneous but with a middle
+block homogeneous and endpoints on either corner.
+
+We then can't easily match the reduced middle block
+to the outer frame.
+
+One thing to notice is that we can take out a chunk
+of the non homogeneous region, in the best case the
+endpoints at either end, and then connect it back up
+to the homogeneous/breakjoin region:
+
+![breakjoin example 2](img/breakjoin_example2.png)
+
+But this now needs to have knowledge about which
+disparate regions we want to match.
+
+Maybe some measure of constraidedness?
+Maybe taking random endpoint chunks?
