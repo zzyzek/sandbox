@@ -247,3 +247,18 @@ disparate regions we want to match.
 
 Maybe some measure of constraidedness?
 Maybe taking random endpoint chunks?
+
+---
+
+Rough idea:
+
+* Take a block that has a partial non-homogenous region that
+  bleeds into a homogeneous region (leaked block)
+* Try to solve
+* Take the border of the solved region and transplant it to
+  another leaked block
+  - if there's a solution, mark it as such
+  - otherwise mark it as constrained
+
+This might give some indication as to whether blocks are constrained
+or not.
