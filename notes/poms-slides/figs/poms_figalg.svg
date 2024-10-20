@@ -1,0 +1,248 @@
+ <svg version="1.1" width="880" height="600" style="overflow: hidden; display: block;"><defs>
+
+<!-- 20 -->
+<pattern id="pattern-xannonball_" patternUnits="userSpaceOnUse" width="12" height="12">
+    <circle cx="0" cy="6" r="2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+    <circle cx="12" cy="6" r="2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+    <circle cx="6" cy="0" r="2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+    <circle cx="6" cy="12" r="2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+</pattern>
+
+<!-- 20 dark green -->
+<pattern id="pattern-cannonball" patternUnits="userSpaceOnUse" width="12" height="12">
+    <circle cx="0" cy="6" r="2" style="stroke: var(--pattern-channel-1, rgb(139,220,116))" fill="rgb(139,220,116)"></circle>
+    <circle cx="12" cy="6" r="2" style="stroke: var(--pattern-channel-1, rgb(139,220,116))" fill="rgb(139,220,116)"></circle>
+    <circle cx="6" cy="0" r="2" style="stroke: var(--pattern-channel-1, rgb(139,220,116))" fill="rgb(139,220,116)"></circle>
+    <circle cx="6" cy="12" r="2" style="stroke: var(--pattern-channel-1, rgb(139,220,116))" fill="rgb(139,220,116)"></circle>
+</pattern>
+
+<!-- 20 dark green -->
+<pattern id="pattern-cannonball-big" patternUnits="userSpaceOnUse" width="18" height="18">
+    <circle cx="0" cy="9" r="3" style="stroke: var(--pattern-channel-1, rgb(139,220,116))" fill="rgb(139,220,116)"></circle>
+    <circle cx="18" cy="9" r="3" style="stroke: var(--pattern-channel-1, rgb(139,220,116))" fill="rgb(139,220,116)"></circle>
+    <circle cx="9" cy="0" r="3" style="stroke: var(--pattern-channel-1, rgb(139,220,116))" fill="rgb(139,220,116)"></circle>
+    <circle cx="9" cy="18" r="3" style="stroke: var(--pattern-channel-1, rgb(139,220,116))" fill="rgb(139,220,116)"></circle>
+</pattern>
+
+<pattern id="pattern-cannonball-huge" patternUnits="userSpaceOnUse" width="24" height="24">
+    <circle cx="0" cy="12" r="4" style="stroke: var(--pattern-channel-1, rgb(139,220,116))" fill="rgb(139,220,116)"></circle>
+    <circle cx="24" cy="12" r="4" style="stroke: var(--pattern-channel-1, rgb(139,220,116))" fill="rgb(139,220,116)"></circle>
+    <circle cx="12" cy="0" r="4" style="stroke: var(--pattern-channel-1, rgb(139,220,116))" fill="rgb(139,220,116)"></circle>
+    <circle cx="12" cy="24" r="4" style="stroke: var(--pattern-channel-1, rgb(139,220,116))" fill="rgb(139,220,116)"></circle>
+</pattern>
+
+<pattern id="pattern-cannonball_bak" patternUnits="userSpaceOnUse" width="12" height="12">
+    <circle cx="0" cy="6" r="2" style="stroke: var(--pattern-channel-1, rgb(139,177,116))" fill="rgb(139,177,116)"></circle>
+    <circle cx="12" cy="6" r="2" style="stroke: var(--pattern-channel-1, rgb(139,177,116))" fill="rgb(139,177,116)"></circle>
+    <circle cx="6" cy="0" r="2" style="stroke: var(--pattern-channel-1, rgb(139,177,116))" fill="rgb(139,177,116)"></circle>
+    <circle cx="6" cy="12" r="2" style="stroke: var(--pattern-channel-1, rgb(139,177,116))" fill="rgb(139,177,116)"></circle>
+</pattern>
+
+<!-- 20 -->
+<pattern id="pattern-cannonball-lg" patternUnits="userSpaceOnUse" width="12" height="12">
+    <circle cx="0" cy="6" r="2" style="stroke: var(--pattern-channel-1, rgb(167,196,151))" fill="rgb(167,196,151)"></circle>
+    <circle cx="12" cy="6" r="2" style="stroke: var(--pattern-channel-1, rgb(167,196,151))" fill="rgb(167,196,151)"></circle>
+    <circle cx="6" cy="0" r="2" style="stroke: var(--pattern-channel-1, rgb(167,196,151))" fill="rgb(167,196,151)"></circle>
+    <circle cx="6" cy="12" r="2" style="stroke: var(--pattern-channel-1, rgb(167,196,151))" fill="rgb(167,196,151)"></circle>
+</pattern>
+
+
+<!-- 23 -->
+<pattern id="pattern-sgrid" patternUnits="userSpaceOnUse" width="4" height="4">
+    <rect width="2" height="2" x="0" y="0" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></rect>
+</pattern>
+
+<!-- 3 -->
+<pattern id="pattern-Rdiag_base" patternUnits="userSpaceOnUse" width="8" height="8">
+    <path d="M-1,1 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern>
+
+<!-- 3 dark blue -->
+<pattern id="pattern-Rdiag" patternUnits="userSpaceOnUse" width="8" height="8">
+    <path d="M-1,1 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="rgb(155,195,212)" style="stroke: var(--pattern-channel-1, rgb(155,195,212))" stroke-width="1.125"></path>
+</pattern>
+
+<pattern id="pattern-Rdiag-big" patternUnits="userSpaceOnUse" width="12" height="12">
+    <path d="M-1.5,1.5 l6,-6 M0,12 l12,-12 M9,15 l6,-6" stroke="rgb(155,195,212)" style="stroke: var(--pattern-channel-1, rgb(155,195,212))" stroke-width="1.75"></path>
+</pattern>
+
+<!-- 31 -->
+<pattern id="pattern-cgrid" patternUnits="userSpaceOnUse" width="4" height="4">
+    <circle cx="2" cy="2" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+</pattern>
+
+<pattern id="pattern-cgrid-big" patternUnits="userSpaceOnUse" width="6" height="6">
+    <circle cx="3" cy="3" r="1.5" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+</pattern>
+
+<!-- 39 -->
+<pattern id="pattern-vwave" patternUnits="userSpaceOnUse" width="6" height="6">
+    <path d="M5,-1 l2,2 M5,7 l2,-2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></path>
+    <polyline points="0,0 3,3 0,6" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></polyline>
+</pattern>
+
+<!-- 6 -->
+<pattern id="xxxpattern-ldiag_base" patternUnits="userSpaceOnUse" width="6" height="6">
+    <path d="M7,1 l-2,-2 M0,0 l6,6 M1,7 l-2,-2" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern>
+
+<!-- 6 mid blue -->
+<pattern id="pattern-ldiag" patternUnits="userSpaceOnUse" width="6" height="6">
+    <path d="M7,1 l-2,-2 M0,0 l6,6 M1,7 l-2,-2" stroke="rgb(164,216,224)" style="stroke: var(--pattern-channel-1, rgb(164,216,224))"></path>
+</pattern>
+
+<pattern id="pattern-ldiag-big" patternUnits="userSpaceOnUse" width="9" height="9">
+    <path d="M10.5,1.5 l-3,-3 M0,0 l9,9 M1.5,10.5 l-3,-3" stroke="rgb(164,216,224)" style="stroke: var(--pattern-channel-1, rgb(164,216,224))" stroke-width="1.7"></path>
+</pattern>
+
+
+<pattern id="pattern-1" patternUnits="userSpaceOnUse" width="4" height="4">
+    <path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern><pattern id="pattern-10" patternUnits="userSpaceOnUse" width="4" height="4">
+    <path d="M2,0 l0,4 M0,2 l4,0" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern><pattern id="pattern-11" patternUnits="userSpaceOnUse" width="6" height="6">
+    <path d="M3,0 l0,6 M0,3 l6,0" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern><pattern id="pattern-12" patternUnits="userSpaceOnUse" width="8" height="8">
+    <path d="M4,0 l0,8 M0,4 l8,0" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern><pattern id="pattern-13" patternUnits="userSpaceOnUse" width="12" height="12">
+    <path d="M6,0 l0,12 M0,6 l12,0" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern><pattern id="pattern-14" patternUnits="userSpaceOnUse" width="6" height="6">
+    <path d="M-1,5 l2,2 M5,7 l2,-2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></path>
+    <polyline points="0,0 3,3 6,0" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></polyline>
+</pattern><pattern id="pattern-15" patternUnits="userSpaceOnUse" width="8" height="8">
+    <path d="M-1,7 l2,2 M7,9 l2,-2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></path>
+    <polyline points="0,0 4,4 8,0" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></polyline>
+</pattern><pattern id="pattern-16" patternUnits="userSpaceOnUse" width="12" height="12">
+    <path d="M-1,11 l2,2 M11,13 l2,-2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></path>
+    <polyline points="0,0 6,6 12,0" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></polyline>
+</pattern><pattern id="pattern-17" patternUnits="userSpaceOnUse" width="8" height="8">
+    <circle cx="4" cy="4" r="2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+</pattern><pattern id="pattern-18" patternUnits="userSpaceOnUse" width="12" height="12">
+    <circle cx="6" cy="6" r="3" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+</pattern><pattern id="pattern-19" patternUnits="userSpaceOnUse" width="16" height="16">
+    <circle cx="8" cy="8" r="4" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+</pattern><pattern id="pattern-2" patternUnits="userSpaceOnUse" width="4" height="4">
+    <path d="M0,0 l4,4
+             M-1,3 l2,2
+             M3,-1 l2,2" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern>
+
+<pattern id="pattern-20" patternUnits="userSpaceOnUse" width="12" height="12">
+    <circle cx="0" cy="6" r="2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+    <circle cx="12" cy="6" r="2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+    <circle cx="6" cy="0" r="2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+    <circle cx="6" cy="12" r="2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+</pattern>
+
+<pattern id="pattern-21" patternUnits="userSpaceOnUse" width="16" height="16">
+    <circle cx="0" cy="8" r="3" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+    <circle cx="16" cy="8" r="3" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+    <circle cx="8" cy="0" r="3" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+    <circle cx="8" cy="16" r="3" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+</pattern>
+
+<pattern id="pattern-22" patternUnits="userSpaceOnUse" width="24" height="24">
+    <circle cx="0" cy="12" r="4" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+    <circle cx="24" cy="12" r="4" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+    <circle cx="12" cy="0" r="4" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+    <circle cx="12" cy="24" r="4" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></circle>
+</pattern>
+
+<pattern id="pattern-23" patternUnits="userSpaceOnUse" width="4" height="4">
+    <rect width="2" height="2" x="0" y="0" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></rect>
+</pattern>
+
+<pattern id="pattern-24" patternUnits="userSpaceOnUse" width="6" height="6">
+    <rect width="2" height="2" x="0" y="0" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></rect>
+</pattern><pattern id="pattern-25" patternUnits="userSpaceOnUse" width="8" height="8">
+    <rect width="2" height="2" x="0" y="0" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></rect>
+</pattern><pattern id="pattern-26" patternUnits="userSpaceOnUse" width="12" height="12">
+    <rect width="2" height="2" x="0" y="0" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></rect>
+</pattern><pattern id="pattern-27" patternUnits="userSpaceOnUse" width="6" height="6">
+    <path d="M2,2 l2,0 l0,2 l-2,0 l0,-2 M0,0 l1,0 l0,1 l-1,0 l0,-1 M5,0 l1,0 l0,1 l-1,0 l0,-1 M0,5 l1,0 l0,1 l-1,0 l0,-1 M5,5 l1,0 l0,1 l-1,0 l0,-1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></path>
+</pattern><pattern id="pattern-28" patternUnits="userSpaceOnUse" width="8" height="8">
+    <path d="M3,3 l2,0 l0,2 l-2,0 l0,-2 M0,0 l1,0 l0,1 l-1,0 l0,-1 M7,0 l1,0 l0,1 l-1,0 l0,-1 M0,7 l1,0 l0,1 l-1,0 l0,-1 M7,7 l1,0 l0,1 l-1,0 l0,-1" fill="hotpink" style="fill: var(--pattern-channel-1, currentcolor)"></path>
+</pattern><pattern id="pattern-29" patternUnits="userSpaceOnUse" width="12" height="12">
+    <path d="M5,5 l2,0 l0,2 l-2,0 l0,-2 M0,0 l1,0 l0,1 l-1,0 l0,-1 M11,0 l1,0 l0,1 l-1,0 l0,-1 M0,11 l1,0 l0,1 l-1,0 l0,-1 M11,11 l1,0 l0,1 l-1,0 l0,-1" fill="hotpink" style="fill: var(--pattern-channel-1, currentcolor)"></path>
+</pattern>
+
+<pattern id="pattern-3" patternUnits="userSpaceOnUse" width="8" height="8">
+    <path d="M-1,1 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern>
+
+<pattern id="pattern-30" patternUnits="userSpaceOnUse" width="16" height="16">
+    <path d="M7,7 l2,0 l0,2 l-2,0 l0,-2 M0,0 l1,0 l0,1 l-1,0 l0,-1 M15,0 l1,0 l0,1 l-1,0 l0,-1 M0,15 l1,0 l0,1 l-1,0 l0,-1 M15,15 l1,0 l0,1 l-1,0 l0,-1" fill="hotpink" style="fill: var(--pattern-channel-1, currentcolor)"></path>
+</pattern>
+
+<pattern id="pattern-31" patternUnits="userSpaceOnUse" width="4" height="4">
+    <circle cx="2" cy="2" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+</pattern>
+
+<pattern id="pattern-32" patternUnits="userSpaceOnUse" width="6" height="6">
+    <circle cx="3" cy="3" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+</pattern><pattern id="pattern-33" patternUnits="userSpaceOnUse" width="8" height="8">
+    <circle cx="4" cy="4" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+</pattern><pattern id="pattern-34" patternUnits="userSpaceOnUse" width="12" height="12">
+    <circle cx="6" cy="6" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+</pattern><pattern id="pattern-35" patternUnits="userSpaceOnUse" width="6" height="6">
+    <circle cx="0" cy="0" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="0" cy="6" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="6" cy="6" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="6" cy="0" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="3" cy="3" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+</pattern><pattern id="pattern-36" patternUnits="userSpaceOnUse" width="8" height="8">
+    <circle cx="0" cy="0" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="0" cy="8" r="1" fill="currentcolor" style="fill: var(--pattern-cannel-1, currentcolor)"></circle>
+    <circle cx="8" cy="8" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="8" cy="0" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="4" cy="4" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+</pattern><pattern id="pattern-37" patternUnits="userSpaceOnUse" width="12" height="12">
+    <circle cx="0" cy="0" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="0" cy="12" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="12" cy="12" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="12" cy="0" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="6" cy="6" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+</pattern><pattern id="pattern-38" patternUnits="userSpaceOnUse" width="16" height="16">
+    <circle cx="0" cy="0" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="0" cy="16" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="16" cy="16" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="16" cy="0" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+    <circle cx="8" cy="8" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)"></circle>
+</pattern>
+
+<pattern id="pattern-39" patternUnits="userSpaceOnUse" width="6" height="6">
+    <path d="M5,-1 l2,2 M5,7 l2,-2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></path>
+    <polyline points="0,0 3,3 0,6" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></polyline>
+</pattern>
+
+<pattern id="pattern-4" patternUnits="userSpaceOnUse" width="8" height="8">
+    <path d="M0,0 l8,8
+             M-1,7 l4,4
+             M7,-1 l4,4" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern><pattern id="pattern-40" patternUnits="userSpaceOnUse" width="8" height="8">
+    <path d="M7,-1 l2,2 M7,9 l2,-2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></path>
+    <polyline points="0,0 4,4 0,8" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></polyline>
+</pattern><pattern id="pattern-41" patternUnits="userSpaceOnUse" width="12" height="12">
+    <path d="M11,-1 l2,2 M11,13 l2,-2" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></path>
+    <polyline points="0,0 6,6 0,12" style="stroke: var(--pattern-channel-1, currentcolor)" fill="none"></polyline>
+</pattern><pattern id="pattern-5" patternUnits="userSpaceOnUse" width="6" height="6">
+    <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern>
+
+<pattern id="pattern-6" patternUnits="userSpaceOnUse" width="6" height="6">
+    <path d="M7,1 l-2,-2 M0,0 l6,6 M1,7 l-2,-2" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern>
+
+<pattern id="pattern-7" patternUnits="userSpaceOnUse" width="6" height="6">
+    <path d="M0,0 l6,6 M6,0 l-6,6" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern><pattern id="pattern-8" patternUnits="userSpaceOnUse" width="8" height="8">
+    <path d="M0,0 l8,8
+             M8,0 l-8,8" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern><pattern id="pattern-9" patternUnits="userSpaceOnUse" width="12" height="12">
+    <path d="M0,0 l12,12 M12,0 l-12,12" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)"></path>
+</pattern>
+
+      <pattern id="pattern-5r" patternUnits="userSpaceOnUse" width="6" height="6">
+        <path d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2" stroke="#ff0000" stroke-opacity="0.45" style="stroke: var(--pattern-channel-1, #ff0000)"></path>
+      </pattern>
+    <linearGradient id="two-36" x1="0" y1="0" x2="1" y2="0" spreadMethod="pad" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="rgb(47,55,55)" stop-opacity="0.025"></stop><stop offset="100%" stop-color="rgb(47,55,55)" stop-opacity="0.3"></stop></linearGradient><linearGradient id="two-38" x1="0" y1="0" x2="1" y2="0" spreadMethod="pad" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="rgb(47,55,55)" stop-opacity="0.1"></stop><stop offset="100%" stop-color="rgb(47,55,55)" stop-opacity="0.3"></stop></linearGradient><linearGradient id="two-82" x1="0" y1="0.1" x2="0" y2="1" spreadMethod="pad" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="rgb(47,55,55)" stop-opacity="0.025"></stop><stop offset="100%" stop-color="rgb(47,55,55)" stop-opacity="0.1"></stop></linearGradient><linearGradient id="two-84" x1="0" y1="0.1" x2="0" y2="1" spreadMethod="pad" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="rgb(47,55,55)" stop-opacity="0.1"></stop><stop offset="25%" stop-color="rgb(167,196,151)" stop-opacity="0.3"></stop><stop offset="75%" stop-color="rgb(167,196,151)" stop-opacity="0.4"></stop><stop offset="100%" stop-color="rgb(167,196,151)" stop-opacity="0.1"></stop></linearGradient><linearGradient id="two-86" x1="0" y1="0.1" x2="0" y2="1" spreadMethod="pad" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="rgb(47,55,55)" stop-opacity="0.1"></stop><stop offset="100%" stop-color="rgb(233,114,76)" stop-opacity="0.9"></stop></linearGradient><linearGradient id="two-88" x1="0" y1="0.1" x2="0" y2="1" spreadMethod="pad" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="rgb(47,55,55)" stop-opacity="0.1"></stop><stop offset="100%" stop-color="rgb(255,94,91)" stop-opacity="0.9"></stop></linearGradient></defs><g id="two-0" transform="matrix(1 0 0 1 0 0)" opacity="1"><text transform="matrix(1 0 0 1 760 55)" id="two-1" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="middle" dominant-baseline="middle" font-style="normal" font-weight="bold" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">Legend</text><path transform="matrix(1 0 0 1 740 90)" id="two-2" d="M -10 -10 L 10 -10 L 10 10 L -10 10 Z " fill="url(#pattern-cgrid)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><text transform="matrix(1 0 0 1 785 91)" id="two-3" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="middle" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">boundary</text><path transform="matrix(1 0 0 1 740 130)" id="two-4" d="M -10 -10 L 10 -10 L 10 10 L -10 10 Z " fill="rgb(210,255,210)" stroke="rgb(210,255,210)" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 740 130)" id="two-5" d="M -10 -10 L 10 -10 L 10 10 L -10 10 Z " fill="url(#pattern-cannonball)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><text transform="matrix(1 0 0 1 782 131)" id="two-6" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="middle" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">resolved</text><path transform="matrix(1 0 0 1 740 170)" id="two-7" d="M -10 -10 L 10 -10 L 10 10 L -10 10 Z " fill="url(#pattern-Rdiag)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><text transform="matrix(1 0 0 1 808 171)" id="two-8" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="middle" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">unresolved (grid)</text><path transform="matrix(1 0 0 1 740 210)" id="two-9" d="M -10 -10 L 10 -10 L 10 10 L -10 10 Z " fill="url(#pattern-ldiag)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><text transform="matrix(1 0 0 1 812 211)" id="two-10" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="middle" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">unresolved (block)</text><path transform="matrix(1 0 0 1 740 250)" id="two-11" d="M -10 -10 L 10 -10 L 10 10 L -10 10 Z " fill="rgb(0,0,255)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="0.3" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><text transform="matrix(1 0 0 1 776 251)" id="two-12" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="middle" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">pinned</text><text transform="matrix(1 0 0 1 135 10)" id="two-13" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="middle" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">a) Grid partially realized,</text><text transform="matrix(1 0 0 1 115 30)" id="two-14" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="middle" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">choose block</text><text transform="matrix(1 0 0 1 395 12)" id="two-15" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="middle" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">b) Initialize block, pinning</text><text transform="matrix(1 0 0 1 400 32)" id="two-16" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="middle" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">overlapping boundaries</text><text transform="matrix(1 0 0 1 625 12)" id="two-17" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="middle" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">c) Attempt to run</text><text transform="matrix(1 0 0 1 625 32)" id="two-18" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="middle" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">block solver</text><text transform="matrix(1 0 0 1 10 550)" id="two-19" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="start" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">d)</text><text transform="matrix(1 0 0 1 27 550)" id="two-20" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="start" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="rgb(0, 180, 0)" stroke="rgb(0,0,0)" stroke-width="1" opacity="1" visibility="visible" fill-opacity=" 0.95" stroke-opacity="0.15">Success</text><text transform="matrix(1 0 0 1 27 570)" id="two-21" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="start" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">incorporate resolved block into grid</text><text transform="matrix(1 0 0 1 310 550)" id="two-22" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="start" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">e)</text><text transform="matrix(1 0 0 1 327 550)" id="two-23" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="start" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="rgb(100,0,0)" stroke="none" stroke-width="1" opacity="1" visibility="visible" fill-opacity="0.95">Resolution failure,</text><text transform="matrix(1 0 0 1 327 570)" id="two-24" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="start" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">restore block and erode</text><text transform="matrix(1 0 0 1 327 590)" id="two-25" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="start" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">resolved area boundaries</text><text transform="matrix(1 0 0 1 610 550)" id="two-26" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="start" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">f)</text><text transform="matrix(1 0 0 1 625 550)" id="two-27" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="start" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="rgb(200,0,0)" stroke="none" stroke-width="1" opacity="1" visibility="visible" fill-opacity="0.95">Setup failure,</text><text transform="matrix(1 0 0 1 625 570)" id="two-28" font-family="Libertine, Linux Libertine O" font-size="15" line-height="17" text-anchor="start" dominant-baseline="middle" font-style="normal" font-weight="500" text-decoration="none" direction="ltr" fill="#000" stroke="none" stroke-width="1" opacity="1" visibility="visible">revert block area in grid to unresolved</text><path transform="matrix(1 0 0 1 140 145)" id="two-29" d="M -133 -103 L 133 -103 L 133 103 L -133 103 Z " fill="url(#pattern-cgrid)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 140 145)" id="two-30" d="M -125 -95 L 125 -95 L 125 95 L -125 95 Z " fill="#fff" stroke="#000" stroke-width="2" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 140 145)" id="two-31" d="M -125 -95 L 125 -95 L 125 95 L -125 95 Z " fill="url(#pattern-Rdiag)" stroke="#000" stroke-width="2" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 110 135)" id="two-32" d="M -95 85 L -75 85 L -75 15 L -25 15 L -25 -72 L 95 -72 L 95 -85 L -95 -85 Z " fill="rgb(210,255,210)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 110 135)" id="two-33" d="M -95 85 L -75 85 L -75 15 L -25 15 L -25 -72 L 95 -72 L 95 -85 L -95 -85 Z " fill="url(#pattern-cannonball)" stroke="rgb(0,0,0)" stroke-width="2" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 60 125)" id="two-34" d="M -45 -45 L 45 -45 L 45 45 L -45 45 Z " fill="url(#pattern-ldiag)" stroke="rgb(255, 62, 165)" stroke-width="3" stroke-opacity="0.8" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 0 0)" id="two-35" d="M 105 80 C 225 80 205 60 325 60 C 325 60 325 210 325 210 C 205 210 225 170 105 170 C 105 170 105 80 105 80 Z " fill="url(#two-36)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="0.5" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 0 0)" id="two-37" d="M 475 60 C 595 60 425 60 545 60 C 545 60 545 210 545 210 C 425 210 595 210 475 210 C 475 210 475 60 475 60 Z " fill="url(#two-38)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 400 135)" id="two-39" d="M -82.5 -82.5 L 82.5 -82.5 L 82.5 82.5 L -82.5 82.5 Z " fill="#fff" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 400 135)" id="two-40" d="M -82.5 -82.5 L 82.5 -82.5 L 82.5 82.5 L -82.5 82.5 Z " fill="url(#pattern-cgrid-big)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 407.5 135)" id="two-41" d="M -78.75 -83.325 L 78.75 -83.325 L 78.75 83.325 L -78.75 83.325 Z " fill="#fff" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 407.5 135)" id="two-42" d="M -78.75 -83.325 L 78.75 -83.325 L 78.75 83.325 L -78.75 83.325 Z " fill="url(#pattern-Rdiag-big)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 390 60)" id="two-43" d="M -65 -7.5 L 65 -7.5 L 65 7.5 L -65 7.5 Z " fill="rgb(210,255,210)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 390 60)" id="two-44" d="M -65 -7.5 L 65 -7.5 L 65 7.5 L -65 7.5 Z " fill="url(#pattern-cannonball-big)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 350 210)" id="two-45" d="M -25 -7.5 L 25 -7.5 L 25 7.5 L -25 7.5 Z " fill="rgb(210,255,210)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 350 210)" id="two-46" d="M -25 -7.5 L 25 -7.5 L 25 7.5 L -25 7.5 Z " fill="url(#pattern-cannonball-big)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 400 135)" id="two-47" d="M -75 -75 L 75 -75 L 75 75 L -75 75 Z " fill="rgb(0,0,255)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="0.3" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 396 135)" id="two-48" d="M -71 -67 L 71 -67 L 71 67 L -71 67 Z " fill="#fff" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 400 135)" id="two-49" d="M -75 -75 L 75 -75 L 75 75 L -75 75 Z " fill="url(#pattern-ldiag-big)" stroke="rgb(255, 62, 165)" stroke-width="4" stroke-opacity="0.8" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 620 135)" id="two-50" d="M -82.5 -82.5 L 82.5 -82.5 L 82.5 82.5 L -82.5 82.5 Z " fill="#fff" stroke="rgb(0,0,0)" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 620 135)" id="two-51" d="M -82.5 -82.5 L 82.5 -82.5 L 82.5 82.5 L -82.5 82.5 Z " fill="url(#pattern-cgrid-big)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 627.5 135)" id="two-52" d="M -78.75 -83.325 L 78.75 -83.325 L 78.75 83.325 L -78.75 83.325 Z " fill="#fff" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 627.5 135)" id="two-53" d="M -78.75 -83.325 L 78.75 -83.325 L 78.75 83.325 L -78.75 83.325 Z " fill="url(#pattern-Rdiag-big)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 610 60)" id="two-54" d="M -65 -7.5 L 65 -7.5 L 65 7.5 L -65 7.5 Z " fill="rgb(210,255,210)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 610 60)" id="two-55" d="M -65 -7.5 L 65 -7.5 L 65 7.5 L -65 7.5 Z " fill="url(#pattern-cannonball-big)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 570 210)" id="two-56" d="M -25 -7.5 L 25 -7.5 L 25 7.5 L -25 7.5 Z " fill="rgb(210,255,210)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 570 210)" id="two-57" d="M -25 -7.5 L 25 -7.5 L 25 7.5 L -25 7.5 Z " fill="url(#pattern-cannonball-big)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 620 135)" id="two-58" d="M -75 -75 L 75 -75 L 75 75 L -75 75 Z " fill="rgb(0,0,255)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="0.3" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 616 135)" id="two-59" d="M -71 -67 L 71 -67 L 71 67 L -71 67 Z " fill="#fff" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 620 135)" id="two-60" d="M -75 -75 L 75 -75 L 75 75 L -75 75 Z " fill="url(#pattern-ldiag-big)" stroke="rgb(255, 62, 165)" stroke-width="4" stroke-opacity="0.8" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 616 135)" id="two-61" d="M -71 -67 L 71 -67 L 71 -17 L 51 -17 L 51 3 L 31 3 L 31 13 L -31 13 L -31 17 L -31 37 L -21 37 L -21 67 L -71 67 Z " fill="rgb(210,255,210)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 616 135)" id="two-62" d="M -71 -67 L 71 -67 L 71 -17 L 51 -17 L 51 3 L 31 3 L 31 13 L -31 13 L -31 17 L -31 37 L -21 37 L -21 67 L -71 67 Z " fill="url(#pattern-cannonball-big)" stroke="rgb(235,69,95)" stroke-width="2" stroke-opacity="0.5" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 140 425)" id="two-63" d="M -133 -103 L 133 -103 L 133 103 L -133 103 Z " fill="url(#pattern-cgrid)" stroke="rgb(0,0,0)" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 140 425)" id="two-64" d="M -125 -95 L 125 -95 L 125 95 L -125 95 Z " fill="#fff" stroke="#000" stroke-width="2" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 140 425)" id="two-65" d="M -125 -95 L 125 -95 L 125 95 L -125 95 Z " fill="url(#pattern-Rdiag)" stroke="#000" stroke-width="2" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 110 415)" id="two-66" d="M -95 85 L -75 85 L -75 35 L -25 35 L -5 35 L -5 -55 L -25 -55 L -25 -72 L 95 -72 L 95 -85 L -95 -85 Z " fill="rgb(210,255,210)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 110 415)" id="two-67" d="M -95 85 L -75 85 L -75 35 L -25 35 L -5 35 L -5 -55 L -25 -55 L -25 -72 L 95 -72 L 95 -85 L -95 -85 Z " fill="url(#pattern-cannonball)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 60 405)" id="two-68" d="M -45 -45 L 45 -45 L 45 45 L -45 45 Z " fill="rgb(0,255,0)" stroke="rgb(100,150,100)" stroke-width="1" stroke-opacity="0.5" fill-opacity="0.215" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 440 425)" id="two-69" d="M -133 -103 L 133 -103 L 133 103 L -133 103 Z " fill="url(#pattern-cgrid)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 440 425)" id="two-70" d="M -125 -95 L 125 -95 L 125 95 L -125 95 Z " fill="#fff" stroke="#000" stroke-width="2" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 440 425)" id="two-71" d="M -125 -95 L 125 -95 L 125 95 L -125 95 Z " fill="url(#pattern-Rdiag)" stroke="#000" stroke-width="2" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 410 415)" id="two-72" d="M -95 85 L -85 85 L -85 80 L -80 80 L -80 85 L -75 85 L -75 75 L -80 75 L -80 70 L -75 70 L -75 45 L -80 45 L -80 40 L -75 40 L -75 15 L -45 15 L -45 10 L -40 10 L -40 15 L -25 15 L -25 -5 L -30 -5 L -30 -10 L -25 -10 L -25 -13 L -30 -13 L -30 -18 L -25 -18 L -25 -53 L -30 -53 L -30 -58 L -25 -58 L -25 -72 L -5 -72 L -5 -77 L 0 -77 L 0 -72 L 8 -72 L 8 -77 L 13 -77 L 13 -72 L 16 -72 L 16 -77 L 21 -77 L 21 -72 L 47 -72 L 47 -77 L 52 -77 L 52 -72 L 56 -72 L 56 -77 L 61 -77 L 61 -72 L 85 -72 L 85 -77 L 90 -77 L 90 -72 L 95 -72 L 95 -85 L -95 -85 Z " fill="rgb(210,255,210)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 410 415)" id="two-73" d="M -95 85 L -85 85 L -85 80 L -80 80 L -80 85 L -75 85 L -75 75 L -80 75 L -80 70 L -75 70 L -75 45 L -80 45 L -80 40 L -75 40 L -75 15 L -45 15 L -45 10 L -40 10 L -40 15 L -25 15 L -25 -5 L -30 -5 L -30 -10 L -25 -10 L -25 -13 L -30 -13 L -30 -18 L -25 -18 L -25 -53 L -30 -53 L -30 -58 L -25 -58 L -25 -72 L -5 -72 L -5 -77 L 0 -77 L 0 -72 L 8 -72 L 8 -77 L 13 -77 L 13 -72 L 16 -72 L 16 -77 L 21 -77 L 21 -72 L 47 -72 L 47 -77 L 52 -77 L 52 -72 L 56 -72 L 56 -77 L 61 -77 L 61 -72 L 85 -72 L 85 -77 L 90 -77 L 90 -72 L 95 -72 L 95 -85 L -95 -85 Z " fill="url(#pattern-cannonball)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 360 405)" id="two-74" d="M -45 -45 L 45 -45 L 45 45 L -45 45 Z " fill="rgb(100,50,0)" stroke="rgb(100,50,0)" stroke-width="1" stroke-opacity="0.0125" fill-opacity="0.1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 740 425)" id="two-75" d="M -133 -103 L 133 -103 L 133 103 L -133 103 Z " fill="url(#pattern-cgrid)" stroke="none" stroke-width="0" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 740 425)" id="two-76" d="M -125 -95 L 125 -95 L 125 95 L -125 95 Z " fill="#fff" stroke="#000" stroke-width="2" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 740 425)" id="two-77" d="M -125 -95 L 125 -95 L 125 95 L -125 95 Z " fill="url(#pattern-Rdiag)" stroke="#000" stroke-width="2" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 710 415)" id="two-78" d="M -95 85 L -75 85 L -75 35 L -95 35 L -95 35 L -95 -55 L -25 -55 L -25 -72 L 95 -72 L 95 -85 L -95 -85 Z " fill="rgb(210,255,210)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 710 415)" id="two-79" d="M -95 85 L -75 85 L -75 35 L -95 35 L -95 35 L -95 -55 L -25 -55 L -25 -72 L 95 -72 L 95 -85 L -95 -85 Z " fill="url(#pattern-cannonball)" stroke="rgb(0,0,0)" stroke-width="1" stroke-opacity="1" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 660 405)" id="two-80" d="M -45 -45 L 45 -45 L 45 45 L -45 45 Z " fill="rgb(255,0,0)" stroke="rgb(150,100,100)" stroke-width="1" stroke-opacity="0.125" fill-opacity="0.05" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 0 0)" id="two-81" d="M 545 210 C 545 210 695 210 695 210 C 695 210 695 240 695 240 C 695 240 545 240 545 240 C 545 230 545 220 545 210 Z " fill="url(#two-82)" stroke="rgb(0,0,0)" stroke-width="0" stroke-opacity="0" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 0 0)" id="two-83" d="M 545 240 C 545 240 595 240 595 240 C 595 320 105 260 105 360 C 105 360 15 360 15 360 C 15 240 545 280 545 240 Z " fill="url(#two-84)" stroke="rgb(0,0,0)" stroke-width="0" stroke-opacity="0" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 0 0)" id="two-85" d="M 595 240 C 595 240 645 240 645 240 C 645 320 435 275 435 320 C 435 320 425 320 425 320 C 425 260 595 320 595 240 Z " fill="url(#two-86)" stroke="rgb(0,0,0)" stroke-width="0" stroke-opacity="0" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path><path transform="matrix(1 0 0 1 0 0)" id="two-87" d="M 645 240 C 645 240 695 240 695 240 C 695 290 670 290 670 320 C 670 320 667 320 667 320 C 667 290 645 290 645 240 Z " fill="url(#two-88)" stroke="rgb(0,0,0)" stroke-width="0" stroke-opacity="0" fill-opacity="1" visibility="visible" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"></path></g></svg>

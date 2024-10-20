@@ -1,0 +1,1753 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="880"
+   height="600"
+   style="overflow: hidden; display: block;"
+   id="svg395"
+   sodipodi:docname="poms_alg5.svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview397"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="0.5925"
+     inkscape:cx="583.96624"
+     inkscape:cy="392.40506"
+     inkscape:window-width="1920"
+     inkscape:window-height="1178"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg395" />
+  <defs
+     id="defs310">
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-cannonball-big"
+       id="pattern1310"
+       patternTransform="translate(616,135)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-ldiag-big"
+       id="pattern1306"
+       patternTransform="translate(620,135)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-cannonball-big"
+       id="pattern1301"
+       patternTransform="translate(570,210)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-cannonball-big"
+       id="pattern1297"
+       patternTransform="translate(610,60)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-Rdiag-big"
+       id="pattern1293"
+       patternTransform="translate(627.5,135)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-cgrid-big"
+       id="pattern1289"
+       patternTransform="translate(620,135)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-ldiag-big"
+       id="pattern1285"
+       patternTransform="translate(400,135)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-cannonball-big"
+       id="pattern1280"
+       patternTransform="translate(350,210)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-cannonball-big"
+       id="pattern1276"
+       patternTransform="translate(390,60)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-Rdiag-big"
+       id="pattern1272"
+       patternTransform="translate(407.5,135)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-cgrid-big"
+       id="pattern1268"
+       patternTransform="translate(400,135)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-ldiag"
+       id="pattern1262"
+       patternTransform="translate(60,125)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-cannonball"
+       id="pattern1259"
+       patternTransform="translate(110,135)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-Rdiag"
+       id="pattern1255"
+       patternTransform="translate(140,145)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#pattern-cgrid"
+       id="pattern1251"
+       patternTransform="translate(140,145)" />
+    <!-- 20 -->
+    <pattern
+       id="pattern-xannonball_"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <circle
+         cx="0"
+         cy="6"
+         r="2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle2" />
+      <circle
+         cx="12"
+         cy="6"
+         r="2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle4" />
+      <circle
+         cx="6"
+         cy="0"
+         r="2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle6" />
+      <circle
+         cx="6"
+         cy="12"
+         r="2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle8" />
+    </pattern>
+    <!-- 20 dark green -->
+    <pattern
+       id="pattern-cannonball"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <circle
+         cx="0"
+         cy="6"
+         r="2"
+         style="stroke: var(--pattern-channel-1, rgb(139,220,116))"
+         fill="rgb(139,220,116)"
+         id="circle11" />
+      <circle
+         cx="12"
+         cy="6"
+         r="2"
+         style="stroke: var(--pattern-channel-1, rgb(139,220,116))"
+         fill="rgb(139,220,116)"
+         id="circle13" />
+      <circle
+         cx="6"
+         cy="0"
+         r="2"
+         style="stroke: var(--pattern-channel-1, rgb(139,220,116))"
+         fill="rgb(139,220,116)"
+         id="circle15" />
+      <circle
+         cx="6"
+         cy="12"
+         r="2"
+         style="stroke: var(--pattern-channel-1, rgb(139,220,116))"
+         fill="rgb(139,220,116)"
+         id="circle17" />
+    </pattern>
+    <!-- 20 dark green -->
+    <pattern
+       id="pattern-cannonball-big"
+       patternUnits="userSpaceOnUse"
+       width="18"
+       height="18">
+      <circle
+         cx="0"
+         cy="9"
+         r="3"
+         style="stroke: var(--pattern-channel-1, rgb(139,220,116))"
+         fill="rgb(139,220,116)"
+         id="circle20" />
+      <circle
+         cx="18"
+         cy="9"
+         r="3"
+         style="stroke: var(--pattern-channel-1, rgb(139,220,116))"
+         fill="rgb(139,220,116)"
+         id="circle22" />
+      <circle
+         cx="9"
+         cy="0"
+         r="3"
+         style="stroke: var(--pattern-channel-1, rgb(139,220,116))"
+         fill="rgb(139,220,116)"
+         id="circle24" />
+      <circle
+         cx="9"
+         cy="18"
+         r="3"
+         style="stroke: var(--pattern-channel-1, rgb(139,220,116))"
+         fill="rgb(139,220,116)"
+         id="circle26" />
+    </pattern>
+    <pattern
+       id="pattern-cannonball-huge"
+       patternUnits="userSpaceOnUse"
+       width="24"
+       height="24">
+      <circle
+         cx="0"
+         cy="12"
+         r="4"
+         style="stroke: var(--pattern-channel-1, rgb(139,220,116))"
+         fill="rgb(139,220,116)"
+         id="circle29" />
+      <circle
+         cx="24"
+         cy="12"
+         r="4"
+         style="stroke: var(--pattern-channel-1, rgb(139,220,116))"
+         fill="rgb(139,220,116)"
+         id="circle31" />
+      <circle
+         cx="12"
+         cy="0"
+         r="4"
+         style="stroke: var(--pattern-channel-1, rgb(139,220,116))"
+         fill="rgb(139,220,116)"
+         id="circle33" />
+      <circle
+         cx="12"
+         cy="24"
+         r="4"
+         style="stroke: var(--pattern-channel-1, rgb(139,220,116))"
+         fill="rgb(139,220,116)"
+         id="circle35" />
+    </pattern>
+    <pattern
+       id="pattern-cannonball_bak"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <circle
+         cx="0"
+         cy="6"
+         r="2"
+         style="stroke: var(--pattern-channel-1, rgb(139,177,116))"
+         fill="rgb(139,177,116)"
+         id="circle38" />
+      <circle
+         cx="12"
+         cy="6"
+         r="2"
+         style="stroke: var(--pattern-channel-1, rgb(139,177,116))"
+         fill="rgb(139,177,116)"
+         id="circle40" />
+      <circle
+         cx="6"
+         cy="0"
+         r="2"
+         style="stroke: var(--pattern-channel-1, rgb(139,177,116))"
+         fill="rgb(139,177,116)"
+         id="circle42" />
+      <circle
+         cx="6"
+         cy="12"
+         r="2"
+         style="stroke: var(--pattern-channel-1, rgb(139,177,116))"
+         fill="rgb(139,177,116)"
+         id="circle44" />
+    </pattern>
+    <!-- 20 -->
+    <pattern
+       id="pattern-cannonball-lg"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <circle
+         cx="0"
+         cy="6"
+         r="2"
+         style="stroke: var(--pattern-channel-1, rgb(167,196,151))"
+         fill="rgb(167,196,151)"
+         id="circle47" />
+      <circle
+         cx="12"
+         cy="6"
+         r="2"
+         style="stroke: var(--pattern-channel-1, rgb(167,196,151))"
+         fill="rgb(167,196,151)"
+         id="circle49" />
+      <circle
+         cx="6"
+         cy="0"
+         r="2"
+         style="stroke: var(--pattern-channel-1, rgb(167,196,151))"
+         fill="rgb(167,196,151)"
+         id="circle51" />
+      <circle
+         cx="6"
+         cy="12"
+         r="2"
+         style="stroke: var(--pattern-channel-1, rgb(167,196,151))"
+         fill="rgb(167,196,151)"
+         id="circle53" />
+    </pattern>
+    <!-- 23 -->
+    <pattern
+       id="pattern-sgrid"
+       patternUnits="userSpaceOnUse"
+       width="4"
+       height="4">
+      <rect
+         width="2"
+         height="2"
+         x="0"
+         y="0"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="rect56" />
+    </pattern>
+    <!-- 3 -->
+    <pattern
+       id="pattern-Rdiag_base"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <path
+         d="M-1,1 l4,-4 M0,8 l8,-8 M6,10 l4,-4"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path59" />
+    </pattern>
+    <!-- 3 dark blue -->
+    <pattern
+       id="pattern-Rdiag"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <path
+         d="M-1,1 l4,-4 M0,8 l8,-8 M6,10 l4,-4"
+         stroke="rgb(155,195,212)"
+         style="stroke: var(--pattern-channel-1, rgb(155,195,212))"
+         stroke-width="1.125"
+         id="path62" />
+    </pattern>
+    <pattern
+       id="pattern-Rdiag-big"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <path
+         d="M-1.5,1.5 l6,-6 M0,12 l12,-12 M9,15 l6,-6"
+         stroke="rgb(155,195,212)"
+         style="stroke: var(--pattern-channel-1, rgb(155,195,212))"
+         stroke-width="1.75"
+         id="path65" />
+    </pattern>
+    <!-- 31 -->
+    <pattern
+       id="pattern-cgrid"
+       patternUnits="userSpaceOnUse"
+       width="4"
+       height="4">
+      <circle
+         cx="2"
+         cy="2"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle68" />
+    </pattern>
+    <pattern
+       id="pattern-cgrid-big"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <circle
+         cx="3"
+         cy="3"
+         r="1.5"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle71" />
+    </pattern>
+    <!-- 39 -->
+    <pattern
+       id="pattern-vwave"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <path
+         d="M5,-1 l2,2 M5,7 l2,-2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="path74" />
+      <polyline
+         points="0,0 3,3 0,6"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="polyline76" />
+    </pattern>
+    <!-- 6 -->
+    <pattern
+       id="xxxpattern-ldiag_base"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <path
+         d="M7,1 l-2,-2 M0,0 l6,6 M1,7 l-2,-2"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path79" />
+    </pattern>
+    <!-- 6 mid blue -->
+    <pattern
+       id="pattern-ldiag"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <path
+         d="M7,1 l-2,-2 M0,0 l6,6 M1,7 l-2,-2"
+         stroke="rgb(164,216,224)"
+         style="stroke: var(--pattern-channel-1, rgb(164,216,224))"
+         id="path82" />
+    </pattern>
+    <pattern
+       id="pattern-ldiag-big"
+       patternUnits="userSpaceOnUse"
+       width="9"
+       height="9">
+      <path
+         d="M10.5,1.5 l-3,-3 M0,0 l9,9 M1.5,10.5 l-3,-3"
+         stroke="rgb(164,216,224)"
+         style="stroke: var(--pattern-channel-1, rgb(164,216,224))"
+         stroke-width="1.7"
+         id="path85" />
+    </pattern>
+    <pattern
+       id="pattern-1"
+       patternUnits="userSpaceOnUse"
+       width="4"
+       height="4">
+      <path
+         d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path88" />
+    </pattern>
+    <pattern
+       id="pattern-10"
+       patternUnits="userSpaceOnUse"
+       width="4"
+       height="4">
+      <path
+         d="M2,0 l0,4 M0,2 l4,0"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path91" />
+    </pattern>
+    <pattern
+       id="pattern-11"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <path
+         d="M3,0 l0,6 M0,3 l6,0"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path94" />
+    </pattern>
+    <pattern
+       id="pattern-12"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <path
+         d="M4,0 l0,8 M0,4 l8,0"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path97" />
+    </pattern>
+    <pattern
+       id="pattern-13"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <path
+         d="M6,0 l0,12 M0,6 l12,0"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path100" />
+    </pattern>
+    <pattern
+       id="pattern-14"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <path
+         d="M-1,5 l2,2 M5,7 l2,-2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="path103" />
+      <polyline
+         points="0,0 3,3 6,0"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="polyline105" />
+    </pattern>
+    <pattern
+       id="pattern-15"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <path
+         d="M-1,7 l2,2 M7,9 l2,-2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="path108" />
+      <polyline
+         points="0,0 4,4 8,0"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="polyline110" />
+    </pattern>
+    <pattern
+       id="pattern-16"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <path
+         d="M-1,11 l2,2 M11,13 l2,-2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="path113" />
+      <polyline
+         points="0,0 6,6 12,0"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="polyline115" />
+    </pattern>
+    <pattern
+       id="pattern-17"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <circle
+         cx="4"
+         cy="4"
+         r="2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle118" />
+    </pattern>
+    <pattern
+       id="pattern-18"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <circle
+         cx="6"
+         cy="6"
+         r="3"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle121" />
+    </pattern>
+    <pattern
+       id="pattern-19"
+       patternUnits="userSpaceOnUse"
+       width="16"
+       height="16">
+      <circle
+         cx="8"
+         cy="8"
+         r="4"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle124" />
+    </pattern>
+    <pattern
+       id="pattern-2"
+       patternUnits="userSpaceOnUse"
+       width="4"
+       height="4">
+      <path
+         d="M0,0 l4,4              M-1,3 l2,2              M3,-1 l2,2"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path127" />
+    </pattern>
+    <pattern
+       id="pattern-20"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <circle
+         cx="0"
+         cy="6"
+         r="2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle130" />
+      <circle
+         cx="12"
+         cy="6"
+         r="2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle132" />
+      <circle
+         cx="6"
+         cy="0"
+         r="2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle134" />
+      <circle
+         cx="6"
+         cy="12"
+         r="2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle136" />
+    </pattern>
+    <pattern
+       id="pattern-21"
+       patternUnits="userSpaceOnUse"
+       width="16"
+       height="16">
+      <circle
+         cx="0"
+         cy="8"
+         r="3"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle139" />
+      <circle
+         cx="16"
+         cy="8"
+         r="3"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle141" />
+      <circle
+         cx="8"
+         cy="0"
+         r="3"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle143" />
+      <circle
+         cx="8"
+         cy="16"
+         r="3"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle145" />
+    </pattern>
+    <pattern
+       id="pattern-22"
+       patternUnits="userSpaceOnUse"
+       width="24"
+       height="24">
+      <circle
+         cx="0"
+         cy="12"
+         r="4"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle148" />
+      <circle
+         cx="24"
+         cy="12"
+         r="4"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle150" />
+      <circle
+         cx="12"
+         cy="0"
+         r="4"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle152" />
+      <circle
+         cx="12"
+         cy="24"
+         r="4"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="circle154" />
+    </pattern>
+    <pattern
+       id="pattern-23"
+       patternUnits="userSpaceOnUse"
+       width="4"
+       height="4">
+      <rect
+         width="2"
+         height="2"
+         x="0"
+         y="0"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="rect157" />
+    </pattern>
+    <pattern
+       id="pattern-24"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <rect
+         width="2"
+         height="2"
+         x="0"
+         y="0"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="rect160" />
+    </pattern>
+    <pattern
+       id="pattern-25"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <rect
+         width="2"
+         height="2"
+         x="0"
+         y="0"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="rect163" />
+    </pattern>
+    <pattern
+       id="pattern-26"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <rect
+         width="2"
+         height="2"
+         x="0"
+         y="0"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="rect166" />
+    </pattern>
+    <pattern
+       id="pattern-27"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <path
+         d="M2,2 l2,0 l0,2 l-2,0 l0,-2 M0,0 l1,0 l0,1 l-1,0 l0,-1 M5,0 l1,0 l0,1 l-1,0 l0,-1 M0,5 l1,0 l0,1 l-1,0 l0,-1 M5,5 l1,0 l0,1 l-1,0 l0,-1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="path169" />
+    </pattern>
+    <pattern
+       id="pattern-28"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <path
+         d="M3,3 l2,0 l0,2 l-2,0 l0,-2 M0,0 l1,0 l0,1 l-1,0 l0,-1 M7,0 l1,0 l0,1 l-1,0 l0,-1 M0,7 l1,0 l0,1 l-1,0 l0,-1 M7,7 l1,0 l0,1 l-1,0 l0,-1"
+         fill="hotpink"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="path172" />
+    </pattern>
+    <pattern
+       id="pattern-29"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <path
+         d="M5,5 l2,0 l0,2 l-2,0 l0,-2 M0,0 l1,0 l0,1 l-1,0 l0,-1 M11,0 l1,0 l0,1 l-1,0 l0,-1 M0,11 l1,0 l0,1 l-1,0 l0,-1 M11,11 l1,0 l0,1 l-1,0 l0,-1"
+         fill="hotpink"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="path175" />
+    </pattern>
+    <pattern
+       id="pattern-3"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <path
+         d="M-1,1 l4,-4 M0,8 l8,-8 M6,10 l4,-4"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path178" />
+    </pattern>
+    <pattern
+       id="pattern-30"
+       patternUnits="userSpaceOnUse"
+       width="16"
+       height="16">
+      <path
+         d="M7,7 l2,0 l0,2 l-2,0 l0,-2 M0,0 l1,0 l0,1 l-1,0 l0,-1 M15,0 l1,0 l0,1 l-1,0 l0,-1 M0,15 l1,0 l0,1 l-1,0 l0,-1 M15,15 l1,0 l0,1 l-1,0 l0,-1"
+         fill="hotpink"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="path181" />
+    </pattern>
+    <pattern
+       id="pattern-31"
+       patternUnits="userSpaceOnUse"
+       width="4"
+       height="4">
+      <circle
+         cx="2"
+         cy="2"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle184" />
+    </pattern>
+    <pattern
+       id="pattern-32"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <circle
+         cx="3"
+         cy="3"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle187" />
+    </pattern>
+    <pattern
+       id="pattern-33"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <circle
+         cx="4"
+         cy="4"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle190" />
+    </pattern>
+    <pattern
+       id="pattern-34"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <circle
+         cx="6"
+         cy="6"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle193" />
+    </pattern>
+    <pattern
+       id="pattern-35"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <circle
+         cx="0"
+         cy="0"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle196" />
+      <circle
+         cx="0"
+         cy="6"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle198" />
+      <circle
+         cx="6"
+         cy="6"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle200" />
+      <circle
+         cx="6"
+         cy="0"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle202" />
+      <circle
+         cx="3"
+         cy="3"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle204" />
+    </pattern>
+    <pattern
+       id="pattern-36"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <circle
+         cx="0"
+         cy="0"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle207" />
+      <circle
+         cx="0"
+         cy="8"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-cannel-1, currentcolor)"
+         id="circle209" />
+      <circle
+         cx="8"
+         cy="8"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle211" />
+      <circle
+         cx="8"
+         cy="0"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle213" />
+      <circle
+         cx="4"
+         cy="4"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle215" />
+    </pattern>
+    <pattern
+       id="pattern-37"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <circle
+         cx="0"
+         cy="0"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle218" />
+      <circle
+         cx="0"
+         cy="12"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle220" />
+      <circle
+         cx="12"
+         cy="12"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle222" />
+      <circle
+         cx="12"
+         cy="0"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle224" />
+      <circle
+         cx="6"
+         cy="6"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle226" />
+    </pattern>
+    <pattern
+       id="pattern-38"
+       patternUnits="userSpaceOnUse"
+       width="16"
+       height="16">
+      <circle
+         cx="0"
+         cy="0"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle229" />
+      <circle
+         cx="0"
+         cy="16"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle231" />
+      <circle
+         cx="16"
+         cy="16"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle233" />
+      <circle
+         cx="16"
+         cy="0"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle235" />
+      <circle
+         cx="8"
+         cy="8"
+         r="1"
+         fill="currentcolor"
+         style="fill: var(--pattern-channel-1, currentcolor)"
+         id="circle237" />
+    </pattern>
+    <pattern
+       id="pattern-39"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <path
+         d="M5,-1 l2,2 M5,7 l2,-2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="path240" />
+      <polyline
+         points="0,0 3,3 0,6"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="polyline242" />
+    </pattern>
+    <pattern
+       id="pattern-4"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <path
+         d="M0,0 l8,8              M-1,7 l4,4              M7,-1 l4,4"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path245" />
+    </pattern>
+    <pattern
+       id="pattern-40"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <path
+         d="M7,-1 l2,2 M7,9 l2,-2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="path248" />
+      <polyline
+         points="0,0 4,4 0,8"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="polyline250" />
+    </pattern>
+    <pattern
+       id="pattern-41"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <path
+         d="M11,-1 l2,2 M11,13 l2,-2"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="path253" />
+      <polyline
+         points="0,0 6,6 0,12"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         fill="none"
+         id="polyline255" />
+    </pattern>
+    <pattern
+       id="pattern-5"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <path
+         d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path258" />
+    </pattern>
+    <pattern
+       id="pattern-6"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <path
+         d="M7,1 l-2,-2 M0,0 l6,6 M1,7 l-2,-2"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path261" />
+    </pattern>
+    <pattern
+       id="pattern-7"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <path
+         d="M0,0 l6,6 M6,0 l-6,6"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path264" />
+    </pattern>
+    <pattern
+       id="pattern-8"
+       patternUnits="userSpaceOnUse"
+       width="8"
+       height="8">
+      <path
+         d="M0,0 l8,8              M8,0 l-8,8"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path267" />
+    </pattern>
+    <pattern
+       id="pattern-9"
+       patternUnits="userSpaceOnUse"
+       width="12"
+       height="12">
+      <path
+         d="M0,0 l12,12 M12,0 l-12,12"
+         stroke="currentcolor"
+         style="stroke: var(--pattern-channel-1, currentcolor)"
+         id="path270" />
+    </pattern>
+    <pattern
+       id="pattern-5r"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6">
+      <path
+         d="M-1,1 l2,-2 M0,6 l6,-6 M5,7 l2,-2"
+         stroke="#ff0000"
+         stroke-opacity="0.45"
+         style="stroke: var(--pattern-channel-1, #ff0000)"
+         id="path273" />
+    </pattern>
+    <linearGradient
+       id="two-36"
+       x1="86.379091"
+       y1="71.982119"
+       x2="269.0564"
+       y2="71.982119"
+       spreadMethod="pad"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="scale(1.2097835,0.82659417)">
+      <stop
+         offset="0%"
+         stop-color="rgb(47,55,55)"
+         stop-opacity="0.025"
+         id="stop276" />
+      <stop
+         offset="100%"
+         stop-color="rgb(47,55,55)"
+         stop-opacity="0.3"
+         id="stop278" />
+    </linearGradient>
+    <linearGradient
+       id="two-38"
+       x1="695.3288"
+       y1="40.987803"
+       x2="797.79831"
+       y2="40.987803"
+       spreadMethod="pad"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="scale(0.68313005,1.4638501)">
+      <stop
+         offset="0%"
+         stop-color="rgb(47,55,55)"
+         stop-opacity="0.1"
+         id="stop281" />
+      <stop
+         offset="100%"
+         stop-color="rgb(47,55,55)"
+         stop-opacity="0.3"
+         id="stop283" />
+    </linearGradient>
+    <linearGradient
+       id="two-82"
+       x1="243.73141"
+       y1="476.28247"
+       x2="243.73141"
+       y2="536.65631"
+       spreadMethod="pad"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="scale(2.2360679,0.4472136)">
+      <stop
+         offset="0%"
+         stop-color="rgb(47,55,55)"
+         stop-opacity="0.025"
+         id="stop286" />
+      <stop
+         offset="100%"
+         stop-color="rgb(47,55,55)"
+         stop-opacity="0.1"
+         id="stop288" />
+    </linearGradient>
+    <linearGradient
+       id="two-84"
+       x1="6.8228822"
+       y1="554.01805"
+       x2="6.8228822"
+       y2="791.45436"
+       spreadMethod="pad"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="scale(2.1984843,0.45485883)">
+      <stop
+         offset="0%"
+         stop-color="rgb(47,55,55)"
+         stop-opacity="0.1"
+         id="stop291" />
+      <stop
+         offset="25%"
+         stop-color="rgb(167,196,151)"
+         stop-opacity="0.3"
+         id="stop293" />
+      <stop
+         offset="75%"
+         stop-color="rgb(167,196,151)"
+         stop-opacity="0.4"
+         id="stop295" />
+      <stop
+         offset="100%"
+         stop-color="rgb(167,196,151)"
+         stop-opacity="0.1"
+         id="stop297" />
+    </linearGradient>
+    <linearGradient
+       id="two-86"
+       x1="256.28464"
+       y1="411.26147"
+       x2="256.28464"
+       y2="530.65997"
+       spreadMethod="pad"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="scale(1.6583124,0.60302269)">
+      <stop
+         offset="0%"
+         stop-color="rgb(47,55,55)"
+         stop-opacity="0.1"
+         id="stop300" />
+      <stop
+         offset="100%"
+         stop-color="rgb(233,114,76)"
+         stop-opacity="0.9"
+         id="stop302" />
+    </linearGradient>
+    <linearGradient
+       id="two-88"
+       x1="815.86763"
+       y1="196.06122"
+       x2="815.86763"
+       y2="252.98221"
+       spreadMethod="pad"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="scale(0.79056942,1.2649111)">
+      <stop
+         offset="0%"
+         stop-color="rgb(47,55,55)"
+         stop-opacity="0.1"
+         id="stop305" />
+      <stop
+         offset="100%"
+         stop-color="rgb(255,94,91)"
+         stop-opacity="0.9"
+         id="stop307" />
+    </linearGradient>
+  </defs>
+  <path
+     id="two-29"
+     d="M 7,42 H 273 V 248 H 7 Z"
+     fill="url(#pattern-cgrid)"
+     stroke="none"
+     stroke-width="0"
+     stroke-opacity="1"
+     fill-opacity="1"
+     visibility="visible"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     stroke-miterlimit="4"
+     style="fill:url(#pattern1251)" />
+  <path
+     id="two-30"
+     d="M 15,50 H 265 V 240 H 15 Z"
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="2"
+     stroke-opacity="1"
+     fill-opacity="1"
+     visibility="visible"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     stroke-miterlimit="4" />
+  <path
+     id="two-31"
+     d="M 15,50 H 265 V 240 H 15 Z"
+     fill="url(#pattern-Rdiag)"
+     stroke="#000000"
+     stroke-width="2"
+     stroke-opacity="1"
+     fill-opacity="1"
+     visibility="visible"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     stroke-miterlimit="4"
+     style="fill:url(#pattern1255)" />
+  <path
+     id="two-32"
+     d="M 15,220 H 35 V 150 H 85 V 63 H 205 V 50 H 15 Z"
+     fill="#d2ffd2"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-opacity="1"
+     fill-opacity="1"
+     visibility="visible"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     stroke-miterlimit="4" />
+  <path
+     id="two-33"
+     d="M 15,220 H 35 V 150 H 85 V 63 H 205 V 50 H 15 Z"
+     fill="url(#pattern-cannonball)"
+     stroke="#000000"
+     stroke-width="2"
+     stroke-opacity="1"
+     fill-opacity="1"
+     visibility="visible"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     stroke-miterlimit="4"
+     style="fill:url(#pattern1259)" />
+  <path
+     id="two-34"
+     d="m 15,80 h 90 v 90 H 15 Z"
+     fill="url(#pattern-ldiag)"
+     stroke="#ff3ea5"
+     stroke-width="3"
+     stroke-opacity="0.8"
+     fill-opacity="1"
+     visibility="visible"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     stroke-miterlimit="4"
+     style="fill:url(#pattern1262)" />
+  <path
+     id="two-35"
+     d="m 105,80 c 120,0 100,-20 220,-20 0,0 0,150 0,150 -120,0 -100,-40 -220,-40 0,0 0,-90 0,-90 z"
+     fill="url(#two-36)"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-opacity="0.5"
+     fill-opacity="1"
+     visibility="visible"
+     stroke-linecap="butt"
+     stroke-linejoin="miter"
+     stroke-miterlimit="4"
+     style="fill:url(#two-36)" />
+  <g
+     id="g2258">
+    <path
+       id="two-39"
+       d="m 317.5,52.5 h 165 v 165 h -165 z"
+       fill="#ffffff"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4" />
+    <path
+       id="two-40"
+       d="m 317.5,52.5 h 165 v 165 h -165 z"
+       fill="url(#pattern-cgrid-big)"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4"
+       style="fill:url(#pattern1268)" />
+    <path
+       id="two-41"
+       d="m 328.75,51.675 h 157.5 v 166.65 h -157.5 z"
+       fill="#ffffff"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4" />
+    <path
+       id="two-42"
+       d="m 328.75,51.675 h 157.5 v 166.65 h -157.5 z"
+       fill="url(#pattern-Rdiag-big)"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4"
+       style="fill:url(#pattern1272)" />
+    <path
+       id="two-43"
+       d="m 325,52.5 h 130 v 15 H 325 Z"
+       fill="#d2ffd2"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4" />
+    <path
+       id="two-44"
+       d="m 325,52.5 h 130 v 15 H 325 Z"
+       fill="url(#pattern-cannonball-big)"
+       stroke="#000000"
+       stroke-width="1"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4"
+       style="fill:url(#pattern1276)" />
+    <path
+       id="two-45"
+       d="m 325,202.5 h 50 v 15 h -50 z"
+       fill="#d2ffd2"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4" />
+    <path
+       id="two-46"
+       d="m 325,202.5 h 50 v 15 h -50 z"
+       fill="url(#pattern-cannonball-big)"
+       stroke="#000000"
+       stroke-width="1"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4"
+       style="fill:url(#pattern1280)" />
+    <path
+       id="two-47"
+       d="M 325,60 H 475 V 210 H 325 Z"
+       fill="#0000ff"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="0.3"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4" />
+    <path
+       id="two-48"
+       d="M 325,68 H 467 V 202 H 325 Z"
+       fill="#ffffff"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4" />
+    <path
+       id="two-49"
+       d="M 325,60 H 475 V 210 H 325 Z"
+       fill="url(#pattern-ldiag-big)"
+       stroke="#ff3ea5"
+       stroke-width="4"
+       stroke-opacity="0.8"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4"
+       style="fill:url(#pattern1285)" />
+  </g>
+  <g
+     id="g2245"
+     transform="translate(-220)">
+    <path
+       id="two-50"
+       d="m 537.5,52.5 h 165 v 165 h -165 z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4" />
+    <path
+       id="two-51"
+       d="m 537.5,52.5 h 165 v 165 h -165 z"
+       fill="url(#pattern-cgrid-big)"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4"
+       style="fill:url(#pattern1289)" />
+    <path
+       id="two-52"
+       d="m 548.75,51.675 h 157.5 v 166.65 h -157.5 z"
+       fill="#ffffff"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4" />
+    <path
+       id="two-53"
+       d="m 548.75,51.675 h 157.5 v 166.65 h -157.5 z"
+       fill="url(#pattern-Rdiag-big)"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4"
+       style="fill:url(#pattern1293)" />
+    <path
+       id="two-54"
+       d="m 545,52.5 h 130 v 15 H 545 Z"
+       fill="#d2ffd2"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4" />
+    <path
+       id="two-55"
+       d="m 545,52.5 h 130 v 15 H 545 Z"
+       fill="url(#pattern-cannonball-big)"
+       stroke="#000000"
+       stroke-width="1"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4"
+       style="fill:url(#pattern1297)" />
+    <path
+       id="two-56"
+       d="m 545,202.5 h 50 v 15 h -50 z"
+       fill="#d2ffd2"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4" />
+    <path
+       id="two-57"
+       d="m 545,202.5 h 50 v 15 h -50 z"
+       fill="url(#pattern-cannonball-big)"
+       stroke="#000000"
+       stroke-width="1"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4"
+       style="fill:url(#pattern1301)" />
+    <path
+       id="two-58"
+       d="M 545,60 H 695 V 210 H 545 Z"
+       fill="#0000ff"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="0.3"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4" />
+    <path
+       id="two-59"
+       d="M 545,68 H 687 V 202 H 545 Z"
+       fill="#ffffff"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4" />
+    <path
+       id="two-60"
+       d="M 545,60 H 695 V 210 H 545 Z"
+       fill="url(#pattern-ldiag-big)"
+       stroke="#ff3ea5"
+       stroke-width="4"
+       stroke-opacity="0.8"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4"
+       style="fill:url(#pattern1306)" />
+    <path
+       id="two-61"
+       d="m 545,68 h 142 v 50 h -20 v 20 h -20 v 10 h -62 v 4 20 h 10 v 30 h -50 z"
+       fill="#d2ffd2"
+       stroke="none"
+       stroke-width="0"
+       stroke-opacity="1"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4" />
+    <path
+       id="two-62"
+       d="m 545,68 h 142 v 50 h -20 v 20 h -20 v 10 h -62 v 4 20 h 10 v 30 h -50 z"
+       fill="url(#pattern-cannonball-big)"
+       stroke="#eb455f"
+       stroke-width="2"
+       stroke-opacity="0.5"
+       fill-opacity="1"
+       visibility="visible"
+       stroke-linecap="butt"
+       stroke-linejoin="miter"
+       stroke-miterlimit="4"
+       style="fill:url(#pattern1310)" />
+  </g>
+  <g
+     id="g2403"
+     transform="matrix(0.26560682,0,0,0.26560682,556.32997,86.5)">
+    <path
+       style="fill:#e4eaf6"
+       d="m 345.562,169.71 c 10.577,-12.691 16.369,-28.69 16.369,-45.21 V 26.483 H 150.069 v 98.018 c 0,16.521 5.792,32.519 16.369,45.21 l 62.488,74.987 c 5.455,6.548 5.455,16.057 0,22.605 l -62.488,74.987 c -10.577,12.692 -16.369,28.69 -16.369,45.21 v 98.016 h 211.862 v -98.018 c 0,-16.521 -5.792,-32.519 -16.369,-45.211 L 283.074,267.3 c -5.455,-6.548 -5.455,-16.057 0,-22.605 z"
+       id="path2305" />
+    <path
+       style="fill:#d7deed"
+       d="m 233.609,342.289 15.623,-74.987 c 1.364,-6.548 1.364,-16.057 0,-22.605 l -15.623,-74.986 c -2.644,-12.691 -4.092,-28.69 -4.092,-45.21 V 26.483 h -79.448 v 98.018 c 0,16.521 5.792,32.519 16.369,45.21 l 62.488,74.987 c 5.455,6.548 5.455,16.057 0,22.605 l -62.488,74.987 c -10.577,12.692 -16.369,28.69 -16.369,45.21 v 98.016 h 79.448 v -98.018 c 0,-16.52 1.449,-32.518 4.092,-45.209 z"
+       id="path2307" />
+    <g
+       id="g2313">
+      <path
+         style="fill:#959cb3"
+         d="M 370.759,512 H 141.241 c -4.875,0 -8.828,-3.953 -8.828,-8.828 v -17.655 c 0,-4.875 3.953,-8.828 8.828,-8.828 h 229.517 c 4.875,0 8.828,3.953 8.828,8.828 v 17.655 c 0,4.875 -3.952,8.828 -8.827,8.828 z"
+         id="path2309" />
+      <path
+         style="fill:#959cb3"
+         d="m 141.241,0 h 229.517 c 4.875,0 8.828,3.953 8.828,8.828 v 17.655 c 0,4.875 -3.953,8.828 -8.828,8.828 H 141.241 c -4.875,0 -8.828,-3.953 -8.828,-8.828 V 8.828 C 132.414,3.953 136.366,0 141.241,0 Z"
+         id="path2311" />
+    </g>
+    <g
+       id="g2319">
+      <path
+         style="fill:#707487"
+         d="M 220.69,26.483 V 8.828 C 220.69,3.953 224.643,0 229.518,0 h -88.276 c -4.875,0 -8.828,3.953 -8.828,8.828 v 17.655 c 0,4.875 3.953,8.828 8.828,8.828 h 88.276 c -4.876,-10e-4 -8.828,-3.953 -8.828,-8.828 z"
+         id="path2315" />
+      <path
+         style="fill:#707487"
+         d="m 220.69,503.172 v -17.655 c 0,-4.875 3.953,-8.828 8.828,-8.828 h -88.276 c -4.875,0 -8.828,3.953 -8.828,8.828 v 17.655 c 0,4.875 3.953,8.828 8.828,8.828 h 88.276 c -4.876,0 -8.828,-3.953 -8.828,-8.828 z"
+         id="path2317" />
+    </g>
+    <path
+       style="fill:#ffd782"
+       d="M 335.448,388.414 H 291.31 c -14.626,0 -26.483,-11.857 -26.483,-26.483 V 252.365 c 0,-8.2 2.854,-16.145 8.073,-22.471 l 46.626,-56.52 c 4.791,-5.75 0.703,-14.479 -6.782,-14.479 h -113.49 c -7.485,0 -11.573,8.729 -6.782,14.479 l 46.626,56.52 c 5.218,6.326 8.073,14.27 8.073,22.471 v 109.566 c 0,14.626 -11.857,26.483 -26.483,26.483 H 176.55 c -4.875,0 -8.828,3.953 -8.828,8.828 v 61.793 c 0,4.875 3.953,8.828 8.828,8.828 h 158.897 c 4.875,0 8.828,-3.953 8.828,-8.828 v -61.793 c 0.001,-4.876 -3.952,-8.828 -8.827,-8.828 z"
+       id="path2321" />
+    <g
+       id="g2327">
+      <path
+         style="fill:#ffc36e"
+         d="m 229.517,387.499 c 0,-0.239 0.015,-0.472 0.015,-0.712 -2.777,0.989 -5.726,1.626 -8.843,1.626 h -44.138 c -4.875,0 -8.828,3.953 -8.828,8.828 v 61.793 c 0,4.875 3.953,8.828 8.828,8.828 h 52.966 z"
+         id="path2323" />
+      <path
+         style="fill:#ffc36e"
+         d="m 192.473,173.376 46.626,56.52 c 5.218,6.325 8.072,14.27 8.072,22.47 v 24.821 l 2.059,-9.885 c 1.364,-6.548 1.364,-16.057 0,-22.605 l -15.622,-74.986 c -0.704,-3.379 -1.309,-7.019 -1.838,-10.814 h -32.516 c -7.484,0 -11.572,8.729 -6.781,14.479 z"
+         id="path2325" />
+    </g>
+  </g>
+  <text
+     id="two-23"
+     font-family="Libertine, 'Linux Libertine O'"
+     font-size="15px"
+     line-height="17"
+     text-anchor="start"
+     dominant-baseline="middle"
+     font-style="normal"
+     font-weight="500"
+     text-decoration="none"
+     direction="ltr"
+     fill="#640000"
+     stroke="none"
+     stroke-width="1"
+     opacity="1"
+     visibility="visible"
+     fill-opacity="0.95"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:37.3333px;line-height:17;font-family:Libertine, 'Linux Libertine O';-inkscape-font-specification:'Libertine, Linux Libertine O, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-decoration:none;text-decoration-line:none;direction:ltr;dominant-baseline:middle;text-anchor:start;display:block;overflow:hidden;visibility:visible;opacity:1;fill:#640000;fill-opacity:0.95;stroke:none;stroke-width:1"
+     x="494.53333"
+     y="68.050652">Resolution failure</text>
+</svg>
