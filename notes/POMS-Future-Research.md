@@ -262,3 +262,15 @@ Rough idea:
 
 This might give some indication as to whether blocks are constrained
 or not.
+
+Some more thoughts on this:
+
+* say it's on the top, with the upper U as fully resolved, a middle section that's partially resolved
+  and the lower U that's unresolved/homogeneous
+* the problem is that constrained sections might 'escape' through the middle partially resolved regions
+* try the solution, or library of solutions, for the leaked block (bottom U section) and transplant
+  the border to other leaked blocks
+* if the block is big enough, the escape might become less probable, so something like BMS will need
+  to do more work. WFC might fail outright
+* use whatever method you want to find 'constraidedness', either BMS soften count or WFC fail count,
+  to get a sense for how constrained a block section is

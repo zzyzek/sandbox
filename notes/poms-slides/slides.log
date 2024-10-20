@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.21)  18 OCT 2024 00:41
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.21)  19 OCT 2024 22:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -982,70 +982,79 @@ Dictionary: translator-numbers-dictionary, Language: English
 ry-English.dict
 Dictionary: translator-theorem-dictionary, Language: English 
 ) (./slides.nav)
-Overfull \vbox (15.63992pt too high) detected at line 17
+Overfull \vbox (15.63992pt too high) detected at line 16
  []
 
 [1
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./slides.toc) [2
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb
+LaTeX Font Info:    Trying to load font information for TS1+cmss on input line 
+5.
+
+(/usr/share/texlive/texmf-dist/tex/latex/base/ts1cmss.fd
+File: ts1cmss.fd 2019/12/16 v2.5j Standard LaTeX font definitions
+)) [2
 
 ]
-LaTeX Font Info:    Trying to load font information for U+msa on input line 25.
+\openout4 = `slides.vrb'.
 
+ (./slides.vrb
+LaTeX Font Info:    Trying to load font information for U+msa on input line 7.
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 25.
-
+LaTeX Font Info:    Trying to load font information for U+msb on input line 7.
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Trying to load font information for OT1+mathkerncmss on inp
-ut line 25.
+ut line 7.
 
 (/usr/share/texlive/texmf-dist/tex/latex/sansmathaccent/ot1mathkerncmss.fd
 File: ot1mathkerncmss.fd 2020/01/31 Fontinst v1.933 font definitions for OT1/ma
 thkerncmss.
 )
-[3
-
-]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-LaTeX Font Info:    Trying to load font information for TS1+cmss on input line 
-8.
- (/usr/share/texlive/texmf-dist/tex/latex/base/ts1cmss.fd
-File: ts1cmss.fd 2019/12/16 v2.5j Standard LaTeX font definitions
-))
-[4
-
-]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-<img/forestmicro_rule_grid_tb.pdf, id=71, 1108.26045pt x 1093.94696pt>
-File: img/forestmicro_rule_grid_tb.pdf Graphic file (type pdf)
-<use img/forestmicro_rule_grid_tb.pdf>
-Package pdftex.def Info: img/forestmicro_rule_grid_tb.pdf  used on input line 9
-.
-(pdftex.def)             Requested size: 138.2795pt x 136.49265pt.
-<img/forestmicro_64x64.pdf, id=72, 770.79968pt x 770.79968pt>
+<img/forestmicro_64x64.pdf, id=39, 770.79968pt x 770.79968pt>
 File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 14.
+Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 13.
+(pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
+)
+[3
+
+ <./img/forestmicro_64x64.pdf>]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb
+File: img/forestmicro_64x64.pdf Graphic file (type pdf)
+<use img/forestmicro_64x64.pdf>
+Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 16.
+(pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
+) [4
+
+]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb
+File: img/forestmicro_64x64.pdf Graphic file (type pdf)
+<use img/forestmicro_64x64.pdf>
+Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 16.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
 ) [5
 
- <./img/forestmicro_rule_grid_tb.pdf> <./img/forestmicro_64x64.pdf>]
+]
 \openout4 = `slides.vrb'.
 
- (./slides.vrb
+
+(./slides.vrb
 File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 14.
+Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 12.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
 ) [6
 
@@ -1055,30 +1064,14 @@ Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 14.
  (./slides.vrb
 File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 14.
+Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 16.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
 ) [7
 
 ]
 \openout4 = `slides.vrb'.
 
- (./slides.vrb
-File: img/forestmicro_64x64.pdf Graphic file (type pdf)
-<use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 14.
-(pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [8
-
-]
-\openout4 = `slides.vrb'.
-
-
-(./slides.vrb
-File: img/forestmicro_64x64.pdf Graphic file (type pdf)
-<use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 19.
-(pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [9
+ (./slides.vrb) [8
 
 ]
 \openout4 = `slides.vrb'.
@@ -1086,7 +1079,18 @@ Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 19.
  (./slides.vrb
 File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 22.
+Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 15.
+(pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
+)
+[9
+
+]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb
+File: img/forestmicro_64x64.pdf Graphic file (type pdf)
+<use img/forestmicro_64x64.pdf>
+Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 16.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
 ) [10
 
@@ -1096,7 +1100,7 @@ Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 22.
  (./slides.vrb
 File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 16.
+Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 19.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
 ) [11
 
@@ -1106,79 +1110,9 @@ Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 16.
  (./slides.vrb
 File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 12.
-(pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-)
-[12
-
-]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-File: img/forestmicro_64x64.pdf Graphic file (type pdf)
-<use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 13.
-(pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [13
-
-]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-File: img/forestmicro_64x64.pdf Graphic file (type pdf)
-<use img/forestmicro_64x64.pdf>
 Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 16.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [14
-
-] [15
-
-]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb) [16
-
-]
-\openout4 = `slides.vrb'.
-
-
-(./slides.vrb
-File: img/forestmicro_64x64.pdf Graphic file (type pdf)
-<use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 15.
-(pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [17
-
-]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-File: img/forestmicro_64x64.pdf Graphic file (type pdf)
-<use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 16.
-(pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [18
-
-]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-File: img/forestmicro_64x64.pdf Graphic file (type pdf)
-<use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 19.
-(pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [19
-
-]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-File: img/forestmicro_64x64.pdf Graphic file (type pdf)
-<use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 16.
-(pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-)
-[20
+) [12
 
 ]
 \openout4 = `slides.vrb'.
@@ -1188,7 +1122,8 @@ File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
 Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 21.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [21
+)
+[13
 
 ]
 \openout4 = `slides.vrb'.
@@ -1198,7 +1133,7 @@ File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
 Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 17.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [22
+) [14
 
 ]
 \openout4 = `slides.vrb'.
@@ -1214,7 +1149,7 @@ LaTeX Font Warning: Font shape `OT1/cmss/b/it' undefined
 
 LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <10.95> not available
 (Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 10.
-) [23
+) [15
 
 ]
 \openout4 = `slides.vrb'.
@@ -1224,7 +1159,7 @@ File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
 Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 16.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [24
+) [16
 
 ]
 \openout4 = `slides.vrb'.
@@ -1234,7 +1169,7 @@ File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
 Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 13.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [25
+) [17
 
 ]
 \openout4 = `slides.vrb'.
@@ -1244,7 +1179,7 @@ File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
 Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 14.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [26
+) [18
 
 ]
 \openout4 = `slides.vrb'.
@@ -1255,7 +1190,7 @@ File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
 Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 15.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [27
+) [19
 
 ]
 \openout4 = `slides.vrb'.
@@ -1265,7 +1200,7 @@ File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
 Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 16.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [28
+) [20
 
 ]
 \openout4 = `slides.vrb'.
@@ -1275,7 +1210,7 @@ File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 <use img/forestmicro_64x64.pdf>
 Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 17.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
-) [29
+) [21
 
 ]
 \openout4 = `slides.vrb'.
@@ -1286,189 +1221,187 @@ File: img/forestmicro_64x64.pdf Graphic file (type pdf)
 Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 18.
 (pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
 )
-[30
-
-] [31
+[22
 
 ]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_figalg.pdf, id=230, 662.475pt x 451.6875pt>
+<figs/poms_figalg.pdf, id=153, 662.475pt x 451.6875pt>
 File: figs/poms_figalg.pdf Graphic file (type pdf)
 <use figs/poms_figalg.pdf>
 Package pdftex.def Info: figs/poms_figalg.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (5.76968pt too high) detected at line 598
+Overfull \vbox (5.76968pt too high) detected at line 519
  []
 
-[32
+[23
 
  <./figs/poms_figalg.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg0.pdf, id=448, 662.475pt x 451.6875pt>
+<figs/poms_alg0.pdf, id=371, 662.475pt x 451.6875pt>
 File: figs/poms_alg0.pdf Graphic file (type pdf)
 <use figs/poms_alg0.pdf>
 Package pdftex.def Info: figs/poms_alg0.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (5.76968pt too high) detected at line 604
+Overfull \vbox (5.76968pt too high) detected at line 525
  []
 
-[33
+[24
 
  <./figs/poms_alg0.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg1.pdf, id=477, 662.475pt x 451.6875pt>
+<figs/poms_alg1.pdf, id=400, 662.475pt x 451.6875pt>
 File: figs/poms_alg1.pdf Graphic file (type pdf)
 <use figs/poms_alg1.pdf>
 Package pdftex.def Info: figs/poms_alg1.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (5.76968pt too high) detected at line 610
+Overfull \vbox (5.76968pt too high) detected at line 531
  []
 
-[34
+[25
 
  <./figs/poms_alg1.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg2.pdf, id=511, 662.475pt x 451.6875pt>
+<figs/poms_alg2.pdf, id=435, 662.475pt x 451.6875pt>
 File: figs/poms_alg2.pdf Graphic file (type pdf)
 <use figs/poms_alg2.pdf>
 Package pdftex.def Info: figs/poms_alg2.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (5.76968pt too high) detected at line 616
+Overfull \vbox (5.76968pt too high) detected at line 537
  []
 
-[35
+[26
 
  <./figs/poms_alg2.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg3.pdf, id=584, 662.475pt x 451.6875pt>
+<figs/poms_alg3.pdf, id=509, 662.475pt x 451.6875pt>
 File: figs/poms_alg3.pdf Graphic file (type pdf)
 <use figs/poms_alg3.pdf>
 Package pdftex.def Info: figs/poms_alg3.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (5.76968pt too high) detected at line 622
+Overfull \vbox (5.76968pt too high) detected at line 543
  []
 
-[36
+[27
 
  <./figs/poms_alg3.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg4.pdf, id=689, 662.475pt x 451.6875pt>
+<figs/poms_alg4.pdf, id=613, 662.475pt x 451.6875pt>
 File: figs/poms_alg4.pdf Graphic file (type pdf)
 <use figs/poms_alg4.pdf>
 Package pdftex.def Info: figs/poms_alg4.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (5.76968pt too high) detected at line 628
+Overfull \vbox (5.76968pt too high) detected at line 549
  []
 
-[37
+[28
 
  <./figs/poms_alg4.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg4_5.pdf, id=788, 662.475pt x 451.6875pt>
+<figs/poms_alg4_5.pdf, id=711, 662.475pt x 451.6875pt>
 File: figs/poms_alg4_5.pdf Graphic file (type pdf)
 <use figs/poms_alg4_5.pdf>
 Package pdftex.def Info: figs/poms_alg4_5.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (5.76968pt too high) detected at line 634
+Overfull \vbox (5.76968pt too high) detected at line 555
  []
 
-[38
+[29
 
  <./figs/poms_alg4_5.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg5.pdf, id=921, 662.475pt x 451.6875pt>
+<figs/poms_alg5.pdf, id=844, 662.475pt x 451.6875pt>
 File: figs/poms_alg5.pdf Graphic file (type pdf)
 <use figs/poms_alg5.pdf>
 Package pdftex.def Info: figs/poms_alg5.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (5.76968pt too high) detected at line 640
+Overfull \vbox (5.76968pt too high) detected at line 561
  []
 
-[39
+[30
 
  <./figs/poms_alg5.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg5_1.pdf, id=1018, 662.475pt x 451.6875pt>
+<figs/poms_alg5_1.pdf, id=942, 662.475pt x 451.6875pt>
 File: figs/poms_alg5_1.pdf Graphic file (type pdf)
 <use figs/poms_alg5_1.pdf>
 Package pdftex.def Info: figs/poms_alg5_1.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (5.76968pt too high) detected at line 646
+Overfull \vbox (5.76968pt too high) detected at line 567
  []
 
-[40
+[31
 
  <./figs/poms_alg5_1.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg5_2.pdf, id=1146, 662.475pt x 451.6875pt>
+<figs/poms_alg5_2.pdf, id=1070, 662.475pt x 451.6875pt>
 File: figs/poms_alg5_2.pdf Graphic file (type pdf)
 <use figs/poms_alg5_2.pdf>
 Package pdftex.def Info: figs/poms_alg5_2.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (5.76968pt too high) detected at line 652
+Overfull \vbox (5.76968pt too high) detected at line 573
  []
 
-[41
+[32
 
  <./figs/poms_alg5_2.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg6_1.pdf, id=1274, 662.475pt x 451.6875pt>
+<figs/poms_alg6_1.pdf, id=1198, 662.475pt x 451.6875pt>
 File: figs/poms_alg6_1.pdf Graphic file (type pdf)
 <use figs/poms_alg6_1.pdf>
 Package pdftex.def Info: figs/poms_alg6_1.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (5.76968pt too high) detected at line 658
+Overfull \vbox (5.76968pt too high) detected at line 579
  []
 
-[42
+[33
 
  <./figs/poms_alg6_1.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg6_2.pdf, id=1347, 662.475pt x 451.6875pt>
+<figs/poms_alg6_2.pdf, id=1272, 662.475pt x 451.6875pt>
 File: figs/poms_alg6_2.pdf Graphic file (type pdf)
 <use figs/poms_alg6_2.pdf>
 Package pdftex.def Info: figs/poms_alg6_2.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (5.76968pt too high) detected at line 664
+Overfull \vbox (5.76968pt too high) detected at line 585
  []
 
-[43
+[34
 
  <./figs/poms_alg6_2.pdf>]
 \openout4 = `slides.vrb'.
@@ -1479,10 +1412,88 @@ File: figs/poms_figalg.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_figalg.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (5.76968pt too high) detected at line 670
+Overfull \vbox (5.76968pt too high) detected at line 591
  []
 
-[44
+[35
+
+]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb) [36
+
+]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb) [37
+
+]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb
+<img/fm_0005.pdf, id=1398, 1037.8775pt x 1033.8625pt>
+File: img/fm_0005.pdf Graphic file (type pdf)
+<use img/fm_0005.pdf>
+Package pdftex.def Info: img/fm_0005.pdf  used on input line 5.
+(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
+) [38
+
+ <./img/fm_0005.pdf>]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb
+<img/fm_0006.pdf, id=1408, 1037.8775pt x 1033.8625pt>
+File: img/fm_0006.pdf Graphic file (type pdf)
+<use img/fm_0006.pdf>
+Package pdftex.def Info: img/fm_0006.pdf  used on input line 5.
+(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
+) [39
+
+ <./img/fm_0006.pdf>]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb
+<img/fm_0023.pdf, id=1418, 1037.8775pt x 1033.8625pt>
+File: img/fm_0023.pdf Graphic file (type pdf)
+<use img/fm_0023.pdf>
+Package pdftex.def Info: img/fm_0023.pdf  used on input line 5.
+(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
+) [40
+
+ <./img/fm_0023.pdf>]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb
+<img/fm_0024.pdf, id=1428, 1037.8775pt x 1033.8625pt>
+File: img/fm_0024.pdf Graphic file (type pdf)
+<use img/fm_0024.pdf>
+Package pdftex.def Info: img/fm_0024.pdf  used on input line 5.
+(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
+) [41
+
+ <./img/fm_0024.pdf>]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb
+<img/fm_0035.pdf, id=1438, 1037.8775pt x 1033.8625pt>
+File: img/fm_0035.pdf Graphic file (type pdf)
+<use img/fm_0035.pdf>
+Package pdftex.def Info: img/fm_0035.pdf  used on input line 6.
+(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
+) [42
+
+ <./img/fm_0035.pdf>]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb
+<img/fm_0036.pdf, id=1448, 1037.8775pt x 1033.8625pt>
+File: img/fm_0036.pdf Graphic file (type pdf)
+<use img/fm_0036.pdf>
+Package pdftex.def Info: img/fm_0036.pdf  used on input line 6.
+(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
+) [43
+
+ <./img/fm_0036.pdf>] [44
 
 ]
 \openout4 = `slides.vrb'.
@@ -1490,90 +1501,12 @@ Overfull \vbox (5.76968pt too high) detected at line 670
  (./slides.vrb) [45
 
 ]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb) [46
+[46
 
 ]
 \openout4 = `slides.vrb'.
 
- (./slides.vrb
-<img/fm_0005.pdf, id=1473, 1037.8775pt x 1033.8625pt>
-File: img/fm_0005.pdf Graphic file (type pdf)
-<use img/fm_0005.pdf>
-Package pdftex.def Info: img/fm_0005.pdf  used on input line 5.
-(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
-) [47
-
- <./img/fm_0005.pdf>]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-<img/fm_0006.pdf, id=1483, 1037.8775pt x 1033.8625pt>
-File: img/fm_0006.pdf Graphic file (type pdf)
-<use img/fm_0006.pdf>
-Package pdftex.def Info: img/fm_0006.pdf  used on input line 5.
-(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
-) [48
-
- <./img/fm_0006.pdf>]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-<img/fm_0023.pdf, id=1493, 1037.8775pt x 1033.8625pt>
-File: img/fm_0023.pdf Graphic file (type pdf)
-<use img/fm_0023.pdf>
-Package pdftex.def Info: img/fm_0023.pdf  used on input line 5.
-(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
-) [49
-
- <./img/fm_0023.pdf>]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-<img/fm_0024.pdf, id=1504, 1037.8775pt x 1033.8625pt>
-File: img/fm_0024.pdf Graphic file (type pdf)
-<use img/fm_0024.pdf>
-Package pdftex.def Info: img/fm_0024.pdf  used on input line 5.
-(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
-) [50
-
- <./img/fm_0024.pdf>]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-<img/fm_0035.pdf, id=1515, 1037.8775pt x 1033.8625pt>
-File: img/fm_0035.pdf Graphic file (type pdf)
-<use img/fm_0035.pdf>
-Package pdftex.def Info: img/fm_0035.pdf  used on input line 6.
-(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
-) [51
-
- <./img/fm_0035.pdf>]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-<img/fm_0036.pdf, id=1525, 1037.8775pt x 1033.8625pt>
-File: img/fm_0036.pdf Graphic file (type pdf)
-<use img/fm_0036.pdf>
-Package pdftex.def Info: img/fm_0036.pdf  used on input line 6.
-(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
-) [52
-
- <./img/fm_0036.pdf>] [53
-
-]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb) [54
-
-]
-[55
-
-]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb) [56
+ (./slides.vrb) [47
 
 ]
 \tf@nav=\write6
@@ -1590,16 +1523,16 @@ Package pdftex.def Info: img/fm_0036.pdf  used on input line 6.
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `slides.out' has not changed.
-(rerunfilecheck)             Checksum: CF7B2923F153F48112001E244A511540;468.
+(rerunfilecheck)             Checksum: 10C0B513E4F8D11758EC7678A096FD36;171.
  ) 
 Here is how much of TeX's memory you used:
- 25823 strings out of 480171
- 523452 string characters out of 5894489
- 749487 words of memory out of 5000000
- 43006 multiletter control sequences out of 15000+600000
+ 25742 strings out of 480171
+ 522278 string characters out of 5894489
+ 749489 words of memory out of 5000000
+ 42959 multiletter control sequences out of 15000+600000
  478713 words of font info for 61 fonts, out of 8000000 for 9000
  59 hyphenation exceptions out of 8191
- 128i,13n,122p,1805b,912s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 128i,13n,122p,1805b,911s stack positions out of 5000i,500n,10000p,200000b,80000s
  </home/zzyzek/.texlive2021/texmf-var/fonts/pk/ljfour/jknappen/ec/tcss1000.60
 0pk> </home/zzyzek/.texlive2021/texmf-var/fonts/pk/ljfour/jknappen/ec/tcss1095.
 600pk></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb>
@@ -1610,10 +1543,10 @@ texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb></usr/share/texlive
 mf-dist/fonts/type1/public/amsfonts/cm/cmssi10.pfb></usr/share/texlive/texmf-di
 st/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fon
 ts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on slides.pdf (56 pages, 5101849 bytes).
+Output written on slides.pdf (47 pages, 4052306 bytes).
 PDF statistics:
- 1633 PDF objects out of 1728 (max. 8388607)
- 1120 compressed objects within 12 object streams
- 118 named destinations out of 1000 (max. 500000)
- 195 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1554 PDF objects out of 1728 (max. 8388607)
+ 1054 compressed objects within 11 object streams
+ 97 named destinations out of 1000 (max. 500000)
+ 166 words of extra memory for PDF output out of 10000 (max. 10000000)
 

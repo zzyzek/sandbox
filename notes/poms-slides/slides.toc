@@ -1,5 +1,2 @@
-\beamer@sectionintoc {1}{Introduction}{3}{0}{1}
-\beamer@sectionintoc {2}{Related Work}{15}{0}{2}
-\beamer@sectionintoc {3}{Algorithm}{31}{0}{3}
-\beamer@sectionintoc {4}{Results}{53}{0}{4}
-\beamer@sectionintoc {5}{Conclusion}{55}{0}{5}
+\beamer@sectionintoc {1}{Results}{44}{0}{1}
+\beamer@sectionintoc {2}{Conclusion}{46}{0}{2}
