@@ -195,47 +195,28 @@
   
   %\section{Related Work}
 
-  \begin{frame}[fragile]{Related Work}
-    WFC, BMS, MMS
-
-    \begin{itemize}
-      \item Gumin's \textit{Wave Function Collapse} (\textit{WFC})
-      \item \textit{Breakout Model Synthesis} (\textit{BMS}) \\
-        \ \ \ (Hoetzlein's \textit{just\_math} project)
-      \item Merrell's \textit{Modify in Blocks Model Synthesis} (\textit{MMS})
-    \end{itemize}
-  \end{frame}
+%  \begin{frame}[fragile]{Related Work}
+%    WFC, BMS, MMS
+%    \begin{itemize}
+%      \item Gumin's \textit{Wave Function Collapse} (\textit{WFC})
+%      \item \textit{Breakout Model Synthesis} (\textit{BMS}) \\
+%        \ \ \ (Hoetzlein's \textit{just\_math} project)
+%      \item Merrell's \textit{Modify in Blocks Model Synthesis} (\textit{MMS})
+%    \end{itemize}
+%  \end{frame}
 
   %% wfc_related_work
 
   \begin{frame}[fragile]{Related Work}
-    \textit{Wave Function Collapse} (\textit{WFC})
+    Gumin's \textit{Wave Function Collapse} (\textit{WFC})
     \begin{columns}[T,onlytextwidth]
       \column{0.5\textwidth}
         \begin{block}{WFC}
           \hfill \\
+          Resolve, propagate
           \begin{itemize}
-            \item Resolve tile at cell (min. entropy heuristic)
-            \item Constraint Propagate
-            \item Loop until solution or contradiction
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  \begin{frame}[fragile]{Related Work}
-    \textit{Wave Function Collapse} (\textit{WFC})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{WFC}
-          \hfill \\
-          \begin{itemize}
-            \item \textit{Block Level}
             \item One-shot
+            \item \textit{Block Level}
             \item Indeterminate initial condition
             \item Ergodic
           \end{itemize}
@@ -246,41 +227,39 @@
         \end{block}
     \end{columns}
   \end{frame}
+
+%  \begin{frame}[fragile]{Related Work}
+%    \textit{Wave Function Collapse} (\textit{WFC})
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{WFC}
+%          \hfill \\
+%          \begin{itemize}
+%            \item \textit{Block Level}
+%            \item One-shot
+%            \item Indeterminate initial condition
+%            \item Ergodic
+%          \end{itemize}
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+%        \end{block}
+%    \end{columns}
+%  \end{frame}
 
   %% bms_related_work
 
   \begin{frame}[fragile]{Related Work}
-    \textit{Breakout Model Synthesis} (\textit{BMS})
+    \textit{Breakout Model Synthesis} (\textit{BMS}) from Hoetzlein's \textit{just\_math}
     \begin{columns}[T,onlytextwidth]
       \column{0.5\textwidth}
         \begin{block}{BMS}
           \hfill \\
+          Resolve, propagate, revert
           \begin{itemize}
-            \item Resolve tile at cell
-            \item Constraint Propagate
-            \item If contradiction
-              \begin{itemize}
-                \item Revert small region
-              \end{itemize}
-            \item Loop until solution or timeout
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  \begin{frame}[fragile]{Related Work}
-    \textit{Breakout Model Synthesis} (\textit{BMS})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{BMS}
-          \hfill \\
-          \begin{itemize}
-            \item \textit{Block Level}
             \item Stochastic backtracking
+            \item \textit{Block Level}
             \item Indeterminate initial condition
             \item Ergodic
           \end{itemize}
@@ -292,43 +271,38 @@
     \end{columns}
   \end{frame}
 
+%  \begin{frame}[fragile]{Related Work}
+%    \textit{Breakout Model Synthesis} (\textit{BMS})
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{BMS}
+%          \hfill \\
+%          \begin{itemize}
+%            \item \textit{Block Level}
+%            \item Stochastic backtracking
+%            \item Indeterminate initial condition
+%            \item Ergodic
+%          \end{itemize}
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+%        \end{block}
+%    \end{columns}
+%  \end{frame}
+
   % mms_related_work
 
   \begin{frame}[fragile]{Related Work}
-    \textit{Modify in Blocks Model Synthesis} (\textit{MMS})
+    Merrell's \textit{Modify in Blocks Model Synthesis} (\textit{MMS})
     \begin{columns}[T,onlytextwidth]
       \column{0.5\textwidth}
         \begin{block}{MMS}
           \hfill \\
+          From resolved grid, solve block, incorporate
           \begin{itemize}
-            \item Start from resolved grid
-            \item Choose block
-            \item Try to resolve block
-            \item If block resolved
-              \begin{itemize}
-                \item incoporate block
-              \end{itemize}
-            \item Else restore block
-            \item Loop to taste
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  \begin{frame}[fragile]{Related Work}
-    \textit{Modify in Blocks Model Synthesis} (\textit{MMS})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{MMS}
-          \hfill \\
-          \begin{itemize}
+            \item Block step consistent
             \item \textit{Grid Level}
-            \item Contradiction resilience via
-              Block step consistency
             \item Requires bootstrap initial realization
             \item Non-ergodic
           \end{itemize}
@@ -339,6 +313,27 @@
         \end{block}
     \end{columns}
   \end{frame}
+
+%  \begin{frame}[fragile]{Related Work}
+%    \textit{Modify in Blocks Model Synthesis} (\textit{MMS})
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{MMS}
+%          \hfill \\
+%          \begin{itemize}
+%            \item \textit{Grid Level}
+%            \item Contradiction resilience via
+%              Block step consistency
+%            \item Requires bootstrap initial realization
+%            \item Non-ergodic
+%          \end{itemize}
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+%        \end{block}
+%    \end{columns}
+%  \end{frame}
 
   % summary_related_work
 
