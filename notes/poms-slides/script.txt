@@ -1,4 +1,4 @@
-Hi I'm person
+Hi I'm Zzyv Zzyzek
 
 I'm here to present Punch Out Model Synthesis, A Stochastic algorithm for
 constriant based tiling generation.
@@ -7,4 +7,87 @@ I'm just going to get right into it.
 
 ---
 
+Just as a quick overview,
 
+Punch Out Model Synthesis is a constraint based tiling generation algorithm
+that
+
+works on large grids
+
+has minimal setup requirements
+
+and has resiliance to contradictions.
+
+---
+
+or put another way, create a really huge map without using a terabyte of ram.
+
+---
+
+First some definitions
+
+a grid is composed of cells
+
+where each cell be in a superposition of up to d tiles
+
+and we're given tile constraints in each of the dimension directions.
+
+For example, the graph on the right is meant to represent the adjacency
+constraints for a particular tile set and an example placement of those
+tiles respecting the constraints.
+
+---
+
+So the problem we're trying to solve is the constraint based tiling generation
+problem.
+
+That is, find a valid grid realizaion, subject to the tile constraints
+
+where a realization is a single tile placement at every cell location, subject to the
+tile constraints.
+
+---
+
+Just some more definitions that will be needed later:
+
+We call a region of cells arc consist
+if every tile in every cell has a valid neighbor in
+each direction.
+
+If a tile doesn't have a valid neighbor in some direction,
+we know it can't be part of any realization because there's no
+neighbor to pair up with it.
+
+---
+
+This gives us the basis for a constraint propagation algorithm
+by noticing we can remove a tile from a cell's list of available
+tiles if it doesn't have a valid neighbor.
+
+Removing that tile might have implications for tiles in cells
+around it, so the process of propagating thos implications of
+a tile removal by potentially removing neighboring tiles, and
+so on, is constraint propagation.
+
+We do that process until we can't remove any more tiles or
+we get into a contradiction, where a contradiction is
+defined as a cell that has no more valid tiles.
+
+---
+
+Some last definitions before we move on,
+
+a block level solver keeps full arc consistency of the grid its working on
+
+and a grid level sovler keeps minimal information for the entire grid,
+only needing resources primarily with the sub regions, or blocks, that it
+chooses.
+
+Maintaining arc consistency, depending on the algorithm, can be resource
+intensive, so being able to work in sub blocks is desirable to limite
+resource use, if needed.
+
+
+
+
+---
