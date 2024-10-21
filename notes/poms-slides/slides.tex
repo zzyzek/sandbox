@@ -202,98 +202,6 @@
   %%%%%%%%%%%%%%
   %%%%%%%%%%%%%%
   
-  %\section{Related Work}
-
-  %% wfc_related_work
-
-%  \begin{frame}[fragile]{Related Work}
-%    Gumin's \textit{Wave Function Collapse} (\textit{WFC})
-%    \begin{columns}[T,onlytextwidth]
-%      \column{0.5\textwidth}
-%        \begin{block}{WFC}
-%          \hfill \\
-%          Resolve, propagate
-%          \begin{itemize}
-%            \item One-shot
-%            \item \textit{Block Level}
-%            \item Indeterminate initial condition
-%            \item Ergodic
-%          \end{itemize}
-%        \end{block}
-%      \column{0.5\textwidth}
-%        \begin{block}{Example}
-%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-%        \end{block}
-%    \end{columns}
-%  \end{frame}
-%
-%  %% bms_related_work
-%
-%  \begin{frame}[fragile]{Related Work}
-%    \textit{Breakout Model Synthesis} (\textit{BMS}) from Hoetzlein's \textit{just\_math}
-%    \begin{columns}[T,onlytextwidth]
-%      \column{0.5\textwidth}
-%        \begin{block}{BMS}
-%          \hfill \\
-%          Resolve, propagate, revert
-%          \begin{itemize}
-%            \item Stochastic backtracking
-%            \item \textit{Block Level}
-%            \item Indeterminate initial condition
-%            \item Ergodic
-%          \end{itemize}
-%        \end{block}
-%      \column{0.5\textwidth}
-%        \begin{block}{Example}
-%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-%        \end{block}
-%    \end{columns}
-%  \end{frame}
-%
-%  % mms_related_work
-%
-%  \begin{frame}[fragile]{Related Work}
-%    Merrell's \textit{Modify in Blocks Model Synthesis} (\textit{MMS})
-%    \begin{columns}[T,onlytextwidth]
-%      \column{0.5\textwidth}
-%        \begin{block}{MMS}
-%          \hfill \\
-%          From resolved grid, solve block, incorporate
-%          \begin{itemize}
-%            \item Block step consistent
-%            \item \textit{Grid Level}
-%            \item Requires bootstrap initial realization
-%            \item Non-ergodic
-%          \end{itemize}
-%        \end{block}
-%      \column{0.5\textwidth}
-%        \begin{block}{Example}
-%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-%        \end{block}
-%    \end{columns}
-%  \end{frame}
-
-%  \begin{frame}[fragile]{Related Work}
-%    \textit{Modify in Blocks Model Synthesis} (\textit{MMS})
-%    \begin{columns}[T,onlytextwidth]
-%      \column{0.5\textwidth}
-%        \begin{block}{MMS}
-%          \hfill \\
-%          \begin{itemize}
-%            \item \textit{Grid Level}
-%            \item Contradiction resilience via
-%              Block step consistency
-%            \item Requires bootstrap initial realization
-%            \item Non-ergodic
-%          \end{itemize}
-%        \end{block}
-%      \column{0.5\textwidth}
-%        \begin{block}{Example}
-%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-%        \end{block}
-%    \end{columns}
-%  \end{frame}
-
   % summary_related_work
 
   \begin{frame}[fragile]{Related Work}
@@ -323,121 +231,32 @@
   %% tile_influence
 
   \begin{frame}[fragile]{Related Work}
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Intuition}
-          \hfill \\
-          How much influence does a tile choice have over long distances? \\
-          \hfill \\
-          Difficult to define and/or calculate \\
-          \hfill \\
-          As a heuristic, \\
-          \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL}) 
-            from Hoetzlein's \textit{just\_math} project
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
+
+      \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL}) (Hoetzlein) \\
+      \hfill \\
+      How much influence does a tile choice have over long distances? \\
+      \hfill \\
+      TACCL as a heuristic to estimate correlation length
+
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{Intuition}
+%          \hfill \\
+%          How much influence does a tile choice have over long distances? \\
+%          \hfill \\
+%          As a heuristic, \\
+%          \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL}) 
+%            from Hoetzlein's \textit{just\_math} project
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+%        \end{block}
+%    \end{columns}
+
   \end{frame}
 
   %%
-
-%  \begin{frame}[fragile]{Related Work}
-%    \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL})
-%    \begin{columns}[T,onlytextwidth]
-%      \column{0.5\textwidth}
-%        \begin{block}{TACCL}
-%          \hfill \\
-%          \begin{itemize}
-%            \item Take block in isolation
-%          \end{itemize}
-%        \end{block}
-%      \column{0.5\textwidth}
-%        \begin{block}{Example}
-%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-%        \end{block}
-%    \end{columns}
-%  \end{frame}
-%
-%  \begin{frame}[fragile]{Related Work}
-%    \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL})
-%    \begin{columns}[T,onlytextwidth]
-%      \column{0.5\textwidth}
-%        \begin{block}{TACCL}
-%          \hfill \\
-%          \begin{itemize}
-%            \item Take block in isolation
-%            \item Set block to indeterminate state
-%          \end{itemize}
-%        \end{block}
-%      \column{0.5\textwidth}
-%        \begin{block}{Example}
-%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-%        \end{block}
-%    \end{columns}
-%  \end{frame}
-%
-%  \begin{frame}[fragile]{Related Work}
-%    \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL})
-%    \begin{columns}[T,onlytextwidth]
-%      \column{0.5\textwidth}
-%        \begin{block}{TACCL}
-%          \hfill \\
-%          \begin{itemize}
-%            \item Take block in isolation
-%            \item Set block to indeterminate state
-%            \item Fix a tile at the center
-%          \end{itemize}
-%        \end{block}
-%      \column{0.5\textwidth}
-%        \begin{block}{Example}
-%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-%        \end{block}
-%    \end{columns}
-%  \end{frame}
-%
-%  \begin{frame}[fragile]{Related Work}
-%    \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL})
-%    \begin{columns}[T,onlytextwidth]
-%      \column{0.5\textwidth}
-%        \begin{block}{TACCL}
-%          \hfill \\
-%          \begin{itemize}
-%            \item Take block in isolation
-%            \item Set block to indeterminate state
-%            \item Fix a tile at the center
-%            \item Propagate constraints
-%          \end{itemize}
-%        \end{block}
-%      \column{0.5\textwidth}
-%        \begin{block}{Example}
-%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-%        \end{block}
-%    \end{columns}
-%  \end{frame}
-%
-%  \begin{frame}[fragile]{Related Work}
-%    \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL})
-%    \begin{columns}[T,onlytextwidth]
-%      \column{0.5\textwidth}
-%        \begin{block}{TACCL}
-%          \hfill \\
-%          \begin{itemize}
-%            \item Take block in isolation
-%            \item Set block to indeterminate state
-%            \item Fix a tile at the center
-%            \item Propagate constraints
-%            \item Take minimum bounding box of altered cells
-%          \end{itemize}
-%        \end{block}
-%      \column{0.5\textwidth}
-%        \begin{block}{Example}
-%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-%        \end{block}
-%    \end{columns}
-%  \end{frame}
 
   \begin{frame}[fragile]{Related Work}
     \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL})
@@ -445,8 +264,8 @@
       \column{0.5\textwidth}
         \begin{block}{TACCL}
           \hfill \\
+          Take block in isolation
           \begin{itemize}
-            \item Take block in isolation
             \item Set block to indeterminate state
             \item Fix a tile at the center
             \item Propagate constraints
