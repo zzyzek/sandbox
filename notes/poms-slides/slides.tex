@@ -32,6 +32,13 @@
     \end{itemize}
   \end{frame}
 
+  \begin{centering}
+    \begin{frame}[fragile]{Introduction}
+      \textbf{Punch Out Model Synthesis} (\textit{POMS})
+      \includegraphics[width=0.7\textwidth]{img/minirogue_128x128.pdf}
+    \end{frame}
+  \end{centering}
+
   \begin{frame}[fragile]{Introduction}
     %Constraint Based Tiling Generation (\textit{CBTG})
     \begin{columns}[T,onlytextwidth]
@@ -50,29 +57,6 @@
     \end{columns}
   \end{frame}
 
-
-%  \begin{frame}[fragile]{Introduction}
-%    Constraint Based Tiling Generation (\textit{CBTG})
-%    \begin{columns}[T,onlytextwidth]
-%      \column{0.5\textwidth}
-%        \begin{block}{Definitions}
-%
-%          \hfill \\
-%          A \textit{realization} is a \textit{grid} that \\
-%          has a single \textit{tile} at each \\
-%          \textit{cell} respecting the \textit{constraints}.
-%          \hfill \\
-%          \hfill \\
-%          If a cell has no tiles left, no \\
-%          realization is possible and is
-%          considered a \textit{contradiction}.
-%        \end{block}
-%      \column{0.5\textwidth}
-%        \begin{block}{Example}
-%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-%        \end{block}
-%    \end{columns}
-%  \end{frame}
 
   \begin{frame}[fragile]{Introduction}
     Constraint Based Tiling Generation (\textit{CBTG}) Problem
@@ -231,29 +215,11 @@
   %% tile_influence
 
   \begin{frame}[fragile]{Related Work}
-
-      \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL}) (Hoetzlein) \\
-      \hfill \\
-      How much influence does a tile choice have over long distances? \\
-      \hfill \\
-      TACCL as a heuristic to estimate correlation length
-
-%    \begin{columns}[T,onlytextwidth]
-%      \column{0.5\textwidth}
-%        \begin{block}{Intuition}
-%          \hfill \\
-%          How much influence does a tile choice have over long distances? \\
-%          \hfill \\
-%          As a heuristic, \\
-%          \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL}) 
-%            from Hoetzlein's \textit{just\_math} project
-%        \end{block}
-%      \column{0.5\textwidth}
-%        \begin{block}{Example}
-%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-%        \end{block}
-%    \end{columns}
-
+    \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL}) (Hoetzlein) \\
+    \hfill \\
+    How much influence does a tile choice have over long distances? \\
+    \hfill \\
+    TACCL as a heuristic to estimate correlation length
   \end{frame}
 
   %%
@@ -275,7 +241,7 @@
         \end{block}
       \column{0.5\textwidth}
         \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+          \includegraphics[width=1.125\textwidth]{img/pm_freq_taccl.pdf}
         \end{block}
     \end{columns}
   \end{frame}
@@ -448,19 +414,78 @@
 %  \end{frame}
 %
 
-  \section{Results}
+  %\section{Highlighted Runs}
 
-  \begin{frame}[fragile]{Results}
-
-    ...
-
+  \begin{frame}[fragile]{Highlighted Runs}
+    \begin{figure}
+      LUNARSIGNAL's \textit{Overhead Action} \\ \textit{RPG Overworld} Tile Set (x10)
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/oarpgo_x10_w.mp4}
+    \end{figure}
   \end{frame}
 
-  \section{Conclusion}
+  \begin{frame}[fragile]{Highlighted Runs}
+    \begin{figure}
+      0x72's \textit{Two Bit Micro Metroidvania} Tile Set (x10)
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/2bmmv_x10_w.mp4}
+    \end{figure}
+  \end{frame}
+
+  \begin{frame}[fragile]{Highlighted Runs}
+    \begin{figure}
+      Kingel's \textit{Minirogue} Tile Set (x10)
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/minirogue_x10_w.mp4}
+    \end{figure}
+  \end{frame}
+
+  %\section{Conclusion}
 
   \begin{frame}[fragile]{Conclusion}
+    Punch Out Model Synthesis (POMS) as an alternative when large models with minimal setup restrictions are wanted
+    and resource limits are a concern.
+  \end{frame}
 
+  \begin{frame}[fragile]{Conclusion}
+    CBTGs are good at maintaining local consistency but are bad at resolving global constraints \\
+    \hfill \\
+    Weak global constraints (path connections, etc.) confound POMS (and other CBTG algorithms) \\
+  \end{frame}
+
+  \begin{frame}[fragile]{fin}
+    \begin{center}\url{https://zzyzek.github.io}\end{center}
+    \hfill \\
     \begin{center}\url{https://github.com/zzyzek/PunchOutModelSynthesis}\end{center}
+    \hfill \\
+    \begin{center}\small\url{https://zzyzek.github.io/PunchOutModelSynthesisWebDemo/}\end{center}
+  \end{frame}
+
+  \appendix
+
+  \begin{frame}[fragile]{Auxiliary Slides}
+    \begin{itemize}
+      \item Bitter lesson includes learning \textit{and} search
+      \item Tradeoff between resources used to learn vs. resources used for runtime search
+      \item "Parables of the Power of Planning in AI" by Noam Brown (\url{https://www.youtube.com/watch?v=eaAonE58sLU})
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}[fragile]{Auxiliary Slides}
+    Automatic Tile Generation \\
+    \url{https://zzyzek.github.io/TileRuleHighlighter/}
+    \begin{columns}[T,onlytextwidth]
+      \column{0.5\textwidth}
+        \begin{block}{Rule Graph (Forest Micro)}
+          \begin{figure}
+            \includegraphics[width=0.7\textwidth]{img/forestmicro_rule_grid_tb.pdf}
+          \end{figure}
+        \end{block}
+      \column{0.5\textwidth}
+        \begin{block}{Rule Highlighter}
+          \begin{figure}
+            %\movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
+            \movie[width=3cm,height=3cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
+          \end{figure}
+        \end{block}
+    \end{columns}
 
   \end{frame}
 
