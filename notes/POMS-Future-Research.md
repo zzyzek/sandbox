@@ -274,3 +274,13 @@ Some more thoughts on this:
   to do more work. WFC might fail outright
 * use whatever method you want to find 'constraidedness', either BMS soften count or WFC fail count,
   to get a sense for how constrained a block section is
+
+---
+
+One point to highlight is that the only real signal we have is whether a block is solveable or not,
+so we might need to use the solver to inform us which blocks are becoming difficult or constrained.
+
+If a contradiction occurs in a homogeneous region, especially if other areas of the homogeneous
+region are resolving fine, is that the contradiction has originated from some other place and leaked
+into the homogeneous region.
+

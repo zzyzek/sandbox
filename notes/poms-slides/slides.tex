@@ -4,11 +4,16 @@
 
 \usetheme{metropolis}
 
+%\metroset{numbering=counter}
+\metroset{numbering=fraction}
+
 \title{Punch Out Model Synthesis}
 \subtitle{A Stochastic Algorithm for Constraint Based Tiling Generation}
 \date{November 19th, 2024}
 \author{Zzyv Zzyzek}
 \begin{document}
+
+
 
 \newcommand{\specialcell}[2][c]{\begin{tabular}[#1]{@{}l@{}}#2\end{tabular}}
 \newcommand{\specialcellCenter}[2][c]{\begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
@@ -39,24 +44,23 @@
     \end{frame}
   \end{centering}
 
-  \begin{frame}[fragile]{Introduction}
-    %Constraint Based Tiling Generation (\textit{CBTG})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Definitions}
-          \begin{itemize}
-            \item \textit{Grid} composed of \textit{cells}
-            \item Each \textit{cell} can hold $D$ \textit{tiles}
-            \item Pairwise tile \textit{constraints} in each dimension ($\pm X, \pm Y, \pm Z$)
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
+%  \begin{frame}[fragile]{Introduction}
+%    %Constraint Based Tiling Generation (\textit{CBTG})
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{Definitions}
+%          \begin{itemize}
+%            \item \textit{Grid} composed of \textit{cells}
+%            \item Each \textit{cell} can hold $D$ \textit{tiles}
+%            \item Pairwise tile \textit{constraints} in each dimension ($\pm X, \pm Y, \pm Z$)
+%          \end{itemize}
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+%        \end{block}
+%    \end{columns}
+%  \end{frame}
 
   \begin{frame}[fragile]{Introduction}
     Constraint Based Tiling Generation (\textit{CBTG}) Problem
@@ -69,6 +73,9 @@
           \hfill \\
           A \textit{realization} is a single \textit{tile} placement at each \textit{cell} \\
           respecting \textit{constraints}.
+          \hfill \\
+          \hfill \\
+          (\textit{Cell} can hold up to $D$ \textit{tiles})
 
           %\begin{itemize}
           %  \item A \textit{realization} is a single \textit{tile} placement at each \textit{cell} respecting \textit{constraints}.
@@ -82,48 +89,65 @@
     \end{columns}
   \end{frame}
 
-
   \begin{frame}[fragile]{Introduction}
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Definitions}
-          \hfill \\
+    A region is \textit{Arc Consistent} if all \textit{tiles} in every \textit{cell} within the region have at least
+    one valid neighbor in each direction
+    \hfill \\
+    \hfill \\
+    The basis for a \textit{Constraint Propagation} algorithm
+    can be made by removing tiles without a valid neighbor
+    \hfill \\
+    \hfill \\
+    \textit{Block Level Solver}: completely maintains \textit{Arc Consistency}
+    \hfill \\
+    \hfill \\
+    \textit{Grid Level Solver}: only keep minimal information for the entire grid but
+        work on \textit{block} sub-regions
 
-          A region is \textit{Arc Consistent} if all \textit{tiles} in every \textit{cell} within the region have at least
-          one valid neighbor in each direction
-
-%          \begin{itemize}
-%            \item A tile has \textit{support} if \\
-%              there's a valid neighbor
-%              in each
-%              grid dimension direction
-%            \item A region is \textit{Arc Consistent} \\ if all \textit{tiles} within the region are \textit{supported}
-%          \end{itemize}
-
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
   \end{frame}
 
 
-  \begin{frame}[fragile]{Introduction}
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Definitions}
-          \hfill \\
-          The basis for a \textit{Constraint Propagation} algorithm
-          can be made by removing tiles without \\
-          a valid neighbor
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
+%  \begin{frame}[fragile]{Introduction}
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{Definitions}
+%          \hfill \\
+%
+%          A region is \textit{Arc Consistent} if all \textit{tiles} in every \textit{cell} within the region have at least
+%          one valid neighbor in each direction
+%
+%%          \begin{itemize}
+%%            \item A tile has \textit{support} if \\
+%%              there's a valid neighbor
+%%              in each
+%%              grid dimension direction
+%%            \item A region is \textit{Arc Consistent} \\ if all \textit{tiles} within the region are \textit{supported}
+%%          \end{itemize}
+%
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+%        \end{block}
+%    \end{columns}
+%  \end{frame}
+
+
+%  \begin{frame}[fragile]{Introduction}
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{Definitions}
+%          \hfill \\
+%          The basis for a \textit{Constraint Propagation} algorithm
+%          can be made by removing tiles without \\
+%          a valid neighbor
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+%        \end{block}
+%    \end{columns}
+%  \end{frame}
 
 
 %  \begin{frame}[fragile]{Introduction}
@@ -160,26 +184,26 @@
 %    \end{columns}
 %  \end{frame}
 
-  \begin{frame}[fragile]{Introduction}
-    %\textit{Block} and \textit{Grid} level solvers
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Definitions}
-          \hfill \\
-          \begin{itemize}
-            \item \textit{Block Level Solver}: \\
-              completely maintains \textit{Arc Consistency}
-            \item \textit{Grid Level Solver}: \\
-              only keep minimal information for the entire grid but
-              work on \textit{block} sub-regions
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
+%  \begin{frame}[fragile]{Introduction}
+%    %\textit{Block} and \textit{Grid} level solvers
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{Definitions}
+%          \hfill \\
+%          \begin{itemize}
+%            \item \textit{Block Level Solver}: \\
+%              completely maintains \textit{Arc Consistency}
+%            \item \textit{Grid Level Solver}: \\
+%              only keep minimal information for the entire grid but
+%              work on \textit{block} sub-regions
+%          \end{itemize}
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+%        \end{block}
+%    \end{columns}
+%  \end{frame}
 
 
   %%%%%%%%%%%%%%
@@ -469,6 +493,14 @@
   \end{frame}
 
   \begin{frame}[fragile]{Auxiliary Slides}
+    \begin{itemize}
+      \item Salad
+      \item Oatmeal
+      \item Global Cohesion/(weak) Global Constraints
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}[fragile]{Auxiliary Slides}
     Automatic Tile Generation \\
     \url{https://zzyzek.github.io/TileRuleHighlighter/}
     \begin{columns}[T,onlytextwidth]
@@ -482,7 +514,8 @@
         \begin{block}{Rule Highlighter}
           \begin{figure}
             %\movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
-            \movie[width=3cm,height=3cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
+            %\movie[width=5cm,height=2.85cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
+            \movie[width=6cm,height=3.4cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
           \end{figure}
         \end{block}
     \end{columns}

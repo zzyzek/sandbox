@@ -1,3 +1,11 @@
+
+* Intro:        .15 2m25s
+* Related work: .20 3m
+* Results:      .45 6m75s
+* Conclusion:   .2  3m
+
+---
+
 Hi I'm Zzyv Zzyzek
 
 I'm here to present Punch Out Model Synthesis, A Stochastic algorithm for
@@ -51,8 +59,6 @@ tile constraints.
 
 ---
 
-Just some more definitions that will be needed later:
-
 We call a region of cells arc consist
 if every tile in every cell has a valid neighbor in
 each direction.
@@ -82,7 +88,7 @@ Some last definitions before we move on,
 
 a block level solver keeps full arc consistency of the grid its working on
 
-and a grid level sovler keeps minimal information for the entire grid,
+and a grid level solver keeps minimal information for the entire grid,
 only needing resources primarily with the sub regions, or blocks, that it
 chooses.
 

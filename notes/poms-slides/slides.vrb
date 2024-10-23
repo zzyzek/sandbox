@@ -12,7 +12,8 @@ Automatic Tile Generation \\
         \begin{block}{Rule Highlighter}
           \begin{figure}
             %\movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
-            \movie[width=3cm,height=3cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
+            %\movie[width=5cm,height=2.85cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
+            \movie[width=6cm,height=3.4cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
           \end{figure}
         \end{block}
     \end{columns}
