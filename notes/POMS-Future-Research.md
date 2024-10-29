@@ -419,3 +419,9 @@ A bad situation can arise if an obstinate region meanders into a cul-de-sac
 of resolved regions around it, but maybe we can identify those and find a way
 to soften out of it.
 
+But this can maybe be avoided, or mitigated, if obstinate blocks that are
+trapped by resolved regions from other obstinate blocks through homogeneous
+regions by more highly weighting the homogeneous regions for softening.
+
+
+
