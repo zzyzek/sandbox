@@ -284,3 +284,138 @@ If a contradiction occurs in a homogeneous region, especially if other areas of 
 region are resolving fine, is that the contradiction has originated from some other place and leaked
 into the homogeneous region.
 
+---
+
+Updated idea:
+
+* search for constrained regions
+  - choose a block size, $B _ C$
+  - go through in half block steps, $\frac{B _ C}{2}$ and choose a 3x3 superblock ($3 \cdot B _ C$ on a side)
+  - pin the edges (to indeterminate) and the interior (trapped) block
+  - solve
+  - unpin the interior block and set boundary to solved boundary
+  - try to solve
+  - repeat T times to and see how many times you were able to solve
+  - keep a lookup table, $G _ C$ (Constrained Block Grid), of all half block steps and their constrained counts
+* find homogeneous regions
+  - choose atomic homogeneous block size $B _ H$ ($= B _ C$?)
+  - take each cell as center and calculate hash of AC4 profile for the cell block size $B _ H$
+  - save each hash value into homogeneous grid $G _ H$
+* progressively solve
+  - initially choose all constrained blocks above a threshold constrained count $\tau$
+    + set the rest of the grid to prefatory state
+    + pin the whole grid
+    + unpin the constrained blocks above threshold
+  - loop until timeout or solve
+    + setup warp on homogeneous regions
+      - find bounding box of isolated (island) unpinned homogeneous regions
+      - unpin cells in each bounding box
+      - for all unpinned homogeneous cells on the boundary, setup warp to horizontal or
+        vertical sibling homogeneous cells
+    + try to solve unpinned regions
+    + dilate unpinned regions
+
+There's a lot of magic that happens with the 'setup warp' step.
+One problem is that disparate active regions need not be aligned in any way
+and it's non trivial to figure out how to stitch them together.
+
+Here are some rough ideas on the warp setup:
+
+* isolate the homogeneous region
+* mark each active regions with an ID and inactive regions with a marker
+* run a discrete voronoi region to find the interface in the inactive region
+* walk balk the voronoi interface until it hits the active region, warping appropriately
+  - keep the interface region as a schedule of the interface for each region
+  - calculate the centers of mass for each region
+  - pick a representative point on each interface region
+  - translate the whole interface region linearly towards the center of mass until
+    some condition, when at least one point is at or below a minimum distance to the
+    active region
+  - any pieces of the walked interface region that fall outside are dropped
+  - when the interface region is placed, extend with indeterminate boundary along
+    the voronoi interface for that length
+
+For each face of a cell in the voronoi interface, there will be a unique ID attached to it.
+We want contiguous boundaries to line up as much as possible.
+Another point is that if anything gets within a block size, we discard for the
+future.
+
+Case studies:
+
+* Forest micro should have a row of constrained blocks at the top and bottom along with
+  a homogeneous region connecting them
+* corner path should have essentially a diagonal interface, with most of it matching,
+  and intially small, so that it'll properly connect and match up
+* path with far from corner points
+  - warping will shrink ends of map in addition to other corner point closer,
+    helping chances of path pairing
+* path with passage should have passage as a mildly constrained region
+* path at either corner but with a non-homogeneous border ("jagged frame")
+  - interior homogeneous region can be shrunk but don't know how to connect it
+    to outer frame
+* path at corners with large width middle corridor
+  - ???
+* forest micro with choke point in middle
+
+I suspect this is a type of entropy minimization.
+The constrained region and subsequent preference on solving constrained region blocks first
+is analagous to Gumin's min. entropy cell choice and is effectively a max entropy heuristic
+on the block level.
+The region shrinking is also, I suspect, an entropy reduction technique, trying to effectively
+compress a region or the domain of interest to allow for better use of information (discarding bits,
+preferring more relevant bits, etc.).
+
+Highlighting constrained regions and the landscrape shrinking are both distinct concepts but
+are complementary and, in some sense, necessary.
+Using just constrained regions would result meandering (corner path far from ends) whereas
+just region shrinking wouldn't know how to shrink, in general (jagged frame).
+
+---
+
+There's significant problems with the above:
+
+* far from corner path needs a warp to the corner in order for it to be repulsive from
+  the corner
+* large middle corridor warping is non trivial
+
+Biasing alone can't do it because of forest micro river count.
+One could imagine starting from a seed and growing from there, but, at least for the naive method,
+then you might get into a situation where you've taken the right fork instead of the left and
+need to unwind from a cul-de-sac.
+
+Warping to the corner, if it can be done, might still give paths that meander in opposite
+directions.
+As the region is enlarged, the problem only deepens.
+
+I think we're convincing ourselves that any one shot preprocessing step could run into significant
+problems without recourse.
+
+There are two key pieces of information:
+
+* we can have some hope of identifying constrained blocks, even during runtime, though it'll
+  be at a significant cost
+* homogeneous regions give a 'blank canvas' for us to have a lot of maneuverability
+
+---
+
+So, another embryonic idea:
+
+* map obstinate regions
+* create a neighbor warp region where they all overlap
+  from a block width path through the homogeneous region,
+  choosing the relative warp region location based off of
+  a discretized voronoi region to give some semblance of direction
+  ... or maybe even just biased in the direction of other obstinate regions
+* solve
+* throw away the warp region
+* dilate
+* loop
+
+The idea is that we'll constantly identify obstinate regions and provide
+the chance for them to resolve through the warp region.
+If there's a bad choice, they'll have another chance throughout the run.
+
+A bad situation can arise if an obstinate region meanders into a cul-de-sac
+of resolved regions around it, but maybe we can identify those and find a way
+to soften out of it.
+
