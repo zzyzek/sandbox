@@ -401,14 +401,18 @@ There are two key pieces of information:
 So, another embryonic idea:
 
 * map obstinate regions
-* create a neighbor warp region where they all overlap
-  from a block width path through the homogeneous region,
-  choosing the relative warp region location based off of
-  a discretized voronoi region to give some semblance of direction
-  ... or maybe even just biased in the direction of other obstinate regions
+* create inventory of homogeneous regions
+* find paths (`A*`? vornoi?) from each pair of obstinate regions to each other
+  to find a schedule of warp region placement
+* weight cells for potential softening based on their initial homogeneous
+  inventory proximity and whether an obstinate region is trapped within
+  a resolved wall (more below)
+* create a neighbor warp region for each pair of connected obstinate regions,
+  marking admissible cells to connect the obstinate regions to the warp regions
 * solve
-* throw away the warp region
-* dilate
+  - throw away the warp region
+  - if we can't solve, soften
+  - if we can solve, dilate obstinate regions
 * loop
 
 The idea is that we'll constantly identify obstinate regions and provide
@@ -422,6 +426,60 @@ to soften out of it.
 But this can maybe be avoided, or mitigated, if obstinate blocks that are
 trapped by resolved regions from other obstinate blocks through homogeneous
 regions by more highly weighting the homogeneous regions for softening.
+
+* forest micro should have a wall of obstinate regions on top and bottom with
+  a wall of warp region underneath
+* corner path should have a warp region that keeps getting placed diagonal to
+  obstinate regions
+* far path has the same
+* paths through mildly constrained region will presumably go towards obstinate regions
+  near the corridor opening
+* jagged frame path, the same as other path setups
+* path with middle corridor will keep having a warp region placed in such a way so as to
+  be guided through the corridor
+* forest micro with choke point ...  oof
+  - I was wrong about the forest micro, the *whole* grid will be lightly obstinate *except*
+    for the edges
+  - it seems like we have a lot of information here. The edges are not obstinate while
+    the whole interior is obstinate but homogeneous
+  - wherever we have obstinate regions, we have to tread carefully as a bad choice early on
+    will have far reaching consequences that we need to unwind from
+  - homogenous regions mean we pretty much have free reign inside them (locally)
+
+---
+
+Restating some ideas:
+
+* we might be able to find obstinate blocks
+* we might be able to find a directional bias for obstinate blocks
+* we can identify homogeneous regions
+* we can identify obstinate regions
+* we can identify obstinate block pairings
+* (**maybe**) obstinate regions, assuming they do have a resolution, collide
+  with other obstinate regions
+  - nope, it's more subtle than that. forest micro will have an obstinate region
+    *just under* the top resolution area. So you'll have an obstinate region that
+    can/needs to ram into the top to resolve
+
+---
+
+* Take the inventory
+* For all pairs, $\alpha, \beta$, of invetory blocks that are block connected by
+  a homogeneous region
+  - construct a 5x3 superblock with block $\alpha$ at block $(1,1)$ and $\beta$ at $(3,1)$
+    and $(2,1)$ to indeterminate (homogenous representative block)
+  - do T times:
+    + resolve outer frame of 5x3 block
+    + try to resolve interior 3 blocks
+    + catalog how compatible they are
+  - do the same for 3x5 block or any other topology you want
+* For every obstinate admissible pairing, bias in direction of path through homogeneous region
+  (`A*`, whatever)
+
+---
+
+
+
 
 
 
