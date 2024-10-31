@@ -452,7 +452,7 @@ Restating some ideas:
 
 * we might be able to find obstinate blocks
 * we might be able to find a directional bias for obstinate blocks
-* we can identify homogeneous regions
+* we can identify (AC4) homogeneous regions
 * we can identify obstinate regions
 * we can identify obstinate block pairings
 * (**maybe**) obstinate regions, assuming they do have a resolution, collide
@@ -478,8 +478,87 @@ Restating some ideas:
 
 ---
 
+The current hard case is the forest micro tile set with a choke point.
+
+Doing some type of region path connectivity, and boring out an inadmissible
+path because of it, makes a big assumption that the resolution of the tiles
+along the region path will disallow other paths through it.
+
+The choke point forest micro tile set with 
+
+We need to use some type of non-local information.
 
 
+---
 
+Consider this:
+
+* a choke point forest micro that's mostly resolved with many fingers with unresolved tips
+  jamming into partial solutions
+* we can take an unresolved and obstinate region and figure out where it might match up, presumably
+  to the top or bottom
+* the obstinate directionality might give us a direction to closest resolution port (top or bottom)
+* we might even be able to guess at a block to use by considering what block resolves with the port
+
+---
+
+Let's try again:
+
+* Run normally
+* If we've noticed an observed obstinate block that's giving trouble
+  - do a random weighted sample of blocks on the edge of the homogeneous region and
+    and see if it can resolve (more on this below)
+  - if it can, take the block it resolved to and plop it down in place
+  - set the ring around the plopped block to indeterminate
+  - continue
+
+I suspect the obstinate block direction will inform how to sample to the edge of the homogeneous region
+(`A*` weighted path) but that's still a little unclear to me.
+
+Setting up the resolution test is also tricky but here's what I'm thinking:
+
+```
+A A A
+A x A
+* * *
+B y B
+B B B
+```
+
+Where `x` is the obstinate block, `y` is the test block we're trying to pair with, `*` is indeterminate
+(or prefatory to the homogeneous region), `A` is the upper horseshoe (resolved) region around the obstinate block
+and `B` is the lower horseshoe (resolved) around the test block.
+This assumes the test pairing was somehow 'down' from where the obstinate block was.
+
+The idea is that if `x` is obstinate, we see if match it to some place it can escape to along the path of the
+homogeneous region.
+If there's some hope that it can, then force that `x` block to what the matching would be if it were close to
+where it would resolve, but fuzz out the horseshoe/anulus around it so that the new block can re-integrate back
+in.
+The `A` blocks most likely (hopefuly) will resolve to what they were, pushing the obstinate region down further.
+
+`y` and `B` can be thrown out as they were only tests.
+
+In my opinion, this is similar to HEMP.
+
+---
+
+I think this has a hope of working.
+
+
+There's a difference between the initial setup identification of obstinate blocks and noticing the runtime
+obstinate blocks.
+When a runtime obstinate block is identified, I was thinking of doing essentially random sampling based on
+tracers sent out informed by the obstinate directionality and this might be enough.
+
+Here's the idea:
+
+* probes are sent out through the prefatory homogeneous region
+* weightings can happen from highlighting the difference obstinate regions to the homogeneous field
+  - path will have small obstinate blocks that get highlighted on the edge of the homogeneous region
+  - the obstinate field and the homogenous field will cancel in the forest micro case, except for the
+    edge map
+* this misses runtime obstinate blocks matching with other runtime obstinate blocks but this can get
+  complicated, as in the forest micro case, so I'm not sure how to modify it
 
 
