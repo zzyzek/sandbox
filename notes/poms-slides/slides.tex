@@ -3,6 +3,7 @@
 \usepackage{multimedia}
 
 \usetheme{metropolis}
+\usepackage{appendixnumberbeamer}
 
 %\metroset{numbering=counter}
 \metroset{numbering=fraction}
@@ -33,16 +34,24 @@
     \begin{itemize}
       \item Works on large grids
       \item Minimal setup requirements
-      \item Resiliance to contradiction
+      \item Resilience to contradiction
     \end{itemize}
   \end{frame}
 
-  \begin{centering}
-    \begin{frame}[fragile]{Introduction}
-      \textbf{Punch Out Model Synthesis} (\textit{POMS})
-      \includegraphics[width=0.7\textwidth]{img/minirogue_128x128.pdf}
-    \end{frame}
-  \end{centering}
+  \begin{frame}[fragile]{Introduction}
+    \begin{figure}
+      \textit{Pill Mortal} Tile Set
+
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
+    \end{figure}
+  \end{frame}
+
+%  \begin{centering}
+%    \begin{frame}[fragile]{Introduction}
+%      \textbf{Punch Out Model Synthesis} (\textit{POMS})
+%      \includegraphics[width=0.7\textwidth]{img/minirogue_128x128.pdf}
+%    \end{frame}
+%  \end{centering}
 
 %  \begin{frame}[fragile]{Introduction}
 %    %Constraint Based Tiling Generation (\textit{CBTG})
@@ -357,13 +366,13 @@
     \end{figure}
   \end{frame}
 
-  \begin{frame}[fragile]{Algorithm}
-    \begin{figure}
-      \textit{Pill Mortal} Tile Set
-
-      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
-    \end{figure}
-  \end{frame}
+%  \begin{frame}[fragile]{Algorithm}
+%    \begin{figure}
+%      \textit{Pill Mortal} Tile Set
+%
+%      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
+%    \end{figure}
+%  \end{frame}
 
 %  \begin{frame}[fragile]{Algorithm}
 %    \begin{figure}
@@ -440,26 +449,35 @@
 
   %\section{Highlighted Runs}
 
-  \begin{frame}[fragile]{Highlighted Runs}
+  \begin{frame}[fragile]{Algorithm}
     \begin{figure}
-      LUNARSIGNAL's \textit{Overhead Action} \\ \textit{RPG Overworld} Tile Set (x10)
-      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/oarpgo_x10_w.mp4}
+      \textit{Pill Mortal} Tile Set
+
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
     \end{figure}
   \end{frame}
 
-  \begin{frame}[fragile]{Highlighted Runs}
-    \begin{figure}
-      0x72's \textit{Two Bit Micro Metroidvania} Tile Set (x10)
-      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/2bmmv_x10_w.mp4}
-    \end{figure}
-  \end{frame}
 
-  \begin{frame}[fragile]{Highlighted Runs}
-    \begin{figure}
-      Kingel's \textit{Minirogue} Tile Set (x10)
-      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/minirogue_x10_w.mp4}
-    \end{figure}
-  \end{frame}
+%  \begin{frame}[fragile]{Highlighted Runs}
+%    \begin{figure}
+%      LUNARSIGNAL's \textit{Overhead Action} \\ \textit{RPG Overworld} Tile Set (x10)
+%      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/oarpgo_x10_w.mp4}
+%    \end{figure}
+%  \end{frame}
+
+%  \begin{frame}[fragile]{Highlighted Runs}
+%    \begin{figure}
+%      0x72's \textit{Two Bit Micro Metroidvania} Tile Set (x10)
+%      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/2bmmv_x10_w.mp4}
+%    \end{figure}
+%  \end{frame}
+
+%  \begin{frame}[fragile]{Highlighted Runs}
+%    \begin{figure}
+%      Kingel's \textit{Minirogue} Tile Set (x10)
+%      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/minirogue_x10_w.mp4}
+%    \end{figure}
+%  \end{frame}
 
   %\section{Conclusion}
 
@@ -469,7 +487,7 @@
   \end{frame}
 
   \begin{frame}[fragile]{Conclusion}
-    CBTGs are good at maintaining local consistency but are bad at resolving global constraints \\
+    CBTG algorithms are good at maintaining local consistency but are bad at resolving global constraints \\
     \hfill \\
     Weak global constraints (path connections, etc.) confound POMS (and other CBTG algorithms) \\
   \end{frame}
@@ -480,25 +498,11 @@
     \begin{center}\url{https://github.com/zzyzek/PunchOutModelSynthesis}\end{center}
     \hfill \\
     \begin{center}\small\url{https://zzyzek.github.io/PunchOutModelSynthesisWebDemo/}\end{center}
+    \hfill \\
+    \begin{center}Thanks!\end{center}
   \end{frame}
 
   \appendix
-
-  \begin{frame}[fragile]{Auxiliary Slides}
-    \begin{itemize}
-      \item Bitter lesson includes learning \textit{and} search
-      \item Tradeoff between resources used to learn vs. resources used for runtime search
-      \item "Parables of the Power of Planning in AI" by Noam Brown (\url{https://www.youtube.com/watch?v=eaAonE58sLU})
-    \end{itemize}
-  \end{frame}
-
-  \begin{frame}[fragile]{Auxiliary Slides}
-    \begin{itemize}
-      \item Salad
-      \item Oatmeal
-      \item Global Cohesion/(weak) Global Constraints
-    \end{itemize}
-  \end{frame}
 
   \begin{frame}[fragile]{Auxiliary Slides}
     Automatic Tile Generation \\
@@ -520,6 +524,58 @@
         \end{block}
     \end{columns}
 
+  \end{frame}
+
+
+  \begin{frame}[fragile]{Highlighted Runs}
+    \begin{figure}
+      LUNARSIGNAL's \textit{Overhead Action} \\ \textit{RPG Overworld} Tile Set (x10)
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/oarpgo_x10_w.mp4}
+    \end{figure}
+  \end{frame}
+
+  \begin{frame}[fragile]{Highlighted Runs}
+    \begin{figure}
+      0x72's \textit{Two Bit Micro Metroidvania} Tile Set (x10)
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/2bmmv_x10_w.mp4}
+    \end{figure}
+  \end{frame}
+
+  \begin{frame}[fragile]{Highlighted Runs}
+    \begin{figure}
+      Kingel's \textit{Minirogue} Tile Set (x10)
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/minirogue_x10_w.mp4}
+    \end{figure}
+  \end{frame}
+
+
+  \begin{frame}[fragile]{Auxiliary Slides}
+    \begin{itemize}
+      \item Bitter lesson includes learning \textit{and} search
+      \item Trade off between resources used to learn vs. resources used for run time search
+      \item "Parables of the Power of Planning in AI" by Noam Brown (\url{https://www.youtube.com/watch?v=eaAonE58sLU})
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}[fragile]{Auxiliary Slides}
+    Other Problems
+
+    \begin{itemize}
+      \item Salad
+      \item Oatmeal
+      \item Global Cohesion/(weak) Global Constraints
+    \end{itemize}
+  \end{frame}
+
+
+  \begin{frame}[fragile]{Auxiliary Slides}
+    Potential Future Work
+
+    \begin{itemize}
+      \item Spectral Graph Decomposition methods for automatic biome detection
+      \item AC4 speedups via templates
+      \item Weak global constraints
+    \end{itemize}
   \end{frame}
 
 

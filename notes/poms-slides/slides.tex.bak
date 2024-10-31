@@ -3,6 +3,10 @@
 \usepackage{multimedia}
 
 \usetheme{metropolis}
+\usepackage{appendixnumberbeamer}
+
+%\metroset{numbering=counter}
+\metroset{numbering=fraction}
 
 \title{Punch Out Model Synthesis}
 \subtitle{A Stochastic Algorithm for Constraint Based Tiling Generation}
@@ -10,206 +14,149 @@
 \author{Zzyv Zzyzek}
 \begin{document}
 
+
+
 \newcommand{\specialcell}[2][c]{\begin{tabular}[#1]{@{}l@{}}#2\end{tabular}}
 \newcommand{\specialcellCenter}[2][c]{\begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
 
-
   \maketitle
 
+  %\begin{frame}{Table of contents}
+  %  \setbeamertemplate{section in toc}[sections numbered]
+  %  \tableofcontents[hideallsubsections]
+  %\end{frame}
 
-  \begin{frame}{Table of contents}
-    \setbeamertemplate{section in toc}[sections numbered]
-    \tableofcontents[hideallsubsections]
-  \end{frame}
-
-  \section{Introduction}
+  %\section{Introduction}
 
   \begin{frame}[fragile]{Introduction}
     \textbf{Punch Out Model Synthesis} (\textit{POMS})
-
     A Constraint Based Tiling Generation (\textit{CBTG}) algorithm:
-
-    %\begin{itemize}[<+- | alert@+>]
     \begin{itemize}
-      \item Can work on large grids
-      \item Minimal initial setup requirements
-      \item Contradiction resiliance via stochastic backtracking
+      \item Works on large grids
+      \item Minimal setup requirements
+      \item Resiliance to contradiction
     \end{itemize}
+  \end{frame}
+
+  \begin{frame}[fragile]{Introduction}
+    \begin{figure}
+      \textit{Pill Mortal} Tile Set
+
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
+    \end{figure}
+  \end{frame}
+
+%  \begin{centering}
+%    \begin{frame}[fragile]{Introduction}
+%      \textbf{Punch Out Model Synthesis} (\textit{POMS})
+%      \includegraphics[width=0.7\textwidth]{img/minirogue_128x128.pdf}
+%    \end{frame}
+%  \end{centering}
+
+%  \begin{frame}[fragile]{Introduction}
+%    %Constraint Based Tiling Generation (\textit{CBTG})
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{Definitions}
+%          \begin{itemize}
+%            \item \textit{Grid} composed of \textit{cells}
+%            \item Each \textit{cell} can hold $D$ \textit{tiles}
+%            \item Pairwise tile \textit{constraints} in each dimension ($\pm X, \pm Y, \pm Z$)
+%          \end{itemize}
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+%        \end{block}
+%    \end{columns}
+%  \end{frame}
+
+  \begin{frame}[fragile]{Introduction}
+    Constraint Based Tiling Generation (\textit{CBTG}) Problem
+    \begin{columns}[T,onlytextwidth]
+      \column{0.5\textwidth}
+        \begin{block}{}
+          \hfill \\
+          \textbf{Find a valid grid realization}
+          \hfill \\
+          \hfill \\
+          A \textit{realization} is a single \textit{tile} placement at each \textit{cell} \\
+          respecting \textit{constraints}.
+          \hfill \\
+          \hfill \\
+          (\textit{Cell} can hold up to $D$ \textit{tiles})
+
+          %\begin{itemize}
+          %  \item A \textit{realization} is a single \textit{tile} placement at each \textit{cell} respecting \textit{constraints}.
+          %  \item A \textit{contradiction} if no tiles left at a cell location
+          %\end{itemize}
+        \end{block}
+      \column{0.5\textwidth}
+        \begin{block}{Example}
+          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+        \end{block}
+    \end{columns}
+  \end{frame}
+
+  \begin{frame}[fragile]{Introduction}
+    A region is \textit{Arc Consistent} if all \textit{tiles} in every \textit{cell} within the region have at least
+    one valid neighbor in each direction
+    \hfill \\
+    \hfill \\
+    The basis for a \textit{Constraint Propagation} algorithm
+    can be made by removing tiles without a valid neighbor
+    \hfill \\
+    \hfill \\
+    \textit{Block Level Solver}: completely maintains \textit{Arc Consistency}
+    \hfill \\
+    \hfill \\
+    \textit{Grid Level Solver}: only keep minimal information for the entire grid but
+        work on \textit{block} sub-regions
 
   \end{frame}
 
+
 %  \begin{frame}[fragile]{Introduction}
-%    \begin{figure}
-%      \textit{Forest Micro} Tile Set
-%      \movie[width=6cm,height=3.397cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
-%    \end{figure}
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{Definitions}
+%          \hfill \\
+%
+%          A region is \textit{Arc Consistent} if all \textit{tiles} in every \textit{cell} within the region have at least
+%          one valid neighbor in each direction
+%
+%%          \begin{itemize}
+%%            \item A tile has \textit{support} if \\
+%%              there's a valid neighbor
+%%              in each
+%%              grid dimension direction
+%%            \item A region is \textit{Arc Consistent} \\ if all \textit{tiles} within the region are \textit{supported}
+%%          \end{itemize}
+%
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+%        \end{block}
+%    \end{columns}
 %  \end{frame}
 
 
-  \begin{frame}[fragile]{Introduction}
-
-    Constraint Based Tiling Generation (\textit{CBTG})
-
-    \begin{columns}[T,onlytextwidth]
-
-      \column{0.5\textwidth}
-        \begin{block}{Given Constraints}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_rule_grid_tb.pdf}
-        \end{block}
-
-      \column{0.5\textwidth}
-        \begin{block}{Find a Realization}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-
-
-    \end{columns}
-
-  \end{frame}
-
-
-  \begin{frame}[fragile]{Introduction}
-    Constraint Based Tiling Generation (\textit{CBTG})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Definitions}
-          \begin{itemize}
-            \item \textit{Grid} composed of \textit{cells}
-            %\item Each \textit{cell} can hold $D$ \textit{tiles}
-            %\item Pairwise tile \textit{constraints} in each dimension ($\pm X, \pm Y, \pm Z$)
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  \begin{frame}[fragile]{Introduction}
-    Constraint Based Tiling Generation (\textit{CBTG})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Definitions}
-          \begin{itemize}
-            \item \textit{Grid} composed of \textit{cells}
-            \item Each \textit{cell} can hold $D$ \textit{tiles}
-            %\item Pairwise tile \textit{constraints} in each dimension ($\pm X, \pm Y, \pm Z$)
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-
-  \begin{frame}[fragile]{Introduction}
-    Constraint Based Tiling Generation (\textit{CBTG})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Definitions}
-          \begin{itemize}
-            \item \textit{Grid} composed of \textit{cells}
-            \item Each \textit{cell} can hold $D$ \textit{tiles}
-            \item Pairwise tile \textit{constraints} in each dimension ($\pm X, \pm Y, \pm Z$)
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-
-  \begin{frame}[fragile]{Introduction}
-    Constraint Based Tiling Generation (\textit{CBTG})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Definitions}
-
-          \hfill \\
-          A \textit{realization} is a \textit{grid} that \\
-          has a single \textit{tile} at each \\
-          \textit{cell} respecting the \textit{constraints}.
-          \hfill \\
-          \hfill \\
-          If a cell has no tiles left, no \\
-          realization is possible and is
-          considered a \textit{contradiction}.
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  \begin{frame}[fragile]{Introduction}
-    Constraint Based Tiling Generation (\textit{CBTG})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{CBTG Problem}
-
-          \hfill \\
-%          A \textit{realization} is a \textit{grid} that \\
-%          has a single \textit{tile} at each \\
-%          \textit{cell} respecting the \textit{constraints}.
+%  \begin{frame}[fragile]{Introduction}
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{Definitions}
 %          \hfill \\
-%          \hfill \\
-%          If a cell has no tiles left, no \\
-%          realization is possible and is
-%          considered a \textit{contradiction}.
-%          \hfill \\
-%          \hfill \\
-          Find a valid grid realization
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-
-  \begin{frame}[fragile]{Introduction}
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Definitions}
-          \hfill \\
-          \begin{itemize}
-            \item A tile has \textit{support} if \\
-              there's a valid neighbor
-              in each
-              grid dimension direction
-            \item A region is \textit{Arc Consistent} \\ if all \textit{tiles} within the region are \textit{supported}
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-
-  \begin{frame}[fragile]{Introduction}
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Definitions}
-          \hfill \\
-          The basis for a \textit{Constraint Propagation} algorithm
-          can be made by removing \textit{unsupported tiles} from
-          a \textit{cell's domain}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
+%          The basis for a \textit{Constraint Propagation} algorithm
+%          can be made by removing tiles without \\
+%          a valid neighbor
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+%        \end{block}
+%    \end{columns}
+%  \end{frame}
 
 
 %  \begin{frame}[fragile]{Introduction}
@@ -228,171 +175,51 @@
 %    \end{columns}
 %  \end{frame}
 
-  \begin{frame}[fragile]{Introduction}
-    %\textit{Block} and \textit{Grid} level solvers
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Definitions}
-          \hfill \\
-          \begin{itemize}
-            \item \textit{Block Level Solver}: \\
-              completely maintains \textit{Arc Consistency}
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
+%  \begin{frame}[fragile]{Introduction}
+%    %\textit{Block} and \textit{Grid} level solvers
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{Definitions}
+%          \hfill \\
+%          \begin{itemize}
+%            \item \textit{Block Level Solver}: \\
+%              completely maintains \textit{Arc Consistency}
+%          \end{itemize}
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+%        \end{block}
+%    \end{columns}
+%  \end{frame}
 
-  \begin{frame}[fragile]{Introduction}
-    %\textit{Block} and \textit{Grid} level solvers
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Definitions}
-          \hfill \\
-          \begin{itemize}
-            \item \textit{Block Level Solver}: \\
-              completely maintains \textit{Arc Consistency}
-            \item \textit{Grid Level Solver}: \\
-              only keep summary information for the entire grid but
-              work on \textit{block} sub-regions
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
+%  \begin{frame}[fragile]{Introduction}
+%    %\textit{Block} and \textit{Grid} level solvers
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{Definitions}
+%          \hfill \\
+%          \begin{itemize}
+%            \item \textit{Block Level Solver}: \\
+%              completely maintains \textit{Arc Consistency}
+%            \item \textit{Grid Level Solver}: \\
+%              only keep minimal information for the entire grid but
+%              work on \textit{block} sub-regions
+%          \end{itemize}
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+%        \end{block}
+%    \end{columns}
+%  \end{frame}
 
 
   %%%%%%%%%%%%%%
   %%%%%%%%%%%%%%
   %%%%%%%%%%%%%%
   
-  \section{Related Work}
-
-  \begin{frame}[fragile]{Related Work}
-    WFC, BMS, MMS
-
-    \begin{itemize}
-      \item Gumin's \textit{Wave Function Collapse} (\textit{WFC})
-      \item \textit{Breakout Model Synthesis} (\textit{BMS}) \\
-        \ \ \ (Hoetzlein's \textit{just\_math} project)
-      \item Merrell's \textit{Modify in Blocks Model Synthesis} (\textit{MMS})
-    \end{itemize}
-  \end{frame}
-
-  %% wfc_related_work
-
-  \begin{frame}[fragile]{Related Work}
-    \textit{Wave Function Collapse} (\textit{WFC})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{WFC}
-          \hfill \\
-          \begin{itemize}
-            \item Resolve tile at cell (min. entropy heuristic)
-            \item Constraint Propagate
-            \item Loop until solution or contradiction
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  \begin{frame}[fragile]{Related Work}
-    \textit{Wave Function Collapse} (\textit{WFC})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{WFC}
-          \hfill \\
-          \begin{itemize}
-            \item \textit{Block Level}
-            \item One-shot
-            \item Indeterminate initial condition
-            \item Ergodic
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  %% bms_related_work
-
-  \begin{frame}[fragile]{Related Work}
-    \textit{Breakout Model Synthesis} (\textit{BMS})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{BMS}
-          \hfill \\
-          \begin{itemize}
-            \item Resolve tile at cell
-            \item Constraint Propogate
-            \item If contradiction
-              \begin{itemize}
-                \item Revert small region
-              \end{itemize}
-            \item Loop until solution or timeout
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  \begin{frame}[fragile]{Related Work}
-    \textit{Breakout Model Synthesis} (\textit{BMS})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{BMS}
-          \hfill \\
-          \begin{itemize}
-            \item \textit{Block Level}
-            \item Stochastic backtracking
-            \item Indeterminate initial condition
-            \item Ergodic
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  \begin{frame}[fragile]{Related Work}
-    \textit{Modify in Blocks Model Synthesis} (\textit{MMS})
-
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{MMS}
-          \hfill \\
-          \begin{itemize}
-            \item \textit{Grid Level}
-            \item Contradiction resiliance via
-              Block step consistency
-            \item Requires bootstrap initial realization
-            \item Non-ergodic
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-
-  \end{frame}
+  % summary_related_work
 
   \begin{frame}[fragile]{Related Work}
 
@@ -409,6 +236,10 @@
     \hline
   \end{tabular}
 
+  \textit{WFC}: Wave Function Collapse (Gumin) \\
+  \textit{BMS}: Breakout Model Synthesis (Hoetzlein) \\
+  \textit{MMS}: Modify in Blocks Model Synthesis (Merrell) \\
+
 \end{table}
 
   \end{frame}
@@ -417,23 +248,11 @@
   %% tile_influence
 
   \begin{frame}[fragile]{Related Work}
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Intuition}
-          \hfill \\
-          How much influence does a tile choice have over long distances? \\
-          \hfill \\
-          Difficult to define and/or calculate \\
-          \hfill \\
-          As a heuristic, \\
-          \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL}) 
-            from Hoetzlein's \textit{just\_math} project
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
+    \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL}) (Hoetzlein) \\
+    \hfill \\
+    How much influence does a tile choice have over long distances? \\
+    \hfill \\
+    TACCL as a heuristic to estimate correlation length
   \end{frame}
 
   %%
@@ -444,103 +263,8 @@
       \column{0.5\textwidth}
         \begin{block}{TACCL}
           \hfill \\
+          Take block in isolation
           \begin{itemize}
-            \item Take block in isolation
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  \begin{frame}[fragile]{Related Work}
-    \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{TACCL}
-          \hfill \\
-          \begin{itemize}
-            \item Take block in isolation
-            \item Set block to indeterminate state
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  \begin{frame}[fragile]{Related Work}
-    \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{TACCL}
-          \hfill \\
-          \begin{itemize}
-            \item Take block in isolation
-            \item Set block to indeterminate state
-            \item Fix a tile at the center
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  \begin{frame}[fragile]{Related Work}
-    \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{TACCL}
-          \hfill \\
-          \begin{itemize}
-            \item Take block in isolation
-            \item Set block to indeterminate state
-            \item Fix a tile at the center
-            \item Propagate constraints
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  \begin{frame}[fragile]{Related Work}
-    \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{TACCL}
-          \hfill \\
-          \begin{itemize}
-            \item Take block in isolation
-            \item Set block to indeterminate state
-            \item Fix a tile at the center
-            \item Propagate constraints
-            \item Take minimum bounding box of altered cells
-          \end{itemize}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
-        \end{block}
-    \end{columns}
-  \end{frame}
-
-  \begin{frame}[fragile]{Related Work}
-    \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL})
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{TACCL}
-          \hfill \\
-          \begin{itemize}
-            \item Take block in isolation
             \item Set block to indeterminate state
             \item Fix a tile at the center
             \item Propagate constraints
@@ -550,7 +274,7 @@
         \end{block}
       \column{0.5\textwidth}
         \begin{block}{Example}
-          \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+          \includegraphics[width=1.125\textwidth]{img/pm_freq_taccl.pdf}
         \end{block}
     \end{columns}
   \end{frame}
@@ -562,7 +286,7 @@
   %%%%%%%%%%%%%%%
   %%%%%%%%%%%%%%%
 
-  \section{Algorithm}
+  %\section{Algorithm}
 
   \begin{frame}[fragile]{Algorithm: Overview }
     \begin{figure}
@@ -642,13 +366,13 @@
     \end{figure}
   \end{frame}
 
-  \begin{frame}[fragile]{Algorithm}
-    \begin{figure}
-      \textit{Pill Mortal} Tile Set
-
-      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
-    \end{figure}
-  \end{frame}
+%  \begin{frame}[fragile]{Algorithm}
+%    \begin{figure}
+%      \textit{Pill Mortal} Tile Set
+%
+%      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
+%    \end{figure}
+%  \end{frame}
 
 %  \begin{frame}[fragile]{Algorithm}
 %    \begin{figure}
@@ -667,21 +391,19 @@
     \end{figure}
   \end{frame}
 
-  \begin{frame}[fragile]{Algorithm}
-    \begin{figure}
-      Choose Block
-
-      \includegraphics[width=6cm]{img/fm_0005.pdf}
-    \end{figure}
-  \end{frame}
-
-  \begin{frame}[fragile]{Algorithm}
-    \begin{figure}
-      Choose Block
-
-      \includegraphics[width=6cm]{img/fm_0006.pdf}
-    \end{figure}
-  \end{frame}
+%  \begin{frame}[fragile]{Algorithm}
+%    \begin{figure}
+%      Choose Block
+%      \includegraphics[width=6cm]{img/fm_0005.pdf}
+%    \end{figure}
+%  \end{frame}
+%
+%  \begin{frame}[fragile]{Algorithm}
+%    \begin{figure}
+%      Choose Block
+%      \includegraphics[width=6cm]{img/fm_0006.pdf}
+%    \end{figure}
+%  \end{frame}
 
   \begin{frame}[fragile]{Algorithm}
     \begin{figure}
@@ -725,20 +447,135 @@
 %  \end{frame}
 %
 
-  \section{Results}
+  %\section{Highlighted Runs}
 
-  \begin{frame}[fragile]{Results}
+  \begin{frame}[fragile]{Algorithm}
+    \begin{figure}
+      \textit{Pill Mortal} Tile Set
 
-    ...
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
+    \end{figure}
+  \end{frame}
+
+
+%  \begin{frame}[fragile]{Highlighted Runs}
+%    \begin{figure}
+%      LUNARSIGNAL's \textit{Overhead Action} \\ \textit{RPG Overworld} Tile Set (x10)
+%      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/oarpgo_x10_w.mp4}
+%    \end{figure}
+%  \end{frame}
+
+%  \begin{frame}[fragile]{Highlighted Runs}
+%    \begin{figure}
+%      0x72's \textit{Two Bit Micro Metroidvania} Tile Set (x10)
+%      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/2bmmv_x10_w.mp4}
+%    \end{figure}
+%  \end{frame}
+
+%  \begin{frame}[fragile]{Highlighted Runs}
+%    \begin{figure}
+%      Kingel's \textit{Minirogue} Tile Set (x10)
+%      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/minirogue_x10_w.mp4}
+%    \end{figure}
+%  \end{frame}
+
+  %\section{Conclusion}
+
+  \begin{frame}[fragile]{Conclusion}
+    Punch Out Model Synthesis (POMS) as an alternative when large models with minimal setup restrictions are wanted
+    and resource limits are a concern.
+  \end{frame}
+
+  \begin{frame}[fragile]{Conclusion}
+    CBTG algorithms are good at maintaining local consistency but are bad at resolving global constraints \\
+    \hfill \\
+    Weak global constraints (path connections, etc.) confound POMS (and other CBTG algorithms) \\
+  \end{frame}
+
+  \begin{frame}[fragile]{fin}
+    \begin{center}\url{https://zzyzek.github.io}\end{center}
+    \hfill \\
+    \begin{center}\url{https://github.com/zzyzek/PunchOutModelSynthesis}\end{center}
+    \hfill \\
+    \begin{center}\small\url{https://zzyzek.github.io/PunchOutModelSynthesisWebDemo/}\end{center}
+    \hfill \\
+    \begin{center}Thanks!\end{center}
+  \end{frame}
+
+  \appendix
+
+  \begin{frame}[fragile]{Auxiliary Slides}
+    Automatic Tile Generation \\
+    \url{https://zzyzek.github.io/TileRuleHighlighter/}
+    \begin{columns}[T,onlytextwidth]
+      \column{0.5\textwidth}
+        \begin{block}{Rule Graph (Forest Micro)}
+          \begin{figure}
+            \includegraphics[width=0.7\textwidth]{img/forestmicro_rule_grid_tb.pdf}
+          \end{figure}
+        \end{block}
+      \column{0.5\textwidth}
+        \begin{block}{Rule Highlighter}
+          \begin{figure}
+            %\movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
+            %\movie[width=5cm,height=2.85cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
+            \movie[width=6cm,height=3.4cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
+          \end{figure}
+        \end{block}
+    \end{columns}
 
   \end{frame}
 
-  \section{Conclusion}
 
-  \begin{frame}[fragile]{Conclusion}
+  \begin{frame}[fragile]{Highlighted Runs}
+    \begin{figure}
+      LUNARSIGNAL's \textit{Overhead Action} \\ \textit{RPG Overworld} Tile Set (x10)
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/oarpgo_x10_w.mp4}
+    \end{figure}
+  \end{frame}
 
-    \begin{center}\url{https://github.com/zzyzek/PunchOutModelSynthesis}\end{center}
+  \begin{frame}[fragile]{Highlighted Runs}
+    \begin{figure}
+      0x72's \textit{Two Bit Micro Metroidvania} Tile Set (x10)
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/2bmmv_x10_w.mp4}
+    \end{figure}
+  \end{frame}
 
+  \begin{frame}[fragile]{Highlighted Runs}
+    \begin{figure}
+      Kingel's \textit{Minirogue} Tile Set (x10)
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/minirogue_x10_w.mp4}
+    \end{figure}
+  \end{frame}
+
+
+  \begin{frame}[fragile]{Auxiliary Slides}
+    \begin{itemize}
+      \item Bitter lesson includes learning \textit{and} search
+      \item Tradeoff between resources used to learn vs. resources used for runtime search
+      \item "Parables of the Power of Planning in AI" by Noam Brown (\url{https://www.youtube.com/watch?v=eaAonE58sLU})
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}[fragile]{Auxiliary Slides}
+    Other Problems
+
+    \begin{itemize}
+      \item Salad
+      \item Oatmeal
+      \item Global Cohesion/(weak) Global Constraints
+    \end{itemize}
+  \end{frame}
+
+
+  \begin{frame}[fragile]{Auxiliary Slides}
+    Potential Future Work
+
+    \begin{itemize}
+      \item Spectral Graph Decomposition methods for automatic biome detection
+      \item AC4 speedups via templates
+      \item Weak global contraints
+    \end{itemize}
   \end{frame}
 
 

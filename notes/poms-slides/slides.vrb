@@ -1,20 +1,8 @@
 \frametitle{Auxiliary Slides}
-Automatic Tile Generation \\
-    \url{https://zzyzek.github.io/TileRuleHighlighter/}
-    \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
-        \begin{block}{Rule Graph (Forest Micro)}
-          \begin{figure}
-            \includegraphics[width=0.7\textwidth]{img/forestmicro_rule_grid_tb.pdf}
-          \end{figure}
-        \end{block}
-      \column{0.5\textwidth}
-        \begin{block}{Rule Highlighter}
-          \begin{figure}
-            %\movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
-            %\movie[width=5cm,height=2.85cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
-            \movie[width=6cm,height=3.4cm,poster,autostart,repeat]{}{vid/fm_rule_anim.mp4}
-          \end{figure}
-        \end{block}
-    \end{columns}
+Potential Future Work
 
+    \begin{itemize}
+      \item Spectral Graph Decomposition methods for automatic biome detection
+      \item AC4 speedups via templates
+      \item Weak global constraints
+    \end{itemize}
