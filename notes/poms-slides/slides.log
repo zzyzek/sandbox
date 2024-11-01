@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.21)  31 OCT 2024 20:55
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.21)  31 OCT 2024 22:10
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1057,7 +1057,7 @@ LaTeX Font Warning: Font shape `OT1/cmss/b/it' undefined
 LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <10.95> not available
 (Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 10.
 )
-Overfull \vbox (14.0708pt too high) detected at line 248
+Overfull \vbox (14.0708pt too high) detected at line 249
  []
 
 [6
@@ -1093,7 +1093,7 @@ File: figs/poms_figalg.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_figalg.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 298
+Overfull \vbox (8.51968pt too high) detected at line 299
  []
 
 [9
@@ -1108,7 +1108,7 @@ File: figs/poms_alg0.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_alg0.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 304
+Overfull \vbox (8.51968pt too high) detected at line 305
  []
 
 [10
@@ -1123,7 +1123,7 @@ File: figs/poms_alg1.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_alg1.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 310
+Overfull \vbox (8.51968pt too high) detected at line 311
  []
 
 [11
@@ -1138,7 +1138,7 @@ File: figs/poms_alg2.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_alg2.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 316
+Overfull \vbox (8.51968pt too high) detected at line 317
  []
 
 [12
@@ -1153,7 +1153,7 @@ File: figs/poms_alg3.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_alg3.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 322
+Overfull \vbox (8.51968pt too high) detected at line 323
  []
 
 [13
@@ -1168,7 +1168,7 @@ File: figs/poms_alg4.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_alg4.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 328
+Overfull \vbox (8.51968pt too high) detected at line 329
  []
 
 [14
@@ -1183,7 +1183,7 @@ File: figs/poms_alg4_5.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_alg4_5.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 334
+Overfull \vbox (8.51968pt too high) detected at line 335
  []
 
 [15
@@ -1198,7 +1198,7 @@ File: figs/poms_alg5.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_alg5.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 340
+Overfull \vbox (8.51968pt too high) detected at line 341
  []
 
 [16
@@ -1213,7 +1213,7 @@ File: figs/poms_alg5_1.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_alg5_1.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 346
+Overfull \vbox (8.51968pt too high) detected at line 347
  []
 
 [17
@@ -1228,7 +1228,7 @@ File: figs/poms_alg5_2.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_alg5_2.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 352
+Overfull \vbox (8.51968pt too high) detected at line 353
  []
 
 [18
@@ -1243,7 +1243,7 @@ File: figs/poms_alg6_1.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_alg6_1.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 358
+Overfull \vbox (8.51968pt too high) detected at line 359
  []
 
 [19
@@ -1258,7 +1258,7 @@ File: figs/poms_alg6_2.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_alg6_2.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 364
+Overfull \vbox (8.51968pt too high) detected at line 365
  []
 
 [20
@@ -1272,7 +1272,7 @@ File: figs/poms_figalg.pdf Graphic file (type pdf)
 Package pdftex.def Info: figs/poms_figalg.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 370
+Overfull \vbox (8.51968pt too high) detected at line 371
  []
 
 [21
@@ -1350,7 +1350,7 @@ Package pdftex.def Info: img/fm_0036.pdf  used on input line 6.
 ]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\translate ' on input line 508.
+(hyperref)                removing `\translate ' on input line 509.
 
 \openout4 = `slides.vrb'.
 
@@ -1372,7 +1372,7 @@ Overfull \hbox (17.0716pt too wide) in paragraph at lines 16--17
 \openout4 = `slides.vrb'.
 
  (./slides.vrb)
-Overfull \vbox (3.73795pt too high) detected at line 538
+Overfull \vbox (3.73795pt too high) detected at line 539
  []
 
 [32
