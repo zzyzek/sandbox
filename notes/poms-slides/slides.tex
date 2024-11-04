@@ -28,24 +28,49 @@
 
   %\section{Introduction}
 
-  \begin{frame}[fragile]{Introduction}
-    \textbf{Punch Out Model Synthesis} (\textit{POMS})
-    A Constraint Based Tiling Generation (\textit{CBTG}) algorithm:
-    \begin{itemize}
-      \item Works on large grids
-      \item Minimal setup requirements
-      \item Resilience to contradiction
-    \end{itemize}
+%  \begin{frame}[fragile]{Introduction}
+%    \textbf{Punch Out Model Synthesis} (\textit{POMS})
+%    A Constraint Based Tiling Generation (\textit{CBTG}) algorithm:
+%    \begin{itemize}
+%      \item Resilience to contradiction
+%      \item Works on large grids
+%      \item Minimal setup requirements
+%    \end{itemize}
+%
+%  \end{frame}
+%
+%  \begin{frame}[fragile]{Introduction}
+%    \begin{figure}
+%      \textit{Pill Mortal} Tile Set
+%
+%      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
+%    \end{figure}
+%  \end{frame}
 
-  \end{frame}
+    \begin{columns}[T,onlytextwidth]
+      \column{0.5\textwidth}
+        \hfill \\
+        \hfill \\
+        \begin{block}{}
+          \textbf{Punch Out Model Synthesis} \\
+          \hfill \\
+          A Constraint Based Tiling Generation algorithm
+          \begin{itemize}
+            \item Contradiction resilience
+            \item Works on large grids
+            \item Minimal setup requirements
+          \end{itemize}
+        \end{block}
+      \column{0.5\textwidth}
+        \begin{block}{}
+          \begin{figure}
+            \movie[width=5.75cm,height=5.75cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
+            \textit{Pill Mortal} Tile Set \\
+            64x64 cells, 190 tile count
+          \end{figure}
+        \end{block}
+    \end{columns}
 
-  \begin{frame}[fragile]{Introduction}
-    \begin{figure}
-      \textit{Pill Mortal} Tile Set
-
-      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
-    \end{figure}
-  \end{frame}
 
 %  \begin{centering}
 %    \begin{frame}[fragile]{Introduction}
@@ -85,7 +110,7 @@
           respecting \textit{constraints}.
           \hfill \\
           \hfill \\
-          (\textit{Cell} can hold up to $D$ \textit{tiles})
+          (\textit{Cells} hold array of \textit{tiles})
 
           %\begin{itemize}
           %  \item A \textit{realization} is a single \textit{tile} placement at each \textit{cell} respecting \textit{constraints}.
@@ -95,25 +120,98 @@
       \column{0.5\textwidth}
         \begin{block}{Example}
           \includegraphics[width=0.9\textwidth]{img/forestmicro_64x64.pdf}
+
+          64x64 cells, 159 tile count
         \end{block}
     \end{columns}
   \end{frame}
 
+
   \begin{frame}[fragile]{Introduction}
-    A region is \textit{Arc Consistent} if all \textit{tiles} in every \textit{cell} within the region have at least
+
+    \hfill \\
+    \hfill \\
+
+    \textit{Arc Consistentency}: all \textit{tiles} in every \textit{cell} have at least
     one valid neighbor in each direction
+    \begin{center}
+      \includegraphics[width=0.5\textwidth]{figs/ac_illustration_consistent.pdf}
+    \end{center}
+
+  \end{frame}
+
+  \begin{frame}[fragile]{Introduction}
+
     \hfill \\
     \hfill \\
-    The basis for a \textit{Constraint Propagation} algorithm
-    can be made by removing tiles without a valid neighbor
-    \hfill \\
+
+    Basis for \textit{Constraint Propagation} algorithm,
+    remove tiles without valid neighbors
+
+    \begin{columns}[T,onlytextwidth]
+      \column{0.5\textwidth}
+        \begin{block}{}
+          \includegraphics[width=0.9\textwidth]{figs/ac_illustration_inconsistent.pdf} $\to$
+        \end{block}
+      \column{0.5\textwidth}
+        \begin{block}{}
+          \includegraphics[width=0.9\textwidth]{figs/ac_illustration_consistent.pdf}
+        \end{block}
+    \end{columns}
+
+  \end{frame}
+
+
+%  \begin{frame}[fragile]{Introduction}
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{}
+%
+%          \hfill \\
+%          \hfill \\
+%          \textit{Arc Consistentency}: all \textit{tiles} in every \textit{cell} have at least
+%          one valid neighbor in each direction
+%
+%          \hfill \\
+%          \hfill \\
+%
+%          Basis for \textit{Constraint Propagation} algorithm,
+%          remove tiles without valid neighbors
+%
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{}
+%          \includegraphics[width=0.6\textwidth]{figs/ac_illustration_inconsistent.pdf}
+%          \hfill \\
+%          \includegraphics[width=0.6\textwidth]{figs/ac_illustration_consistent.pdf}
+%        \end{block}
+%    \end{columns}
+%  \end{frame}
+
+
+%  \begin{frame}[fragile]{Introduction}
+%    A region is \textit{Arc Consistent} if all \textit{tiles} in every \textit{cell} within the region have at least
+%    one valid neighbor in each direction
+%    \hfill \\
+%    \hfill \\
+%    The basis for a \textit{Constraint Propagation} algorithm
+%    can be made by removing tiles without a valid neighbor
+%    \hfill \\
+%    \hfill \\
+%    \textit{Block Level Solver}: completely maintains \textit{Arc Consistency}
+%    \hfill \\
+%    \hfill \\
+%    \textit{Grid Level Solver}: only keep minimal information for the entire grid but
+%        work on \textit{block} sub-regions
+%  \end{frame}
+
+  \begin{frame}[fragile]{Introduction}
     \hfill \\
     \textit{Block Level Solver}: completely maintains \textit{Arc Consistency}
     \hfill \\
     \hfill \\
     \textit{Grid Level Solver}: only keep minimal information for the entire grid but
         work on \textit{block} sub-regions
-
   \end{frame}
 
 
@@ -238,10 +336,10 @@
   \end{tabular}
 
   $\begin{array}{l}
-  \textit{WFC}: Wave Function Collapse (Gumin) \\
-  \textit{BMS}: Breakout Model Synthesis (Hoetzlein) \\
-  \textit{MMS}: Modify in Blocks Model Synthesis (Merrell) \\
-  \textit{POMS}: Punch Out Model Synthesis \\
+  \textit{WFC}: Wave \ Function \ Collapse \ (Gumin) \\
+  \textit{BMS}: Breakout \ Model \ Synthesis \ (Hoetzlein) \\
+  \textit{MMS}: Modify \ in \ Blocks \ Model \ Synthesis \ (Merrell) \\
+  \textit{POMS}: Punch \ Out \ Model \ Synthesis \\
   \end{array}$
 
 \end{table}
@@ -256,7 +354,7 @@
     \hfill \\
     How much influence does a tile choice have over long distances? \\
     \hfill \\
-    TACCL as a heuristic to estimate correlation length
+    TACCL as a heuristic to estimate correlation length and to help choose block size
   \end{frame}
 
   %%
@@ -292,11 +390,11 @@
 
   %\section{Algorithm}
 
-  \begin{frame}[fragile]{Algorithm: Overview }
-    \begin{figure}
-      \includegraphics[width=\textwidth]{figs/poms_figalg.pdf}
-    \end{figure}
-  \end{frame}
+%  \begin{frame}[fragile]{Algorithm: Overview }
+%    \begin{figure}
+%      \includegraphics[width=\textwidth]{figs/poms_figalg.pdf}
+%    \end{figure}
+%  \end{frame}
 
   \begin{frame}[fragile]{Algorithm}
     \begin{figure}
@@ -389,9 +487,11 @@
   \begin{frame}[fragile]{Algorithm}
 
     \begin{figure}
+      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/forestmicro_x5_w.mp4}
+
       ThKaspar's \textit{Forest Micro} Tile Set
 
-      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/forestmicro_x5_w.mp4}
+      128x128 cells, 159 tile count
     \end{figure}
   \end{frame}
 
@@ -409,37 +509,41 @@
 %    \end{figure}
 %  \end{frame}
 
+%  \begin{frame}[fragile]{Algorithm}
+%    \begin{figure}
+%      Revert Block
+%
+%      \includegraphics[width=6cm]{img/fm_0023.pdf}
+%    \end{figure}
+%  \end{frame}
+%
+%  \begin{frame}[fragile]{Algorithm}
+%    \begin{figure}
+%      Revert Block
+%
+%      \includegraphics[width=6cm]{img/fm_0024.pdf}
+%    \end{figure}
+%  \end{frame}
+
   \begin{frame}[fragile]{Algorithm}
-    \begin{figure}
-      Revert Block
-
-      \includegraphics[width=6cm]{img/fm_0023.pdf}
-    \end{figure}
-  \end{frame}
-
-  \begin{frame}[fragile]{Algorithm}
-    \begin{figure}
-      Revert Block
-
-      \includegraphics[width=6cm]{img/fm_0024.pdf}
-    \end{figure}
-  \end{frame}
-
-  \begin{frame}[fragile]{Algorithm}
 
     \begin{figure}
-      Erode Boundary
+      Reversion and Erosion
 
       \includegraphics[width=6cm]{img/fm_0035.pdf}
+
+      128x128 cells, 159 tile count
     \end{figure}
   \end{frame}
 
   \begin{frame}[fragile]{Algorithm}
 
     \begin{figure}
-      Erode Boundary
+      Reversion and Erosion
 
       \includegraphics[width=6cm]{img/fm_0036.pdf}
+
+      128x128 cells, 159 tile count
     \end{figure}
   \end{frame}
 
@@ -458,6 +562,8 @@
       \textit{Pill Mortal} Tile Set
 
       \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
+
+      64x64 cells, 190 tile count
     \end{figure}
   \end{frame}
 
@@ -486,14 +592,22 @@
   %\section{Conclusion}
 
   \begin{frame}[fragile]{Conclusion}
-    Punch Out Model Synthesis (POMS) as an alternative when large models with minimal setup restrictions are wanted
-    and resource limits are a concern.
+    %Punch Out Model Synthesis (POMS) as an alternative when large models with minimal setup restrictions are wanted
+    %and resource limits are a concern.
+    Punch Out Model Synthesis (POMS) is an alternative when:
+    \begin{itemize}
+      \item Grid is large
+      \item Resource are limited
+      \item Minimal setup requirements are needed/desired
+    \end{itemize}
   \end{frame}
 
   \begin{frame}[fragile]{Conclusion}
     CBTG algorithms are good at maintaining local consistency but are bad at resolving global constraints \\
     \hfill \\
-    Weak global constraints (path connections, etc.) confound POMS (and other CBTG algorithms) \\
+    Weak global constraints (path connections, etc.) can confound POMS and other CBTG algorithms \\
+    \hfill \\
+    Sometimes global constraints are weak enough to be overcome by solving local constraints
   \end{frame}
 
   \begin{frame}[fragile]{fin}

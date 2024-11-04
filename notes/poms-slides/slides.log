@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.21)  31 OCT 2024 22:10
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.21)  4 NOV 2024 01:37
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -991,56 +991,90 @@ Overfull \vbox (15.63992pt too high) detected at line 22
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
 LaTeX Font Info:    Trying to load font information for TS1+cmss on input line 
-5.
+59.
 
 (/usr/share/texlive/texmf-dist/tex/latex/base/ts1cmss.fd
 File: ts1cmss.fd 2019/12/16 v2.5j Standard LaTeX font definitions
-)) [2
+)
+Overfull \hbox (9.9584pt too wide) in paragraph at lines 67--68
+ [][][] 
+ []
 
-]
 \openout4 = `slides.vrb'.
 
- (./slides.vrb)
-[3
+(./slides.vrb
+<img/forestmicro_64x64.pdf, id=30, 770.79968pt x 770.79968pt>
+File: img/forestmicro_64x64.pdf Graphic file (type pdf)
+<use img/forestmicro_64x64.pdf>
+Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 23.
+(pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
+)
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [2
 
 ]
+[3 <./img/forestmicro_64x64.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-LaTeX Font Info:    Trying to load font information for U+msa on input line 14.
+<figs/ac_illustration_consistent.pdf, id=50, 597.50786pt x 597.50786pt>
+File: figs/ac_illustration_consistent.pdf Graphic file (type pdf)
+<use figs/ac_illustration_consistent.pdf>
+Package pdftex.def Info: figs/ac_illustration_consistent.pdf  used on input lin
+e 9.
+(pdftex.def)             Requested size: 153.64493pt x 153.64345pt.
+)
+Overfull \vbox (22.8114pt too high) detected at line 141
+ []
 
- (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
+[4
+
+ <./figs/ac_illustration_consistent.pdf>]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb
+<figs/ac_illustration_inconsistent.pdf, id=82, 597.50786pt x 597.50786pt>
+File: figs/ac_illustration_inconsistent.pdf Graphic file (type pdf)
+<use figs/ac_illustration_inconsistent.pdf>
+Package pdftex.def Info: figs/ac_illustration_inconsistent.pdf  used on input l
+ine 12.
+(pdftex.def)             Requested size: 138.2795pt x 138.28093pt.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 12.
+
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 14.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 12.
 
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Trying to load font information for OT1+mathkerncmss on inp
-ut line 14.
+ut line 12.
 
 (/usr/share/texlive/texmf-dist/tex/latex/sansmathaccent/ot1mathkerncmss.fd
 File: ot1mathkerncmss.fd 2020/01/31 Fontinst v1.933 font definitions for OT1/ma
 thkerncmss.
 )
-<img/forestmicro_64x64.pdf, id=43, 770.79968pt x 770.79968pt>
-File: img/forestmicro_64x64.pdf Graphic file (type pdf)
-<use img/forestmicro_64x64.pdf>
-Package pdftex.def Info: img/forestmicro_64x64.pdf  used on input line 23.
-(pdftex.def)             Requested size: 138.2795pt x 138.27925pt.
+File: figs/ac_illustration_consistent.pdf Graphic file (type pdf)
+<use figs/ac_illustration_consistent.pdf>
+Package pdftex.def Info: figs/ac_illustration_consistent.pdf  used on input lin
+e 16.
+(pdftex.def)             Requested size: 138.2795pt x 138.28093pt.
 )
-[4
+Overfull \vbox (19.54128pt too high) detected at line 162
+ []
 
- <./img/forestmicro_64x64.pdf>]
+[5
+
+ <./figs/ac_illustration_inconsistent.pdf>]
 \openout4 = `slides.vrb'.
 
- (./slides.vrb) [5
+ (./slides.vrb) [6
 
 ]
 \openout4 = `slides.vrb'.
@@ -1057,21 +1091,21 @@ LaTeX Font Warning: Font shape `OT1/cmss/b/it' undefined
 LaTeX Font Info:    Font shape `OT1/cmss/b/n' in size <10.95> not available
 (Font)              Font shape `OT1/cmss/bx/n' tried instead on input line 10.
 )
-Overfull \vbox (14.0708pt too high) detected at line 249
+Overfull \vbox (14.0708pt too high) detected at line 347
  []
 
-[6
+[7
 
 ]
 \openout4 = `slides.vrb'.
 
- (./slides.vrb) [7
+ (./slides.vrb) [8
 
 ]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<img/pm_freq_taccl.pdf, id=72, 462.52798pt x 346.89601pt>
+<img/pm_freq_taccl.pdf, id=136, 462.52798pt x 346.89601pt>
 File: img/pm_freq_taccl.pdf Graphic file (type pdf)
 <use img/pm_freq_taccl.pdf>
 Package pdftex.def Info: img/pm_freq_taccl.pdf  used on input line 18.
@@ -1081,34 +1115,19 @@ Overfull \hbox (19.20561pt too wide) in paragraph at lines 18--19
 [][]  
  []
 
-) [8
+) [9
 
  <./img/pm_freq_taccl.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_figalg.pdf, id=84, 662.475pt x 451.6875pt>
-File: figs/poms_figalg.pdf Graphic file (type pdf)
-<use figs/poms_figalg.pdf>
-Package pdftex.def Info: figs/poms_figalg.pdf  used on input line 3.
-(pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
-)
-Overfull \vbox (8.51968pt too high) detected at line 299
- []
-
-[9
-
- <./figs/poms_figalg.pdf>]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-<figs/poms_alg0.pdf, id=301, 662.475pt x 451.6875pt>
+<figs/poms_alg0.pdf, id=148, 662.475pt x 451.6875pt>
 File: figs/poms_alg0.pdf Graphic file (type pdf)
 <use figs/poms_alg0.pdf>
 Package pdftex.def Info: figs/poms_alg0.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 305
+Overfull \vbox (8.51968pt too high) detected at line 403
  []
 
 [10
@@ -1117,13 +1136,13 @@ Overfull \vbox (8.51968pt too high) detected at line 305
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg1.pdf, id=331, 662.475pt x 451.6875pt>
+<figs/poms_alg1.pdf, id=178, 662.475pt x 451.6875pt>
 File: figs/poms_alg1.pdf Graphic file (type pdf)
 <use figs/poms_alg1.pdf>
 Package pdftex.def Info: figs/poms_alg1.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 311
+Overfull \vbox (8.51968pt too high) detected at line 409
  []
 
 [11
@@ -1132,13 +1151,13 @@ Overfull \vbox (8.51968pt too high) detected at line 311
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg2.pdf, id=365, 662.475pt x 451.6875pt>
+<figs/poms_alg2.pdf, id=212, 662.475pt x 451.6875pt>
 File: figs/poms_alg2.pdf Graphic file (type pdf)
 <use figs/poms_alg2.pdf>
 Package pdftex.def Info: figs/poms_alg2.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 317
+Overfull \vbox (8.51968pt too high) detected at line 415
  []
 
 [12
@@ -1147,13 +1166,13 @@ Overfull \vbox (8.51968pt too high) detected at line 317
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg3.pdf, id=438, 662.475pt x 451.6875pt>
+<figs/poms_alg3.pdf, id=285, 662.475pt x 451.6875pt>
 File: figs/poms_alg3.pdf Graphic file (type pdf)
 <use figs/poms_alg3.pdf>
 Package pdftex.def Info: figs/poms_alg3.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 323
+Overfull \vbox (8.51968pt too high) detected at line 421
  []
 
 [13
@@ -1162,13 +1181,13 @@ Overfull \vbox (8.51968pt too high) detected at line 323
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg4.pdf, id=544, 662.475pt x 451.6875pt>
+<figs/poms_alg4.pdf, id=391, 662.475pt x 451.6875pt>
 File: figs/poms_alg4.pdf Graphic file (type pdf)
 <use figs/poms_alg4.pdf>
 Package pdftex.def Info: figs/poms_alg4.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 329
+Overfull \vbox (8.51968pt too high) detected at line 427
  []
 
 [14
@@ -1177,13 +1196,13 @@ Overfull \vbox (8.51968pt too high) detected at line 329
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg4_5.pdf, id=642, 662.475pt x 451.6875pt>
+<figs/poms_alg4_5.pdf, id=489, 662.475pt x 451.6875pt>
 File: figs/poms_alg4_5.pdf Graphic file (type pdf)
 <use figs/poms_alg4_5.pdf>
 Package pdftex.def Info: figs/poms_alg4_5.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 335
+Overfull \vbox (8.51968pt too high) detected at line 433
  []
 
 [15
@@ -1192,13 +1211,13 @@ Overfull \vbox (8.51968pt too high) detected at line 335
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg5.pdf, id=774, 662.475pt x 451.6875pt>
+<figs/poms_alg5.pdf, id=621, 662.475pt x 451.6875pt>
 File: figs/poms_alg5.pdf Graphic file (type pdf)
 <use figs/poms_alg5.pdf>
 Package pdftex.def Info: figs/poms_alg5.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 341
+Overfull \vbox (8.51968pt too high) detected at line 439
  []
 
 [16
@@ -1207,13 +1226,13 @@ Overfull \vbox (8.51968pt too high) detected at line 341
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg5_1.pdf, id=872, 662.475pt x 451.6875pt>
+<figs/poms_alg5_1.pdf, id=719, 662.475pt x 451.6875pt>
 File: figs/poms_alg5_1.pdf Graphic file (type pdf)
 <use figs/poms_alg5_1.pdf>
 Package pdftex.def Info: figs/poms_alg5_1.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 347
+Overfull \vbox (8.51968pt too high) detected at line 445
  []
 
 [17
@@ -1222,13 +1241,13 @@ Overfull \vbox (8.51968pt too high) detected at line 347
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg5_2.pdf, id=1000, 662.475pt x 451.6875pt>
+<figs/poms_alg5_2.pdf, id=847, 662.475pt x 451.6875pt>
 File: figs/poms_alg5_2.pdf Graphic file (type pdf)
 <use figs/poms_alg5_2.pdf>
 Package pdftex.def Info: figs/poms_alg5_2.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 353
+Overfull \vbox (8.51968pt too high) detected at line 451
  []
 
 [18
@@ -1237,13 +1256,13 @@ Overfull \vbox (8.51968pt too high) detected at line 353
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg6_1.pdf, id=1128, 662.475pt x 451.6875pt>
+<figs/poms_alg6_1.pdf, id=975, 662.475pt x 451.6875pt>
 File: figs/poms_alg6_1.pdf Graphic file (type pdf)
 <use figs/poms_alg6_1.pdf>
 Package pdftex.def Info: figs/poms_alg6_1.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 359
+Overfull \vbox (8.51968pt too high) detected at line 457
  []
 
 [19
@@ -1252,13 +1271,13 @@ Overfull \vbox (8.51968pt too high) detected at line 359
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<figs/poms_alg6_2.pdf, id=1202, 662.475pt x 451.6875pt>
+<figs/poms_alg6_2.pdf, id=1049, 662.475pt x 451.6875pt>
 File: figs/poms_alg6_2.pdf Graphic file (type pdf)
 <use figs/poms_alg6_2.pdf>
 Package pdftex.def Info: figs/poms_alg6_2.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 365
+Overfull \vbox (8.51968pt too high) detected at line 463
  []
 
 [20
@@ -1267,66 +1286,71 @@ Overfull \vbox (8.51968pt too high) detected at line 365
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
+<figs/poms_figalg.pdf, id=1153, 662.475pt x 451.6875pt>
 File: figs/poms_figalg.pdf Graphic file (type pdf)
 <use figs/poms_figalg.pdf>
 Package pdftex.def Info: figs/poms_figalg.pdf  used on input line 3.
 (pdftex.def)             Requested size: 307.28987pt x 209.5156pt.
 )
-Overfull \vbox (8.51968pt too high) detected at line 371
+Overfull \vbox (8.51968pt too high) detected at line 469
  []
 
 [21
 
+ <./figs/poms_figalg.pdf>]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb)
+Overfull \vbox (13.31921pt too high) detected at line 496
+ []
+
+[22
+
 ]
 \openout4 = `slides.vrb'.
 
- (./slides.vrb) [22
-
-]
-\openout4 = `slides.vrb'.
-
  (./slides.vrb
-<img/fm_0023.pdf, id=1319, 1037.8775pt x 1033.8625pt>
-File: img/fm_0023.pdf Graphic file (type pdf)
-<use img/fm_0023.pdf>
-Package pdftex.def Info: img/fm_0023.pdf  used on input line 5.
-(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
-) [23
-
- <./img/fm_0023.pdf>]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-<img/fm_0024.pdf, id=1329, 1037.8775pt x 1033.8625pt>
-File: img/fm_0024.pdf Graphic file (type pdf)
-<use img/fm_0024.pdf>
-Package pdftex.def Info: img/fm_0024.pdf  used on input line 5.
-(pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
-) [24
-
- <./img/fm_0024.pdf>]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb
-<img/fm_0035.pdf, id=1339, 1037.8775pt x 1033.8625pt>
+<img/fm_0035.pdf, id=1378, 1037.8775pt x 1033.8625pt>
 File: img/fm_0035.pdf Graphic file (type pdf)
 <use img/fm_0035.pdf>
 Package pdftex.def Info: img/fm_0035.pdf  used on input line 6.
 (pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
-) [25
+)
+Overfull \vbox (12.64627pt too high) detected at line 537
+ []
+
+[23
 
  <./img/fm_0035.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb
-<img/fm_0036.pdf, id=1350, 1037.8775pt x 1033.8625pt>
+<img/fm_0036.pdf, id=1388, 1037.8775pt x 1033.8625pt>
 File: img/fm_0036.pdf Graphic file (type pdf)
 <use img/fm_0036.pdf>
 Package pdftex.def Info: img/fm_0036.pdf  used on input line 6.
 (pdftex.def)             Requested size: 170.71652pt x 170.04358pt.
-) [26
+)
+Overfull \vbox (12.64627pt too high) detected at line 548
+ []
+
+[24
 
  <./img/fm_0036.pdf>]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb)
+Overfull \vbox (13.31921pt too high) detected at line 568
+ []
+
+[25
+
+]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb) [26
+
+]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb) [27
@@ -1337,25 +1361,14 @@ Package pdftex.def Info: img/fm_0036.pdf  used on input line 6.
  (./slides.vrb) [28
 
 ]
-\openout4 = `slides.vrb'.
-
-
-(./slides.vrb) [29
-
-]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb) [30
-
-]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\translate ' on input line 509.
+(hyperref)                removing `\translate ' on input line 623.
 
 \openout4 = `slides.vrb'.
 
 (./slides.vrb
-<img/forestmicro_rule_grid_tb.pdf, id=1389, 1108.26045pt x 1093.94696pt>
+<img/forestmicro_rule_grid_tb.pdf, id=1428, 1108.26045pt x 1093.94696pt>
 File: img/forestmicro_rule_grid_tb.pdf Graphic file (type pdf)
 <use img/forestmicro_rule_grid_tb.pdf>
 Package pdftex.def Info: img/forestmicro_rule_grid_tb.pdf  used on input line 8
@@ -1366,16 +1379,26 @@ Overfull \hbox (17.0716pt too wide) in paragraph at lines 16--17
  [][][] 
  []
 
-) [31
+) [29
 
  <./img/forestmicro_rule_grid_tb.pdf>]
 \openout4 = `slides.vrb'.
 
  (./slides.vrb)
-Overfull \vbox (3.73795pt too high) detected at line 539
+Overfull \vbox (3.73795pt too high) detected at line 653
  []
 
-[32
+[30
+
+]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb) [31
+
+]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb) [32
 
 ]
 \openout4 = `slides.vrb'.
@@ -1391,16 +1414,6 @@ Overfull \vbox (3.73795pt too high) detected at line 539
 \openout4 = `slides.vrb'.
 
  (./slides.vrb) [35
-
-]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb) [36
-
-]
-\openout4 = `slides.vrb'.
-
- (./slides.vrb) [37
 
 ]
 \tf@nav=\write6
@@ -1420,10 +1433,10 @@ Package rerunfilecheck Info: File `slides.out' has not changed.
 (rerunfilecheck)             Checksum: 5BCEA9CF7D2D9AECE7CAC4018E9F6C5B;81.
  ) 
 Here is how much of TeX's memory you used:
- 25686 strings out of 480171
- 521416 string characters out of 5894489
- 750843 words of memory out of 5000000
- 42930 multiletter control sequences out of 15000+600000
+ 25670 strings out of 480171
+ 521556 string characters out of 5894489
+ 750842 words of memory out of 5000000
+ 42924 multiletter control sequences out of 15000+600000
  482731 words of font info for 76 fonts, out of 8000000 for 9000
  59 hyphenation exceptions out of 8191
  128i,13n,122p,1805b,775s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1433,11 +1446,12 @@ usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss12.pfb></usr/sh
 are/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb></usr/share/tex
 live/texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/share/texlive
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmssi10.pfb></usr/share/texlive/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on slides.pdf (37 pages, 4722218 bytes).
+f-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
+Output written on slides.pdf (35 pages, 3040124 bytes).
 PDF statistics:
- 1501 PDF objects out of 1728 (max. 8388607)
- 1014 compressed objects within 11 object streams
- 76 named destinations out of 1000 (max. 500000)
+ 1539 PDF objects out of 1728 (max. 8388607)
+ 1030 compressed objects within 11 object streams
+ 72 named destinations out of 1000 (max. 500000)
  178 words of extra memory for PDF output out of 10000 (max. 10000000)
 
