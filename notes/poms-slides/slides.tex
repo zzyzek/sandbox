@@ -132,7 +132,7 @@
     \hfill \\
     \hfill \\
 
-    \textit{Arc Consistentency}: all \textit{tiles} in every \textit{cell} have at least
+    \textit{Arc Consistency}: all \textit{tiles} in every \textit{cell} have at least
     one valid neighbor in each direction
     \begin{center}
       \includegraphics[width=0.5\textwidth]{figs/ac_illustration_consistent.pdf}
@@ -149,11 +149,20 @@
     remove tiles without valid neighbors
 
     \begin{columns}[T,onlytextwidth]
-      \column{0.5\textwidth}
+      \column{0.475\textwidth}
         \begin{block}{}
-          \includegraphics[width=0.9\textwidth]{figs/ac_illustration_inconsistent.pdf} $\to$
+          \includegraphics[width=0.9\textwidth]{figs/ac_illustration_inconsistent.pdf}
         \end{block}
-      \column{0.5\textwidth}
+      \column{0.05\textwidth}
+        \begin{block}{}
+          \begin{centering}
+          \hfill \\
+          \hfill \\
+          \hfill \\
+            $\boldsymbol{\to}$
+          \end{centering}
+        \end{block}
+      \column{0.475\textwidth}
         \begin{block}{}
           \includegraphics[width=0.9\textwidth]{figs/ac_illustration_consistent.pdf}
         \end{block}
@@ -484,15 +493,75 @@
 %    \end{figure}
 %  \end{frame}
 
+%  \begin{frame}[fragile]{Algorithm}
+%
+%    \begin{figure}
+%      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/forestmicro_x5_w.mp4}
+%
+%      ThKaspar's \textit{Forest Micro} Tile Set
+%
+%      128x128 cells, 159 tile count
+%    \end{figure}
+%  \end{frame}
+
+
+
+%  \begin{frame}[fragile]{Algorithm}
+%    \begin{figure}
+%      \textit{Pill Mortal} Tile Set
+%
+%      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
+%
+%      64x64 cells, 190 tile count
+%    \end{figure}
+%  \end{frame}
+%
   \begin{frame}[fragile]{Algorithm}
 
-    \begin{figure}
-      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/forestmicro_x5_w.mp4}
+    \begin{columns}[T,onlytextwidth]
+      \column{0.5\textwidth}
+        \begin{block}{}
+          \begin{figure}
+            \movie[width=5.5cm,height=5.5cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
+          \end{figure}
+        \end{block}
+      \column{0.5\textwidth}
+        \begin{block}{}
+          \begin{figure}
+            \includegraphics[width=0.8\textwidth]{img/pm_freq_taccl.pdf}
+          \end{figure}
+          \begin{centering}
+          \textit{Pill Mortal} \\
+          64x64 cells, 190 tiles \\
+          30x30 block \\
+          \end{centering}
+        \end{block}
+    \end{columns}
 
-      ThKaspar's \textit{Forest Micro} Tile Set
+  \end{frame}
 
-      128x128 cells, 159 tile count
-    \end{figure}
+
+            %\movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/forestmicro_x5_w.mp4}
+  \begin{frame}[fragile]{Algorithm}
+    \begin{columns}[T,onlytextwidth]
+      \column{0.5\textwidth}
+        \begin{block}{}
+          \begin{figure}
+            \movie[width=5cm,height=5cm,poster,autostart,repeat]{}{vid/forestmicro_x5_w.mp4}
+          \end{figure}
+        \end{block}
+      \column{0.5\textwidth}
+        \begin{block}{}
+          \begin{figure}
+            \includegraphics[width=0.8\textwidth]{img/forestmicro_freq_accl.pdf}
+          \end{figure}
+          \begin{centering}
+          \textit{Forest Micro} (ThKaspar) \\
+          128x128 cells, 159 tiles \\
+          48x48 block \\
+          \end{centering}
+        \end{block}
+    \end{columns}
   \end{frame}
 
 %  \begin{frame}[fragile]{Algorithm}
@@ -532,7 +601,7 @@
 
       \includegraphics[width=6cm]{img/fm_0035.pdf}
 
-      128x128 cells, 159 tile count
+      %128x128 cells, 159 tile count
     \end{figure}
   \end{frame}
 
@@ -543,7 +612,19 @@
 
       \includegraphics[width=6cm]{img/fm_0036.pdf}
 
-      128x128 cells, 159 tile count
+      %128x128 cells, 159 tile count
+    \end{figure}
+  \end{frame}
+
+
+  \begin{frame}[fragile]{Algorithm}
+
+    \begin{figure}
+      Reversion and Erosion
+
+      \includegraphics[width=6cm]{img/fm_0036_reversion_erosion.pdf}
+
+      %128x128 cells, 159 tile count
     \end{figure}
   \end{frame}
 
@@ -556,16 +637,6 @@
 %
 
   %\section{Highlighted Runs}
-
-  \begin{frame}[fragile]{Algorithm}
-    \begin{figure}
-      \textit{Pill Mortal} Tile Set
-
-      \movie[width=6cm,height=6cm,poster,autostart,repeat]{}{vid/pm_w.mp4}
-
-      64x64 cells, 190 tile count
-    \end{figure}
-  \end{frame}
 
 
 %  \begin{frame}[fragile]{Highlighted Runs}
