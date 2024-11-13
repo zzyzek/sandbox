@@ -774,6 +774,33 @@
     \end{figure}
   \end{frame}
 
+  \begin{frame}[fragile]{Auxiliary Slides}
+    \textit{Wave Function Collapse} (WFC) (Gumin)
+    \begin{itemize}
+      \item Block level solver (maintain AC for the block)
+      \item One-shot solver, give up first contradiction
+      \item Min. entropy heuristic to fix tiles
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}[fragile]{Auxiliary Slides}
+    \textit{Breakout Model Synthesis} (BMS) (Hoetzlein)
+    \begin{itemize}
+      \item Block level solver (maintain AC for the block)
+      \item Stochastic backtracking, revert small region around contradiction point to indeterminate
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}[fragile]{Auxiliary Slides}
+    \textit{Modify in Blocks Model Synthesis} (MMS) (Merrell)
+    \begin{itemize}
+      \item Grid level solver (maintain summary info for grid, AC only for block)
+      \item Needs fully resolved initial state
+      \item Try to resolve block sub-regions, re-incorporating if resolution successful
+      \item Never fails (block step consistency)
+      \item Misses solution space if features larger than block and not already in grid (non-ergodic)
+    \end{itemize}
+  \end{frame}
 
   \begin{frame}[fragile]{Auxiliary Slides}
     \begin{itemize}
@@ -791,6 +818,14 @@
       \item Oatmeal
       \item Global Cohesion/(weak) Global Constraints
     \end{itemize}
+  \end{frame}
+
+  \begin{frame}[fragile]{Auxiliary Slides}
+    CBTG algorithms are good at maintaining local consistency but are bad at resolving global constraints \\
+    \hfill \\
+    Weak global constraints (path connections, etc.) can confound POMS and other CBTG algorithms \\
+    \hfill \\
+    Sometimes global constraints are weak enough to be overcome by solving local constraints
   \end{frame}
 
 

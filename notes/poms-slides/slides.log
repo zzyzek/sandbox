@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.21)  13 NOV 2024 01:58
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.5.21)  13 NOV 2024 11:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1406,6 +1406,26 @@ Overfull \vbox (3.73795pt too high) detected at line 761
  (./slides.vrb) [33
 
 ]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb) [34
+
+]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb) [35
+
+]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb) [36
+
+]
+\openout4 = `slides.vrb'.
+
+ (./slides.vrb) [37
+
+]
 \tf@nav=\write6
 \openout6 = `slides.nav'.
 
@@ -1423,10 +1443,10 @@ Package rerunfilecheck Info: File `slides.out' has not changed.
 (rerunfilecheck)             Checksum: 5BCEA9CF7D2D9AECE7CAC4018E9F6C5B;81.
  ) 
 Here is how much of TeX's memory you used:
- 25680 strings out of 480171
- 521973 string characters out of 5894489
- 750842 words of memory out of 5000000
- 42934 multiletter control sequences out of 15000+600000
+ 25704 strings out of 480171
+ 522201 string characters out of 5894489
+ 750844 words of memory out of 5000000
+ 42942 multiletter control sequences out of 15000+600000
  487323 words of font info for 87 fonts, out of 8000000 for 9000
  59 hyphenation exceptions out of 8191
  128i,13n,122p,1805b,775s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1439,10 +1459,10 @@ texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/share/texlive/texm
 f-dist/fonts/type1/public/amsfonts/cm/cmssi10.pfb></usr/share/texlive/texmf-dis
 t/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/font
 s/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on slides.pdf (33 pages, 2276240 bytes).
+Output written on slides.pdf (37 pages, 2279229 bytes).
 PDF statistics:
- 1551 PDF objects out of 1728 (max. 8388607)
- 1036 compressed objects within 11 object streams
- 68 named destinations out of 1000 (max. 500000)
+ 1576 PDF objects out of 1728 (max. 8388607)
+ 1057 compressed objects within 11 object streams
+ 76 named destinations out of 1000 (max. 500000)
  178 words of extra memory for PDF output out of 10000 (max. 10000000)
 
