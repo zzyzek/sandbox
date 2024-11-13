@@ -21,14 +21,14 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      showgrid="false"
-     inkscape:zoom="1.2136364"
-     inkscape:cx="440"
-     inkscape:cy="300.33708"
-     inkscape:window-width="1920"
-     inkscape:window-height="1178"
-     inkscape:window-x="1920"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
+     inkscape:zoom="0.85817053"
+     inkscape:cx="149.73714"
+     inkscape:cy="286.07368"
+     inkscape:window-width="1469"
+     inkscape:window-height="882"
+     inkscape:window-x="2012"
+     inkscape:window-y="252"
+     inkscape:window-maximized="0"
      inkscape:current-layer="svg4289" />
   <defs
      id="defs4204">
@@ -1308,4 +1308,28 @@
      stroke-linejoin="miter"
      stroke-miterlimit="4"
      style="fill:url(#pattern4596)" />
+  <text
+     xml:space="preserve"
+     style="font-size:24px;line-height:1.25;font-family:'Linux Libertine Display O';-inkscape-font-specification:'Linux Libertine Display O, Normal';font-variant-ligatures:none"
+     x="33.624153"
+     y="308.55679"
+     id="text2491"><tspan
+       sodipodi:role="line"
+       id="tspan2489"
+       x="33.624153"
+       y="308.55679" /></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:34.6667px;line-height:1.25;font-family:'Linux Libertine Display O';-inkscape-font-specification:'Linux Libertine Display O, Normal';font-variant-ligatures:none;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+     x="10.49653"
+     y="282.91891"
+     id="text13266"><tspan
+       sodipodi:role="line"
+       id="tspan13264"
+       x="10.49653"
+       y="282.91891">cells fully realized or </tspan><tspan
+       sodipodi:role="line"
+       x="10.49653"
+       y="326.25229"
+       id="tspan14888">  marked indeterminate</tspan></text>
 </svg>

@@ -27,9 +27,9 @@
      showguides="false"
      objecttolerance="1"
      guidetolerance="1"
-     inkscape:zoom="0.70710678"
-     inkscape:cx="255.26555"
-     inkscape:cy="465.27626"
+     inkscape:zoom="1"
+     inkscape:cx="401.5"
+     inkscape:cy="330"
      inkscape:window-width="1651"
      inkscape:window-height="987"
      inkscape:window-x="1985"
@@ -200,17 +200,17 @@
       </g>
     </g>
     <g
-       id="g22264"
-       transform="matrix(2.1074591,0,0,2.1074591,-111.806,-94.313529)">
+       id="g22264-2"
+       transform="matrix(1.5374287,0,0,1.5374287,-82.744041,18.000637)">
       <rect
          x="122.80434"
          style="fill:#e04f5f;stroke-width:0.0205592"
          width="10.525678"
          height="10.526336"
-         id="rect22073"
+         id="rect22073-7"
          y="74.694153" />
       <g
-         id="g22079"
+         id="g22079-6"
          transform="matrix(0.02055925,0,0,0.02055925,122.80402,74.694156)">
         <rect
            x="98.141998"
@@ -219,7 +219,7 @@
            style="fill:#ffffff"
            width="315.75699"
            height="32"
-           id="rect22075" />
+           id="rect22075-1" />
         <rect
            x="240.009"
            y="98.113998"
@@ -227,21 +227,21 @@
            style="fill:#ffffff"
            width="32"
            height="315.75699"
-           id="rect22077" />
+           id="rect22077-3" />
       </g>
     </g>
     <g
-       id="g22264-6"
-       transform="matrix(2.1074591,0,0,2.1074591,-111.806,-25.925983)">
+       id="g22264-2-2"
+       transform="matrix(1.5374287,0,0,1.5374287,-82.726122,-49.765283)">
       <rect
          x="122.80434"
          style="fill:#e04f5f;stroke-width:0.0205592"
          width="10.525678"
          height="10.526336"
-         id="rect22073-4"
+         id="rect22073-7-1"
          y="74.694153" />
       <g
-         id="g22079-7"
+         id="g22079-6-5"
          transform="matrix(0.02055925,0,0,0.02055925,122.80402,74.694156)">
         <rect
            x="98.141998"
@@ -250,7 +250,7 @@
            style="fill:#ffffff"
            width="315.75699"
            height="32"
-           id="rect22075-9" />
+           id="rect22075-1-9" />
         <rect
            x="240.009"
            y="98.113998"
@@ -258,7 +258,7 @@
            style="fill:#ffffff"
            width="32"
            height="315.75699"
-           id="rect22077-7" />
+           id="rect22077-3-9" />
       </g>
     </g>
     <text

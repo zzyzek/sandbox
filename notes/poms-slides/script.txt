@@ -1,8 +1,10 @@
 
-* Intro:        .15 2m25s
-* Related work: .20 3m
-* Results:      .45 6m75s
-* Conclusion:   .2  3m
+* Intro:        .15 2m25s 1m30s
+* Related work: .20 3m    2m
+* Results:      .45 6m75s 4m30s
+* Conclusion:   .2  3m    2m
+
+
 
 ---
 
@@ -19,31 +21,16 @@ I'm just going to get right into it.
 
 ## Introduction
 
-Just as a quick overview,
-
 Punch Out Model Synthesis is a constraint based tiling generation algorithm
 that
 
+has resiliance to contradictions via some stochastic backtracking methods
+
 works on large grids
 
-has minimal setup requirements
+and has minimal setup requirements
 
-and has resiliance to contradictions via some stochastic backtracking methods
-
-Each of these features is addressing limitations of other well known
-algorithms and I'll go into each them later in the talk, but this is to
-give an overview of what the algorithm actually does.
-
-
----
-
-The end goal is to have a good chance of creating a realization like this
-without exhausting resources.
-
-This is the Pill Mortal tile set, a Pac Man inspired tile set.
-
-I'll go into details about how the algorithm works shortly but the end goal is
-to create realizations like this.
+On the right is an example output from the algorithm.
 
 ---
 
@@ -54,34 +41,31 @@ subject to tile constraints.
 Here, a realization is a single tile placement at each cell repsecting the
 tile constraints.
 
-Each cell can hold up to D tiles, that it can be in a 'superposition' of D
-tiles, and we work to remove tiles until only one tile left that respects
-the tile constraints to its neighbors.
+Each cell can hold an array of tiles and we're trying to refine that list
+down to exactly one tile at each cell location such that the remaining
+tile respects the nearest neighbor tile constraints.
 
 ---
 
-Here I want to list some definitions that will be relevant later.
+I'm going to briefly review some definitions needed for discussing the
+punch out model synthesis algorithm.
 
-We call a region of cells arc consistent
-if every tile in every cell has a valid neighbor in
-each direction.
+Arc consistency is the idea that all tiles in every cell have at least one
+valid neighbor,
 
-If a tile doesn't have a valid neighbor in some direction,
-we know it can't be part of any realization because there's no
-neighbor to pair up with it.
+---
 
-Since the tile can't be part of the end resolution, we can remove it
-from consideration.
-That tile removal might have consequences to other tiles in neighboring
-cells, which might then not have a valid neighbor, and so on.
+A consraint propagation algorithm can be created by noticing tiles without
+a valid neighbor can be removed and we can keep removing tiles like this
+until we get into an arc consistent state or we get into a contradiction
+where there are not tiles left in a particular grid cell location.
 
-This gives us the basis for a constraint propagation algorithm
-by removing tiles until we get into an arc consistent state or
-we reach a contradiction.
+---
 
 Here, I also differentate a block level solver from a grid level solver,
-where a block level solver keeps the whole grid in an arc consistent state
-and a grid level solver only keeps summary information for the grid
+
+Here, a block level solver keeps the whole grid in an arc consistent state
+while a grid level solver only keeps summary information for the grid
 and work on smaller block sub regions.
 
 The reason for this differentiation is that maintaining arc consistenty
@@ -89,77 +73,51 @@ can be a resource intensive process and grid level solvers resources can
 scale as a smaller block size rather than needing to keep resources for the
 whole grid.
 
+That summary information means we need to make compromises in keeping full arc
+consistency for the state of the model, so we need other backoff strategies
+that don't rely on the heavy weight process of maintaining full arc
+consistency.
+
 ---
 
 ### Related work
 
----
+There's a lot of related work in this area and I'm only going to focus on ideas
+that are directly related to the punch out model synthesis algorithm.
 
-There's a lot of work in this area but I'm only going to focus
-on some algorithms and concepts that are most directly related to POMS.
+Unfortunately I don't have time to go into detail about the algorithms listed
+here but punch out model synthesis is designed to overcome the limitations
+of each while keeping most of their benefits.
 
-POMS is designed to overcome the limitations of other algorithms while
-keeping their features.
+In particular, punch out model synthesis is a grid level solver,
 
-In particular, Gumin's Wave Function Collapse is pretty much a straight
-forward constraint propagation solver that, at least as presented in its
-"vanilla" form, is a "one-shot" solver, meaning failing as soon as a contradiction
-is encountered.
+so resources scale as the block size rather than the whole grid,
 
-This is what's meant by Contradiction Resiliance, as the whole run needs to be
-restarted if a contradiction is encountered.
+it has contradiction resiliance via stochastic backtracking
 
-From Hoetzlein's just math project, Breakout Model Synthesis overcomes this
-limitation by setting a small region
-around contradiction point to an indeterminate state, providing a
-backtracking facility so that it can overcome the contradiction to make progress.
-
-Both WFC and BMS are block level solvers, so they need resources that scale as
-the whole grid to maintain arc consistency.
-
-Merrell's modify in blocks model synthesis ovecomes this limitation by initially
-setting the whole grid to be in a fully realized state, then progressively
-choosing blocks to resolve.
-
-If the block was successfully resolved, it re-integrates it back into the
-grid, otherwise it discards it and moves on.
-
-The problem with MMS is that if there are features or constraints
-not already present in the realized grid and larger than the block size,
-MMS will get trapped in a solution basis without
-the to punch out and find other potential solutiosn in the space.
-
-This is what is meant by the 'ergodic' condition, where here, ergodic
-means all solutions are accessible without any statement about how probable
-or biased they are.
-
-Punch out model synthesis sacrifices the block step consistency, 
-by initially setting the
-grid to an indeterminate state and refining the solution while
-providing stochastic backtracking facilities.
-
-So while POMS can fail, it regains
-the ergodic condition to have access to the full solution space.
+and is ergodic, where here ergodic means it has access to the whole
+solution space without any statement about how probable or how biased
+the solutions are
 
 ---
 
-Hoetzlein's just math project introduced the tile arc consistent correlation
-length.
+A critical idea is the tile arc consistent correlation length,
+from Hoetzlein's just math project,
+that tries to estimate the influence or correlation tiles have over each
+other.
 
 The intuition is that if we fix a tile at a cell location and it has little
-or no effect over other tile choices at distant cell locations, we can have
-some assurance that we can solve regions independently of each other
-and that resolution in one region won't destroy progress in another.
+or no effect over other tile choices at a distant cell location,
+we can have some assurance that working in one area won't destroy progress or resolution
+in another area.
 
-The TACCL is a heuristic to try and measure this influence.
-
-The TACCL has problems which I'll go into but it's at least an attempt
-to quantify the influence implied by the tile constraints and it's easily
-calculable.
+The TACCL doesn't capture many aspects of correlation or influence
+but its at least a start to quantify this idea and has the benefit of being
+easily calculable.
 
 ---
 
-The idea is pretty straight forward:
+To calculate the tile arc consistent correlation length, we
 
 take a test block in isolation, completely separate from the grid we're trying
 to solve,
@@ -168,78 +126,98 @@ set it to an indeterminate state
 
 fix a tile at center
 
-take the bounding box that encompases all cells that were altered from the
-constraint propagation
+do constraint propagation
 
-repeat for all tiles
+and we take the minimum bounding box of all cells affected.
+
+we then repeat for all tiles
 
 and take the maximum of all the minimum bounding boxes.
 
-On the right is the tile frequency of the results of constraint propagation
-for the pill mortal tile set, with the TACCL being measured at about 20.
+On the right is a frequency of cells affected from this constraint
+propagation,
+fixing tiles at the center and recording which cells get affected.
+
+The taccl for this tile set is 24 as measured by the maximum extent in the x
+direction.
+
+**********
+********** IMPORTANT
+**********
 
 The TACCL informs what block size to use in POMS as choosing block sizes
 smaller than the influence length runs the risk of getting trapped in a local
 minima.
 
+**********
+********** IMPORTANT
+**********
+
 ---
 
 ### ALGORITHM
 
-Here's an overvew of the algorithm.
+Here, I'm going to go through the main step of the punch out model synthesis
+algorithm.
 
-I'm going to go through each step in more detail shortly, but briefly,
-the idea is to
-
-start from a partially realized grid, choose a block and try to resolve.
-
-If it's successful, re-integrate it back into the grid,
-
-otherwise, depending on the mode of failure,
-
-restore the block region to what it was in the grid before and erode
-the resolved regions,
-
-or, if the block resolution failed to even get started, revert the whole
-block region to an indeterminate state
+We start from a grid that's partially realized, where only summary information
+is kept for the grid, with each cell only holding exactly one tile or a
+marker to indicate the cell being completely indetermined.
 
 ---
 
-In more detail,
+We choose a block from some block choice schedule
 
-start from a grid that's partially realized
-
-choose a block from some block choice schedule
+---
 
 initalize the block by setting the interior to an indeterminate state and pinning it's boundaries
-to the grid values so that it can be re-integrated if the resolution is
-successful
+to the grid values so that it can be re-integrated if the resolution is successful
+
+---
 
 attempt to solve
 
+using a block level solver which keeps the block in a fully arc consistent
+state
+
+---
+
+
 if succesful
+
+---
 
 re-integrate it back into the grid
 
+---
+
 if the resolution failed, due to a timeout, say
 
+---
+
 restore the block to the initial grid values
+
+---
 
 and erode the boundary of already resolved regions
 
 the motivation here is that if the solver is having trouble resolving the
-block, there might be a contradiction that's not obvious or an overly
-constrained region.
+block, there might be a contradiction that's not obvious or the region might
+be overly constrained.
 
 To relieve the pressure, the boundary is eroded to allow progress.
 
-The assumption is that already resolved regions don't contribute to the
-contradiction or constraidedness.
+The assumption is that already resolved regions don't contribute significantly to the
+contradiction or constraidedness of attempted block resolutions.
 
 This assumption might be violated in certain cases but that's the intuition.
 
+---
+
 If the block can't be setup because of a contradiction from the pinned
 boundaries of the block,
+
+---
 
 then revert the whole block region to an indeterminate state.
 
@@ -247,56 +225,24 @@ The intuition here is that if the block can't even be setup,
 this represents a strong contradiction and so we should use a more aggressive
 back off strategy.
 
-
 ---
 
-So again, this is the overview of the algorithm.
+The core idea of the algorithm is using the correlation length.
 
-It's pretty straight forward.
+If the correlation is finite,
+as estimated by the tile arc consistent correlation length,
+we can be assured that resolving blocks has a reasonable chance of success
+and won't destroy progress elsewhere.
 
-The backtracking facilities are a little ad-hoc but are chosen from observing
-how the constraint solver worked on various tile sets.
+The two stochastic backtracking methods of erosion and reversion,
+as highlighted in the two lower right hand graphics,
+are a little ad-hoc and were chosen from experimentation.
 
-It should be mentioned that employing just erosion or reversion alone has
-problems as erosion is to timid of a backoff strategy, relieving subtle
-pressure from an overly constrained state whereas just using reversion is too
-aggressive of a backoff strategy, destroying too much progress in its wake if
-it's used without erosion.
-
-From observation, both erosion and reversion complement each other, allowing
-for a facility for slow or agressive backoff as needed.
-
----
-
-Here's POMS running on a Forest Micro tile set.
-
-
-This tile set is challenging for poms and needs a block choice
-scheduling strategy that grows a contiguous from the left downwards
-to have any chance of resolution.
-
-This tile set has an unbounded TACCL and is most likely due to the global
-constraint that requires the river count on the top and bottom row to be the
-same.
-
-but you can see each of the algorithms facilities at play, with choosing
-blocks, resolving them, reverting and eroding as needed.
+Each individually might not provide enough backtracking capability,
+but together they complement each other, allowing for a slow and quick
+way to backtrack as the need arises.
 
 ---
-
-In more detail,
-
-here's a highligted frame from the reversion step
-
----
-
-and here's a highlighted frame from the erosion step,
-
-where you can see the erosion as mouse bites taken out of the right and
-bottom most peninsula.
-
----
-
 
 Here's the pill mortal tile set again.
 
@@ -305,6 +251,59 @@ and so regions can resolve effectively independently of each other
 
 and this run highlights a block choice schedule that choose centers
 at random.
+
+---
+
+Here's punch out model synthesis running on the Forest Micro tile set.
+
+As can be seen by the TACCL frequency plot on the right,
+the correlation is unbouned, so fixing some tiles in the center of a grid
+will have constraints that propagate out to the edge, no matter
+the size of the grid.
+
+The unbounded taccl is most likely due to the global constraint that
+the river count on the top and bottom row have to match, as can be seen
+by the example output on the left.
+The river count equal constraint is not explicitely put in but a by-product
+of the purely local nearest neighbor constraints.
+
+From the taccl frequency plot,
+you can see kind of two things going on where there's a
+blob in the middle that most likely represents the bulk of the local constraints
+and the streak across that represents the global constraints.
+
+so choosing a block size larger than this
+local constraint length will help us make some progress,
+but the global constraints can come back to haunt us and prevent our
+local progress from finding a global solution.
+
+In general, poms has trouble with these types of global constraints,
+and will fail,
+but, in this particular case,
+biasing block choice to the upper left hand corner helps poms reliably
+resolve this model.
+
+The reason that this heuristic works,
+is most likely due to poms keeping a contiguous region that,
+for the most part, keeps the global constraint valid at every step of
+the block resolution step.
+
+So, choosing a block size large enough to overcome the local constraints and
+providing a heuristic for block choice, to help with the global constraints,
+lets punch out model
+synthesis reliably find resolutions for this particular model. 
+
+so this is just a stroke of luck for this particular model,
+but in general, poms has significant difficulty with global constraints
+
+---
+
+To highlight the stochastic backtracking steps in more detail,
+
+and here's a highlighted frame from the reversion and erosion step,
+
+with the reversion being the big chunk taken out of the middle, highlighted in
+red, and with the erosion, highlighted in yelllow, that has mouse bites out of the right and lower penninsula.
 
 ---
 
@@ -318,40 +317,27 @@ the model is large,
 
 and resource limitations are a concern.
 
-If resource limitations aren't a concern or the model is small
-and the tile set is not overly constrained, WFC is a
-viable method.
+Each of these features is designed to overcome the limitations of well
+known algorithms while keeping the best features.
 
-If resource limitations aren't a concern and the tile set is a bit more
-constrained, BMS is a viable method.
-
-If resource limitations are a concern,
-and an initial resolution of the grid can be created
-and the ergodic condition aren't a concern,
-MMS is a great alternative.
-
-MMS never fails, if you can set it up, so it's ideal
-for certain situations.
-
-But
-if resource limitations are a conern,
-and the initial setup is difficult or impossible,
-then poms is a viable alternative.
+To me, the core concepts are understanding the correlation length and
+trying to identify and understand the global constraints
+and punch out model synthesis is really just designed to take advantage
+of these core ideas while keeping the features we want for a grid level
+solver.
 
 ---
 
-CBTG algorithms are good at maintaing local consistenty but are very bad at
+constraint based tiling generation algorithms
+are good at maintaing local consistenty but are very bad at
 maintaining global consistency.
 
-A major weakness for this class of algorithm is global constraints or global
-consistency and POMS in particular can get confounded very easily on some weak global
-constraints, like path connections.
+Weak global constraints, like path connectivity, can confound poms and other
+algorithms in this class.
 
-Sometimes this can be overcome by a judicious choice of block choice
-scheduling, like in the Forest Micro tile set, but the success of POMS
-for the forest micro tile set is really just serendipity and POMS, as do
-other CBTG algorithms, have major issues with even very weak global
-constraints.
+Somtimes solving local constraints is enough, even in the presence of global
+constraints, sometimes with the help of simple heuristics as in the case of
+the forest micro tile set.
 
 ---
 
@@ -366,3 +352,19 @@ reference implementation and an online demo of POMS that can be run in the
 browser.
 
 Thanks!
+
+
+---
+
+### APPENDIX
+
+In my opinion, POMS is good when one wants to create large, potentially
+infinite, grids without using terabytes of ram.
+
+Because we want large or unbounded grids, we want a more compact
+representation of the grid, so we sort of need to only keep summary
+information of the grid state.
+That summary information means we need to make compromises in keeping full arc
+consistency for the state of the model, so we need other backoff strategies
+that don't rely on the heavy weight process of maintaining full arc
+consistency.

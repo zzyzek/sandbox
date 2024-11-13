@@ -1697,4 +1697,24 @@
        stroke-miterlimit="4"
        style="fill:url(#pattern30575)" />
   </g>
+  <text
+     xml:space="preserve"
+     style="font-size:34.6667px;line-height:1.25;font-family:'Linux Libertine Display O';-inkscape-font-specification:'Linux Libertine Display O, Normal';font-variant-ligatures:none"
+     x="506.04572"
+     y="137.85887"
+     id="text8158"><tspan
+       sodipodi:role="line"
+       id="tspan8156"
+       x="506.04572"
+       y="137.85887">block level solver</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:34.6667px;line-height:1.25;font-family:'Linux Libertine Display O';-inkscape-font-specification:'Linux Libertine Display O, Normal';font-variant-ligatures:none"
+     x="505.61459"
+     y="190.20247"
+     id="text14336"><tspan
+       sodipodi:role="line"
+       id="tspan14334"
+       x="505.61459"
+       y="190.20247">maintain full AC</tspan></text>
 </svg>

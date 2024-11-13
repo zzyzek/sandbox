@@ -145,8 +145,20 @@
     \hfill \\
     \hfill \\
 
-    Basis for \textit{Constraint Propagation} algorithm,
-    remove tiles without valid neighbors
+    Basis for \textit{Constraint Propagation} algorithm by
+    repeatedly removing tiles without valid neighbors
+    after tile choice
+
+    %remove tiles without valid neighbors
+
+    %where we fix a tile at a cell then keep
+    %by removing tiles without valid neighbors
+
+    %Basis for \textit{Constraint Propagation} algorithm:
+    %\begin{itemize}
+    %  \item fix a tile
+    %  \item keep removing tiles without valid neighbors
+    %\end{itemize}
 
     \begin{columns}[T,onlytextwidth]
       \column{0.475\textwidth}
@@ -363,7 +375,9 @@
     \hfill \\
     How much influence does a tile choice have over long distances? \\
     \hfill \\
-    TACCL as a heuristic to estimate correlation length and to help choose block size
+    Finite correlation $\to$ independent regions
+    %\hfill \\
+    %TACCL as a heuristic to estimate correlation length and to help choose block size
   \end{frame}
 
   %%
@@ -374,14 +388,15 @@
       \column{0.5\textwidth}
         \begin{block}{TACCL}
           \hfill \\
-          Take block in isolation
+          %Take test block in isolation \\
+          Isolated block, for all tiles:
           \begin{itemize}
-            \item Set block to indeterminate state
-            \item Fix a tile at the center
-            \item Propagate constraints
-            \item Take minimum bounding box of altered cells
-            \item Repeat for all tiles
+            \item Fix tile at the center
+            \item Take bounding box of constraint propagation
           \end{itemize}
+
+          Heuristic for correlation length \\
+          POMS block $\ge$ TACCL
         \end{block}
       \column{0.5\textwidth}
         \begin{block}{Example}
@@ -389,6 +404,28 @@
         \end{block}
     \end{columns}
   \end{frame}
+
+%  \begin{frame}[fragile]{Related Work}
+%    \textit{Tile Arc Consistent Correlation Length} (\textit{TACCL})
+%    \begin{columns}[T,onlytextwidth]
+%      \column{0.5\textwidth}
+%        \begin{block}{TACCL}
+%          \hfill \\
+%          Take block in isolation
+%          \begin{itemize}
+%            \item Set block to indeterminate state
+%            \item Fix a tile at the center
+%            \item Propagate constraints
+%            \item Take minimum bounding box of altered cells
+%            \item Repeat for all tiles
+%          \end{itemize}
+%        \end{block}
+%      \column{0.5\textwidth}
+%        \begin{block}{Example}
+%          \includegraphics[width=1.125\textwidth]{img/pm_freq_taccl.pdf}
+%        \end{block}
+%    \end{columns}
+%  \end{frame}
 
 
 
@@ -594,27 +631,27 @@
 %    \end{figure}
 %  \end{frame}
 
-  \begin{frame}[fragile]{Algorithm}
+%  \begin{frame}[fragile]{Algorithm}
+%
+%    \begin{figure}
+%      Reversion and Erosion
+%
+%      \includegraphics[width=6cm]{img/fm_0035.pdf}
+%
+%      %128x128 cells, 159 tile count
+%    \end{figure}
+%  \end{frame}
 
-    \begin{figure}
-      Reversion and Erosion
-
-      \includegraphics[width=6cm]{img/fm_0035.pdf}
-
-      %128x128 cells, 159 tile count
-    \end{figure}
-  \end{frame}
-
-  \begin{frame}[fragile]{Algorithm}
-
-    \begin{figure}
-      Reversion and Erosion
-
-      \includegraphics[width=6cm]{img/fm_0036.pdf}
-
-      %128x128 cells, 159 tile count
-    \end{figure}
-  \end{frame}
+%  \begin{frame}[fragile]{Algorithm}
+%
+%    \begin{figure}
+%      Reversion and Erosion
+%
+%      \includegraphics[width=6cm]{img/fm_0036.pdf}
+%
+%      %128x128 cells, 159 tile count
+%    \end{figure}
+%  \end{frame}
 
 
   \begin{frame}[fragile]{Algorithm}
@@ -673,13 +710,13 @@
     \end{itemize}
   \end{frame}
 
-  \begin{frame}[fragile]{Conclusion}
-    CBTG algorithms are good at maintaining local consistency but are bad at resolving global constraints \\
-    \hfill \\
-    Weak global constraints (path connections, etc.) can confound POMS and other CBTG algorithms \\
-    \hfill \\
-    Sometimes global constraints are weak enough to be overcome by solving local constraints
-  \end{frame}
+%  \begin{frame}[fragile]{Conclusion}
+%    CBTG algorithms are good at maintaining local consistency but are bad at resolving global constraints \\
+%    \hfill \\
+%    Weak global constraints (path connections, etc.) can confound POMS and other CBTG algorithms \\
+%    \hfill \\
+%    Sometimes global constraints are weak enough to be overcome by solving local constraints
+%  \end{frame}
 
   \begin{frame}[fragile]{fin}
     \begin{center}\url{https://zzyzek.github.io}\end{center}
@@ -742,7 +779,7 @@
     \begin{itemize}
       \item Bitter lesson includes learning \textit{and} search
       \item Trade off between resources used to learn vs. resources used for run time search
-      \item "Parables of the Power of Planning in AI" by Noam Brown (\url{https://www.youtube.com/watch?v=eaAonE58sLU})
+      \item ``Parables of the Power of Planning in AI" by Noam Brown (\url{https://www.youtube.com/watch?v=eaAonE58sLU})
     \end{itemize}
   \end{frame}
 
