@@ -45,20 +45,33 @@ Each cell can hold an array of tiles and we're trying to refine that list
 down to exactly one tile at each cell location such that the remaining
 tile respects the nearest neighbor tile constraints.
 
----
 
-I'm going to briefly review some definitions needed for discussing the
-punch out model synthesis algorithm.
-
-Arc consistency is the idea that all tiles in every cell have at least one
-valid neighbor,
 
 ---
 
-A consraint propagation algorithm can be created by noticing tiles without
-a valid neighbor can be removed and we can keep removing tiles like this
-until we get into an arc consistent state or we get into a contradiction
-where there are not tiles left in a particular grid cell location.
+#I'm going to briefly review some definitions needed for discussing the
+#punch out model synthesis algorithm.
+
+A key concept in the refinement step is this idea of arc consistency,
+where all tiles in every cell have at least one valid neighbor.
+
+Arc consistency doesn't tell us a solution exists but tells us
+there's nothing obviously wrong in a local region.
+
+---
+
+If there is a tile without a valid neighbor, it can be removed from
+consideration because we know it can't be in any resolution, because
+it has no neighbor to match up with.
+That removal can trigger other removals of tiles in neighboring
+cells, and so on,
+
+which gives us a basis for a constraint propagation algorithm that
+keeps removing tiles until we're in an arc consistent state or we find
+a contradiction where no more tiles are left in a cell.
+
+So the idea is to fix a tile at a cell, propagate constraints by removing
+tiles until we're in an arc consistent state, then loop, repeat.
 
 ---
 
@@ -88,16 +101,6 @@ that are directly related to the punch out model synthesis algorithm.
 Unfortunately I don't have time to go into detail about the algorithms listed
 here but punch out model synthesis is designed to overcome the limitations
 of each while keeping most of their benefits.
-
-In particular, punch out model synthesis is a grid level solver,
-
-so resources scale as the block size rather than the whole grid,
-
-it has contradiction resiliance via stochastic backtracking
-
-and is ergodic, where here ergodic means it has access to the whole
-solution space without any statement about how probable or how biased
-the solutions are
 
 ---
 
@@ -207,10 +210,10 @@ be overly constrained.
 
 To relieve the pressure, the boundary is eroded to allow progress.
 
-The assumption is that already resolved regions don't contribute significantly to the
-contradiction or constraidedness of attempted block resolutions.
+#The assumption is that already resolved regions don't contribute significantly to the
+#contradiction or constraidedness of attempted block resolutions.
 
-This assumption might be violated in certain cases but that's the intuition.
+#This assumption might be violated in certain cases but that's the intuition.
 
 ---
 
@@ -267,7 +270,7 @@ by the example output on the left.
 The river count equal constraint is not explicitely put in but a by-product
 of the purely local nearest neighbor constraints.
 
-From the taccl frequency plot,
+From the taccl frequency plot on the right,
 you can see kind of two things going on where there's a
 blob in the middle that most likely represents the bulk of the local constraints
 and the streak across that represents the global constraints.
@@ -285,8 +288,8 @@ resolve this model.
 
 The reason that this heuristic works,
 is most likely due to poms keeping a contiguous region that,
-for the most part, keeps the global constraint valid at every step of
-the block resolution step.
+for the most part, keeps the global constraint valid at every
+block resolution step.
 
 So, choosing a block size large enough to overcome the local constraints and
 providing a heuristic for block choice, to help with the global constraints,
@@ -313,9 +316,10 @@ punch out model synthesis is an alternative algorithm when
 
 the tile set is constrained,
 
-the model is large,
+the grid is large or potentially unbounded,
 
-and resource limitations are a concern.
+and resource limitations are a concern, so we don't want to use terabytes of
+memory to find a realization.
 
 Each of these features is designed to overcome the limitations of well
 known algorithms while keeping the best features.
@@ -328,17 +332,17 @@ solver.
 
 ---
 
-constraint based tiling generation algorithms
-are good at maintaing local consistenty but are very bad at
-maintaining global consistency.
-
-Weak global constraints, like path connectivity, can confound poms and other
-algorithms in this class.
-
-Somtimes solving local constraints is enough, even in the presence of global
-constraints, sometimes with the help of simple heuristics as in the case of
-the forest micro tile set.
-
+#constraint based tiling generation algorithms
+#are good at maintaing local consistenty but are very bad at
+#maintaining global consistency.
+#
+#Weak global constraints, like path connectivity, can confound poms and other
+#algorithms in this class.
+#
+#Somtimes solving local constraints is enough, even in the presence of global
+#constraints, sometimes with the help of simple heuristics as in the case of
+#the forest micro tile set.
+#
 ---
 
 ### FIN
