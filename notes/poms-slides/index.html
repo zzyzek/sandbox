@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Punch Out Model Synthesis</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/white.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+    <script src="plugin/math/math.js"></script>
+
+<style>
+.colcontainer {
+  display: flex;
+}
+.col{
+  flex: 1;
+}
+
+.it {
+  font-style: italic !important;
+}
+</style>
+
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides" style='text-align:left; font-size:0.8em;'>
+
+        <section >
+          <h3>Punch Out Model Synthesis</h3>
+          <span>A Constraint Based Tiliing Generation Algorithm</span>
+          <hr>
+          <span>Zzyv Zzyzek</span> <br>
+          <span>November 19th, 2024</span>
+        </section>
+
+				<section >
+
+          <div class='colcontainer'>
+          <div class='col'>
+            <span style='font-size:1.1em;'><b>Punch Out Model Synthesis</b> </span> <br>
+            <br>
+            <span >A Constraint Based Tiling Generation Algorithm </span> <br>
+            <br>
+            <ul >
+              <li>Contradiction reslience</li>
+              <li>Works on large grids</li>
+              <li>Minimal setup requirements</li>
+            </ul>
+          </div>
+          <div class='col'>
+            <video data-autoplay src='vid/pm_w.mp4'></video>
+          </div>
+          </div>
+        </section>
+
+				<section >
+          Constraint Based Tiling Generation (CBTG) Problem
+          <br>
+          <br>
+          <div class='colcontainer'>
+
+            <div class='col'>
+              <br>
+              <b>Find a valid grid realization</b> <br>
+              <br>
+              <p> A <i class='it'>realization</i> is a single <br>
+              <i class='it'>tile</i> placement at each <i class='it'>cell</i> respecting <i class='it'>constraints</i>.
+              <br>
+              <br>
+              <p>(<i class='it'>Cells</i> hold array of <i class='it'>tiles</i>)<p>
+            </div>
+
+            <div class='col'>
+              <b>Example</b><br>
+              <img style='width:90%;' src='img/forestmicro_64x64.png'></img>
+              <p>64x64 cells, 159 tile count</p>
+            </div>
+
+          </div>
+        </section>
+
+				<section >
+          <i style='font-style: italic !important'>Arc Consistency</i>:
+          all <i class='it'>tiles</i> in every <i class='it'>cell</i> have at least one valid neighbor in each direction
+          <br>
+          <div style='text-align:center;'>
+          <img style='width:40%; text-align:center;'src='figs/ac_illustration_consistent.svg'</img>
+          </div>
+        </section>
+
+				<section >
+
+          Basis for <i class='it'>Constraint Propagation</i> algorithm by repeatedly removing tiles without valid neighbors after tile choice
+
+          <div class='colcontainer'>
+            <div class='col'>
+              <div style='text-align:center;'>
+              <img style='width:80%; text-align:center;'src='figs/ac_illustration_inconsistent.svg'</img>
+              </div>
+            </div>
+            <div class='col' style='flex:0.125;'>
+              <br>
+              <br>
+              <br>
+              \[ \to \]
+            </div>
+            <div class='col'>
+              <img style='width:80%; text-align:center;'src='figs/ac_illustration_consistent.svg'</img>
+            </div>
+          </div>
+        </section>
+
+				<section >
+          <br>
+          <i style='font-style: italic !important'>Block Level Solver</i>:
+          completely maintains <i class='it'>Arc Consistency</i>
+          <br>
+          <br>
+          <br>
+          <i style='font-style: italic !important'>Grid Level Solver</i>:
+          only keep minimal information for the entire grid but work on <i class='it'>block</i> sub-regions
+          <br>
+        </section>
+
+				<section style='font-size:0.9em;'>
+
+          <table >
+            <thead>
+              <tr>
+                <th> &nbsp; </th>
+                <th>WFC</th>
+                <th>BMS</th>
+                <th>MMS</th>
+                <th><b>POMS</b></th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              <tr>
+                <td> Solver Type</td>
+                <td> Block </td>
+                <td> Block </td>
+                <td> Grid </td>
+                <td> Grid </td>
+              </tr>
+
+              <tr>
+                <td> Contradiction <br> Resiliance </td>
+                <td> No </td>
+                <td> Yes </td>
+                <td> Yes </td>
+                <td> Yes </td>
+              </tr>
+
+              <tr>
+                <td> Block Step <br> Consistent </td>
+                <td> n/a </td>
+                <td> n/a </td>
+                <td> Yes </td>
+                <td> No </td>
+              </tr>
+
+              <tr>
+                <td> Indeterminate <br> Initial State </td>
+                <td> Yes  </td>
+                <td> Yes </td>
+                <td> No </td>
+                <td> Yes </td>
+              </tr>
+
+              <tr>
+                <td> Ergodic </td>
+                <td> Yes  </td>
+                <td> Yes </td>
+                <td> No </td>
+                <td> Yes </td>
+              </tr>
+
+            </tbody>
+
+          </table>
+
+          <br>
+
+          <i style='font-style: italic !important'>WFC</i>: Wave Function Collapse (<i class='it'>Gumin</i>) <br>
+          <i style='font-style: italic !important'>BMS</i>: Breakout Model Synthesis (<i class='it'>Hoetzlein</i>) <br>
+          <i style='font-style: italic !important'>MMS</i>: Modify in Blocks Model Synthesis Function Collapse (<i class='it'>Merrell</i>) <br>
+          <i style='font-style: italic !important'>POMS</i>: Punch Out Model Synthesis <br>
+        </section>
+
+
+        <section>
+          <i class='it'>Tile Arc Consistent Correlation Length (TACCL)</i> (Hoetzlein)
+          <br>
+          <br>
+          How much influence does a tile choice have over long distances?
+          <br>
+          <br>
+          Finite correlation $\to$ independent regions
+        </section>
+
+
+        <section>
+          <i class='it'>Tile Arc Consistent Correlation Length (TACCL)</i>
+          <br>
+          <br>
+
+          <div class='colcontainer'>
+
+            <div class='col'>
+              <b>TACCL</b> <br>
+              <br>
+              Isolated block, for all tiles:
+              <br>
+
+              <ul>
+                <li>Fix tile at center</li>
+                <li>Take bounding box of constraint propagation</li>
+              </ul>
+
+              <br>
+              <br>
+              Heuristic for correlation length <br>
+              POMS block $\ge$ TACCL <br>
+            </div>
+
+            <div class='col'>
+              <b>Example</b> <br>
+
+              <img src='img/pm_freq_taccl.png'></img>
+            </div>
+
+          </div>
+
+        </section>
+
+        <section>
+          <img src='figs/poms_alg0.svg'></img>
+        </section>
+
+        <section>
+          <img src='figs/poms_alg1.svg'></img>
+        </section>
+
+        <section>
+          <img src='figs/poms_alg2.svg'></img>
+        </section>
+
+        <section>
+          <img src='figs/poms_alg3.svg'></img>
+        </section>
+
+        <section>
+          <img src='figs/poms_alg4.svg'></img>
+        </section>
+
+        <section>
+          <img src='figs/poms_alg4_5.svg'></img>
+        </section>
+
+        <section>
+          <img src='figs/poms_alg5.svg'></img>
+        </section>
+
+        <section>
+          <img src='figs/poms_alg5_1.svg'></img>
+        </section>
+
+        <section>
+          <img src='figs/poms_alg5_2.svg'></img>
+        </section>
+
+        <section>
+          <img src='figs/poms_alg6_1.svg'></img>
+        </section>
+
+        <section>
+          <img src='figs/poms_alg6_2.svg'></img>
+        </section>
+
+        <section>
+          <img src='figs/poms_figalg.png'></img>
+        </section>
+
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				'hash': true,
+        'controls': false,
+
+        'transition': 'none',
+        'backgroundTransition': 'none',
+
+        'progress': false,
+
+        //'slideNumber': true,
+        'slideNumber': 'c/t',
+        'showSlideNumber': 'all',
+        'audoPlayMedia': true,
+
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				'plugins': [ RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX ]
+			});
+		</script>
+	</body>
+</html>
