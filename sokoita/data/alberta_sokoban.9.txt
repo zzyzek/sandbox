@@ -1,0 +1,14 @@
+..........xxxxxxx
+..........x  ___x
+......xxxxx  ___x
+......x      _ _x
+......x  xx  ___x
+......xx xx  ___x
+.....xxx xxxxxxxx
+.....x bbb xx....
+.xxxxx  b b xxxxx
+xx   xb b   x   x
+x@ b  b    b  b x
+xxxxxx bb b xxxxx
+.....x      x....
+.....xxxxxxxx....

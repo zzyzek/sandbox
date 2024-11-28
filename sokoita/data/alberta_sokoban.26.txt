@@ -1,0 +1,12 @@
+.xxxxxxx.......
+.x  x  xxxxx...
+xx  x  x___xxx.
+x  bx  x___  x.
+x b xbb ___  x.
+x  bx  x___ _x.
+x   x bxxxxxxxx
+xxb       b b x
+xx  x  bb x   x
+.xxxxxx  xxbb@x
+......x      xx
+......xxxxxxxx.

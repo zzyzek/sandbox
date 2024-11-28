@@ -1,0 +1,13 @@
+..............xxxxx
+.....xxxxxxxxxx   x
+.....x        x   x
+.....x  b b    bb x
+.....x xxxxx xx b x
+.....xbb   xbxx b x
+.....x xxx x xxb  x
+xxxxxx xxx b b    x
+x____        xx   x
+x____        xxxxxx
+x____        x.....
+xxxxxxxxxxx@xx.....
+..........xxx......

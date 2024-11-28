@@ -60,7 +60,9 @@ there's nothing obviously wrong in a local region.
 
 ---
 
-If there is a tile without a valid neighbor, it can be removed from
+If there is a tile without a valid neighbor,
+that is, it's in an arc inconsistent state,
+it can be removed from
 consideration because we know it can't be in any resolution, because
 it has no neighbor to match up with.
 That removal can trigger other removals of tiles in neighboring
@@ -71,7 +73,10 @@ keeps removing tiles until we're in an arc consistent state or we find
 a contradiction where no more tiles are left in a cell.
 
 So the idea is to fix a tile at a cell, propagate constraints by removing
-tiles until we're in an arc consistent state, then loop, repeat.
+tiles until we're in an arc consistent state,
+and, if we get into a contradiction, find a strategy to help resolve or back
+out of the contradiction,
+then loop, repeat.
 
 ---
 
