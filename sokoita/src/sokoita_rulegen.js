@@ -561,163 +561,6 @@ function tile_str(t) {
   return t[0].join("") + t[1].join("");
 }
 
-function tile_adjacency(tile_lib, dynamics) {
-  let tile_a = [];
-
-  let N = 0;
-  for (let key in tile_lib) {
-    tile_a.push({});
-    N++;
-  }
-
-  for (let key in tile_lib) {
-    let tile_info = tile_lib[key];
-    tile_a[ tile_info.id ] = tile_info;
-  }
-
-  for (let src_idx=1; src_idx<N; src_idx++) {
-
-    let src_tile = tile_a[src_idx].tile;
-
-    for (let dst_idx=1; dst_idx<N; dst_idx++) {
-
-      // 0 : ==
-      //     ..
-      //
-      // 1 : ..
-      //     ==
-      //
-      // 2 : =.
-      //     =.
-      //
-      // 3 : .=
-      //     .=
-      //
-
-      let match_count = [ 0, 0, 0, 0 ]
-
-      let dst_tile = tile_a[dst_idx].tile;
-
-      //console.log("\n---");
-
-      //let dx = [ 0, 0, 1, 1 ];
-      //let dy = [ 0, 1, 0, 1 ];
-
-      let pxy = {
-        "x" : [ [0,1], [0,1], [0,0], [1,1] ],
-        "y" : [ [0,0], [1,1], [0,1], [0,1] ],
-      };
-
-      for (let dyn_idx=0; dyn_idx<dynamics.length; dyn_idx++) {
-        let src_pat_template = dynamics[dyn_idx][0];
-        let dst_pat_template = dynamics[dyn_idx][1];
-
-        for (let s=0; s<2; s++) {
-
-          for (let dir_idx=0; dir_idx<4; dir_idx++) {
-
-            let _x0 = pxy.x[dir_idx][0];
-            let _x1 = pxy.x[dir_idx][1];
-
-            let _y0 = pxy.y[dir_idx][0];
-            let _y1 = pxy.y[dir_idx][1];
-
-            let src_pat = [
-              cval(src_pat_template[s],   src_tile[_y0][_x0]),
-              cval(src_pat_template[s+1], src_tile[_y1][_x1])
-            ];
-
-            let dst_pat = [
-              cval(dst_pat_template[s],   src_tile[_y0][_x0]),
-              cval(dst_pat_template[s+1], src_tile[_y1][_x1])
-            ];
-
-            if ((src_pat[0] == 'E') ||
-                (src_pat[1] == 'E') ||
-                (dst_pat[0] == 'E') ||
-                (dst_pat[1] == 'E')) {
-              continue;
-            }
-
-            /*
-            console.log(s,
-              "diridx:", dir_idx, "xy01:", _x0, _y0, _x1, _y1,
-              "st:",src_pat_template, "dt:", dst_pat_template,
-              "sp:", src_pat, "dp:", dst_pat,
-              "stile:", src_tile, "dtile:", dst_tile);
-              */
-
-            if (_eq(src_pat[0], src_tile[_y0][_x0]) &&
-                _eq(src_pat[1], src_tile[_y1][_x1]) &&
-
-                _eq(dst_pat[0], dst_tile[_y0][_x0]) &&
-                _eq(dst_pat[1], dst_tile[_y1][_x1]) ) {
-              match_count[dir_idx]++;
-
-              let _src = src_tile[_y0][_x0] + src_tile[_y1][_x1];
-              let _dst = dst_tile[_y0][_x0] + dst_tile[_y1][_x1];
-
-              //console.log("match+", dir_idx, "s:", s, "dynidx:", dyn_idx, "src:", src_pat, _src, "dst:", dst_pat, _dst, "xy:", _x0,_y0, _x1, _y1);
-            }
-
-            if (_eq(src_pat[1], src_tile[_y0][_x0]) &&
-                _eq(src_pat[0], src_tile[_y1][_x1]) &&
-
-                _eq(dst_pat[1], dst_tile[_y0][_x0]) &&
-                _eq(dst_pat[0], dst_tile[_y1][_x1]) ) {
-              match_count[dir_idx]++;
-
-              //console.log("match-", dir_idx, "s:", s, "dynidx:", dyn_idx);
-            }
-
-          }
-
-        }
-
-
-      }
-
-      console.log(match_count, tile_str(src_tile), ":", tile_str(dst_tile));
-      console.log( src_tile[0].join("") + "    " + dst_tile[0].join("") );
-      console.log( src_tile[1].join("") + "    " + dst_tile[1].join("") );
-
-      if ((match_count[0] > 0) &&
-          (match_count[1] > 0) &&
-          (match_count[2] > 0) &&
-          (match_count[3] > 0)) {
-        console.log("\nfound");
-        console.log(match_count);
-        console.log( src_tile[0].join("") + "    " + dst_tile[0].join("") );
-        console.log( src_tile[1].join("") + "    " + dst_tile[1].join("") );
-        console.log("");
-      }
-
-
-
-      //DEBUG
-      //DEBUG
-      //DEBUG
-      //if (dst_idx > 5) { break; }
-      //DEBUG
-      //DEBUG
-      //DEBUG
-
-    }
-
-    //DEBUG
-    //DEBUG
-    //DEBUG
-    //if (src_idx > 2) { break; }
-    //DEBUG
-    //DEBUG
-    //DEBUG
-
-  }
-
-  console.log(">>", N, tile_a.length);
-
-}
-
 var tile_lib = construct_tile_lib();
 
 for (let src_key in tile_lib) {
@@ -729,17 +572,18 @@ for (let src_key in tile_lib) {
     let dst_key = to_tiles[i].key;
 
     if (!(dst_key in tile_lib)) {
-      console.log("!!!!!!!", src_key, dst_key);
+      console.log("ERROR", src_key, dst_key);
     }
 
     let dst_tile = tile_lib[dst_key];
 
-    console.log("---");
-    console.log( src_key, "(", tile_lib[src_key].id, ")", "->", dst_key, "(", tile_lib[dst_key].id, ")" );
-    console.log( tile_lib[src_key].tile[0].join(""), "", tile_lib[dst_key].tile[0].join("") );
-    console.log( tile_lib[src_key].tile[1].join(""), "", tile_lib[dst_key].tile[1].join("") );
-    console.log("");
-
+    if (DEBUG_LEVEL > 0) {
+      console.log("---");
+      console.log( src_key, "(", tile_lib[src_key].id, ")", "->", dst_key, "(", tile_lib[dst_key].id, ")" );
+      console.log( tile_lib[src_key].tile[0].join(""), "", tile_lib[dst_key].tile[0].join("") );
+      console.log( tile_lib[src_key].tile[1].join(""), "", tile_lib[dst_key].tile[1].join("") );
+      console.log("");
+    }
 
   }
 
@@ -751,9 +595,4 @@ if (DEBUG_LEVEL > 0) {
   console.log(JSON.stringify(tile_lib, undefined, 2));
 }
 
-function _test() {
-  console.log(tile_valid([['.', '.'],['.', '.']]));
-  console.log(tile_valid([['.', '.'],['.', '@']]));
-  console.log(tile_valid([['@', '.'],['.', '@']]));
-}
 
