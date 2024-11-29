@@ -101,7 +101,58 @@ let dynamics = [
 
 ];
 
-function construct_transition(tile) {
+function construct_xy_neighbors(src_tile, tile_lib) {
+  let T = [];
+
+  let boundary_idir = [
+    { "x": [1,1], "y": [0,1] },
+    { "x": [0,0], "y": [0,1] },
+    { "x": [0,1], "y": [0,0] },
+    { "x": [0,1], "y": [1,1] },
+  ];
+
+  let oppo = [1,0, 3,2];
+
+  for (let idir=0; idir<4; idir++) {
+    let _x = boundary_idir[idir].x;
+    let _y = boundary_idir[idir].y;
+
+    if ((src_tile[_y[0]][_x[0]] == 'x') &&
+        (src_tile[_y[1]][_x[1]] == 'x')) {
+      T.push({ "key":"....", "idir": idir, "tile":[['.','.'],['.','.']]});
+    }
+  }
+
+  for (let key in tile_lib) {
+
+    // .id, .goal, /trap, .tile, .key
+    //
+    let tst_info = tile_lib[key];
+    let tst_tile = tst_info.tile;
+
+    for (let idir=0; idir<4; idir++) {
+      let ax = boundary_idir[idir].x;
+      let ay = boundary_idir[idir].y;
+
+      let bx = boundary_idir[oppo[idir]].x;
+      let by = boundary_idir[oppo[idir]].y;
+
+      if ( (src_tile[ay[0]][ax[0]] == tst_tile[by[0]][bx[0]]) &&
+           (src_tile[ay[1]][ax[1]] == tst_tile[by[1]][bx[1]]) ) {
+        T.push({
+          "key": tst_info.key,
+          "idir": idir,
+          "tile":[[tst_tile[0][0], tst_tile[0][1]], [tst_tile[1][0], tst_tile[1][1]]]
+        });
+      }
+    }
+
+  }
+
+  return T;
+}
+
+function construct_z_transition(tile) {
 
   let T = [];
 
@@ -388,6 +439,9 @@ function tile_valid(tile) {
   return 1;
 }
 
+// return 0 if blocks can still be moved within super tile
+// return 1 if the blcoks are trapped in the superblock
+//
 function is_trap(tile) {
 
   if ( (tile[0][0] == 'x') && (tile[1][1] == 'x') &&
@@ -443,6 +497,12 @@ function is_trap(tile) {
   return 0;
 }
 
+// returns 1 if all boxes are on pressure plates
+// within super block
+//
+// returns 0 if there's pressure plate without a box
+// or if there are no pressure plates in the super block
+//
 function is_goal(tile) {
   let tot = 0,
       g_count = 0;
@@ -462,6 +522,16 @@ function is_goal(tile) {
 let tile_count = 0;
 
 
+// return tile library:
+//
+// key : succinct represetnation of super tile state
+//
+//   .id : intenger id of tile
+//   .key : succinct represenetation of super tile state
+//   .tile : array representation of tile ([y][x])
+//   .goal : indicator whether it's a goal state
+//   .trap : indicator wehtehr it's a trapped state (deadlock)
+//
 function construct_tile_lib() {
 
   let tile_lib = {
@@ -561,38 +631,70 @@ function tile_str(t) {
   return t[0].join("") + t[1].join("");
 }
 
-var tile_lib = construct_tile_lib();
-
-for (let src_key in tile_lib) {
-  //console.log("(", key, ")");
-  let to_tiles = construct_transition(tile_lib[src_key].tile);
+function print_json() {
+}
 
 
-  for (let i=0; i<to_tiles.length; i++) {
-    let dst_key = to_tiles[i].key;
+function main() {
 
-    if (!(dst_key in tile_lib)) {
-      console.log("ERROR", src_key, dst_key);
+  let tile_lib = construct_tile_lib();
+
+  for (let src_key in tile_lib) {
+    //console.log("(", key, ")");
+    let dst_z_tiles = construct_z_transition(tile_lib[src_key].tile);
+
+
+    for (let i=0; i<dst_z_tiles.length; i++) {
+      let dst_key = dst_z_tiles[i].key;
+
+      if (!(dst_key in tile_lib)) {
+        console.log("ERROR", src_key, dst_key);
+      }
+
+      let dst_tile = tile_lib[dst_key];
+
+      if (DEBUG_LEVEL > 0) {
+        console.log("---");
+        console.log( src_key, "(", tile_lib[src_key].id, ")", "->", dst_key, "(", tile_lib[dst_key].id, ")" );
+        console.log( tile_lib[src_key].tile[0].join(""), "", tile_lib[dst_key].tile[0].join("") );
+        console.log( tile_lib[src_key].tile[1].join(""), "", tile_lib[dst_key].tile[1].join("") );
+        console.log("");
+      }
+
     }
 
-    let dst_tile = tile_lib[dst_key];
+    let dst_xy_tiles = construct_xy_neighbors(tile_lib[src_key].tile, tile_lib);
 
-    if (DEBUG_LEVEL > 0) {
-      console.log("---");
-      console.log( src_key, "(", tile_lib[src_key].id, ")", "->", dst_key, "(", tile_lib[dst_key].id, ")" );
-      console.log( tile_lib[src_key].tile[0].join(""), "", tile_lib[dst_key].tile[0].join("") );
-      console.log( tile_lib[src_key].tile[1].join(""), "", tile_lib[dst_key].tile[1].join("") );
-      console.log("");
+    for (let i=0; i<dst_xy_tiles.length; i++) {
+
+      let dst_info = dst_xy_tiles[i];
+      let dst_key = dst_xy_tiles[i].key;
+
+      if (!(dst_key in tile_lib)) {
+        console.log("ERROR (xy)", src_key, dst_key);
+      }
+
+      let dst_tile = tile_lib[dst_key];
+
+      if (DEBUG_LEVEL == 0) {
+        console.log("---");
+        console.log( src_key, "(", tile_lib[src_key].id, ")", "-(", dst_info.idir, ")->", dst_key, "(", tile_lib[dst_key].id, ")" );
+        console.log( tile_lib[src_key].tile[0].join(""), "", tile_lib[dst_key].tile[0].join("") );
+        console.log( tile_lib[src_key].tile[1].join(""), "", tile_lib[dst_key].tile[1].join("") );
+        console.log("");
+      }
     }
 
+  }
+
+  if (DEBUG_LEVEL > 0) {
+    console.log(JSON.stringify(tile_lib, undefined, 2));
   }
 
 }
 
 //tile_adjacency(tile_lib, dynamics);
 
-if (DEBUG_LEVEL > 0) {
-  console.log(JSON.stringify(tile_lib, undefined, 2));
-}
 
+main();
 
