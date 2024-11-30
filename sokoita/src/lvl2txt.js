@@ -13,21 +13,22 @@ var jimp = require("jimp").Jimp;
 
 var STRIDE = [40,40];
 
-// .   - boundary condition (0 tile)
-// x   - wall
+// _   - boundary condition (0 tile)
+// #   - wall
 // ' ' - inner moveable space
-// b   - ball
-// +   - ball on platform
-// _   - platform
+// $   - ball
+// *   - ball on platform
+// .   - platform
 // @   - player
+// +   - player on platform
 //
 var pxl_code = [
-  {"rgba":[ 255, 255, 255, 255 ], "code":"."},
-  {"rgba":[ 124, 74, 49, 255 ], "code":"x"},
+  {"rgba":[ 255, 255, 255, 255 ], "code":"_"},
+  {"rgba":[ 124, 74, 49, 255 ], "code":"#"},
   {"rgba":[ 84, 84, 84, 255 ], "code":" "},
-  {"rgba":[ 91, 89, 124, 255 ], "code":"b"},
-  {"rgba":[ 56, 41, 120, 255 ], "code":"+"},
-  {"rgba":[ 143, 143, 103, 255 ], "code":"_"},
+  {"rgba":[ 91, 89, 124, 255 ], "code":"$"},
+  {"rgba":[ 56, 41, 120, 255 ], "code":"*"},
+  {"rgba":[ 143, 143, 103, 255 ], "code":"."},
   {"rgba":[ 183, 137, 63, 255 ], "code":"@"}
 ];
 
@@ -115,7 +116,16 @@ async function _main(base_dir) {
   }
 
   let fin_json = {
-    "_key": " . - oustside\n #/x - wall\n b - block\n' ' - (space) inside moveable\n @ - player\n _ - storage (destination)\n + - block on storage (block on destination)",
+    "_key": [
+      " _ - oustside",
+      "# - wall",
+      "$ - block",
+      "' ' - (space) inside moveable",
+      "@ - player",
+      ". - storage (destination)",
+      "* - block on storage (block on destination)",
+      "+ - player on platform"
+    ].join("\n"),
     "data": {}
   };
   fin_json.data = lvl_json;

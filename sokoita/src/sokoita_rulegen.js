@@ -8,9 +8,14 @@
 // work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
 
+var fs = require("fs");
+var getopt = require("posix-getopt");
 var libpoms = require("./libpoms.js");
+var jimp = require("jimp").Jimp;
 
 var DEBUG_LEVEL = 0;
+
+var SOKOITA_RULEGEN_VERSION = "0.1.0";
 
 // _    - out of bounds/empty
 // #    - wall
@@ -562,11 +567,85 @@ function tile_str(t) {
   return t[0].join("") + t[1].join("");
 }
 
-function main(opt) {
+async function create_tileset(opt, poms_cfg) {
+  let N = poms_cfg.weight.length;
+  let s = Math.floor(Math.sqrt(N));
+  if ((s*s) < N) { s++; }
+
+  let stride = opt.stride;
+
+  let flatTileMap = {}
+  flatTileMap[EMPTY] = 0;
+  flatTileMap[WALL] = 1;
+  flatTileMap[MOVE] = 2;
+  flatTileMap[GOAL] = 3;
+  flatTileMap[CRAT] = 4;
+  flatTileMap[GCRT] = 5;
+  flatTileMap[PLAY] = 6;
+  flatTileMap[GPLY] = 7;
+
+  let flat_tileset_img = await jimp.read(opt.flat_tileset);
+  let tileset_img = new jimp({"width":stride*s, "height":stride*s});
+
+  for (let tile_id=1; tile_id < poms_cfg.name.length; tile_id++) {
+    let tile_name = poms_cfg.name[tile_id];
+    let idx = tile_id-1;
+
+    let idx_y = Math.floor( idx / s );
+    let idx_x = (idx % s);
+
+    let sx = stride*idx_x;
+    let sy = stride*idx_y;
+
+    let flat_idx = flatTileMap[ tile_name[0] ]-1;
+
+    if ((typeof flat_idx === "undefined") ||
+        (flat_idx < 0)) {
+      console.log("ERROR", tile_id, flat_idx, tile_name);
+    }
+
+    let flat_x = stride*flat_idx;
+    let flat_y = 0;
+
+    tileset_img.blit({"src":flat_tileset_img, "x":sx, "y":sy, "srcX":flat_x, "srcY":flat_y, "srcW":stride, "srcH":stride});
+  }
+
+  if (DEBUG_LEVEL > 0) {
+    console.log("# writing", opt.tileset);
+  }
+  tileset_img.write( opt.tileset );
+
+  let tileset_info = poms_cfg.tileset;
+  tileset_info.image = opt.tileset;
+  tileset_info.tilecount = N;
+  tileset_info.imagewidth = tileset_img.width;
+  tileset_info.imageheight = tileset_img.height;
+  tileset_info.tilewidth = stride;
+  tileset_info.tileheight = stride;
+
+  let ft_info = poms_cfg.flatTileset;
+  ft_info.image = opt.flat_tileset;
+  ft_info.tilecount = 8;
+  ft_info.imagewidth = flat_tileset_img.width;
+  ft_info.imageheight = flat_tileset_img.height;
+  ft_info.tilewidth = stride;
+  ft_info.tileheight = stride;
+
+  return poms_cfg;
+}
+
+async function main(opt) {
   let default_opt = {
     "solve": true
   };
   opt = ((typeof opt === "undefined") ? default_opt : opt);
+  for (let key in default_opt) {
+    if (!(key in opt)) { opt[key] = default_opt[key]; }
+  }
+
+  if (DEBUG_LEVEL > 0) {
+    console.log("#opt:",opt);
+  }
 
   let oppo = [1,0, 3,2, 5,4];
   let tile_rule = [];
@@ -664,6 +743,8 @@ function main(opt) {
   poms_cfg["flatMap"] = [];
   poms_cfg["tileGroup"] = [];
 
+  poms_cfg["flatTileset"] = {};
+
   let n_tile = 0;
   let max_id = -1;
   let id_tile_map = {};
@@ -719,9 +800,142 @@ function main(opt) {
 
   }
 
-  console.log( libpoms.configStringify(poms_cfg) );
 
+  if (("tileset" in opt) &&
+      ("flat_tileset" in opt) &&
+      ("stride" in opt)) {
+    await create_tileset(opt, poms_cfg);
+  }
+
+  //console.log( libpoms.configStringify(poms_cfg) );
+
+  return poms_cfg;
 }
 
-main();
+var main_opt = {};
+
+var long_opt = [
+  "h", "(help)",
+  "v", "(version)",
+  "V", ":(verbose)",
+
+  "E", ":(example)",
+
+  "T", ":(tileset)",
+  "t", ":(flat-tileset)",
+
+  "M", ":(tiled-fn)",
+  "m", ":(flat-tiled-fn)",
+
+  "s", ":(stride)",
+
+  "P", ":(poms)"
+];
+
+var long_opt_desc = [
+  "help (this screen)",
+  "version",
+  "verbosity level",
+  "example level",
+  "output tileset to generate (png)",
+  "output flat tileset to generate (png)",
+  "output tiled file (json)",
+  "output flat tiled file (json)",
+  "stride, in pixels",
+  "POMS config file to write to (default, stdout)"
+];
+
+function show_version(fp) {
+  fp.write( SOKOITA_RULEGEN_VERSION + "\n");
+}
+
+function show_help(fp) {
+  fp.write("\nsokoita_rulegen.js, version ");
+  show_version(fp);
+  fp.write("\n");
+
+  for (let i=0; i<long_opt.length; i+=2) {
+    let s = "  -" + long_opt[i] + ",--" + long_opt[i+1].replace( /:?\(/, '').replace( /\)$/, '' );
+    fp.write( s );
+
+    for (let space=0; space < (24-s.length); space++) { fp.write(" "); }
+    fp.write( long_opt_desc[Math.floor(i/2)] + "\n");
+  }
+  fp.write("\n");
+}
+
+var exec = 1;
+
+let arg_opt = {};
+
+var parser = new getopt.BasicParser(long_opt.join(""), process.argv);
+while ((arg_opt in parser.getopt()) !== undefined) {
+  switch (arg_opt.option) {
+    case 'h':
+      show_help(process.stdout);
+      exec = 0;
+      break;
+    case 'v':
+      show_version(process.stdout);
+      exec = 0;
+      break;
+
+    case 'V':
+      DEBUG_LEVEL = parseInt(arg_opt.optarg);
+      break;
+
+    case 'E':
+      main_opt["level"] = arg_opt.optarg;
+      break;
+
+    case 'T':
+      main_opt["tileset"] = arg_opt.optarg;
+      break;
+    case 't':
+      main_opt["flat_tileset"] = arg_opt.optarg;
+      break;
+
+    case 'M':
+      main_opt["tiled_fn"] = arg_opt.optarg;
+      break;
+    case 'm':
+      main_opt["flat_tiled_fn"] = arg_opt.optarg;
+      break;
+
+    case 's':
+      main_opt["stride"] = parseInt(arg_opt.optarg);
+      break;
+
+    case 'P':
+      main_opt["poms_fn"] = arg_opt.optarg;
+      break;
+
+    default:
+      show_help(process.stderr);
+      exec = 0;
+      break;
+  }
+
+  if (exec == 0) { break; }
+}
+
+if (exec != 0) {
+
+  //let poms_json = main({"tileset":"sokoita_tileset.png", "stride":16, "flat_tileset":"sokoita_flat_tileset.png"});
+  let poms_json = main(main_opt);
+
+  if ("tiled_fn" in main_opt) {
+  }
+
+  if ("flat_tiled_fn" in main_opt) {
+  }
+
+  if ("poms_fn" in main_opt) {
+    fs.writeFileSync( libpoms.configStringify(poms_json ) );
+  }
+  else {
+    console.log( libpoms.configStringify(poms_cfg) );
+  }
+
+}
 
