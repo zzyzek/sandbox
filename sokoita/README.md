@@ -30,3 +30,4 @@ References
 * [David W. Skinner](http://www.abelmartin.com/rj/sokobanJS/Skinner/David%20W.%20Skinner%20-%20Sokoban.htm)
 * [sokoban-maps (gh)](https://github.com/begoon/sokoban-maps)
 * [arduboy tiny sokoban](https://github.com/akkera102/05_tiny_sokoban)
+* [sokoban wiki](http://sokobano.de/wiki/index.php?title=Main_Page)

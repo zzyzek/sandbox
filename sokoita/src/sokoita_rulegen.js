@@ -8,101 +8,40 @@
 // work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
 
+var libpoms = require("./libpoms.js");
+
 var DEBUG_LEVEL = 0;
 
-let LVL = [
-  "....xxxxx..........",
-  "....x   x..........",
-  "....xb  x..........",
-  "..xxx  bxx.........",
-  "..x  b b x.........",
-  "xxx x xx x...xxxxxx",
-  "x   x xx xxxxx  __x",
-  "x b  b          __x",
-  "xxxxx xxx x@xx  __x",
-  "....x     xxxxxxxxx",
-  "....xxxxxxx........"
-  ].join("\n");
-
-LVL = LVL.replace( /\./g, 'x' )
-LVL = LVL.replace( /#/g, 'x' )
-
-if (DEBUG_LEVEL > 0) {
-  console.log(LVL);
-}
-
-// x    - wall
+// _    - out of bounds/empty
+// #    - wall
 // ' '  - (ascii space) moveable space
-// _    - emptry storage location (destination)
-// b    - box
-// +    - box on strage (goal)
+// .    - emptry storage location (goal)
+// $    - box
+// *    - box on strage (goal)
 // @    - player
-// !    - player on storage location
+// +    - player on storage (goal) location
 //
 
-let CODE = [ 'x', ' ', '_', 'b', '+', '@', '!' ];
+var EMPTY = '_',
+    WALL = '#',
+    MOVE = ' ',
+    CRAT = '$',
+    GOAL = '.',
+    GCRT = '*',
+    PLAY = '@',
+    GPLY = '+';
 
-// * - x b + _ ' '
-
-let dynamics = [
-
-  // no change
-  //
-  [ "***", "***" ],
-
-  // move
-  //
-  [ "*@ ", "* @" ],
-  [ "* @", "*@ " ],
-
-  [ "*@_", "* !" ],
-  [ "* !", "*@_" ],
-
-  [ "*_@", "*! " ],
-  [ "*! ", "*_@" ],
-
-  // push block
-  //
-  [ "@b ", " @b" ],
-  [ "@b_", " @+" ],
-  [ "@+ ", " !b" ],
-  [ "@+_", " !+" ],
-
-  [ "!b ", "_@b" ],
-  [ "!b_", "_@+" ],
-  [ "!+ ", "_!b" ],
-  [ "!+_", "_!+" ],
-
-  [ "*@b", "* @" ],
-  [ "* b", "*b@" ],
-
-  [ "*@+", "* !" ],
-  [ "* +", "*b!" ],
-
-  [ "*_b", "*+@" ],
-  [ "*!b", "*_@" ],
-
-  [ "*!+", "*_!" ],
-  [ "*_+", "*+!" ],
-
-  // transverse move
-  //
-  [ "* *", "*@*" ],
-  [ "*@*", "* *" ],
-
-  [ "* *", "*b*" ],
-  [ "*b*", "*@*" ],
-
-  [ "*_*", "*!*" ],
-  [ "*!*", "*_*" ],
-
-  [ "*_*", "*+*" ],
-  [ "*+*", "*!*" ]
-
+let CODE = [ 
+  WALL, MOVE,
+  GOAL,
+  CRAT, GCRT,
+  PLAY, GPLY
 ];
 
 function construct_xy_neighbors(src_tile, tile_lib) {
   let T = [];
+
+  let etile = EMPTY + EMPTY + EMPTY + EMPTY;
 
   let boundary_idir = [
     { "x": [1,1], "y": [0,1] },
@@ -117,9 +56,9 @@ function construct_xy_neighbors(src_tile, tile_lib) {
     let _x = boundary_idir[idir].x;
     let _y = boundary_idir[idir].y;
 
-    if ((src_tile[_y[0]][_x[0]] == 'x') &&
-        (src_tile[_y[1]][_x[1]] == 'x')) {
-      T.push({ "key":"....", "idir": idir, "tile":[['.','.'],['.','.']]});
+    if ((src_tile[_y[0]][_x[0]] == WALL) &&
+        (src_tile[_y[1]][_x[1]] == WALL)) {
+      T.push({ "key":etile, "idir": idir, "tile":[[EMPTY,EMPTY],[EMPTY,EMPTY]]});
     }
   }
 
@@ -176,7 +115,7 @@ function construct_z_transition(tile) {
   // nop transition.
   // player must move, so exlcude if agent present.
   //
-  if ((type_count['@'] == 0) && (type_count['!'] == 0)) {
+  if ((type_count[PLAY] == 0) && (type_count[GPLY] == 0)) {
     let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
     T.push( {"tile": _t });
   }
@@ -207,91 +146,91 @@ function construct_z_transition(tile) {
 
     // player move
     //
-    if ((sv == '@') && (ev == ' ')) {
+    if ((sv == PLAY) && (ev == MOVE)) {
       let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-      _t[sy][sx] = ' ';
-      _t[ey][ex] = '@';
+      _t[sy][sx] = MOVE;
+      _t[ey][ex] = PLAY;
       T.push( {"tile": _t });
     }
 
-    if ((sv == '@') && (ev == '_')) {
+    if ((sv == PLAY) && (ev == GOAL)) {
       let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-      _t[sy][sx] = ' ';
-      _t[ey][ex] = '!';
+      _t[sy][sx] = MOVE;
+      _t[ey][ex] = GPLY;
       T.push( {"tile": _t });
     }
 
-    if ((sv == '!') && (ev == ' ')) {
+    if ((sv == GPLY) && (ev == MOVE)) {
       let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-      _t[sy][sx] = '_';
-      _t[ey][ex] = '@';
+      _t[sy][sx] = GOAL;
+      _t[ey][ex] = PLAY;
       T.push( {"tile": _t });
     }
 
-    if ((sv == '!') && (ev == '_')) {
+    if ((sv == GPLY) && (ev == GOAL)) {
       let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-      _t[sy][sx] = '_';
-      _t[ey][ex] = '!';
+      _t[sy][sx] = GOAL;
+      _t[ey][ex] = GPLY;
       T.push( {"tile": _t });
     }
 
     // block push out
     //
-    if ((sv == '@') && (ev == 'b')) {
+    if ((sv == PLAY) && (ev == CRAT)) {
       let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-      _t[sy][sx] = ' ';
-      _t[ey][ex] = '@';
+      _t[sy][sx] = MOVE;
+      _t[ey][ex] = PLAY;
       T.push( {"tile": _t });
     }
 
-    if ((sv == '!') && (ev == 'b')) {
+    if ((sv == GPLY) && (ev == CRAT)) {
       let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-      _t[sy][sx] = '_';
-      _t[ey][ex] = '@';
+      _t[sy][sx] = GOAL;
+      _t[ey][ex] = PLAY;
       T.push( {"tile": _t });
     }
 
-    if ((sv == '@') && (ev == '+')) {
+    if ((sv == PLAY) && (ev == GCRT)) {
       let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-      _t[sy][sx] = ' ';
-      _t[ey][ex] = '!';
+      _t[sy][sx] = MOVE;
+      _t[ey][ex] = GPLY;
       T.push( {"tile": _t });
     }
 
-    if ((sv == '!') && (ev == '+')) {
+    if ((sv == GPLY) && (ev == GCRT)) {
       let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-      _t[sy][sx] = '_';
-      _t[ey][ex] = '!';
+      _t[sy][sx] = GOAL;
+      _t[ey][ex] = GPLY;
       T.push( {"tile": _t });
     }
 
-    if ((type_count['@'] == 0) && (type_count['!'] == 0)) {
+    if ((type_count[PLAY] == 0) && (type_count[GPLY] == 0)) {
 
-      if ((sv == 'b') && (ev == ' ')) {
+      if ((sv == CRAT) && (ev == MOVE)) {
         let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-        _t[sy][sx] = '@';
-        _t[ey][ex] = 'b';
+        _t[sy][sx] = PLAY;
+        _t[ey][ex] = CRAT;
         T.push( {"tile": _t });
       }
 
-      if ((sv == '+') && (ev == ' ')) {
+      if ((sv == GCRT) && (ev == MOVE)) {
         let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-        _t[sy][sx] = '!';
-        _t[ey][ex] = 'b';
+        _t[sy][sx] = GPLY;
+        _t[ey][ex] = CRAT;
         T.push( {"tile": _t });
       }
 
-      if ((sv == 'b') && (ev == '_')) {
+      if ((sv == CRAT) && (ev == GOAL)) {
         let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-        _t[sy][sx] = '@';
-        _t[ey][ex] = '+';
+        _t[sy][sx] = PLAY;
+        _t[ey][ex] = GCRT;
         T.push( {"tile": _t });
       }
 
-      if ((sv == '+') && (ev == '_')) {
+      if ((sv == GCRT) && (ev == GOAL)) {
         let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-        _t[sy][sx] = '!';
-        _t[ey][ex] = '+';
+        _t[sy][sx] = GPLY;
+        _t[ey][ex] = GCRT;
         T.push( {"tile": _t });
       }
 
@@ -307,21 +246,21 @@ function construct_z_transition(tile) {
 
     let v = tile[y][x];
 
-    if ((type_count['@'] == 0) && (type_count['!'] == 0)) {
+    if ((type_count[PLAY] == 0) && (type_count[GPLY] == 0)) {
 
       // block pushed in
       //
-      if (tile[y][x] == ' ') {
+      if (tile[y][x] == MOVE) {
         let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-        _t[y][x] = 'b';
+        _t[y][x] = CRAT;
         T.push( {"tile": _t });
       }
 
       // block pushed in on platform
       //
-      if (tile[y][x] == '_') {
+      if (tile[y][x] == GOAL) {
         let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-        _t[y][x] = '+';
+        _t[y][x] = GCRT;
         T.push( {"tile": _t });
       }
 
@@ -329,31 +268,31 @@ function construct_z_transition(tile) {
 
     // player comes in
     //
-    if ((type_count['@'] == 0) && (type_count['!'] == 0)) {
-      if (tile[y][x] == ' ') {
+    if ((type_count[PLAY] == 0) && (type_count[GPLY] == 0)) {
+      if (tile[y][x] == MOVE) {
         let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-        _t[y][x] = '@';
+        _t[y][x] = PLAY;
         T.push( {"tile": _t });
       }
 
-      if (tile[y][x] == '_') {
+      if (tile[y][x] == GOAL) {
         let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-        _t[y][x] = '!';
+        _t[y][x] = GPLY;
         T.push( {"tile": _t });
       }
     }
 
     // player moves out
     //
-    if (v == '@') {
+    if (v == PLAY) {
       let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-      _t[y][x] = ' ';
+      _t[y][x] = MOVE;
       T.push( {"tile": _t });
     }
 
-    if (v == '!') {
+    if (v == GPLY) {
       let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
-      _t[y][x] = '_';
+      _t[y][x] = GOAL;
       T.push( {"tile": _t });
     }
 
@@ -386,53 +325,53 @@ function tile_valid(tile) {
   let player_count = 0;
   for (let y=0; y<2; y++) {
     for (let x=0; x<2; x++) {
-      if ((tile[y][x] == '@') || (tile[y][x] == '!')) { player_count++; }
+      if ((tile[y][x] == PLAY) || (tile[y][x] == GPLY)) { player_count++; }
     }
   }
   if (player_count > 1) { return 0; }
 
   //---
 
-  if ((tile[0][0] == '.') &&
-      ((tile[0][1] != '.') && (tile[0][1] != 'x') && (tile[0][1] != '#'))) {
+  if ((tile[0][0] == EMPTY) &&
+      ((tile[0][1] != EMPTY) && (tile[0][1] != WALL)) ) {
     return 0;
   }
 
-  if ((tile[0][0] == '.') &&
-      ((tile[1][0] != '.') && (tile[1][0] != 'x') && (tile[1][0] != '#'))) {
-    return 0;
-  }
-
-
-  if ((tile[1][0] == '.') &&
-      ((tile[1][1] != '.') && (tile[1][1] != 'x') && (tile[1][1] != '#'))) {
-    return 0;
-  }
-
-  if ((tile[1][0] == '.') &&
-      ((tile[0][0] != '.') && (tile[0][0] != 'x') && (tile[0][0] != '#'))) {
+  if ((tile[0][0] == EMPTY) &&
+      ((tile[1][0] != EMPTY) && (tile[1][0] != WALL)) ) {
     return 0;
   }
 
 
-  if ((tile[0][1] == '.') &&
-      ((tile[1][1] != '.') && (tile[1][1] != 'x') && (tile[1][1] != '#'))) {
+  if ((tile[1][0] == EMPTY) &&
+      ((tile[1][1] != EMPTY) && (tile[1][1] != WALL)) ) {
     return 0;
   }
 
-  if ((tile[0][1] == '.') &&
-      ((tile[0][0] != '.') && (tile[0][0] != 'x') && (tile[0][0] != '#'))) {
+  if ((tile[1][0] == EMPTY) &&
+      ((tile[0][0] != EMPTY) && (tile[0][0] != WALL)) ) {
     return 0;
   }
 
 
-  if ((tile[1][1] == '.') &&
-      ((tile[1][0] != '.') && (tile[1][0] != 'x') && (tile[1][0] != '#'))) {
+  if ((tile[0][1] == EMPTY) &&
+      ((tile[1][1] != EMPTY) && (tile[1][1] != WALL)) ) {
     return 0;
   }
 
-  if ((tile[1][1] == '.') &&
-      ((tile[0][1] != '.') && (tile[0][1] != 'x') && (tile[0][1] != '#'))) {
+  if ((tile[0][1] == EMPTY) &&
+      ((tile[0][0] != EMPTY) && (tile[0][0] != WALL)) ) {
+    return 0;
+  }
+
+
+  if ((tile[1][1] == EMPTY) &&
+      ((tile[1][0] != EMPTY) && (tile[1][0] != WALL)) ) {
+    return 0;
+  }
+
+  if ((tile[1][1] == EMPTY) &&
+      ((tile[0][1] != EMPTY) && (tile[0][1] != WALL)) ) {
     return 0;
   }
 
@@ -444,39 +383,39 @@ function tile_valid(tile) {
 //
 function is_trap(tile) {
 
-  if ( (tile[0][0] == 'x') && (tile[1][1] == 'x') &&
-      ((tile[0][1] == 'b') || (tile[1][0] == 'b'))) {
+  if ( (tile[0][0] == WALL) && (tile[1][1] == WALL) &&
+      ((tile[0][1] == CRAT) || (tile[1][0] == CRAT))) {
     return 1;
   }
 
-  if ( (tile[0][1] == 'x') && (tile[1][0] == 'x') &&
-      ((tile[0][0] == 'b') || (tile[1][1] == 'b'))) {
+  if ( (tile[0][1] == WALL) && (tile[1][0] == WALL) &&
+      ((tile[0][0] == CRAT) || (tile[1][1] == CRAT))) {
     return 1;
   }
 
 
-  if ( (tile[0][0] == 'x') && (tile[0][1] == 'x') &&
-       (tile[1][0] == 'b') && (tile[1][1] == 'b')) {
+  if ( (tile[0][0] == WALL) && (tile[0][1] == WALL) &&
+       (tile[1][0] == CRAT) && (tile[1][1] == CRAT)) {
     return 1;
   }
 
-  if ( (tile[1][0] == 'x') && (tile[1][1] == 'x') &&
-       (tile[0][0] == 'b') && (tile[0][1] == 'b')) {
+  if ( (tile[1][0] == WALL) && (tile[1][1] == WALL) &&
+       (tile[0][0] == CRAT) && (tile[0][1] == CRAT)) {
     return 1;
   }
 
-  if ( (tile[0][0] == 'x') && (tile[1][0] == 'x') &&
-       (tile[0][1] == 'b') && (tile[1][1] == 'b')) {
+  if ( (tile[0][0] == WALL) && (tile[1][0] == WALL) &&
+       (tile[0][1] == CRAT) && (tile[1][1] == CRAT)) {
     return 1;
   }
 
-  if ( (tile[0][1] == 'x') && (tile[1][1] == 'x') &&
-       (tile[0][0] == 'b') && (tile[1][0] == 'b')) {
+  if ( (tile[0][1] == WALL) && (tile[1][1] == WALL) &&
+       (tile[0][0] == CRAT) && (tile[1][0] == CRAT)) {
     return 1;
   }
 
-  if ( (tile[0][1] == 'b') && (tile[1][1] == 'b') &&
-       (tile[0][0] == 'b') && (tile[1][0] == 'b')) {
+  if ( (tile[0][1] == CRAT) && (tile[1][1] == CRAT) &&
+       (tile[0][0] == CRAT) && (tile[1][0] == CRAT)) {
     return 1;
   }
 
@@ -484,12 +423,12 @@ function is_trap(tile) {
       b_count = 0;
   for (let y=0; y<2; y++) {
     for (let x=0; x<2; x++) {
-      if ((tile[y][x] == 'x') ||
-          (tile[y][x] == 'b') ||
-          (tile[y][x] == '+')) {
+      if ((tile[y][x] == WALL) ||
+          (tile[y][x] == CRAT) ||
+          (tile[y][x] == GCRT)) {
         tot++;
       }
-      if (tile[y][x] == 'b') { b_count++; }
+      if (tile[y][x] == CRAT) { b_count++; }
     }
   }
   if ((b_count>0) && (tot==4)) { return 1; }
@@ -508,10 +447,10 @@ function is_goal(tile) {
       g_count = 0;
   for (let y=0; y<2; y++) {
     for (let x=0; x<2; x++) {
-      if ((tile[y][x] != 'b') &&
-          (tile[y][x] != '!') &&
-          (tile[y][x] != '_')) { tot++; }
-      if (tile[y][x] == '+') { g_count++; }
+      if ((tile[y][x] != CRAT) &&
+          (tile[y][x] != GPLY) &&
+          (tile[y][x] != GOAL)) { tot++; }
+      if (tile[y][x] == GCRT) { g_count++; }
     }
   }
   if ((g_count>0) && (tot==4)) { return 1; }
@@ -519,7 +458,26 @@ function is_goal(tile) {
   return 0;
 }
 
-let tile_count = 0;
+// returns 1 if all boxes are on pressure plates
+// within super block
+//
+// returns 0 if there's pressure plate without a box
+// or if there are no pressure plates in the super block
+//
+function is_transitional(tile) {
+  let tot = 0,
+      s_count = 0;
+      b_count = 0;
+  for (let y=0; y<2; y++) {
+    for (let x=0; x<2; x++) {
+      if (tile[y][x] == CRAT) { b_count++; }
+      if (tile[y][x] == GOAL) { s_count++; }
+    }
+  }
+  if ((b_count > 0) || (s_count > 0)) { return 1; }
+  return 0;
+}
+
 
 
 // return tile library:
@@ -533,10 +491,12 @@ let tile_count = 0;
 //   .trap : indicator wehtehr it's a trapped state (deadlock)
 //
 function construct_tile_lib() {
+  let tile_count = 0;
 
-  let tile_lib = {
-    "...." : { "id": 0, "key": "....", "tile": [[".", "."],[".","."]], "goal":0, "trap":0 }
-  };
+  let etile = EMPTY + EMPTY + EMPTY + EMPTY;
+
+  let tile_lib = {}
+  tile_lib[etile] = { "id": 0, "key": etile, "tile": [[EMPTY,EMPTY], [EMPTY,EMPTY]], "goal":0, "trap":0 }
 
   for (let idx00=0; idx00<CODE.length; idx00++) {
     for (let idx01=0; idx01<CODE.length; idx01++) {
@@ -571,6 +531,7 @@ function construct_tile_lib() {
           tile_lib[key] = {
             "id": tile_count,
             "goal": is_goal(tile),
+            "transitional": is_transitional(tile),
             "trap": is_trap(tile),
             "key": key,
             "tile": tile
@@ -578,7 +539,7 @@ function construct_tile_lib() {
 
           if (DEBUG_LEVEL > 0) {
             console.log( tile[0].join("") + tile[1].join("") );
-            console.log("trap:", is_trap(tile), "goal:", is_goal(tile));
+            console.log("trap:", is_trap(tile), "goal:", is_goal(tile), "transitional:", is_transitional(tile));
             console.log("/--\\");
             console.log( "|" + tile[0].join("") + "|\n|" + tile[1].join("") + "|" );
             console.log("\\--/");
@@ -597,52 +558,26 @@ function construct_tile_lib() {
 
 }
 
-function _eq(a,b) {
-
-  if (a == '*') {
-    if ((b == 'x') ||
-        (b == 'b') ||
-        (b == '+') ||
-        (b == '_') ||
-        (b == ' ')) {
-      return true;
-    }
-  }
-  else if (a == b) { return true; }
-
-  return false;
-}
-
-function cval(CODE, src) {
-  if (CODE == '*') {
-    if ((src == 'x') ||
-        (src == ' ') ||
-        (src == '_') ||
-        (src == 'b') ||
-        (src == '+')) {
-      return src;
-    }
-    return 'E';
-  }
-  return CODE;
-}
-
 function tile_str(t) {
   return t[0].join("") + t[1].join("");
 }
 
-function print_json() {
-}
+function main(opt) {
+  let default_opt = {
+    "solve": true
+  };
+  opt = ((typeof opt === "undefined") ? default_opt : opt);
 
+  let oppo = [1,0, 3,2, 5,4];
+  let tile_rule = [];
 
-function main() {
 
   let tile_lib = construct_tile_lib();
 
   for (let src_key in tile_lib) {
-    //console.log("(", key, ")");
     let dst_z_tiles = construct_z_transition(tile_lib[src_key].tile);
 
+    let src_tile = tile_lib[src_key];
 
     for (let i=0; i<dst_z_tiles.length; i++) {
       let dst_key = dst_z_tiles[i].key;
@@ -652,6 +587,9 @@ function main() {
       }
 
       let dst_tile = tile_lib[dst_key];
+
+      tile_rule.push( [src_tile.id, dst_tile.id, 4, 1] );
+      tile_rule.push( [dst_tile.id, src_tile.id, 5, 1] );
 
       if (DEBUG_LEVEL > 0) {
         console.log("---");
@@ -676,7 +614,10 @@ function main() {
 
       let dst_tile = tile_lib[dst_key];
 
-      if (DEBUG_LEVEL == 0) {
+      tile_rule.push( [src_tile.id, dst_tile.id, dst_info.idir, 1] );
+      tile_rule.push( [dst_tile.id, src_tile.id, oppo[dst_info.idir], 1] );
+
+      if (DEBUG_LEVEL > 0) {
         console.log("---");
         console.log( src_key, "(", tile_lib[src_key].id, ")", "-(", dst_info.idir, ")->", dst_key, "(", tile_lib[dst_key].id, ")" );
         console.log( tile_lib[src_key].tile[0].join(""), "", tile_lib[dst_key].tile[0].join("") );
@@ -691,10 +632,96 @@ function main() {
     console.log(JSON.stringify(tile_lib, undefined, 2));
   }
 
+  let poms_cfg = libpoms.configTemplate();
+  poms_cfg["comment"] = [
+    "_ - boundary condition (out of bounds simple tile)",
+    "# - wall",
+    "  - (space) moveable region",
+    ". - storage (unoccupied)",
+    "$ - crate",
+    "* - crate on storage",
+    "@ - player",
+    "+ - player on storage",
+    "",
+    "group 0 - default",
+    "group 1 - transitional state (at least one non-stored block or unoccupied storage exists)",
+    "group 2 - end condition (at least one storage exists and all storage occupied)",
+    "group 3 - trap or deadlock state"
+  ];
+
+  poms_cfg.rule = tile_rule;
+
+  let flatTileMap = {}
+  flatTileMap[EMPTY] = 0;
+  flatTileMap[WALL] = 1;
+  flatTileMap[MOVE] = 2;
+  flatTileMap[GOAL] = 3;
+  flatTileMap[CRAT] = 4;
+  flatTileMap[GCRT] = 5;
+  flatTileMap[PLAY] = 6;
+  flatTileMap[GPLY] = 7;
+
+  poms_cfg["flatMap"] = [];
+  poms_cfg["tileGroup"] = [];
+
+  let n_tile = 0;
+  let max_id = -1;
+  let id_tile_map = {};
+  for (let key in tile_lib) {
+    id_tile_map[ tile_lib[key].id ] = tile_lib[key];
+    n_tile++;
+
+    if (tile_lib[key].id > max_id) {
+      max_id = tile_lib[key].id;
+    }
+  }
+
+  if ((max_id+1) != n_tile) { console.log("ERROR n_tile != max_id:", n_tile, max_id); }
+
+  for (let tile_id=0; tile_id<n_tile; tile_id++) {
+
+    let tile_info = id_tile_map[tile_id];
+
+    poms_cfg.weight.push(1);
+    poms_cfg.name.push( tile_info.key )
+
+    //console.log(">>", tile_info.key[0], flatTileMap, flatTileMap[ tile_info.key[0] ] );
+    poms_cfg.flatMap.push( flatTileMap[ tile_info.key[0] ] );
+
+    let tile_group = 0;
+    if (tile_info.transitional) { tile_group = 1; }
+    if (tile_info.goal)         { tile_group = 2; }
+    if (tile_info.trap)         { tile_group = 3; }
+    poms_cfg.tileGroup.push(tile_group);
+
+
+    poms_cfg.flatMap.push( flatTileMap[ tile_info.key[0] ] );
+
+  }
+
+  poms_cfg.constraint.push({ "type":"remove", "range": {"tile":[0,1], "x":[], "y":[], "z":[] } });
+
+  for (let tile_id=0; tile_id < poms_cfg.tileGroup.length; tile_id++) {
+
+    // remove deadlock states
+    //
+    if (poms_cfg.tileGroup[tile_id] == 3) {
+      poms_cfg.constraint.push({ "type":"remove", "range": {"tile":[tile_id,tile_id+1], "x":[], "y":[], "z":[] } });
+    }
+
+    // force solution by removing transitional states
+    //
+    if (opt.solve) {
+      if (poms_cfg.tileGroup[tile_id] == 1) {
+        poms_cfg.constraint.push({ "type":"remove", "range": {"tile":[tile_id,tile_id+1], "x":[], "y":[], "z":[-1] } });
+      }
+    }
+
+  }
+
+  console.log( libpoms.configStringify(poms_cfg) );
+
 }
-
-//tile_adjacency(tile_lib, dynamics);
-
 
 main();
 
