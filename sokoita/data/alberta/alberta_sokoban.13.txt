@@ -1,13 +1,13 @@
-...xxxxxxxxx.......
-..xx   xx  xxxxx...
-xxx     x  x    xxx
-x  b xb x  x  ___ x
-x x bxbxx x x_x_ x
-x  x xb  x    _ _ x
-x b    b x x x_x_ x
-x   xx  xxb b _ _ x
-x b x   x  xbx_x_ x
-xx b  b   b  b___ x
-.xb xxxxxx    xx  x
-.x  x....xxxxxxxxxx
-.xxxx..............
+###################
+####   ##  ########
+###     #  #    ###
+#  $ #$ #  #  ... #
+# # $#$## # #.#. #
+#  # #$  #    . . #
+# $    $ # # #.#. #
+#   ##  ##$ $ . . #
+# $ #   #  #$#.#. #
+## $  $   $  $... #
+##$ ######    ##  #
+##  ###############
+###################

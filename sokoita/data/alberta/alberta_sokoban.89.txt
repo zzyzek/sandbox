@@ -1,17 +1,17 @@
-.xxxxxxxxxxxxxxxxxx.
-.x   b       ___x_xx
-.x       xxxx_____ x
-.x xxxxxxx  x_____ x
-.x x    b b xx____xx
-.x x  b x x xxx___x.
-.x x bb b  xxxxx x.
-xx x  b  b bb   b x.
-x  xbx bx   x bxx x.
-x xx    xx xx b x x.
-x x bx b b  x     x.
-x x         xxxxxxx.
-x xxxxxxxxbxx   x...
-x        x  b   x...
-xxxxxxxx    xxxxx...
-.......xxx  x.......
-.........xxxx.......
+####################
+##   $       ...#.##
+##       ####..... #
+## #######  #..... #
+## #    $ $ ##....##
+## #  $ # # ###...##
+## # $$ $  ##### ##
+## #  $  $ $$   $ ##
+#  #$# $#   # $## ##
+# ##    ## ## $ # ##
+# # $# $ $  #     ##
+# #         ########
+# ########$##   ####
+#        #  $   ####
+########    ########
+##########  ########
+####################

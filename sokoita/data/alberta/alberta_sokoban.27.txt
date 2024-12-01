@@ -1,13 +1,13 @@
-.xxxxxxxxxxxxxxxxx.
-.x___   x    x   xx
-xx_____  bxx x xb x
-x______x  b  x    x
-x______x  x  x x  x
-xxxxxxxxx b  b b  x
-..x     xbxxb xxbxx
-.xx   b    x b    x
-.x  xx xxx x  xxb x
-.x b bb     b  b  x
-.x b    bxxb xxxxxx
-.xxxxxxx  @ xx.....
-.......xxxxxx......
+###################
+##...   #    #   ##
+##.....  $## # #$ #
+#......#  $  #    #
+#......#  #  # #  #
+######### $  $ $  #
+###     #$##$ ##$##
+###   $    # $    #
+##  ## ### #  ##$ #
+## $ $$     $  $  #
+## $    $##$ ######
+########  @ #######
+###################

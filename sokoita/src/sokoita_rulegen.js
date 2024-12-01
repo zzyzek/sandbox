@@ -634,6 +634,10 @@ async function create_tileset(opt, poms_cfg) {
   return poms_cfg;
 }
 
+function normalize_map(map_str) {
+
+}
+
 async function main(opt) {
   let default_opt = {
     "solve": true

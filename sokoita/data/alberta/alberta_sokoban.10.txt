@@ -1,16 +1,16 @@
-.xxx..xxxxxxxxxxxxx
-xx@xxxx       x   x
-x bb   bb  b b ___x
-x  bbbx    b  x___x
-x b   x bb bb x___x
-xxx   x  b    x___x
-x     x b b b x___x
-x    xxxxxx xxx___x
-xx x  x  b b  x___x
-x  xx x bb b bxx__x
-x __x x  b      x_x
-x __x x bbb bbb x_x
-xxxxx x       x x_x
-....x xxxxxxxxx x_x
-....x           x_x
-....xxxxxxxxxxxxxxx
+###################
+##@####       #   #
+# $$   $$  $ $ ...#
+#  $$$#    $  #...#
+# $   # $$ $$ #...#
+###   #  $    #...#
+#     # $ $ $ #...#
+#    ###### ###...#
+## #  #  $ $  #...#
+#  ## # $$ $ $##..#
+# ..# #  $      #.#
+# ..# # $$$ $$$ #.#
+##### #       # #.#
+##### ######### #.#
+#####           #.#
+###################

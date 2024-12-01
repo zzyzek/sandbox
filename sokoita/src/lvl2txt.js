@@ -103,12 +103,18 @@ async function _main(base_dir) {
         lvl_row.push(code);
 
       }
+
       lvl.push(lvl_row);
     }
 
     let a = [];
     for (let i=0; i<lvl.length; i++) {
-      a.push(lvl[i].join(""));
+
+      // replace 'outside' with wall (normalize map)
+      //
+      let line = lvl[i].join("").replace( /_/g, '#' );
+
+      a.push( line );
     }
 
     lvl_json[lvl_idx] = a.join("\n");

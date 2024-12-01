@@ -1,15 +1,15 @@
-xxxxxxxxxxxxxxxxxxxx
-x    xx   x    x   x
-x  b  b     xx b   x
-xx xxxxx  _xxxxxx xx
-.x xx  xx____xxxx xx
-xx xxb xxx__xx     x
-x      x___ _x b b x
-x b xx xx _ xxx xxxx
-x x b    x_xx.x x...
-x b b x   _xxxx xx..
-x x  xx x xx  x  xx.
-xxxxxxx  bxxb   b x.
-......xx      b x@x.
-.......x  xx xxxxxx.
-.......xxxxxxx......
+####################
+#    ##   #    #   #
+#  $  $     ## $   #
+## #####  .###### ##
+## ##  ##....#### ##
+## ##$ ###..##     #
+#      #... .# $ $ #
+# $ ## ## . ### ####
+# # $    #.#### ####
+# $ $ #   .#### ####
+# #  ## # ##  #  ###
+#######  $##$   $ ##
+########      $ #@##
+########  ## #######
+####################

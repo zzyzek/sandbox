@@ -1,12 +1,12 @@
-xxxxxxxxxxxxxxxxxxxx
-x     xxx__xxx     x
-x bb  xxx__xxx  b@ x
-x  x xx______x  b  x
-x     x______x  b  x
-xxxx  xxx__xxxxxxb x
-x   bbb x__x    x  x
-x bx   b  b  bb xb x
-x  x  xx b  xx  x  x
-x b    b xx b    b x
-x  x  xx    xx  x  x
-xxxxxxxxxxxxxxxxxxxx
+####################
+#     ###..###     #
+# $$  ###..###  $@ #
+#  # ##......#  $  #
+#     #......#  $  #
+####  ###..######$ #
+#   $$$ #..#    #  #
+# $#   $  $  $$ #$ #
+#  #  ## $  ##  #  #
+# $    $ ## $    $ #
+#  #  ##    ##  #  #
+####################
