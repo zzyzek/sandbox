@@ -634,8 +634,199 @@ async function create_tileset(opt, poms_cfg) {
   return poms_cfg;
 }
 
+function write_flat_tiled_json(info, out_fn) {
+
+  //let stride = [ info.stride, info.stride ];
+  let stride = info.stride;
+
+  let template = {
+    "backgroundcolor":"#ffffff",
+    "height": -1,
+    "width": -1,
+    "layers": [
+      {
+        "data": [],
+        "width":-1,
+        "height":-1,
+        "x":0,
+        "y":0,
+        "name": "main",
+        "opacity": 1,
+        "type":"tilelayer",
+        "visible":true
+      }
+    ],
+    "nextobjectid":1,
+    "orientation": "orthogonal",
+    "properties":[],
+    "renderorder": "right-down",
+    "tileheight": -1,
+    "tilewidth": -1,
+    "tilesets": [{
+      "columns": -1,
+      "image": "",
+      "imageheight": -1, // ****
+      "imagewidth": -1, // ****
+      "tilecount": -1, // ****
+      "tileheight": -1, // ****
+      "tilewidth": -1, // ****
+      "margin": 0,
+      "spacing": 0,
+      "name": "tileset",
+      "firstgid": 1
+    }],
+    "version": 1
+  };
+
+  template.width = info.map_w;
+  template.height = info.map_h;
+  template.tileheight = stride[1];
+  template.tilewidth = stride[0];
+
+  template.layers[0].data = info.flat_map_array;
+  template.layers[0].width = info.map_w;
+  template.layers[0].height = info.map_h;
+
+  //template.tilesets[0].image = ".out/tilemap.png";
+  template.tilesets[0].image = info.flat_tileset_fn;
+  template.tilesets[0].tileheight = stride[1];
+  template.tilesets[0].tilewidth = stride[0];
+  template.tilesets[0].tilecount = info.simpletile_count-1;
+  template.tilesets[0].columns = info.map_w;
+  template.tilesets[0].rows = info.map_w;
+
+  let data = JSON.stringify(template, null, 2);
+  fs.writeFileSync( out_fn, data );
+}
+
+
+
+function write_tiled_json(info, out_fn) {
+
+  //let stride = [ info.stride, info.stride ];
+  let stride = info.stride;
+
+  let template = {
+    "backgroundcolor":"#ffffff",
+    "height": -1,
+    "width": -1,
+    "layers": [
+      { 
+        "data": [],
+        "width":-1,
+        "height":-1,
+        "x":0,
+        "y":0,
+        "name": "main",
+        "opacity": 1,
+        "type":"tilelayer",
+        "visible":true
+      }
+    ],
+    "nextobjectid":1,
+    "orientation": "orthogonal",
+    "properties":[],
+    "renderorder": "right-down",
+    "tileheight": -1,
+    "tilewidth": -1,
+    "tilesets": [{
+      "columns": -1,
+      "image": "",
+      "imageheight": -1, // ****
+      "imagewidth": -1, // ****
+      "tilecount": -1, // ****
+      "tileheight": -1, // ****
+      "tilewidth": -1, // ****
+      "margin": 0,
+      "spacing": 0,
+      "name": "tileset",
+      "firstgid": 1
+    }],
+    "version": 1
+  };
+
+  template.width = info.map_w;
+  template.height = info.map_h;
+  template.tileheight = stride[1];
+  template.tilewidth = stride[0];
+
+  template.layers[0].data = info.map_array;
+  template.layers[0].width = info.map_w;
+  template.layers[0].height = info.map_h;
+
+  //template.tilesets[0].image = ".out/tilemap.png";
+  template.tilesets[0].image = info.tileset_fn;
+  template.tilesets[0].tileheight = stride[1];
+  template.tilesets[0].tilewidth = stride[0];
+  template.tilesets[0].tilecount = info.supertile_count-1;
+  template.tilesets[0].columns = info.map_w;
+  template.tilesets[0].rows = info.map_w;
+
+  let data = JSON.stringify(template, null, 2);
+  fs.writeFileSync( out_fn, data );
+}
+
+
+
+
 function normalize_map(map_str) {
 
+}
+
+function load_xsb_level(opt, poms_json) {
+  let fn = opt.level;
+  let data = fs.readFileSync(fn, "utf8");
+
+  let level = [];
+
+  let level_w = 0,
+      level_h = 0;
+
+  let lines = data.split("\n");
+  for (let line_no=0; line_no<lines.length; line_no++) {
+    let a = lines[line_no].split("");
+    if (a.length == 0) { continue; }
+    level.push(a);
+    level_h++;
+    level_w = lines[line_no].length;
+  }
+
+  let name_tileid_lookup = {};
+  for (let tile_id = 0; tile_id < poms_json.name.length; tile_id++) {
+    let name = poms_json.name[tile_id];
+    name_tileid_lookup[ name ] = tile_id;
+  }
+
+  let tiled_data = [];
+
+  for (let y=0; y<level_h; y++) {
+    for (let x=0; x<level_w; x++) {
+      let supertile = [ ['#', '#'], ['#', '#'] ];
+
+      for (let dy=0; dy<2; dy++) {
+        for (let dx=0; dx<2; dx++) {
+          if (((y+dy) < level_h) &&
+              ((x+dx) < level_w)) {
+            supertile[dy][dx] = level[y+dy][x+dx];
+          }
+        }
+      }
+
+      let tile_name = supertile[0].join("") + supertile[1].join("");
+
+      if (!(tile_name in name_tileid_lookup)) {
+        console.log("ERROR! could not find", tile_name);
+        tiled_data.push(-1);
+        continue;
+      }
+
+      let tile_id = name_tileid_lookup[tile_name];
+
+      tiled_data.push(tile_id);
+    }
+  }
+
+  return {"tile_level":tiled_data, "w": level_w, "h": level_h, "level": level};
 }
 
 async function main(opt) {
@@ -734,6 +925,10 @@ async function main(opt) {
 
   poms_cfg.rule = tile_rule;
 
+  if ("x" in opt) { poms_cfg.size[0] = opt.x; }
+  if ("y" in opt) { poms_cfg.size[1] = opt.y; }
+  if ("z" in opt) { poms_cfg.size[2] = opt.z; }
+
   let flatTileMap = {}
   flatTileMap[EMPTY] = 0;
   flatTileMap[WALL] = 1;
@@ -809,11 +1004,42 @@ async function main(opt) {
       ("flat_tileset" in opt) &&
       ("stride" in opt)) {
     await create_tileset(opt, poms_cfg);
+
+    //console.log( libpoms.configStringify(poms_cfg) );
+
+    if ("level" in opt) {
+      let level_info = await load_xsb_level(opt, poms_cfg);
+
+      let tiled_info = {
+        "stride": [ opt.stride, opt.stride ],
+        "map_w" : level_info.w,
+        "map_h" : level_info.h,
+        "map_array": level_info.tile_level,
+        "tileset_fn" : opt.tileset,
+        "supertile_count": poms_cfg.name.length
+      };
+
+
+      if ("tiled_fn" in opt) {
+
+        console.log(">>>", opt.tiled_fn);
+        console.log(">>>", level_info);
+
+        await write_tiled_json(tiled_info, opt.tiled_fn);
+      }
+
+    }
+
   }
 
-  //console.log( libpoms.configStringify(poms_cfg) );
+  if ("poms_fn" in opt) {
+    fs.writeFileSync( opt.poms_fn, libpoms.configStringify(poms_cfg) );
+  }
+  else {
+    console.log( libpoms.configStringify(poms_cfg) );
+  }
 
-  return poms_cfg;
+  return 0;
 }
 
 var main_opt = {};
@@ -823,7 +1049,7 @@ var long_opt = [
   "v", "(version)",
   "V", ":(verbose)",
 
-  "E", ":(example)",
+  "L", ":(level)",
 
   "T", ":(tileset)",
   "t", ":(flat-tileset)",
@@ -833,20 +1059,30 @@ var long_opt = [
 
   "s", ":(stride)",
 
-  "P", ":(poms)"
+  "P", ":(poms)",
+
+  "x", ":",
+  "y", ":",
+  "z", ":"
 ];
 
 var long_opt_desc = [
   "help (this screen)",
   "version",
   "verbosity level",
-  "example level",
+  "setup level (normalized sokoban xsb format)",
   "output tileset to generate (png)",
-  "output flat tileset to generate (png)",
+  "input flat tileset to generate (png, required for tileset generation)",
   "output tiled file (json)",
   "output flat tiled file (json)",
-  "stride, in pixels",
-  "POMS config file to write to (default, stdout)"
+  "stride, in pixels (required for tileset generation)",
+  "POMS config file to write to (default, stdout)",
+
+  "x coordinate size",
+  "y coordinate size",
+  "z (time) coordinate size",
+
+  ""
 ];
 
 function show_version(fp) {
@@ -872,8 +1108,10 @@ var exec = 1;
 
 let arg_opt = {};
 
+
 var parser = new getopt.BasicParser(long_opt.join(""), process.argv);
-while ((arg_opt in parser.getopt()) !== undefined) {
+
+while ((arg_opt = parser.getopt()) !== undefined) {
   switch (arg_opt.option) {
     case 'h':
       show_help(process.stdout);
@@ -888,7 +1126,7 @@ while ((arg_opt in parser.getopt()) !== undefined) {
       DEBUG_LEVEL = parseInt(arg_opt.optarg);
       break;
 
-    case 'E':
+    case 'L':
       main_opt["level"] = arg_opt.optarg;
       break;
 
@@ -914,6 +1152,16 @@ while ((arg_opt in parser.getopt()) !== undefined) {
       main_opt["poms_fn"] = arg_opt.optarg;
       break;
 
+    case 'x':
+      main_opt["x"] = parseInt(arg_opt.optarg);
+      break;
+    case 'y':
+      main_opt["y"] = parseInt(arg_opt.optarg);
+      break;
+    case 'z':
+      main_opt["z"] = parseInt(arg_opt.optarg);
+      break;
+
     default:
       show_help(process.stderr);
       exec = 0;
@@ -925,21 +1173,7 @@ while ((arg_opt in parser.getopt()) !== undefined) {
 
 if (exec != 0) {
 
-  //let poms_json = main({"tileset":"sokoita_tileset.png", "stride":16, "flat_tileset":"sokoita_flat_tileset.png"});
-  let poms_json = main(main_opt);
-
-  if ("tiled_fn" in main_opt) {
-  }
-
-  if ("flat_tiled_fn" in main_opt) {
-  }
-
-  if ("poms_fn" in main_opt) {
-    fs.writeFileSync( libpoms.configStringify(poms_json ) );
-  }
-  else {
-    console.log( libpoms.configStringify(poms_cfg) );
-  }
+  main(main_opt);
 
 }
 
