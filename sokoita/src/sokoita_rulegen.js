@@ -965,7 +965,6 @@ async function main(opt) {
     poms_cfg.weight.push(1);
     poms_cfg.name.push( tile_info.key )
 
-    //console.log(">>", tile_info.key[0], flatTileMap, flatTileMap[ tile_info.key[0] ] );
     poms_cfg.flatMap.push( flatTileMap[ tile_info.key[0] ] );
 
     let tile_group = 0;
@@ -973,10 +972,6 @@ async function main(opt) {
     if (tile_info.goal)         { tile_group = 2; }
     if (tile_info.trap)         { tile_group = 3; }
     poms_cfg.tileGroup.push(tile_group);
-
-
-    poms_cfg.flatMap.push( flatTileMap[ tile_info.key[0] ] );
-
   }
 
   poms_cfg.constraint.push({ "type":"remove", "range": {"tile":[0,1], "x":[], "y":[], "z":[] } });
@@ -1010,6 +1005,9 @@ async function main(opt) {
     if ("level" in opt) {
       let level_info = await load_xsb_level(opt, poms_cfg);
 
+      poms_cfg.size[0] = level_info.w;
+      poms_cfg.size[1] = level_info.h;
+
       let tiled_info = {
         "stride": [ opt.stride, opt.stride ],
         "map_w" : level_info.w,
@@ -1021,11 +1019,32 @@ async function main(opt) {
 
 
       if ("tiled_fn" in opt) {
-
-        console.log(">>>", opt.tiled_fn);
-        console.log(">>>", level_info);
-
         await write_tiled_json(tiled_info, opt.tiled_fn);
+      }
+
+      if ("flat_tiled_fn" in opt) {
+
+        let flat_data = [];
+
+        let max_flat_id = 0;
+        let _lvl = level_info.tile_level;
+        for (let i=0; i<_lvl.length; i++) {
+          let flat_tile_id = poms_cfg.flatMap[ _lvl[i] ];
+          flat_data.push( flat_tile_id );
+          if (max_flat_id  < flat_tile_id) { max_flat_id = flat_tile_id; }
+        }
+        max_flat_id++;
+
+        let flat_tiled_info = {
+          "stride": [ opt.stride, opt.stride ],
+          "map_w" : level_info.w,
+          "map_h" : level_info.h,
+          "map_array": flat_data,
+          "tileset_fn" : opt.flat_tileset,
+          "supertile_count": max_flat_id
+        };
+
+        await write_tiled_json(flat_tiled_info, opt.flat_tiled_fn);
       }
 
     }
