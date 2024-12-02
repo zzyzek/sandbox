@@ -15,7 +15,7 @@ var jimp = require("jimp").Jimp;
 
 var DEBUG_LEVEL = 0;
 
-var SOKOITA_RULEGEN_VERSION = "0.1.0";
+var SOKOITA_RULEGEN_VERSION = "0.2.0";
 
 // _    - out of bounds/empty
 // #    - wall
