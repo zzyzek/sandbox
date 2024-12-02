@@ -56,6 +56,12 @@ function read_xsb(fn) {
   //   pad ends with walls
   //   convert empty spaces outside of playable region to walls
   //
+  //   this is done via a flood fill of the interior region,
+  //   stored in `level_fill`, and then the level is padded
+  //   with walls for every element that wasn't affected by
+  //   the flood.
+  //
+
   for (let i=0; i<levels.length; i++) {
     let level_rows = levels[i].level.split("\n");
 
@@ -70,38 +76,100 @@ function read_xsb(fn) {
       }
     }
 
-    for (let h=0; h<H; h++) {
-      for (let w=0; w<W; w++) {
-        if (level[h][w] == '#') { break; }
-        if (level[h][w] == ' ') { level[h][w] = '#'; }
-      }
+    let dyx = [[0,1],[0,-1],[1,0],[-1,0]];
+    let lq = [];
 
-      for (let w=(W-1); w>=0; w--) {
-        if (level[h][w] == '#') { break; }
-        if (level[h][w] == ' ') { level[h][w] = '#'; }
-      }
-    }
-
-    for (let w=0; w<W; w++) {
-      for (let h=0; h<H; h++) {
-        if (level[h][w] == '#') { break; }
-        if (level[h][w] == ' ') { level[h][w] = '#'; }
-      }
-
-      for (let h=(H-1); h>=0; h--) {
-        if (level[h][w] == '#') { break; }
-        if (level[h][w] == ' ') { level[h][w] = '#'; }
+    // copy to level_fill to do the flood fill
+    //
+    let level_fill = [];
+    for (let y=0; y<H; y++) {
+      level_fill.push([]);
+      for (let x=0; x<W; x++) {
+        level_fill[y].push( level[y][x] );
       }
     }
 
-   
+    // start the flood fill at the player origin point
+    //
+    for (let y=0; y<H; y++) {
+      for (let x=0; x<W; x++) {
+        if ((level_fill[y][x] == '@') ||
+            (level_fill[y][x] == '+')) {
+
+          level_fill[y][x] = '#';
+
+          for (let idyx=0; idyx<dyx.length; idyx++) {
+            let dy = dyx[idyx][0];
+            let dx = dyx[idyx][1];
+
+            if ( ((x+dx) >= 0) && ((x+dx) < W) &&
+                 ((y+dy) >= 0) && ((y+dy) < H) ) {
+              if (level_fill[y+dy][x+dx] != '#') {
+                lq.push( [y+dy,x+dx] );
+              }
+            }
+          }
+
+        }
+      }
+    }
+
+    // pop the queue, taking the position
+    // if the position has a wall, continue
+    // otherwise go to each non-wall neighbor and
+    // add to queue.
+    //
+    while (lq.length > 0) {
+      let p = lq.pop();
+
+      let y = p[0];
+      let x = p[1];
+
+      if (level_fill[y][x] == '#') { continue; }
+
+
+      level_fill[y][x] = '#';
+
+      for (let idyx=0; idyx<dyx.length; idyx++) {
+        let dy = dyx[idyx][0];
+        let dx = dyx[idyx][1];
+
+        if ( ((x+dx) >= 0) && ((x+dx) < W) &&
+             ((y+dy) >= 0) && ((y+dy) < H) ) {
+          if (level_fill[y+dy][x+dx] != '#') {
+            lq.push( [y+dy,x+dx] );
+          }
+        }
+      }
+
+    }
+
+    for (let y=0; y<H; y++) {
+      for (let x=0; x<W; x++) {
+        if ((level_fill[y][x] == ' ') && (level[y][x] == ' ')) {
+          level[y][x] = '#';
+        }
+      }
+    }
+
     let _rows = [];
+    let _fill_rows = [];
     for (let h=0; h<H; h++) {
       _rows.push( level[h].join("") );
+      _fill_rows.push( level_fill[h].join("") );
+    }
+
+    if (DEBUG_LEVEL > 1) {
+      console.log(">>>");
+      console.log("orig:");
+      console.log(_rows.join("\n"));
+      console.log("---");
+      console.log("fill:");
+      console.log(_fill_rows.join("\n"));
+      console.log("<<<");
     }
 
     levels[i].level = _rows.join("\n");
-
   }
 
   if (DEBUG_LEVEL > 0) {
