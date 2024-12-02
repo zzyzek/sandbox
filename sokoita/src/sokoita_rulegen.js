@@ -767,6 +767,23 @@ function write_tiled_json(info, out_fn) {
 }
 
 
+// WIP
+//
+function poms_setup_initial_restriction(poms_cfg, level_info) {
+  let W = level_info.w;
+  let H = level_info.H;
+  let level = level_info.tile_level;
+
+  for (let cell=0; cell<level.length; cell++) {
+    let x = (cell % W);
+    let y = Math.floor(cell / W);
+
+    let tile_id_runs = [];
+
+
+  }
+
+}
 
 
 function normalize_map(map_str) {
@@ -1000,13 +1017,8 @@ async function main(opt) {
       ("stride" in opt)) {
     await create_tileset(opt, poms_cfg);
 
-    //console.log( libpoms.configStringify(poms_cfg) );
-
     if ("level" in opt) {
       let level_info = await load_xsb_level(opt, poms_cfg);
-
-      poms_cfg.size[0] = level_info.w;
-      poms_cfg.size[1] = level_info.h;
 
       let tiled_info = {
         "stride": [ opt.stride, opt.stride ],
@@ -1047,6 +1059,14 @@ async function main(opt) {
         await write_tiled_json(flat_tiled_info, opt.flat_tiled_fn);
       }
 
+
+      // if there's a level specified, setup constraints to try and solve
+      //
+
+      poms_cfg.size[0] = level_info.w;
+      poms_cfg.size[1] = level_info.h;
+
+      poms_setup_initial_restriction(poms_cfg, level_info);
     }
 
   }
