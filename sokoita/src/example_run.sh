@@ -1,0 +1,12 @@
+#!/bin/bash
+#
+#
+
+node sokoita_rulegen.js \
+  -L ./xsokoban90.1.xsb \
+  -T sokoita_tileset.png \
+  -t ../img/sokoita_flat_tileset.png \
+  -M sokoita_tiled.json \
+  -m sokoita_flat_tiled.json \
+  -s 16 \
+  -P sokoita_poms_xsokoban90_1.json

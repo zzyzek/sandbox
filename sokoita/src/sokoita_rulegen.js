@@ -767,22 +767,27 @@ function write_tiled_json(info, out_fn) {
 }
 
 
-// WIP
-//
 function poms_setup_initial_restriction(poms_cfg, level_info) {
   let W = level_info.w;
   let H = level_info.H;
   let level = level_info.tile_level;
 
+  let level_constraint = [];
+
   for (let cell=0; cell<level.length; cell++) {
     let x = (cell % W);
     let y = Math.floor(cell / W);
 
-    let tile_id_runs = [];
+    let tile_id = level[ (y*W) + x ];
 
-
+    level_constraint.push( {"type":"force", "range":{"tile":[tile_id,tile_id+1], "x":[x,x+1], "y":[y,y+1], "z":[0,1]}} );
   }
 
+  for (let idx=0; idx<level_constraint.length; idx++) {
+    poms_cfg.constraint.push( level_constraint[idx] );
+  }
+
+  return poms_cfg;
 }
 
 
@@ -1100,9 +1105,9 @@ var long_opt = [
 
   "P", ":(poms)",
 
-  "x", ":",
-  "y", ":",
-  "z", ":"
+  "x", ":(x)",
+  "y", ":(y)",
+  "z", ":(z)"
 ];
 
 var long_opt_desc = [
