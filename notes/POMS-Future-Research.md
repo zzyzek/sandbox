@@ -32,7 +32,7 @@ and can just remove them wholesale.
 
 There's still some details to be worked out but I suspect this
 can be done and can give orders of magnitude speedup on a variety
-of tilesets.
+of tile sets.
 This might even make tiered bit packing feasible.
 
 
@@ -88,6 +88,31 @@ labels = model.fit_predict(A)
 
 Fiddling with individual tile probabilities is notoriously finicky, so there's some work
 to do to figure out how to actually use the information effectively.
+
+Investigate Stuttering and Find Strategies to Mitigate It
+---
+
+There's a "stuttering" effect that happens with many of the tile sets, especially
+ones that have large numbers of tiles.
+As mentioned in the paper, this effect is most likely because of the Markovian property
+of the local solver and it gets into a potentially re-enforcing feedback loop where
+when choosing which subset of tiles to choose.
+
+Thinking out loud, this might have to do with the lower order eigenvalues of the implied
+adjacency rule constraint matrix being close to the principle eigenvalue, but this would
+need to be investigated.
+
+Regardless, the first task is to try and understand why it's happening, at least heuristically.
+The second is to try and find strategies for mitigation.
+
+Things that come to mind:
+
+* weight tiles randomly
+* weight tiles via some Perlin noise, maybe in tile groups with the above spectral clustering
+  method
+* use the second (third, fourth, etc.) eigenvalue information to inform choice, if this is
+  useful intuition in the first place
+
 
 Kintsugi Method (theoretical)
 ---
@@ -212,7 +237,7 @@ One could save homogeneous regions and use that in backtracking.
 
 We'd need some canonical examples to test out the method:
 
-* generic Forest Micro tileset
+* generic Forest Micro tile set
 * 3d path with endpoints at opposite corners
 * joined path with restricted barrier (as in example above)
 * 2+ paths with left endpoint for each through a barrier
@@ -228,7 +253,7 @@ We'd need some canonical examples to test out the method:
 ---
 
 Thinking about it more, there are many tricky details.
-Consider a path tileset with a "frame" on the border
+Consider a path tile set with a "frame" on the border
 of the grid that isn't homogeneous but with a middle
 block homogeneous and endpoints on either corner.
 
@@ -252,7 +277,7 @@ Maybe taking random endpoint chunks?
 
 Rough idea:
 
-* Take a block that has a partial non-homogenous region that
+* Take a block that has a partial non-homogeneous region that
   bleeds into a homogeneous region (leaked block)
 * Try to solve
 * Take the border of the solved region and transplant it to
@@ -277,7 +302,7 @@ Some more thoughts on this:
 
 ---
 
-One point to highlight is that the only real signal we have is whether a block is solveable or not,
+One point to highlight is that the only real signal we have is whether a block is solvable or not,
 so we might need to use the solver to inform us which blocks are becoming difficult or constrained.
 
 If a contradiction occurs in a homogeneous region, especially if other areas of the homogeneous
@@ -345,7 +370,7 @@ Case studies:
 * Forest micro should have a row of constrained blocks at the top and bottom along with
   a homogeneous region connecting them
 * corner path should have essentially a diagonal interface, with most of it matching,
-  and intially small, so that it'll properly connect and match up
+  and initially small, so that it'll properly connect and match up
 * path with far from corner points
   - warping will shrink ends of map in addition to other corner point closer,
     helping chances of path pairing
@@ -359,13 +384,13 @@ Case studies:
 
 I suspect this is a type of entropy minimization.
 The constrained region and subsequent preference on solving constrained region blocks first
-is analagous to Gumin's min. entropy cell choice and is effectively a max entropy heuristic
+is analogous to Gumin's min. entropy cell choice and is effectively a max entropy heuristic
 on the block level.
 The region shrinking is also, I suspect, an entropy reduction technique, trying to effectively
 compress a region or the domain of interest to allow for better use of information (discarding bits,
 preferring more relevant bits, etc.).
 
-Highlighting constrained regions and the landscrape shrinking are both distinct concepts but
+Highlighting constrained regions and the landscape shrinking are both distinct concepts but
 are complementary and, in some sense, necessary.
 Using just constrained regions would result meandering (corner path far from ends) whereas
 just region shrinking wouldn't know how to shrink, in general (jagged frame).
@@ -402,7 +427,7 @@ So, another embryonic idea:
 
 * map obstinate regions
 * create inventory of homogeneous regions
-* find paths (`A*`? vornoi?) from each pair of obstinate regions to each other
+* find paths (`A*`? voronoi?) from each pair of obstinate regions to each other
   to find a schedule of warp region placement
 * weight cells for potential softening based on their initial homogeneous
   inventory proximity and whether an obstinate region is trapped within
@@ -444,7 +469,7 @@ regions by more highly weighting the homogeneous regions for softening.
     the whole interior is obstinate but homogeneous
   - wherever we have obstinate regions, we have to tread carefully as a bad choice early on
     will have far reaching consequences that we need to unwind from
-  - homogenous regions mean we pretty much have free reign inside them (locally)
+  - homogeneous regions mean we pretty much have free reign inside them (locally)
 
 ---
 
@@ -464,10 +489,10 @@ Restating some ideas:
 ---
 
 * Take the inventory
-* For all pairs, $\alpha, \beta$, of invetory blocks that are block connected by
+* For all pairs, $\alpha, \beta$, of inventory blocks that are block connected by
   a homogeneous region
   - construct a 5x3 superblock with block $\alpha$ at block $(1,1)$ and $\beta$ at $(3,1)$
-    and $(2,1)$ to indeterminate (homogenous representative block)
+    and $(2,1)$ to indeterminate (homogeneous representative block)
   - do T times:
     + resolve outer frame of 5x3 block
     + try to resolve interior 3 blocks
@@ -533,9 +558,9 @@ This assumes the test pairing was somehow 'down' from where the obstinate block 
 The idea is that if `x` is obstinate, we see if match it to some place it can escape to along the path of the
 homogeneous region.
 If there's some hope that it can, then force that `x` block to what the matching would be if it were close to
-where it would resolve, but fuzz out the horseshoe/anulus around it so that the new block can re-integrate back
+where it would resolve, but fuzz out the horseshoe/annulus around it so that the new block can re-integrate back
 in.
-The `A` blocks most likely (hopefuly) will resolve to what they were, pushing the obstinate region down further.
+The `A` blocks most likely (hopefully) will resolve to what they were, pushing the obstinate region down further.
 
 `y` and `B` can be thrown out as they were only tests.
 
@@ -556,7 +581,7 @@ Here's the idea:
 * probes are sent out through the prefatory homogeneous region
 * weightings can happen from highlighting the difference obstinate regions to the homogeneous field
   - path will have small obstinate blocks that get highlighted on the edge of the homogeneous region
-  - the obstinate field and the homogenous field will cancel in the forest micro case, except for the
+  - the obstinate field and the homogeneous field will cancel in the forest micro case, except for the
     edge map
 * this misses runtime obstinate blocks matching with other runtime obstinate blocks but this can get
   complicated, as in the forest micro case, so I'm not sure how to modify it
