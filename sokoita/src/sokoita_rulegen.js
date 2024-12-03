@@ -151,15 +151,27 @@ function construct_xy_neighbors(src_tile, tile_lib) {
   return T;
 }
 
+function cpy_tile(tile) {
+  let r = [];
+  for (let y=0; y<tile.length; y++) {
+    r.push([]);
+    for (let x=0; x<tile[y].length; x++) {
+      r[y].push(tile[y][x]);
+    }
+  }
+  return r;
+}
+
 function construct_z_transition(tile) {
 
   let T = [];
 
   let dxy = [
-    {"x":0, "y":0},
     {"x":1, "y":0},
     {"x":0, "y":1},
-    {"x":1, "y":1}
+    {"x":1, "y":1},
+    {"x":2, "y":1},
+    {"x":1, "y":2}
   ];
 
   let type_count = {};
@@ -177,26 +189,45 @@ function construct_z_transition(tile) {
   // direction.
   //
 
-  // nop transition.
-  // player must move, so exlcude if agent present.
+  // 'nop' transition.
+  // For a static segment of the scene, without a player,
+  // provide a transition to itself.
+  // We exclude static transitions if a player is present
+  // as we're assuming a player must be able to move from
+  // one state to another.
   //
   if ((type_count[PLAY] == 0) && (type_count[GPLY] == 0)) {
-    let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+    let _t = [
+      [ tile[0][0], tile[0][1], tile[0][2] ],
+      [ tile[1][0], tile[1][1], tile[1][2] ],
+      [ tile[2][0], tile[2][1], tile[2][2] ]
+    ];
     T.push( {"tile": _t });
   }
 
+  // source-destination moves
+  //
   let sd = [
-    [ {"x":0, "y":0 }, {"x":1, "y":0} ],
-    [ {"x":0, "y":0 }, {"x":0, "y":1} ],
-
-    [ {"x":0, "y":1 }, {"x":0, "y":0} ],
-    [ {"x":0, "y":1 }, {"x":1, "y":1} ],
-
-    [ {"x":1, "y":0 }, {"x":0, "y":0} ],
+    // down
+    //
     [ {"x":1, "y":0 }, {"x":1, "y":1} ],
+    [ {"x":1, "y":1 }, {"x":1, "y":2} ],
 
+    // up
+    //
     [ {"x":1, "y":1 }, {"x":1, "y":0} ],
-    [ {"x":1, "y":1 }, {"x":0, "y":1} ]
+    [ {"x":1, "y":2 }, {"x":1, "y":1} ],
+
+    // right
+    //
+    [ {"x":0, "y":1 }, {"x":1, "y":1} ],
+    [ {"x":1, "y":1 }, {"x":2, "y":1} ],
+
+    // left
+    //
+    [ {"x":2, "y":1 }, {"x":1, "y":1} ],
+    [ {"x":0, "y":1 }, {"x":1, "y":1} ]
+
   ];
 
   for (let i=0; i<sd.length; i++) {
@@ -212,28 +243,28 @@ function construct_z_transition(tile) {
     // player move
     //
     if ((sv == PLAY) && (ev == MOVE)) {
-      let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+      let _t = cpy_tile(tile);
       _t[sy][sx] = MOVE;
       _t[ey][ex] = PLAY;
       T.push( {"tile": _t });
     }
 
     if ((sv == PLAY) && (ev == GOAL)) {
-      let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+      let _t = cpy_tile(tile);
       _t[sy][sx] = MOVE;
       _t[ey][ex] = GPLY;
       T.push( {"tile": _t });
     }
 
     if ((sv == GPLY) && (ev == MOVE)) {
-      let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+      let _t = cpy_tile(tile);
       _t[sy][sx] = GOAL;
       _t[ey][ex] = PLAY;
       T.push( {"tile": _t });
     }
 
     if ((sv == GPLY) && (ev == GOAL)) {
-      let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+      let _t = cpy_tile(tile);
       _t[sy][sx] = GOAL;
       _t[ey][ex] = GPLY;
       T.push( {"tile": _t });
@@ -242,28 +273,28 @@ function construct_z_transition(tile) {
     // block push out
     //
     if ((sv == PLAY) && (ev == CRAT)) {
-      let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+      let _t = cpy_tile(tile);
       _t[sy][sx] = MOVE;
       _t[ey][ex] = PLAY;
       T.push( {"tile": _t });
     }
 
     if ((sv == GPLY) && (ev == CRAT)) {
-      let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+      let _t = cpy_tile(tile);
       _t[sy][sx] = GOAL;
       _t[ey][ex] = PLAY;
       T.push( {"tile": _t });
     }
 
     if ((sv == PLAY) && (ev == GCRT)) {
-      let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+      let _t = cpy_tile(tile);
       _t[sy][sx] = MOVE;
       _t[ey][ex] = GPLY;
       T.push( {"tile": _t });
     }
 
     if ((sv == GPLY) && (ev == GCRT)) {
-      let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+      let _t = cpy_tile(tile);
       _t[sy][sx] = GOAL;
       _t[ey][ex] = GPLY;
       T.push( {"tile": _t });
@@ -272,28 +303,28 @@ function construct_z_transition(tile) {
     if ((type_count[PLAY] == 0) && (type_count[GPLY] == 0)) {
 
       if ((sv == CRAT) && (ev == MOVE)) {
-        let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+        let _t = cpy_tile(tile);
         _t[sy][sx] = PLAY;
         _t[ey][ex] = CRAT;
         T.push( {"tile": _t });
       }
 
       if ((sv == GCRT) && (ev == MOVE)) {
-        let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+        let _t = cpy_tile(tile);
         _t[sy][sx] = GPLY;
         _t[ey][ex] = CRAT;
         T.push( {"tile": _t });
       }
 
       if ((sv == CRAT) && (ev == GOAL)) {
-        let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+        let _t = cpy_tile(tile);
         _t[sy][sx] = PLAY;
         _t[ey][ex] = GCRT;
         T.push( {"tile": _t });
       }
 
       if ((sv == GCRT) && (ev == GOAL)) {
-        let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+        let _t = cpy_tile(tile);
         _t[sy][sx] = GPLY;
         _t[ey][ex] = GCRT;
         T.push( {"tile": _t });
@@ -316,7 +347,7 @@ function construct_z_transition(tile) {
       // block pushed in
       //
       if (tile[y][x] == MOVE) {
-        let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+        let _t = cpy_tile(tile);
         _t[y][x] = CRAT;
         T.push( {"tile": _t });
       }
@@ -324,7 +355,7 @@ function construct_z_transition(tile) {
       // block pushed in on platform
       //
       if (tile[y][x] == GOAL) {
-        let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+        let _t = cpy_tile(tile);
         _t[y][x] = GCRT;
         T.push( {"tile": _t });
       }
@@ -335,13 +366,13 @@ function construct_z_transition(tile) {
     //
     if ((type_count[PLAY] == 0) && (type_count[GPLY] == 0)) {
       if (tile[y][x] == MOVE) {
-        let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+        let _t = cpy_tile(tile);
         _t[y][x] = PLAY;
         T.push( {"tile": _t });
       }
 
       if (tile[y][x] == GOAL) {
-        let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+        let _t = cpy_tile(tile);
         _t[y][x] = GPLY;
         T.push( {"tile": _t });
       }
@@ -350,13 +381,13 @@ function construct_z_transition(tile) {
     // player moves out
     //
     if (v == PLAY) {
-      let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+      let _t = cpy_tile(tile);
       _t[y][x] = MOVE;
       T.push( {"tile": _t });
     }
 
     if (v == GPLY) {
-      let _t = [ [ tile[0][0], tile[0][1] ], [ tile[1][0], tile[1][1] ] ];
+      let _t = cpy_tile(tile);
       _t[y][x] = GOAL;
       T.push( {"tile": _t });
     }
@@ -364,14 +395,14 @@ function construct_z_transition(tile) {
   }
 
   for (let i=0; i<T.length; i++) {
-    T[i]["key"] = T[i].tile[0].join("") + T[i].tile[1].join("");
+    T[i]["key"] = tile_keystr(T[i].tile);
   }
 
   //DEBUG
   //DEBUG
   if (DEBUG_LEVEL > 0) {
     console.log("-----");
-    console.log("z(time) src:", tile[0].join("") + tile[1].join(""));
+    console.log("z(time) src:", tile_keystr(T[i].tile));
     console.log(tile[0].join(""));
     console.log(tile[1].join(""));
     for (let i=0; i<T.length; i++) {
@@ -603,75 +634,7 @@ function construct_tile_lib() {
 
   } while ( vsum(code_vec) != 0 );
 
-  //DEBUG
-  //DEBUG
-  //DEBUG
-  console.log( "tile count:", tile_count );
-  process.exit();
-
-  for (let idx00=0; idx00<CODE.length; idx00++) {
-    for (let idx01=0; idx01<CODE.length; idx01++) {
-      for (let idx10=0; idx10<CODE.length; idx10++) {
-        for (let idx11=0; idx11<CODE.length; idx11++) {
-
-          // z y x
-          //
-          let tile = [ [ '0', '0' ], [ '0', '0' ] ];
-
-          tile[0][0] = CODE[idx00];
-          tile[0][1] = CODE[idx01];
-          tile[1][0] = CODE[idx10];
-          tile[1][1] = CODE[idx11];
-
-          if (!tile_valid(tile)) {
-
-            if (DEBUG_LEVEL > 0) {
-              console.log("#skipping:");
-              console.log("#", tile[0].join(""));
-              console.log("#", tile[1].join(""));
-              console.log("#", tile[2].join(""));
-            }
-            continue;
-          }
-
-          tile_count++;
-
-          let key = tile[0].join("") + tile[1].join("");
-
-          if (key in tile_lib) { console.log("BANG"); }
-
-          tile_lib[key] = {
-            "id": tile_count,
-            "goal": is_goal(tile),
-            "transitional": is_transitional(tile),
-            "trap": is_trap(tile),
-            "key": key,
-            "tile": tile
-          };
-
-          if (DEBUG_LEVEL > 0) {
-            console.log( tile[0].join("") + tile[1].join("") );
-            console.log("trap:", is_trap(tile), "goal:", is_goal(tile), "transitional:", is_transitional(tile));
-            console.log("/--\\");
-            console.log( "|" + tile[0].join("") + "|\n|" + tile[1].join("") + "|" );
-            console.log("\\--/");
-            console.log("--");
-          }
-        }
-      }
-    }
-  }
-
-  if (DEBUG_LEVEL > 0) {
-    console.log("tile_count:", tile_count);
-  }
-
   return tile_lib;
-
-}
-
-function tile_str(t) {
-  return t[0].join("") + t[1].join("");
 }
 
 async function create_tileset(opt, poms_cfg) {
