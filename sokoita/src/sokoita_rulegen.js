@@ -48,11 +48,13 @@ function construct_xy_neighbors(src_tile, tile_lib) {
 
   let etile = EMPTY + EMPTY + EMPTY + EMPTY;
 
+  // blech, y direction reversed?
+  //
   let boundary_idir = [
     { "x": [1,1], "y": [0,1] },
     { "x": [0,0], "y": [0,1] },
-    { "x": [0,1], "y": [0,0] },
     { "x": [0,1], "y": [1,1] },
+    { "x": [0,1], "y": [0,0] },
   ];
 
   let oppo = [1,0, 3,2];
