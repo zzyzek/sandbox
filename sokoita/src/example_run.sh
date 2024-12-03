@@ -3,6 +3,18 @@
 #
 
 node sokoita_rulegen.js \
+  -L ../data/bakaban.xsb \
+  -T sokoita_tileset.png \
+  -t ../img/sokoita_flat_tileset.png \
+  -M bakaban_tiled.json \
+  -m bakaban_flat_tiled.json \
+  -z 4 \
+  -s 16 \
+  -P sokoita_poms_bakaban.json
+
+exit
+
+node sokoita_rulegen.js \
   -L ./xsokoban90.1.xsb \
   -T sokoita_tileset.png \
   -t ../img/sokoita_flat_tileset.png \

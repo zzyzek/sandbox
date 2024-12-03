@@ -57,6 +57,9 @@ function construct_xy_neighbors(src_tile, tile_lib) {
 
   let oppo = [1,0, 3,2];
 
+  // if two wall tiles are on a side, construct the 0 (boundary tile)
+  // transition
+  //
   for (let idir=0; idir<4; idir++) {
     let _x = boundary_idir[idir].x;
     let _y = boundary_idir[idir].y;
@@ -117,6 +120,11 @@ function construct_z_transition(tile) {
     type_count[v]++;
   }
 
+  // all transition tiles are catalogues into a T array
+  // so that T lists the valid transitions in the z (time)
+  // direction.
+  //
+
   // nop transition.
   // player must move, so exlcude if agent present.
   //
@@ -129,11 +137,11 @@ function construct_z_transition(tile) {
     [ {"x":0, "y":0 }, {"x":1, "y":0} ],
     [ {"x":0, "y":0 }, {"x":0, "y":1} ],
 
-    [ {"x":1, "y":0 }, {"x":0, "y":0} ],
-    [ {"x":1, "y":0 }, {"x":1, "y":1} ],
-
     [ {"x":0, "y":1 }, {"x":0, "y":0} ],
     [ {"x":0, "y":1 }, {"x":1, "y":1} ],
+
+    [ {"x":1, "y":0 }, {"x":0, "y":0} ],
+    [ {"x":1, "y":0 }, {"x":1, "y":1} ],
 
     [ {"x":1, "y":1 }, {"x":1, "y":0} ],
     [ {"x":1, "y":1 }, {"x":0, "y":1} ]
@@ -311,6 +319,7 @@ function construct_z_transition(tile) {
   //DEBUG
   if (DEBUG_LEVEL > 0) {
     console.log("-----");
+    console.log("z(time) src:", tile[0].join("") + tile[1].join(""));
     console.log(tile[0].join(""));
     console.log(tile[1].join(""));
     for (let i=0; i<T.length; i++) {
@@ -887,6 +896,21 @@ async function main(opt) {
       tile_rule.push( [src_tile.id, dst_tile.id, 4, 1] );
       tile_rule.push( [dst_tile.id, src_tile.id, 5, 1] );
 
+      // construct general 0 (boundary tile) neighbor to all
+      // tiles for z transition
+      //
+      tile_rule.push( [src_tile.id, 0, 4, 1] );
+      tile_rule.push( [src_tile.id, 0, 5, 1] );
+
+      tile_rule.push( [0, src_tile.id, 4, 1] );
+      tile_rule.push( [0, src_tile.id, 5, 1] );
+
+      tile_rule.push( [dst_tile.id, 0, 4, 1] );
+      tile_rule.push( [dst_tile.id, 0, 5, 1] );
+
+      tile_rule.push( [0, dst_tile.id, 4, 1] );
+      tile_rule.push( [0, dst_tile.id, 5, 1] );
+
       if (DEBUG_LEVEL > 0) {
         console.log("---");
         console.log( src_key, "(", tile_lib[src_key].id, ")", "->", dst_key, "(", tile_lib[dst_key].id, ")" );
@@ -945,7 +969,29 @@ async function main(opt) {
     "group 3 - trap or deadlock state"
   ];
 
-  poms_cfg.rule = tile_rule;
+  // dedup tile rules
+  //
+  let _dedup_tile_rule = [];
+  tile_rule.sort( function(a,b) {
+    if (a[0] < b[0]) { return -1; }
+    if (a[0] > b[0]) { return 1; }
+    if (a[1] < b[1]) { return -1; }
+    if (a[1] > b[1]) { return 1; }
+    if (a[2] < b[2]) { return -1; }
+    if (a[2] > b[2]) { return 1; }
+    return 0;
+  });
+  _dedup_tile_rule.push( tile_rule[0] );
+  for (let i=1; i<tile_rule.length; i++) {
+    if ( (tile_rule[i-1][0] == tile_rule[i][0]) &&
+         (tile_rule[i-1][1] == tile_rule[i][1]) &&
+         (tile_rule[i-1][2] == tile_rule[i][2]) ) {
+      continue;
+    }
+    _dedup_tile_rule.push( tile_rule[i] );
+  }
+
+  poms_cfg.rule = _dedup_tile_rule;
 
   if ("x" in opt) { poms_cfg.size[0] = opt.x; }
   if ("y" in opt) { poms_cfg.size[1] = opt.y; }
