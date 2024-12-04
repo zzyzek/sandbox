@@ -123,7 +123,7 @@ function construct_xy_neighbors(src_tile, tile_lib) {
 
   for (let key in tile_lib) {
 
-    // .id, .goal, /trap, .tile, .key
+    // .id, .goal, .trap, .tile, .key
     //
     let tst_info = tile_lib[key];
     let tst_tile = tst_info.tile;
@@ -137,10 +137,6 @@ function construct_xy_neighbors(src_tile, tile_lib) {
 
       if ( (src_tile[1][1] == tst_tile[by][bx]) &&
            (tst_tile[1][1] == src_tile[ay][ax]) ) {
-
-        //console.log("???", tile_keystr(src_tile), "-?", idir, "?->", tst_info.key, "(", tile_keystr(tst_tile), ")",
-        //  src_tile[1][1], "[1,1]", "==?", tst_tile[by][bx], "[",by,bx,"]", "...",
-        //  tst_tile[1][1], "[1,1]", "==?", src_tile[ay][ax], "[",ay,ax,"]" );
 
         T.push({
           "key": tst_info.key,
@@ -964,20 +960,27 @@ function load_xsb_level(opt, poms_json) {
 
   let tiled_data = [];
 
+  let boundary_xy = [
+    { "x":2, "y":1 },
+    { "x":0, "y":1 },
+    { "x":1, "y":0 },
+    { "x":1, "y":2 }
+  ];
+
   for (let y=0; y<level_h; y++) {
     for (let x=0; x<level_w; x++) {
-      let supertile = [ ['#', '#'], ['#', '#'] ];
+      let supertile = [ ["'", "#", "'"], ["#", "#", "#"], ["'", "#", "'"] ];
 
-      for (let dy=0; dy<2; dy++) {
-        for (let dx=0; dx<2; dx++) {
-          if (((y+dy) < level_h) &&
-              ((x+dx) < level_w)) {
-            supertile[dy][dx] = level[y+dy][x+dx];
-          }
+      for (let idir=0; idir<4; idir++) {
+        let dx = boundary_xy[idir].x;
+        let dy = boundary_xy[idir].y;
+        if (((y+dy) < level_h) &&
+            ((x+dx) < level_w)) {
+          supertile[dy][dx] = level[y+dy][x+dx];
         }
       }
 
-      let tile_name = supertile[0].join("") + supertile[1].join("");
+      let tile_name = tile_keystr(supertile);
 
       if (!(tile_name in name_tileid_lookup)) {
         console.log("ERROR! could not find", tile_name);

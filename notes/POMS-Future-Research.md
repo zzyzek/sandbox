@@ -586,4 +586,15 @@ Here's the idea:
 * this misses runtime obstinate blocks matching with other runtime obstinate blocks but this can get
   complicated, as in the forest micro case, so I'm not sure how to modify it
 
+---
+
+When setting up the cloisterd region, the resolved region could be transferred, the
+edges could be filled with a path through the canonical homogeneous repeat tile but
+I wasn't sure on what to do with the interface between the fully resolved region
+and the homogeneous region.
+
+One idea is to progressively resolve the cloistered region, choosing the region
+around the intermediately resolved regions first, then doing the rest.
+All regions have to be chosen large enough so that there's enough space to resolve
+partial regions without affecting the rest of the cloistered area.
 

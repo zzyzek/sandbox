@@ -3,6 +3,8 @@
 #
 
 
+echo "# compiling bakaban"
+
 node sokoita_rulegen.js \
   -L ../data/bakaban.xsb \
   -T sokoita_tileset.png \
@@ -13,6 +15,9 @@ node sokoita_rulegen.js \
   -s 16 \
   -P sokoita_poms_bakaban.json
 
+echo "# bakaban generated"
+
+exit
 
 node sokoita_rulegen.js \
   -L ./xsokoban90.1.xsb \
