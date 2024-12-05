@@ -736,7 +736,8 @@ async function create_tileset(opt, poms_cfg) {
     let sx = stride*idx_x;
     let sy = stride*idx_y;
 
-    let flat_idx = flatTileMap[ tile_name[0] ]-1;
+    //let flat_idx = flatTileMap[ tile_name[0] ]-1;
+    let flat_idx = flatTileMap[ tile_name[2] ]-1;
 
     if ((typeof flat_idx === "undefined") ||
         (flat_idx < 0)) {
