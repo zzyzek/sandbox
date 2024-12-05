@@ -10,7 +10,6 @@
 
 var fs = require("fs");
 
-
 function convert_xsb(poms, xsb) {
 
   let xsb_lines = xsb.split("\n");
@@ -28,12 +27,25 @@ function convert_xsb(poms, xsb) {
   }
   W = level[0].length;
 
-  // pad with wall for simplicity
-  //
-  let lr = level.length;
-  level.push([]);
-  for (let i=0; i<=W; i++) { level[lr].push('#'); }
-  for (let i=0; i<H; i++) { level[i].push('#'); }
+
+  let pad_level = [ [] ];
+  for (let x=0; x<(W+2); x++) { pad_level[0].push('#'); }
+  for (let y=1; y<(H+1); y++) {
+    pad_level.push( [ '#' ] );
+    for (let x=1; x<(W+1); x++) {
+      pad_level[y].push( level[y-1][x-1] );
+    }
+    pad_level[y].push('#');
+  }
+  let y = pad_level.length;
+  pad_level.push( [] );
+  for (let x=0; x<(W+2); x++) { pad_level[y].push('#'); }
+
+  console.log("-----\npadded xsb:");
+  for (let y=0; y<pad_level.length; y++) {
+    console.log( pad_level[y].join("") );
+  }
+  console.log("-----\n");
 
   // construct level with name lookup at each entry
   //
@@ -41,7 +53,14 @@ function convert_xsb(poms, xsb) {
   for (let y=0; y<H; y++) {
     level_name.push([]);
     for (let x=0; x<W; x++) {
-      let name = level[y][x] + level[y][x+1] + level[y+1][x] + level[y+1][x+1];
+
+      let px = x+1;
+      let py = y+1;
+
+      let name =
+                                pad_level[py-1][px+0] +
+        pad_level[py+0][px-1] + pad_level[py+0][px+0] + pad_level[py+0][px+1] +
+                                pad_level[py+1][px+0];
       level_name[y].push(name);
     }
   }
@@ -62,6 +81,10 @@ function convert_xsb(poms, xsb) {
       tile_level[y].push( name_id[level_name[y][x]] );
     }
   }
+
+
+
+
 
   return tile_level;
 
@@ -85,7 +108,7 @@ function xyz2cell(x,y,z,W,H,D) {
   return cell;
 }
 
-function consistency_check(poms, tile_level) {
+function consistency_check_map(poms, tile_level) {
   let W = tile_level[0].length;
   let H = tile_level.length;
 
@@ -130,13 +153,75 @@ function consistency_check(poms, tile_level) {
   }
 }
 
+function consistency_check_array(poms, tile_level) {
+  let W = tile_level[0].length;
+  let H = tile_level.length;
+
+  let dxyz = [
+    [1,0,0], [-1,0,0],
+    [0,1,0], [0,-1,0],
+    [0,0,1], [0,0,-1]
+  ];
+
+  let idir_descr = [ "+x", "-x", "+y", "-y", "+z", "-z" ];
+
+  let name_map = {};
+  for (let tile_id=0; tile_id<poms.name; tile_id++) {
+    name_map[ poms.name[tile_id] ] = tile_id;
+  }
+
+  let z = 0;
+  for (let y=0; y<H; y++) {
+    for (let x=0; x<W; x++) {
+
+      let src_tile = tile_level[y][x];
+
+      for (let idir=0; idir<6; idir++) {
+
+        let nei_xyz = [ x+dxyz[idir][0], y+dxyz[idir][1], z+dxyz[idir][2] ];
+
+        let nei_tile = 0;
+        let cell = xyz2cell(nei_xyz[0], nei_xyz[1], nei_xyz[2], W, H, 1);
+
+        console.log(x,y,z, "-->", nei_xyz[0], nei_xyz[1], nei_xyz[2], xyz2cell(nei_xyz[0], nei_xyz[1], nei_xyz[2], W, H, 1));
+        if (cell >= 0) {
+          nei_tile = tile_level[ nei_xyz[1] ][ nei_xyz[0] ];
+        }
+
+        let found = 0;
+        for (let rule_idx=0; rule_idx<poms.rule.length; rule_idx++) {
+          if ( (poms.rule[rule_idx][0] == src_tile) &&
+               (poms.rule[rule_idx][1] == nei_tile) &&
+               (poms.rule[rule_idx][2] == idir) &&
+               (poms.rule[rule_idx][3] == 1) ) {
+            found = 1;
+            break;
+          }
+        }
+
+        console.log("  found:", found, src_tile, "[", poms.name[src_tile], "]", "-(", idir, "{", idir_descr[idir], "}", ")->", nei_tile, "[", poms.name[nei_tile], "]");
+
+        //let key = src_tile.toString() + ":" + nei_tile.toString() + ":" + idir.toString();
+        //console.log("  ", src_tile, "[", poms.name[src_tile], "]", "-(", idir, ")->", nei_tile, "[", poms.name[nei_tile], "]", ":", rule_map[key]);
+
+
+      }
+
+    }
+  }
+}
+
 function main() {
   let poms_fn = "./sokoita_poms_bakaban.json";
   let level_fn = "../data/bakaban.xsb";
 
   let poms = JSON.parse( fs.readFileSync(poms_fn, "utf8") );
 
+  console.log("poms loaded");
+
   let level_xsb = fs.readFileSync(level_fn, "utf8");
+
+  console.log("level loaded");
 
 
   let level = [
@@ -145,9 +230,22 @@ function main() {
   console.log(level_xsb);
 
   let tile_level = convert_xsb(poms, level_xsb);
-  console.log(tile_level);
 
-  consistency_check(poms, tile_level);
+  console.log("===");
+  console.log(tile_level);
+  console.log("===");
+
+  for (let y=0; y<tile_level.length; y++) {
+    let _row = [];
+    for (let x=0; x<tile_level[y].length; x++) {
+      _row.push( tile_level[y][x].toString() );
+    }
+    console.log(_row.join(", "));
+  }
+  console.log("===");
+
+
+  consistency_check_array(poms, tile_level);
 }
 
 main();

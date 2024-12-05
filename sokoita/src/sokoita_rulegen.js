@@ -38,7 +38,7 @@ var jimp = require("jimp").Jimp;
 
 var DEBUG_LEVEL = 0;
 
-var SOKOITA_RULEGEN_VERSION = "0.2.0";
+var SOKOITA_RULEGEN_VERSION = "0.3.0";
 
 // Inhereting from the XSB format. Added a '_' to indicate 'out of bounds'
 //
@@ -961,24 +961,29 @@ function load_xsb_level(opt, poms_json) {
   let tiled_data = [];
 
   let boundary_xy = [
-    { "x":2, "y":1 },
-    { "x":0, "y":1 },
     { "x":1, "y":0 },
-    { "x":1, "y":2 }
+    { "x":-1, "y":0 },
+    { "x":0, "y":-1 },
+    { "x":0, "y":1 }
   ];
 
   for (let y=0; y<level_h; y++) {
     for (let x=0; x<level_w; x++) {
       let supertile = [ ["'", "#", "'"], ["#", "#", "#"], ["'", "#", "'"] ];
 
+      supertile[1][1] = level[y][x];
       for (let idir=0; idir<4; idir++) {
         let dx = boundary_xy[idir].x;
         let dy = boundary_xy[idir].y;
-        if (((y+dy) < level_h) &&
-            ((x+dx) < level_w)) {
-          supertile[dy][dx] = level[y+dy][x+dx];
+        if ( ((y+dy) < 0) ||
+             ((y+dy) >= level_h) ||
+             ((x+dx) < 0) ||
+             ((x+dx) >= level_w) ) {
+          continue;
         }
+        supertile[dy+1][dx+1] = level[y+dy][x+dx];
       }
+
 
       let tile_name = tile_keystr(supertile);
 
@@ -1186,7 +1191,8 @@ async function main(opt) {
     poms_cfg.weight.push(1);
     poms_cfg.name.push( tile_info.key )
 
-    poms_cfg.flatMap.push( flatTileMap[ tile_info.key[0] ] );
+    //poms_cfg.flatMap.push( flatTileMap[ tile_info.key[0] ] );
+    poms_cfg.flatMap.push( flatTileMap[ tile_info.key[2] ] );
 
     let tile_group = 0;
     if (tile_info.transitional) { tile_group = 1; }
@@ -1241,6 +1247,12 @@ async function main(opt) {
       if ("flat_tiled_fn" in opt) {
 
         let flat_data = [];
+
+        //DEBUG
+        //DEBUG
+        //DEBUG
+        console.log("trying to construct flat tile map:");
+        console.log(level_info.tile_level);
 
         let max_flat_id = 0;
         let _lvl = level_info.tile_level;
