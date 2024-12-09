@@ -1171,6 +1171,12 @@ async function main(opt) {
 
   poms_cfg["flatTileset"] = {};
 
+  let flatTileFreq = {};
+  for (let key in flatTileMap) { flatTileFreq[key] = 1; }
+
+  let customTileFreq = {};
+  for (let key in flatTileMap) { customTileFreq[key] = 1; }
+
   let n_tile = 0;
   let max_id = -1;
   let id_tile_map = {};
@@ -1181,7 +1187,24 @@ async function main(opt) {
     if (tile_lib[key].id > max_id) {
       max_id = tile_lib[key].id;
     }
+
+    let tile_info = tile_lib[key];
+    flatTileFreq[ tile_info.key[2] ]++;
+    customTileFreq[ tile_info.key[2] ]++;
+
   }
+
+  let weight_type = opt["w"];
+
+  if (weight_type == "custom") {
+    customTileFreq[ PLAY ] = 50;
+    customTileFreq[ GPLY ] = 50;
+  }
+  else if (weight_type == "custom.1") {
+    customTileFreq[ PLAY ] = 1;
+    customTileFreq[ GPLY ] = 1;
+  }
+
 
   if ((max_id+1) != n_tile) { console.log("ERROR n_tile != max_id:", n_tile, max_id); }
 
@@ -1189,7 +1212,11 @@ async function main(opt) {
 
     let tile_info = id_tile_map[tile_id];
 
-    poms_cfg.weight.push(1);
+    if (weight_type == 'uniform') { poms_cfg.weight.push(1); }
+    if (weight_type == 'flat')    { poms_cfg.weight.push( flatTileFreq[ tile_info.key[2] ] ); }
+    if (weight_type == 'custom')  { poms_cfg.weight.push( customTileFreq[ tile_info.key[2] ] ); }
+    if (weight_type == 'custom.1'){ poms_cfg.weight.push( customTileFreq[ tile_info.key[2] ] ); }
+    else                          { poms_cfg.weight.push(1); }
     poms_cfg.name.push( tile_info.key )
 
     //poms_cfg.flatMap.push( flatTileMap[ tile_info.key[0] ] );
@@ -1319,7 +1346,9 @@ var long_opt = [
 
   "x", ":(x)",
   "y", ":(y)",
-  "z", ":(z)"
+  "z", ":(z)",
+
+  "w", ":(weight-type)"
 ];
 
 var long_opt_desc = [
@@ -1338,6 +1367,7 @@ var long_opt_desc = [
   "y coordinate size",
   "z (time) coordinate size",
 
+  "weight type {uniform|flat} (uniform default)",
   ""
 ];
 
@@ -1416,6 +1446,10 @@ while ((arg_opt = parser.getopt()) !== undefined) {
       break;
     case 'z':
       main_opt["z"] = parseInt(arg_opt.optarg);
+      break;
+
+    case 'w':
+      main_opt["w"] = arg_opt.optarg;
       break;
 
     default:
