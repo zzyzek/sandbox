@@ -15,8 +15,6 @@ node sokoita_rulegen.js \
   -P sokoita_poms_xsokoban90_1.json
 echo "# xsokoban90.1 generated (sokoita_poms_xsokoban90_1.json)"
 
-exit
-
 echo "# compiling bakaban"
 node sokoita_rulegen.js \
   -L ../data/bakaban.xsb \
@@ -38,7 +36,7 @@ node sokoita_rulegen.js \
   -M validation0_tiled.json \
   -m validation0_flat_tiled.json \
   -w custom \
-  -z 32 \
+  -z 22 \
   -s 16 \
   -P validation0_poms.json
 echo "# validation0 generated (validation0_poms.json)"
