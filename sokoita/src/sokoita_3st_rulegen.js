@@ -85,8 +85,10 @@ let XSB_CODE = [
 // wasd/WASD for player movement (+ on goal)
 // ijkl/IJKL for crate movement (+ on goal)
 // . goal
-// :/; path (+ on goal)
-// x/X path eater (+ on goal)
+// x/X no return (+ on goal)
+//
+// ###nope### :/; path (+ on goal)
+// ###nope###x/X path eater (+ on goal)
 //
 // player movement:
 //           w (up)
@@ -106,7 +108,7 @@ let XSB_CODE = [
 //  ######       ######
 //
 
-// 23
+// 21
 //
 var SOKOITA_CODE = [
   '#',
@@ -121,11 +123,14 @@ var SOKOITA_CODE = [
   'D', 'A', 'W', 'S',  // player moves on goal
 
 
-  ':',  // no return path (on space)
-  ';',  // no return path (on goal)
+  'x',  // no return path (on space)
+  'X',  // no return path (on goal)
 
-  'x',  // path explode (space)
-  'X'   // path explode (goal)
+  //':',  // no return path (on space)
+  //';',  // no return path (on goal)
+
+  //'x',  // path explode (space)
+  //'X'   // path explode (goal)
 ];
 
 var PLAY_UP = 'w',
@@ -170,7 +175,9 @@ function is_goal_code(ch) {
   let goal_code = [
     'D', 'A', 'W', 'S',
     'L', 'J', 'I', 'K',
-    '.', ';', 'X'
+    '.',
+    //';',
+    'X'
   ];
 
   for (let i=0; i<goal_code.length; i++) {
@@ -196,7 +203,9 @@ function is_crate_code(ch) {
 //
 function is_static_code(ch) {
   let static_code = [
-    '#', ' ', '.', ':', ';',
+    '#', ' ', '.',
+    //':', ';',
+    //'x', 'X',
     'l', 'j', 'i', 'k',  // crate moves
     'L', 'J', 'I', 'K'   // crate vmoes on goal
   ];
@@ -210,7 +219,8 @@ function is_static_code(ch) {
 
 function is_open_code(ch) {
   let open_code = [
-    ' ', '.', 'x', 'X'
+    ' ', '.'
+    //,'x', 'X'
   ];
 
   for (let i=0; i<open_code.length; i++) {
@@ -220,9 +230,10 @@ function is_open_code(ch) {
   return 0;
 }
 
-function is_path_code(ch) {
+function is_noreturn_code(ch) {
   let path_code = [
-    ';', ':'
+    //';', ':'
+    'x', 'X'
   ];
 
   for (let i=0; i<path_code.length; i++) {
@@ -232,6 +243,7 @@ function is_path_code(ch) {
   return 0;
 }
 
+/*
 function is_explode_code(ch) {
   let explode_code = [
     'x', 'X'
@@ -243,6 +255,7 @@ function is_explode_code(ch) {
 
   return 0;
 }
+*/
 
 //----
 //----
@@ -1546,12 +1559,17 @@ async function main(opt) {
 
   }
 
+  //DEBUG
+  //DEBUG
+  //DEBUG
+  return;
+
 
   for (let src_key in tile_lib) {
 
     let src_tile = tile_lib[src_key];
 
-    let dst_z_tiles = construct_z_transition(tile_lib[src_key].tile);
+    //let dst_z_tiles = construct_z_transition(tile_lib[src_key].tile);
     /*
     for (let i=0; i<dst_z_tiles.length; i++) {
       let dst_key = dst_z_tiles[i].key;
