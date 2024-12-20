@@ -45,7 +45,7 @@ var getopt = require("posix-getopt");
 var libpoms = require("./libpoms.js");
 var jimp = require("jimp").Jimp;
 
-var DEBUG_LEVEL = 1;
+var DEBUG_LEVEL = 2;
 
 var SOKOITA_RULEGEN_VERSION = "0.4.0";
 
@@ -133,6 +133,8 @@ var SOKOITA_CODE = [
   //'X'   // path explode (goal)
 ];
 
+var SPACE = ' ';
+
 var PLAY_UP = 'w',
     PLAY_DOWN = 's',
     PLAY_RIGHT = 'd',
@@ -153,6 +155,53 @@ var CRATE_UP_GOAL = 'I',
     CRATE_RIGHT_GOAL = 'L',
     CRATE_LEFT_GOAL = 'J';
 
+var NORETURN = 'x',
+    NORETURN_GOAL = 'X';
+
+function pretty_tile(tile) {
+
+  let pretty_map = {
+    '_': ' _',
+    '#': ' #',
+    ' ': '  ',
+    '.': ' .',
+
+               'w':'^@',
+    'a':'@<',  's':'v@',   'd':'>@',
+
+               'W':'^+',
+    'A':'+<',  'S':'v+',   'D':'>+',
+
+
+               'i':'^$',
+    'j':'$<',  'k':'v$',   'l':'>$',
+
+               'I':'^*',
+    'J':'*<',  'K':'v*',   'L':'>*',
+
+    'x':' x',
+    "X":' X',
+
+    "'": " '"
+
+  };
+
+  let sep_tok = "|";
+
+  let lines = [];
+  for (let y=0; y<tile.length; y++) {
+    let line = [];
+    for (let x=0; x<tile[y].length; x++) {
+      line.push( pretty_map[tile[y][x]] );
+    }
+    lines.push( sep_tok + line.join(sep_tok) + sep_tok);
+  }
+  return lines.join("\n");
+}
+
+function print_pretty_tile(tile) {
+  console.log(pretty_tile(tile));
+}
 
 function is_player_code(ch) {
   let player_code = [
@@ -981,16 +1030,21 @@ function construct_z_transition(tile) {
 function tile_valid(tile) {
 
   let player_count = 0;
+  let noreturn_count = 0;
   for (let y=0; y<tile.length; y++) {
     for (let x=0; x<tile[y].length; x++) {
       if (is_player_code(tile[y][x])) { player_count++; }
+      if (is_noreturn_code(tile[y][x])) { noreturn_count++; }
     }
   }
   if (player_count > 1) { return 0; }
+  if (noreturn_count > 1) { return 0; }
 
   for (let sy=0; sy<tile.length; sy++) {
     for (let sx=0; sx<tile[sy].length; sx++) {
 
+      // has tile below
+      //
       if ((sy+1) < tile.length) {
         if (  is_wall_code(tile[sy+1][sx]) &&
              ((tile[sy][sx] == PLAY_UP) ||
@@ -1000,8 +1054,43 @@ function tile_valid(tile) {
               (tile[sy][sx] == CRATE_UP_GOAL)) ) {
           return 0;
         }
+
+        // WIP!!!!
+        // WIP!!!!
+        // WIP!!!!
+        // WIP!!!!
+        // WIP!!!!
+        // WIP!!!!
+        // WIP!!!!
+        // WIP!!!!
+        // WIP!!!!
+        //
+        // invalid no return states
+        //
+        if (  is_player_code(tile[sy][sx]) &&
+            ( (tile[sy][sx] != PLAY_UP) &&
+              (tile[sy][sx] != PLAY_UP_GOAL) ) &&
+              ( (tile[sy+1][sx] == NORETURN) ||
+                (tile[sy+1][sx] == NORETURN_GOAL) ||
+                (is_crate_code(tile[sy+1][sx]))
+              ) ) {
+          return 0;
+        }
+
+        if (  is_player_code(tile[sy+1][sx]) &&
+            ( (tile[sy+1][sx] != PLAY_DOWN) &&
+              (tile[sy+1][sx] != PLAY_DOWN_GOAL) ) &&
+              ( (tile[sy][sx] == NORETURN) ||
+                (tile[sy][sx] == NORETURN_GOAL) ||
+                (is_crate_code(tile[sy][sx]))) ) {
+          return 0;
+        }
+
+
       }
 
+      // has tile right
+      //
       if ((sx+1) < tile[sy].length) {
         if (   is_wall_code(tile[sy][sx+1]) &&
              ((tile[sy][sx] == PLAY_LEFT) ||
@@ -1012,6 +1101,31 @@ function tile_valid(tile) {
           return 0;
         }
 
+        // invalid no return states
+        //
+        if (  is_player_code(tile[sy][sx]) &&
+            ( (tile[sy][sx] != PLAY_LEFT) &&
+              (tile[sy][sx] != PLAY_LEFT_GOAL) ) &&
+              ( (tile[sy][sx+1] == NORETURN) ||
+                (tile[sy][sx+1] == NORETURN_GOAL) ||
+                (is_crate_code(tile[sy][sx+1]))
+              )) {
+          return 0;
+        }
+
+        if (  is_player_code(tile[sy][sx+1]) &&
+            ( (tile[sy][sx+1] != PLAY_RIGHT) &&
+              (tile[sy][sx+1] != PLAY_RIGHT_GOAL) ) &&
+              ( (tile[sy][sx] == NORETURN) ||
+                (tile[sy][sx] == NORETURN_GOAL) ||
+                (is_crate_code(tile[sy][sx]))
+              ))  {
+
+          return 0;
+        }
+
+        // both right and down tile
+        //
         if ((sy+1) < tile.length) {
           if ( is_wall_code(tile[sy][sx]) &&
               ((tile[sy][sx+1] == PLAY_RIGHT) ||
@@ -1025,7 +1139,9 @@ function tile_valid(tile) {
                (tile[sy+1][sx] == CRATE_DOWN_GOAL)) ) {
             return 0;
           }
+
         }
+
 
       }
 
@@ -1555,6 +1671,7 @@ async function main(opt) {
     for (let key in tile_lib) {
       let v = tile_lib[key];
       console.log("tile_lib[", key, "]: {", ".id:", v.id, ", .key:", v.key, ", .tile:", v.tile, ", .t:", v.transitional, ", .g:", v.goal, ", .T", v.trap, "}");
+      console.log(pretty_tile( v.tile ));
     }
 
   }
@@ -1663,10 +1780,14 @@ async function main(opt) {
     "L, J, I, K - crate vmoes on goal (IKJL)",
     "d, a, w, s - player moves (wasd)",
     "D, A, W, S - player moves on goal (WASD)",
-    ": - no return path (on space)",
-    "; - no return path (on goal)",
-    "x - path explode (space)",
-    "X - path explode (goal)",
+
+    "x - no return path (on space)",
+    "X - no return path (on goal)",
+
+    //": - no return path (on space)",
+    //"; - no return path (on goal)",
+    //"x - path explode (space)",
+    //"X - path explode (goal)",
 
     "",
 
