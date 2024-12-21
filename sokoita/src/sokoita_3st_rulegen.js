@@ -1046,6 +1046,7 @@ function tile_valid(tile) {
       // has tile below
       //
       if ((sy+1) < tile.length) {
+
         if (  is_wall_code(tile[sy+1][sx]) &&
              ((tile[sy][sx] == PLAY_UP) ||
               (tile[sy][sx] == PLAY_UP_GOAL) ||
@@ -1055,16 +1056,6 @@ function tile_valid(tile) {
           return 0;
         }
 
-        // WIP!!!!
-        // WIP!!!!
-        // WIP!!!!
-        // WIP!!!!
-        // WIP!!!!
-        // WIP!!!!
-        // WIP!!!!
-        // WIP!!!!
-        // WIP!!!!
-        //
         // invalid no return states
         //
         if (  is_player_code(tile[sy][sx]) &&
@@ -1086,12 +1077,12 @@ function tile_valid(tile) {
           return 0;
         }
 
-
       }
 
       // has tile right
       //
       if ((sx+1) < tile[sy].length) {
+
         if (   is_wall_code(tile[sy][sx+1]) &&
              ((tile[sy][sx] == PLAY_LEFT) ||
               (tile[sy][sx] == PLAY_LEFT_GOAL) ||
@@ -1137,6 +1128,15 @@ function tile_valid(tile) {
                (tile[sy+1][sx] == PLAY_DOWN_GOAL) ||
                (tile[sy+1][sx] == CRATE_DOWN) ||
                (tile[sy+1][sx] == CRATE_DOWN_GOAL)) ) {
+            return 0;
+          }
+
+          // not a valid placement of the noreturn tile
+          //
+          if ( (is_player_code(tile[sy+1][sx]) &&
+                is_noreturn_code(tile[sy][sx+1])) ||
+               (is_player_code(tile[sy][sx+1]) &&
+                is_noreturn_code(tile[sy+1][sx])) ) {
             return 0;
           }
 
@@ -1309,10 +1309,13 @@ function construct_tile_lib() {
 
     if (!tile_valid(tile)) {
 
-      if (DEBUG_LEVEL > 1) {
-        console.log("#skipping:");
-        console.log("#", tile[0].join(""));
-        console.log("#", tile[1].join(""));
+      if (DEBUG_LEVEL > 0) {
+        console.log("#skipping:", tile[0].join("") + tile[1].join(""));
+        print_pretty_tile(tile);
+        //console.log("#", tile[0].join(""));
+        //console.log("#", tile[1].join(""));
+
+
       }
       continue;
     }
@@ -1781,8 +1784,8 @@ async function main(opt) {
     "d, a, w, s - player moves (wasd)",
     "D, A, W, S - player moves on goal (WASD)",
 
-    "x - no return path (on space)",
-    "X - no return path (on goal)",
+    "x - no return (on space) (orpheus tile)",
+    "X - no return (on goal) (orpheus tile on goal)",
 
     //": - no return path (on space)",
     //"; - no return path (on goal)",
