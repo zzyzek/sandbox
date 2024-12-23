@@ -52,3 +52,7 @@ Mkfile.old
 dkms.conf
 
 *~
+
+package-lock.json
+package.json
+*.bak
