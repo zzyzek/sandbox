@@ -31,3 +31,8 @@ References
 * [sokoban-maps (gh)](https://github.com/begoon/sokoban-maps)
 * [arduboy tiny sokoban](https://github.com/akkera102/05_tiny_sokoban)
 * [sokoban wiki](http://sokobano.de/wiki/index.php?title=Main_Page)
+* [game-sokoban.com](http://www.game-sokoban.com/index.php?mode=about)
+* [github.com/dangarfield/sokoban-solver](https://github.com/dangarfield/sokoban-solver)
+* [github.com/KnightofLuna/sokoban-solver](https://github.com/KnightofLuna/sokoban-solver)
+* [github.com/csdankim/MCTS_Sokoban](https://github.com/csdankim/MCTS_Sokoban)
+* [github.com/xbandrade/sokoban-solver-generator](https://github.com/xbandrade/sokoban-solver-generator)
