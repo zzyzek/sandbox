@@ -203,6 +203,7 @@ TODO
 
 * Implement a doppelganger knockout when an agent is realized in an $(x,y)$ plane.
 * Consider doing a non block PCRKO, choosing 
+* Visualization of knockout locations
 
 LICENSE
 ---
