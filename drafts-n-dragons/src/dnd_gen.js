@@ -273,8 +273,6 @@ function construct_rule(supertile) {
     }
   }
 
-  console.log("????", rule.length);
-
   for (idir=0; idir<4; idir++) {
 
     let rdir = oppo[idir];
@@ -298,13 +296,7 @@ function construct_rule(supertile) {
       let dst_key = tile[ry0][rx0] + tile[ry1][rx1];
 
       for (let dst_idx in nei_map[rdir][src_key]) {
-
-        if (rule.length == 421278) {
-          console.log("??", tile, "idir:", idir, "src_key:", src_key, "dst_key:", dst_key, "dst_idx", dst_idx, "dst_tile:", supertile[dst_idx].tile);
-        }
-
         rule.push( [ parseInt(idx), parseInt(dst_idx), idir, 1 ] );
-
       }
 
     }
