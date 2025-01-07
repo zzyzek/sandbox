@@ -11,6 +11,91 @@
 var fs = require("fs");
 var poms = JSON.parse( fs.readFileSync("dnd.poms", "utf8") );
 
+function check_tile( poms ) {
+
+
+  if (poms.name[0] != '#00#00#00#00') {
+
+    console.log("ERROR: 0 tile not expected", poms.name[0]);
+
+    return -1;
+  }
+
+  for (let idx=1; idx<poms.name.length; idx++) {
+
+    let name = poms.name[idx];
+
+    // type, column constraint, row constraint
+
+    let tile = [
+      [ [ name[0], parseInt(name[1]), parseInt(name[2]) ],
+        [ name[3], parseInt(name[4]), parseInt(name[5]) ] ],
+      [ [ name[6], parseInt(name[7]), parseInt(name[8]) ],
+        [ name[9], parseInt(name[10]), parseInt(name[11]) ] ]
+    ];
+
+    let t00 = tile[0][0][0];
+    let t01 = tile[0][1][0];
+
+    let t10 = tile[1][0][0];
+    let t11 = tile[1][1][0];
+
+    let c00 = tile[0][0][1];
+    let c10 = tile[1][0][1];
+
+    let c01 = tile[0][1][1];
+    let c11 = tile[1][1][1];
+
+    let r00 = tile[0][0][2];
+    let r01 = tile[0][1][2];
+
+    let r10 = tile[1][0][2];
+    let r11 = tile[1][1][2];
+
+    if ((t10 == 'w') && (c10 != (c00-1))) {
+      console.log("ERROR: tile:", idx, "(", name, ") invalid left column wall transition");
+      return -1;
+    }
+
+    if ((t11 == 'w') && (c11 != (c01-1))) {
+      console.log("ERROR: tile:", idx, "(", name, ") invalid right column wall transition");
+      return -1;
+    }
+
+    if ((t01 == 'w') && (r01 != (r00-1))) {
+      console.log("ERROR: tile:", idx, "(", name, ") invalid top row wall transition");
+      return -1;
+    }
+
+    if ((t11 == 'w') && (r11 != (r10-1))) {
+      console.log("ERROR: tile:", idx, "(", name, ") invalid bottom row wall transition");
+      return -1;
+    }
+
+
+    if ((t10 == 's') && (c10 != (c00))) {
+      console.log("ERROR: tile:", idx, "(", name, ") invalid left column space transition");
+      return -1;
+    }
+
+    if ((t11 == 's') && (c11 != (c01))) {
+      console.log("ERROR: tile:", idx, "(", name, ") invalid right column space transition");
+      return -1;
+    }
+
+    if ((t01 == 's') && (r01 != (r00))) {
+      console.log("ERROR: tile:", idx, "(", name, ") invalid top row space transition");
+      return -1;
+    }
+
+    if ((t11 == 's') && (r11 != (r10))) {
+      console.log("ERROR: tile:", idx, "(", name, ") invalid bottom row space transition");
+      return -1;
+    }
+
+  }
+}
+
 function check_rule( poms ) {
 
   let name = poms.name;
@@ -59,13 +144,11 @@ function check_rule( poms ) {
       return -1;
     }
 
-
-    //WIP check for number consistency
-
   }
 
 }
 
+check_tile(poms);
 check_rule(poms);
 
 console.log("...");
