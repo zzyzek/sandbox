@@ -335,53 +335,28 @@ function main(opt) {
 
   poms.rule = rule;
 
+  // WIP
+  // WIP
+  // WIP
+  //
 
+  let image_wh = Math.ceil( Math.sqrt( poms.name.length ) );
+  let stride = 16;
 
-  /*
-  let poms = {
-    "rule": rule,
+  poms.tileset.image        = opt.tileset_fn;
+  poms.tileset.tilecount    = poms.name.length;
+  poms.tileset.imagewidth   = image_wh * stride;
+  poms.tileset.imageheight  = image_wh * stride;
+  poms.tileset.tileheight   = stride;
+  poms.tileset.tilewidth    = stride;
 
-    "name": [],
-    "weight": [],
-
-    "boundaryCondition": {
-      "x+" : {"type":"tile","value":0},
-      "x-" : {"type":"tile","value":0},
-      "y+" : {"type":"tile","value":0},
-      "y-" : {"type":"tile","value":0},
-      "z+" : {"type":"tile","value":0},
-      "z-" : {"type":"tile","value":0}
-    },
-
-    "constraint": [
-      {"type":"remove","range":{"tile":[0,1],"x":[], "y":[], "z":[]}}
-    ],
-
-    "objMap": [],
-    "flatMap": [],
-    "tileGroup": [],
-    "tileset": {
-      "image": "drafts_n_dragons_tileset.png",
-      "tilecount": -1,
-      "imagewidth": -1,
-      "imageheight": -1,
-      "tileheight": -1,
-      "tilewidth": -1
-    },
-
-    "flatTileset": {
-      "image": "drafts_n_dragons_flat_tileset.png",
-      "tilecount": -1,
-      "imagewidth": -1,
-      "imageheight": -1,
-      "tileheight": -1,
-      "tilewidth": -1
-    },
-
-    "size": [8,8,1]
-
-  };
-  */
+  poms.flatTileset = {};
+  poms.flatTileset["image"]       = opt.flatTileset_fn;
+  poms.flatTileset["tilecount"]   = poms.name.length;
+  poms.flatTileset["imagewidth"]  = image_wh * stride;
+  poms.flatTileset["imageheight"] = image_wh * stride;
+  poms.flatTileset["tileheight"]  = stride;
+  poms.flatTileset["tilewidth"]   = stride;
 
   for (let idx=0; idx<supertile_lib.length; idx++) {
     poms.name.push( supertile_lib[idx].name );
@@ -389,6 +364,12 @@ function main(opt) {
     poms.flatMap.push(supertile_lib[idx].flatMap );
     poms.tileGroup.push(supertile_lib[idx].tileGroup );
   }
+
+  //
+  // WIP
+  // WIP
+  // WIP
+
 
   if (opt.poms_fn.length > 0) {
 
