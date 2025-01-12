@@ -41,7 +41,7 @@
 // Total 512 tiles, 18950 rules
 //
 
-var DEBUG_LEVEL = 2;
+var DEBUG_LEVEL = 0;
 
 var fs = require("fs");
 var libpoms = require("./libpoms.js");
@@ -297,6 +297,7 @@ async function construct_tileset_img( poms, tileset_fn, flatTileset_fn ) {
   poms.tileset.tileheight = stride;
 
 
+  return poms;
 }
 
 async function gen_poms(tile_list, tile_rule) {
@@ -345,11 +346,13 @@ async function gen_poms(tile_list, tile_rule) {
     console.log("; writing POMS config file: mm.pms");
   }
   fs.writeFileSync( "mm.poms", libpoms.configStringify(poms_cfg));
+
+  return poms_cfg;
 }
 
 // https://q4.github.io/mines/index.html
 //
-function mine_mini_puzzles() {
+function mine_mini_puzzles(poms) {
   let puzzle = [
 
     [ " 2   ",
@@ -376,6 +379,49 @@ function mine_mini_puzzles() {
       "  4 1",
       "2    " ]
   ];
+
+  let constraint = [
+    {"type":"remove","range":{"tile":[0,1],"x":[],"y":[],"z":[]}}
+  ];
+
+  let pz = puzzle[0];
+
+  let pzg = [];
+  for (let row = 0; row < pz.length; row++) {
+    pzg.push([]);
+
+    poms.size[0] = pz[row].length;
+    poms.size[1] = pz.length;
+
+    for (let col = 0; col < pz[row].length; col++) {
+      let tok = pz[row][col];
+      let v = ( (tok == ' ') ? 0 : parseInt(tok) );
+      pzg[row].push(v);
+    }
+  }
+
+
+  console.log(pzg);
+
+  for (let row = 0; row < pzg.length; row++) {
+    for (let col = 0; col < pzg[row].length; col++) {
+      if (pzg[row][col] == 0) { continue; }
+
+      constraint.push({"type":"remove", "range":{"tile":[], "x":[col,col+1], "y":[row,row+1], "z":[]}});
+
+      for (let tile_id = 0; tile_id < poms.tileGroup.length; tile_id++) {
+        if (poms.tileGroup[tile_id] == pzg[row][col]) {
+          constraint.push({"type":"add", "range":{"tile":[tile_id,tile_id+1],  "x":[col,col+1], "y":[row,row+1], "z":[]}});
+        }
+      }
+    }
+  }
+
+  poms.constraint = constraint;
+
+  let fn = "mm_mini.0.poms";
+  fs.writeFileSync( fn, libpoms.configStringify(poms));
+
 }
 
 async function main() {
@@ -392,7 +438,9 @@ async function main() {
     print_tile_rule(rule, tl);
   }
 
-  gen_poms(tl, rule);
+  let poms = await gen_poms(tl, rule);
+
+  mine_mini_puzzles(poms);
 }
 
 main();

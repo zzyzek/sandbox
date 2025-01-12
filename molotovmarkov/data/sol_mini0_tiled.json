@@ -1,0 +1,56 @@
+{
+  "backgroundcolor":"#ffffff",
+  "height": 5,
+  "width": 5,
+  "layers": [
+    {
+      "data": [
+
+385, 193, 97, 273, 137, 305, 153, 77, 35, 18, 39, 276, 138, 69, 3, 5, 35, 18, 265, 129, 1, 5, 3, 34, 17      ],
+    "name":"",
+    "opacity":1.000000,
+    "type":"tilelayer",
+    "visible": true,
+    "height": 5,
+    "width": 5,
+    "x": 0,
+    "y": 0
+  },
+    {
+      "data": [
+
+1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1      ],
+    "name":"cellSize",
+    "opacity":1.000000,
+    "type":"tilelayer",
+    "visible": false,
+    "height": 5,
+    "width": 5,
+    "x": 0,
+    "y": 0
+  }
+  ],
+  "nextobjectid" : 1,
+  "orientation" : "orthogonal",
+  "properties" : [
+  ],
+  "renderorder" : "right-down",
+  "tileheight": 16,
+  "tilewidth": 16,
+  "tilesets": [
+    {
+      "firstgid": 1,
+      "columns": 0,
+      "name": "",
+      "image": "./mm_tileset.png",
+      "imageheight": 0,
+      "imagewidth": 0,
+      "margin": 0,
+      "spacing": 0,
+      "tilecount": 513,
+      "tileheight": 16,
+      "tilewidth": 16
+    }
+  ],
+  "version": 1
+}
