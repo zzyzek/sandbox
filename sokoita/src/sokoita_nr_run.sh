@@ -125,8 +125,11 @@ elif [[ "$RUN_NAME" == "microban_5" ]] ; then
 
 elif [[ "$RUN_NAME" == "microban_6" ]] ; then
 
+  SOFTENWIN='3,3,8'
+  SOFTENWIN='3,3,8:5,5,32'
+
   $pomsbin -C microban_6_nr.poms \
-    -b 1 -B 3,3,8 \
+    -b 1 -B ${SOFTENWIN} \
     -w 2 -E -1.25 \
     -P min -J 10000000 \
     -3 sol_microban_6_nr_tiled.json \
