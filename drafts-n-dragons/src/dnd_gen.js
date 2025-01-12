@@ -105,6 +105,22 @@ function rot90(T) {
 }
 
 function _cpy(T) {
+  let _t = [
+    ['x', 'x', 'x'],
+    ['x', 'x', 'x'],
+    ['x', 'x', 'x']
+  ];
+
+  for (let y=0; y<3; y++) {
+    for (let x=0; x<3; x++) {
+      _t[y][x] = T[y][x];
+    }
+  }
+
+  return _t;
+}
+
+function __cpy(T) {
   let _t = [ ['x', 'x'], ['x', 'x'] ];
 
   for (let y=0; y<2; y++) {
@@ -116,18 +132,272 @@ function _cpy(T) {
   return _t;
 }
 
-function _print(p) {
+function tileName(tile) {
+  return tile[0].join("") + tile[1].join("") + tile[2].join("");
+}
 
-  console.log("#:", p[0].join("") + p[1].join(""));
+function __print(p) {
+  console.log(";", p[0].join("") + p[1].join(""));
   console.log(" ", p[0].join(""));
   console.log(" ", p[1].join(""));
+}
+
+function _print(p) {
+  console.log(";", p[0].join("") + p[1].join("") + p[2].join(""));
+  console.log(" ", p[0].join(""));
+  console.log(" ", p[1].join(""));
+  console.log(" ", p[2].join(""));
+}
+
+function print_tile_list(tile_list) {
+  for (let tile_id=0; tile_id<tile_list.length; tile_id++) {
+    let t = tile_list[tile_id];
+    console.log("; [", t.id, "], name:", t.name, ", flatMap:", t.flatMap, ", tileGroup:", t.tileGroup);
+    console.log(" ", t.tile[2].join(""))
+    console.log(" ", t.tile[1].join(""))
+    console.log(" ", t.tile[0].join(""))
+  }
 }
 
 function _key(p) {
   return p[0].join("") + p[1].join("");
 }
 
-function gen_supertile(template) {
+function valid_tile(tile) {
+
+  for (let y=0; y<2; y++) {
+    for (let x=0; x<2; x++) {
+
+      if ((tile[y  ][x] == '.') && (tile[y  ][x+1] == '.') &&
+          (tile[y+1][x] == '.') && (tile[y+1][x+1] == '.')) {
+        return 0;
+      }
+
+    }
+  }
+
+  if ((tile[0][1] == '#') &&
+      (tile[1][0] == '#') &&
+      (tile[1][2] == '#') &&
+      (tile[2][1] == '#') &&
+      (tile[1][1] == '.')) {
+    return 0;
+  }
+
+  return 1;
+}
+
+function gen_supertile() {
+
+  // t u v w
+  // F H I J
+  // L M N O
+
+  let base_tile = [
+    [ 'x', 'x', 'x' ],
+    [ 'x', 'x', 'x' ],
+    [ 'x', 'x', 'x' ]
+  ];
+
+  let treasure_tok = [
+    't', 'u', 'v', 'w',
+    'F', 'H', 'I', 'J',
+    'L', 'M', 'N', 'O'
+  ];
+
+  let treasure_template = [
+    [ '?', 'J', 'w', 'O', '?' ],
+    [ 'M', '.', '.', '.', 'F' ],
+    [ 'u', '.', 'X', '.', 't' ],
+    [ 'H', '.', '.', '.', 'L' ],
+    [ '?', 'N', 'v', 'I', '?' ]
+  ];
+
+  let border_tile = [
+    [ '_', '_', '_' ],
+    [ '_', '_', '_' ],
+    [ '_', '_', '_' ]
+  ];
+
+  let flat_map = {
+    '_' : -1,
+    '.' : 0,
+    '#' : 1,
+    't':2, 'u':2, 'v':2, 'w':2,
+    'F':2, 'H':2, 'I':2, 'J':2,
+    'L':2, 'M':2, 'N':2, 'O':2
+
+  };
+
+  let tile_list = [
+    { "tile": border_tile, "id": 0, "name":"_________", "flatTile": -1, "tileGroup": -1 }
+  ];
+
+  let tile_id = 1;
+
+  for (let sy=0; sy<3; sy++) {
+    for (let sx=0; sx<3; sx++) {
+
+      for (let tok_idx = 0; tok_idx < treasure_tok.length; tok_idx++) {
+
+        let tok = treasure_tok[tok_idx];
+        let is_corner = false;
+        let corner_y = -1,
+            corner_x = -1;
+
+        let treasure_tile = _cpy(base_tile);
+        for (let y=0; y<3; y++) {
+          for (let x=0; x<3; x++) {
+
+            let val = treasure_template[sy+y][sx+x];
+
+            // simple space
+            //
+            if      (val == '.') { treasure_tile[y][x] = val; }
+            else if (val == 'X') { treasure_tile[y][x] = tok; }
+
+            // wild card
+            //
+            else if (val == '?') {
+              is_corner = true;
+              treasure_tile[y][x] = '.';
+              corner_y = y;
+              corner_x = x;
+            }
+
+            // escape
+            //
+            else if (val == tok) {
+              treasure_tile[y][x] = '.';
+            }
+
+            // center
+            //
+            else { treasure_tile[y][x] = '#'; }
+
+          }
+        }
+
+        if (is_corner) {
+          let alt_treasure_tile = _cpy(treasure_tile);
+          alt_treasure_tile[corner_y][corner_x] = '#';
+
+          tile_list.push({
+            "tile": alt_treasure_tile,
+            "id": tile_id,
+            "name": tileName(alt_treasure_tile),
+            "flatTile": flat_map[ alt_treasure_tile[1][1] ],
+            "tileGroup": 0
+          });
+          tile_id++;
+
+          _print(alt_treasure_tile);
+          
+        }
+
+        tile_list.push({
+          "tile": treasure_tile,
+          "id": tile_id,
+          "name": tileName(treasure_tile),
+          "flatTile": flat_map[ treasure_tile[1][1] ],
+          "tileGroup": 0
+        });
+        tile_id++;
+
+        _print(treasure_tile);
+
+      }
+
+    }
+  }
+
+  let N = Math.pow(2, 9);
+  for (let idx = 0; idx < N; idx++) {
+
+    let _tile = _cpy(base_tile);
+    for (let v = 0; v < 9; v++) {
+      let y = Math.floor( v / 3 );
+      let x = v%3;
+      _tile[y][x] = ((idx & (1<<v)) ? '#' : '.');
+    }
+
+    if (!valid_tile(_tile)) { continue; }
+
+    tile_list.push({
+      "tile": _tile,
+      "id": tile_id,
+      "name": tileName(_tile),
+      "flatTile": flat_map[ _tile[1][1] ],
+      "tileGroup": 0
+    });
+    tile_id++;
+
+
+    _print(_tile);
+
+  }
+
+  // constraint tiles
+  //
+  let _t = [['.', '.', '.'],['.','.','.'],['.','.','.']];
+  for (let v=0; v<10; v++) {
+
+    let ctile = _cpy(_t);
+    ctile[0][1] = 'c';
+    ctile[1][1] = v.toString();
+
+    tile_list.push({
+      "tile": ctile,
+      "id": tile_id,
+      "name": tileName(ctile),
+      "flatMap": 100 + v,
+      "tileGroup": 100 + v
+    });
+    tile_id++;
+
+    let wall_ctile = _cpy(ctile);
+    wall_ctile[0][0] = '#';
+
+    tile_list.push({
+      "tile": wall_ctile,
+      "id": tile_id,
+      "name": tileName(wall_ctile),
+      "flatMap": 200 + v,
+      "tileGroup": 200 + v
+    });
+    tile_id++;
+
+    let rtile = _cpy(_t);
+    rtile[1][0] = 'r';
+    rtile[1][1] = v.toString();
+
+    tile_list.push({
+      "tile": rtile,
+      "id": tile_id,
+      "name": tileName(rtile),
+      "flatMap": 300 + v,
+      "tileGroup": 300 + v
+    });
+    tile_id++;
+
+    let wall_rtile = _cpy(rtile);
+    wall_rtile[0][0] = '#';
+    tile_list.push({
+      "tile": wall_rtile,
+      "id": tile_id,
+      "name": tileName(wall_rtile),
+      "flatMap": 400 + v,
+      "tileGroup": 400 + v
+    });
+    tile_id++;
+
+
+  }
+
+  return tile_list;
+}
+
+function gen_supertile_old(template) {
 
   dedup_base = {};
 
@@ -313,67 +583,6 @@ function construct_rule(supertile) {
 //
 
 
-function main(opt) {
-
-  supertile_lib = gen_supertile(base_template);
-  let rule = construct_rule(supertile_lib);
-
-  if (DEBUG_LEVEL > 0) {
-    console.log("; supertile.length:", supertile_lib.length, "rule.length", rule.length );
-  }
-
-
-  let poms = libpoms.configTemplate();
-
-  poms.rule = rule;
-
-  // WIP
-  // WIP
-  // WIP
-  //
-
-  let image_wh = Math.ceil( Math.sqrt( poms.name.length ) );
-  let stride = 16;
-
-  poms.tileset.image        = opt.tileset_fn;
-  poms.tileset.tilecount    = poms.name.length;
-  poms.tileset.imagewidth   = image_wh * stride;
-  poms.tileset.imageheight  = image_wh * stride;
-  poms.tileset.tileheight   = stride;
-  poms.tileset.tilewidth    = stride;
-
-  poms.flatTileset = {};
-  poms.flatTileset["image"]       = opt.flatTileset_fn;
-  poms.flatTileset["tilecount"]   = poms.name.length;
-  poms.flatTileset["imagewidth"]  = image_wh * stride;
-  poms.flatTileset["imageheight"] = image_wh * stride;
-  poms.flatTileset["tileheight"]  = stride;
-  poms.flatTileset["tilewidth"]   = stride;
-
-  for (let idx=0; idx<supertile_lib.length; idx++) {
-    poms.name.push( supertile_lib[idx].name );
-    poms.weight.push(1);
-    poms.flatMap.push(supertile_lib[idx].flatMap );
-    poms.tileGroup.push(supertile_lib[idx].tileGroup );
-  }
-
-  //
-  // WIP
-  // WIP
-  // WIP
-
-
-  if (opt.poms_fn.length > 0) {
-
-    if (DEBUG_LEVEL > 0) {
-      console.log("# writing", opt.poms_fn);
-    }
-
-    //fs.writeFileSync("dnd.poms", libpoms.configStringify(poms));
-    fs.writeFileSync(opt.poms_fn, libpoms.configStringify(poms));
-  }
-}
-
 //       ___
 //  ____/ (_)
 // / __/ / /
@@ -492,6 +701,7 @@ while ((arg_opt = parser.getopt()) !== undefined) {
 
     case 'P':
       main_opt["poms_fn"] = arg_opt.optarg;
+      exec = 1;
       break;
 
     case 'x':
@@ -515,7 +725,76 @@ while ((arg_opt = parser.getopt()) !== undefined) {
   }
 
   if (exec == 0) { break; }
+
 }
+
+function main(opt) {
+
+  let tile_list = gen_supertile();
+
+  print_tile_list(tile_list);
+  return;
+
+
+  supertile_lib = gen_supertile(base_template);
+  let rule = construct_rule(supertile_lib);
+
+  if (DEBUG_LEVEL > 0) {
+    console.log("; supertile.length:", supertile_lib.length, "rule.length", rule.length );
+  }
+
+
+  let poms = libpoms.configTemplate();
+
+  poms.rule = rule;
+
+  // WIP
+  // WIP
+  // WIP
+  //
+
+  let image_wh = Math.ceil( Math.sqrt( poms.name.length ) );
+  let stride = 16;
+
+  poms.tileset.image        = opt.tileset_fn;
+  poms.tileset.tilecount    = poms.name.length;
+  poms.tileset.imagewidth   = image_wh * stride;
+  poms.tileset.imageheight  = image_wh * stride;
+  poms.tileset.tileheight   = stride;
+  poms.tileset.tilewidth    = stride;
+
+  poms.flatTileset = {};
+  poms.flatTileset["image"]       = opt.flatTileset_fn;
+  poms.flatTileset["tilecount"]   = poms.name.length;
+  poms.flatTileset["imagewidth"]  = image_wh * stride;
+  poms.flatTileset["imageheight"] = image_wh * stride;
+  poms.flatTileset["tileheight"]  = stride;
+  poms.flatTileset["tilewidth"]   = stride;
+
+  for (let idx=0; idx<supertile_lib.length; idx++) {
+    poms.name.push( supertile_lib[idx].name );
+    poms.weight.push(1);
+    poms.flatMap.push(supertile_lib[idx].flatMap );
+    poms.tileGroup.push(supertile_lib[idx].tileGroup );
+  }
+
+  //
+  // WIP
+  // WIP
+  // WIP
+
+
+  if (opt.poms_fn.length > 0) {
+
+    if (DEBUG_LEVEL > 0) {
+      console.log("# writing", opt.poms_fn);
+    }
+
+    //fs.writeFileSync("dnd.poms", libpoms.configStringify(poms));
+    fs.writeFileSync(opt.poms_fn, libpoms.configStringify(poms));
+  }
+}
+
 
 
 if (exec > 0) {
