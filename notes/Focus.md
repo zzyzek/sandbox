@@ -25,4 +25,5 @@ Current Focus
 * Start the warp weighting technique
 * Gilbert curve
   - understand the algorithm
+    - ~2d~, 3d
   - get at least the simple region flux, with directionality
