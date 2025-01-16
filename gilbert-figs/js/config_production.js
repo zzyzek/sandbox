@@ -86,7 +86,7 @@ function toRGBAa(rgba) {
 }
 
 function _dl() {
-  var ele = document.getElementById("simple_hampath_canvas");
+  var ele = document.getElementById("fig");
   let defs = document.getElementById("custom_defs");
 
   // very hacky, find the defs definition, take the defs
@@ -304,11 +304,57 @@ function mk_checkerboard_path(opt) {
   two.update();
 }
 
-function simple_hampath_init() {
+
+function mkbox() {
   let two = g_fig_ctx.two;
 
-  var ele = document.getElementById("simple_hampath_canvas");
+  let cx = 100,
+      cy = 100,
+      x_len = 100,
+      y_len = 100;
+
+  let font_offset = 10;
+
+  let radius = 5,
+      c_offset = 10;
+
+  let font_style = {
+    "size": 18,
+    "family": "Libertine, Linux Libertine 0"
+  };
+
+  let path_color = "rgba(80,80,140,1)";
+
+
+  let box = two.makeRectangle(cx,cy, x_len,y_len);
+
+  let txt_side = two.makeText("odd", cx - x_len/2 - 2*font_offset, cy, font_style);
+  //txt_side.rotation = -Math.PI/2;
+
+  let txt_bottom = two.makeText("even", cx, cy + (y_len/2) + font_offset, font_style);
+
+  let circle_s = two.makeCircle(cx - (x_len/2) + c_offset, cy + (y_len/2) - c_offset, radius);
+  circle_s.linewidth = 0;
+  circle_s.fill = path_color;
+
+  let circle_e = two.makeCircle(cx + (x_len/2) - c_offset, cy + (y_len/2) - c_offset, radius);
+  circle_e.linewidth = 0;
+  circle_e.fill = path_color;
+
+
+
+
+  two.update();
+}
+
+function config_production_init() {
+  let two = g_fig_ctx.two;
+
+  var ele = document.getElementById("config_production_canvas");
   two.appendTo(ele);
+
+  mkbox();
+  return;
 
   //two.update();
 
@@ -359,7 +405,6 @@ function simple_hampath_init() {
   mk_checkerboard_path(opt_2x2_np);
   //cur_x += dx - square_size;
 
-  /*
   cur_x = sx;
   cur_y += dy - (3*square_size/2);
   let opt_2x3_ur = {
@@ -393,11 +438,10 @@ function simple_hampath_init() {
   };
   mk_checkerboard_path(opt_2x3_np);
   cur_x += dx;
-  */
 
 
   cur_x = sx;
-  cur_y += dy - (3*square_size/2);
+  cur_y += dy - (1*square_size/2);
   let opt_3x2_ur = {
     "sx": cur_x, "sy": cur_y,
     "nx": 3, "ny": 2,
