@@ -154,19 +154,19 @@ function mk_checkerboard_path(opt) {
     //"rgba(248,112,116,0.4)",
     //"rgba(248,235,187,0.5)"
 
-    "rgba(152,119,182,0.5)",
-    "rgba(228,220,242,0.5)"
+    //"rgba(152,119,182,0.5)",
+    //"rgba(228,220,242,0.5)"
+
+    "rgba(152,119,182,0.375)",
+    "rgba(228,220,242,0.375)"
 
     //"rgba(200,255,200,0.7)",
     //"rgba(255,200,200,0.9)"
   ];
 
-  let _p = opt.path;
-
-  //let _p = [ [0,0], [0,1], [1,1], [1,0], [2,0], [2,1] ];
-
   let fudge_parity = ((nx*ny)%2);
-  if ("initial_parity" in opt) {
+  if (("initial_parity" in opt) &&
+      (typeof opt.initial_parity !== "undefined")) {
     fudge_parity = opt.initial_parity;
   }
 
@@ -180,171 +180,627 @@ function mk_checkerboard_path(opt) {
       let rect = new Two.Rectangle( x,y, x_len, y_len );
       rect.linewidth = 0.5;
       rect.stroke = "rgba(0,0,0,0.4)";
-      //rect.fill = "rgba(255, 200, 200, 1)";
-      rect.fill = "rgba(255, 200, 200, 1)";
       rect.fill = color[ parity ];
       two.add(rect);
 
     }
   }
 
-  let path_r = 8.5;
-  let path_color = "rgba(60,60,120,1)";
+  if ("path" in opt) {
+    let _p = opt.path;
+
+    //let _p = [ [0,0], [0,1], [1,1], [1,0], [2,0], [2,1] ];
+
+    let path_r = 8.5;
+    let path_color = "rgba(60,60,120,1)";
 
 
-  //path_color = "rgba(180,170,239,1)";
+    //path_color = "rgba(180,170,239,1)";
 
-  // this
-  //path_color = "rgba(118,114,223,1)";
-  path_color = "rgba(80,80,140,1)";
+    // this
+    //path_color = "rgba(118,114,223,1)";
+    path_color = "rgba(80,80,140,1)";
 
-  //path_color = "rgba(159,226,235,1)";
-  //path_color = "rgba(107,202,215,1)";
+    //path_color = "rgba(159,226,235,1)";
+    //path_color = "rgba(107,202,215,1)";
 
-  //path_color = "rgba(166,197,237,1)";
-  //path_color = "rgba(117,162,219,1)";
+    //path_color = "rgba(166,197,237,1)";
+    //path_color = "rgba(117,162,219,1)";
 
-  let w_p = [];
-  for (let idx = 0; idx < _p.length; idx++) {
-    w_p.push( [ sx + _p[idx][0]*x_len, sy + _p[idx][1]*y_len ] );
+    let w_p = [];
+    for (let idx = 0; idx < _p.length; idx++) {
+      w_p.push( [ sx + _p[idx][0]*x_len, sy + _p[idx][1]*y_len ] );
 
-    //let path_step = two.makeCircle( w_p[idx][0], w_p[idx][1], path_r) ;
-    //path_step.fill = path_color;
-    //path_step.linewidth = 0;
-    //two.add( path_step );
+      //let path_step = two.makeCircle( w_p[idx][0], w_p[idx][1], path_r) ;
+      //path_step.fill = path_color;
+      //path_step.linewidth = 0;
+      //two.add( path_step );
+
+    }
+
+    let np_center = {};
+    if (("nopath" in opt) &&
+        (opt.nopath)) {
+      np_center = w_p.pop();
+    }
+
+    let tv_path = makeTwoVector(w_p);
+    let t_path = two.makePath(tv_path, true);
+    t_path.fill = "rgba(0,0,0,0)";
+    t_path.linewidth = 10;
+    t_path.stroke = path_color;
+    t_path.cap = 'round';
+    t_path.join = 'round';
+
+    //two.add(t_path);
+
+    let start_circle = two.makeCircle( w_p[0][0], w_p[0][1], path_r );
+    start_circle.fill = path_color;
+    //start_circle.fill = "rgba(120,120,240,1)";
+    //start_circle.fill = "rgba(180,240,180,1)";
+    //start_circle.fill = "rgba(180,240,180,1)";
+    start_circle.linewidth = 0;
+    start_circle.stroke = path_color;
+
+    if (("end_circle" in opt) &&
+        (opt.end_circle)) {
+      let n = w_p.length-1;
+      let end_circle = two.makeCircle( w_p[n][0], w_p[n][1], path_r );
+      //end_circle.fill = "rgba(120,120,240,1)";
+      end_circle.fill = path_color;
+      end_circle.linewidth = 0;
+      end_circle.stroke = path_color;
+    }
+
+    if (("nopath" in opt) &&
+        (opt.nopath)) {
+
+      let alpha = [
+        1.15*Math.sqrt(2)*x_len/8,
+        1.15*Math.sqrt(2)*y_len/8
+      ];
+
+      let co = "rgba(255,81,53,1)";
+      co = "rgba(255,110,88,1)";
+      co = "rgba(241,3,31,1)";
+      co = "rgba(245,52,74,1)";
+      co = "rgba(252,74,3,1)";
+      co = "rgba(252,41,3,1)";
+
+      co  = "rgba(162,47,26,1)";
+      co  = "rgba(255,40,0,1)";
+      co  = "rgba(250,42,0,.9)";
+      co  = "rgba(236,0,51,0.99)";
+      co  = "rgba(190,0,41,1)";
+
+      co = "rgba(252,37,3,0.95)"; //!
+
+      let lw = 4.5;
+
+      let pnt_cross_a = [
+        [np_center[0] + alpha[0], np_center[1] + alpha[1]],
+        [np_center[0] - alpha[0], np_center[1] - alpha[1]]
+      ];
+      let cross_a = makeTwoVector(pnt_cross_a);
+
+      let ca = two.makePath(cross_a);
+      ca.linewidth = lw;
+      ca.stroke = co;
+      ca.cap = 'round';
+      ca.join = 'round';
+
+      let pnt_cross_b = [
+        [np_center[0] + alpha[0], np_center[1] - alpha[1]],
+        [np_center[0] - alpha[0], np_center[1] + alpha[1]]
+      ];
+      let cross_b = makeTwoVector(pnt_cross_b);
+
+      let cb = two.makePath(cross_b);
+      cb.linewidth = lw;
+      cb.stroke = co;
+      cb.cbp = 'round';
+      cb.join = 'round';
+
+    }
 
   }
-
-  let np_center = {};
-  if (("nopath" in opt) &&
-      (opt.nopath)) {
-    np_center = w_p.pop();
-  }
-
-  let tv_path = makeTwoVector(w_p);
-  let t_path = two.makePath(tv_path, true);
-  t_path.fill = "rgba(0,0,0,0)";
-  t_path.linewidth = 10;
-  t_path.stroke = path_color;
-  t_path.cap = 'round';
-  t_path.join = 'round';
-
-  //two.add(t_path);
-
-  let start_circle = two.makeCircle( w_p[0][0], w_p[0][1], path_r );
-  start_circle.fill = path_color;
-  //start_circle.fill = "rgba(120,120,240,1)";
-  //start_circle.fill = "rgba(180,240,180,1)";
-  //start_circle.fill = "rgba(180,240,180,1)";
-  start_circle.linewidth = 0;
-  start_circle.stroke = path_color;
-
-  if (("end_circle" in opt) &&
-      (opt.end_circle)) {
-    let n = w_p.length-1;
-    let end_circle = two.makeCircle( w_p[n][0], w_p[n][1], path_r );
-    //end_circle.fill = "rgba(120,120,240,1)";
-    end_circle.fill = path_color;
-    end_circle.linewidth = 0;
-    end_circle.stroke = path_color;
-  }
-
-  if (("nopath" in opt) &&
-      (opt.nopath)) {
-
-    let alpha = [
-      1.15*Math.sqrt(2)*x_len/8,
-      1.15*Math.sqrt(2)*y_len/8
-    ];
-
-    let co = "rgba(255,81,53,1)";
-    co = "rgba(255,110,88,1)";
-    co = "rgba(241,3,31,1)";
-    co = "rgba(245,52,74,1)";
-    co = "rgba(252,74,3,1)";
-    co = "rgba(252,41,3,1)";
-
-    co  = "rgba(162,47,26,1)";
-    co  = "rgba(255,40,0,1)";
-    co  = "rgba(250,42,0,.9)";
-    co  = "rgba(236,0,51,0.99)";
-    co  = "rgba(190,0,41,1)";
-
-    co = "rgba(252,37,3,0.95)"; //!
-
-    let lw = 4.5;
-
-    let pnt_cross_a = [
-      [np_center[0] + alpha[0], np_center[1] + alpha[1]],
-      [np_center[0] - alpha[0], np_center[1] - alpha[1]]
-    ];
-    let cross_a = makeTwoVector(pnt_cross_a);
-
-    let ca = two.makePath(cross_a);
-    ca.linewidth = lw;
-    ca.stroke = co;
-    ca.cap = 'round';
-    ca.join = 'round';
-
-    let pnt_cross_b = [
-      [np_center[0] + alpha[0], np_center[1] - alpha[1]],
-      [np_center[0] - alpha[0], np_center[1] + alpha[1]]
-    ];
-    let cross_b = makeTwoVector(pnt_cross_b);
-
-    let cb = two.makePath(cross_b);
-    cb.linewidth = lw;
-    cb.stroke = co;
-    cb.cbp = 'round';
-    cb.join = 'round';
-
-  }
-
 
   two.update();
 }
 
-
-function mkbox() {
+function mkbox(opt) {
   let two = g_fig_ctx.two;
 
-  let cx = 100,
-      cy = 100,
-      x_len = 100,
-      y_len = 100;
+  let cx = opt.cx,
+      cy = opt.cy,
+      x_len = opt.x_len,
+      y_len = opt.y_len;
 
-  let font_offset = 10;
+  let font_offset = [10,14];
 
   let radius = 5,
       c_offset = 10;
 
+  let fs = 18;
+
   let font_style = {
-    "size": 18,
+    "size": fs,
     "family": "Libertine, Linux Libertine 0"
   };
 
   let path_color = "rgba(80,80,140,1)";
 
+  //---
+  let square_size = x_len / opt.nx;
+  let opt_board = {
+    "sx": cx - (x_len/2) + (square_size/2), "sy": cy - (y_len/2) + (square_size/2),
+    "nx": opt.nx, "ny": opt.ny,
+    "initial_parity": opt.initial_parity,
+    "x_len": square_size, "y_len": square_size
+  };
+  mk_checkerboard_path(opt_board);
+
 
   let box = two.makeRectangle(cx,cy, x_len,y_len);
+  box.fill = "rgba(0,0,0,0)";
 
-  let txt_side = two.makeText("odd", cx - x_len/2 - 2*font_offset, cy, font_style);
-  //txt_side.rotation = -Math.PI/2;
+  let txt_side      = two.makeText(opt.text_h, cx - x_len/2 - 2*font_offset[0], cy, font_style);
+  //let txt_side_A    = two.makeText("A", cx - x_len/2 - 2*font_offset[0], cy + fs, font_style);
 
-  let txt_bottom = two.makeText("even", cx, cy + (y_len/2) + font_offset, font_style);
+  let txt_bottom    = two.makeText(opt.text_w, cx, cy + (y_len/2) + font_offset[1], font_style);
+  //let txt_bottom_B  = two.makeText("B", cx, cy + (y_len/2) + font_offset[1], font_style);
 
   let circle_s = two.makeCircle(cx - (x_len/2) + c_offset, cy + (y_len/2) - c_offset, radius);
   circle_s.linewidth = 0;
   circle_s.fill = path_color;
 
+  if (("nopath" in opt) &&
+      (opt.nopath)) {
+
+    let lc = [ cx + (x_len/2) - c_offset, cy + (y_len/2) - c_offset ];
+
+    let cross_0 = two.makeLine( lc[0] - radius, lc[1] + radius, lc[0] + radius, lc[1] - radius );
+    cross_0.linewidth = 1.5;
+    cross_0.stroke = "rgba(252,37,3,0.95)";
+    cross_0.join = "round";
+
+    let cross_1 = two.makeLine( lc[0] + radius, lc[1] + radius, lc[0] -radius, lc[1] - radius );
+    cross_1.linewidth = 1.5;
+    cross_1.stroke = "rgba(252,37,3,0.95)";
+    cross_1.join = "round";
+
+  }
+  else {
+    let circle_e = two.makeCircle(cx + (x_len/2) - c_offset, cy + (y_len/2) - c_offset, radius);
+    circle_e.linewidth = 0;
+    circle_e.fill = path_color;
+  }
+
+
+
+  //two.update();
+}
+
+
+
+function mkbox_subdiv(opt) {
+  let two = g_fig_ctx.two;
+
+  let cx = opt.cx,
+      cy = opt.cy,
+      x_len = opt.x_len,
+      y_len = opt.y_len;
+
+  let font_offset = [37,14];
+
+  let radius = 5,
+      c_offset = 10;
+
+  let fs = 16;
+
+  let font_style = {
+    "size": fs,
+    "family": "Libertine, Linux Libertine 0"
+  };
+
+  let path_color = "rgba(80,80,140,1)";
+
+  let path_color_p = "rgba(120,180,180,1)";
+
+
+
+  //---
+  let square_size = x_len / opt.nx;
+  let opt_board = {
+    "sx": cx - (x_len/2) + (square_size/2), "sy": cy - (y_len/2) + (square_size/2),
+    "nx": opt.nx, "ny": opt.ny,
+    "initial_parity": opt.initial_parity,
+    "x_len": square_size, "y_len": square_size
+  };
+  mk_checkerboard_path(opt_board);
+
+
+
+  let box = two.makeRectangle(cx,cy, x_len,y_len);
+  box.fill = "rgba(0,0,0,0)";
+
+
+  let dh = 0;
+  let dw = 0;
+
+  if ("line_ds" in opt) {
+    dh = opt.line_ds[0];
+    dw = opt.line_ds[1];
+  }
+
+  let line_hor = two.makeLine( cx - (x_len/2), cy + dh,
+                               cx + (x_len/2), cy + dh);
+  line_hor.linewidth = 3;
+  line_hor.stroke = "rgba(20,20,20,1)";
+  line_hor.fill = "rgba(0,0,0,0)";
+
+  let line_ver = two.makeLine( cx + dw, cy + dh,
+                               cx + dw, cy + (y_len/2) );
+  line_ver.linewidth = 3;
+  line_ver.stroke = "rgba(20,20,20,1)";
+  line_ver.fill = "rgba(0,0,0,0)";
+
+
+
+  //let box_0 = two.makeRectangle(cx - (x_len/4), cy + (y_len/4), x_len/2,y_len/2);
+  //let box_1 = two.makeRectangle(cx + (x_len/4), cy + (y_len/4), x_len/2,y_len/2);
+  //box_0.fill = "rgba(0,0,0,0)";
+  //box_1.fill = "rgba(0,0,0,0)";
+
+
+  let txt_side_a1  = two.makeText(opt.text_h[0], cx - x_len/2 - font_offset[0], cy - (y_len/4) + dh/2, font_style);
+  //txt_side_a1.rotation = -Math.PI/2;
+  //let txt_side_a1     = two.makeText("a1",   cx - x_len/2 - 2*font_offset[0], cy - (1.25*y_len/4) + fs, font_style);
+
+  let txt_side_a0_eo  = two.makeText(opt.text_h[1], cx - x_len/2 - font_offset[0], cy + (y_len/4)+ dh/2, font_style);
+  //txt_side_a0_eo.rotation = -Math.PI/2;
+
+  let txt_bottom_b0_eo  = two.makeText(opt.text_w[0], cx - x_len/4 + dw/2, cy + (y_len/2) + font_offset[1], font_style);
+
+  let txt_bottom_b1_eo  = two.makeText(opt.text_w[1], cx + x_len/4 + dw/2, cy + (y_len/2) + font_offset[1], font_style);
+
+  //let txt_bottom_B  = two.makeText("B", cx, cy + (y_len/2) + font_offset[1], font_style);
+
+  let circle_s = two.makeCircle(cx - (x_len/2) + c_offset, cy + (y_len/2) - c_offset, radius);
+  circle_s.linewidth = 0;
+  circle_s.fill = path_color;
+
+
+  if (("nopath" in opt) &&
+      (opt.nopath)) {
+
+  	let lc = [ cx + (x_len/2) - c_offset, cy  - c_offset + dh ];
+
+    let cross_0 = two.makeLine( lc[0] - radius, lc[1] + radius, lc[0] + radius, lc[1] - radius );
+    cross_0.linewidth = 1.5;
+    cross_0.stroke = "rgba(252,37,3,0.95)";
+    cross_0.join = "round";
+
+    let cross_1 = two.makeLine( lc[0] + radius, lc[1] + radius, lc[0] -radius, lc[1] - radius );
+    cross_1.linewidth = 1.5;
+    cross_1.stroke = "rgba(252,37,3,0.95)";
+    cross_1.join = "round";
+
+  }
+  else {
+
+  let circle_a1_e = two.makeCircle(cx + (x_len/2) - c_offset, cy  - c_offset + dh, radius);
+  circle_a1_e.linewidth = 0;
+  circle_a1_e.fill = path_color_p;
+
+  }
+
   let circle_e = two.makeCircle(cx + (x_len/2) - c_offset, cy + (y_len/2) - c_offset, radius);
   circle_e.linewidth = 0;
   circle_e.fill = path_color;
 
+  let circle_a0_e = two.makeCircle(cx - (x_len/2) + c_offset, cy  + c_offset + dh, radius);
+  circle_a0_e.linewidth = 0;
+  circle_a0_e.fill = path_color_p;
+
+
+  let circle_a1_s = two.makeCircle(cx - (x_len/2) + c_offset, cy  - c_offset + dh, radius);
+  circle_a1_s.linewidth = 0;
+  circle_a1_s.fill = path_color_p;
+
+  let circle_b1_s = two.makeCircle(cx + (x_len/2) - c_offset, cy  + c_offset + dh, radius);
+  circle_b1_s.linewidth = 0;
+  circle_b1_s.fill = path_color_p;
+  
+  //two.update();
+}
+
+function mk_oo(cur_x, cur_y, x_len, y_len, dx, dy) {
+
+  //----------
+  //----------
+  //----------
+  // odd height, odd width (simplest case)
+  //
+  box_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": y_len,
+    "nx": 5, "ny": 5,
+    "initial_parity": 1,
+    "text_h" : "2h+1",
+    "text_w": "2w+1"
+  }
+
+  let _ss = x_len / 5;
+  cur_x += dx;
+  box_subdiv_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": y_len,
+    "line_ds": [ +_ss/2, -_ss/2 ],
+    "initial_parity": 1,
+    "nx": 5, "ny": 5,
+    "text_h" : ["2⌊h/2⌋+1", "2⌊h/2⌋" ],
+    "text_w" : ["2⌊w/2⌋", "2⌊w/2⌋+1" ]
+  };
+
+  mkbox(box_opt);
+  mkbox_subdiv(box_subdiv_opt);
+
+}
+
+function mk_oe(cur_x, cur_y, x_len, y_len, dx, dy) {
+
+  let start_x = cur_x;
+  let start_y = cur_y;
+
+  // odd height, even width
+  //
+  box_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": 4*x_len/5, "y_len": y_len,
+    "nx": 4, "ny": 5,
+    "initial_parity": 1,
+    "text_h" : "2h+1",
+    "text_w": "4w"
+  }
+
+  cur_x += dx;
+  box_subdiv_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": 4*x_len/5, "y_len": y_len,
+    "nx": 4, "ny": 5,
+    "initial_parity": 1,
+    "line_ds": [ x_len/10, 0 ],
+    "text_h" : ["2⌊h/2⌋+1", "2⌊h/2⌋" ],
+    "text_w" : ["2w", "2w" ]
+  };
+
+  mkbox(box_opt);
+  mkbox_subdiv(box_subdiv_opt);
+
+  // odd height, even width
+  //
+  //cur_x = start_x;
+  //cur_y += dy;
+  cur_x += dx;
+  box_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": 5*y_len/6,
+    "nx": 6, "ny": 5,
+    "initial_parity": 1,
+    "text_h" : "2h+1",
+    "text_w": "4w+2"
+  }
+
+  cur_x += dx;
+  box_subdiv_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": 5*y_len/6,
+    "nx": 6, "ny": 5,
+    "line_ds": [ -x_len/12, 0 ],
+    "initial_parity": 1,
+    "text_h" : ["2⌊h/2⌋+1", "2⌊h/2⌋" ],
+    "text_w" : ["2w+1", "2w+1" ]
+  };
+
+  mkbox(box_opt);
+  mkbox_subdiv(box_subdiv_opt);
+
+
+}
+
+function mk_ee(cur_x, cur_y, x_len, y_len, dx, dy) {
+
+  let start_x = cur_x;
+  let start_y = cur_y;
+
+  //----------
+  //----------
+  //----------
+  // even height, even width
+  //
+  //cur_x = start_x + 2*dx - dx/8;
+  //cur_y = start_y;
+  box_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": y_len,
+    "initial_parity":0,
+    "nx": 4, "ny": 4,
+    "text_h" : "4h",
+    "text_w": "4w"
+  }
+
+  cur_x += dx - dx/8;
+  box_subdiv_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": y_len,
+    "initial_parity":0,
+    "nx": 4, "ny": 4,
+    "text_h" : ["2h", "2h" ],
+    "text_w": ["2w", "2w" ]
+  };
+
+  mkbox(box_opt);
+  mkbox_subdiv(box_subdiv_opt);
+
+  //--
+  //
+  //cur_x = start_x ;
+  //cur_y += + dy - dy/8;
+  cur_x = start_x + 2*dx;
+  cur_y = start_y;
+  //cur_y += + dy - dy/8;
+  box_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": 4*y_len/6,
+    "initial_parity":0,
+    "nx": 6, "ny": 4,
+    "text_h" : "4h",
+    "text_w": "4w+2"
+  }
+
+  cur_x += dx - dx/8;
+  box_subdiv_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": 4*y_len/6,
+    "initial_parity":0,
+    "nx": 6, "ny": 4,
+    "text_h" : ["2h", "2h" ],
+    "text_w": ["2w+1", "2w+1" ]
+  };
+
+  mkbox(box_opt);
+  mkbox_subdiv(box_subdiv_opt);
 
 
 
-  two.update();
+  //cur_x = start_x + 2*dx - dx/4;
+  //cur_y = start_y;
+  cur_x = start_x;
+  cur_y += dy;
+  box_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": y_len,
+    "initial_parity":0,
+    "nx": 6, "ny": 6,
+    "text_h" : "4h+2",
+    "text_w": "4w+2"
+  }
+
+  cur_x += dx - dx/8;
+  box_subdiv_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": y_len,
+    "initial_parity":0,
+    "nx": 6, "ny": 6,
+    "text_h" : ["2h+1", "2h+1" ],
+    "text_w": ["2w+1", "2w+1" ]
+  };
+
+  mkbox(box_opt);
+  mkbox_subdiv(box_subdiv_opt);
+
+
+
+  //cur_x = start_x + 2*dx - dx/4;
+  //cur_y = start_y;
+  cur_x = start_x + 2*dx;
+  cur_y = start_y + dy;
+  box_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": 6*y_len/8,
+    "initial_parity":0,
+    "nx": 8, "ny": 6,
+    "text_h" : "4h+2",
+    "text_w": "4w"
+  }
+
+  cur_x += dx - dx/8;
+  box_subdiv_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": 6*y_len/8,
+    "initial_parity":0,
+    "nx": 8, "ny": 6,
+    "line_ds" : [ -x_len/8, 0],
+    "text_h" : ["2h+2", "2h" ],
+    "text_w": ["2w", "2w" ]
+  };
+
+  mkbox(box_opt);
+  mkbox_subdiv(box_subdiv_opt);
+
+
+}
+
+function mk_eo(cur_x, cur_y, x_len, y_len, dx, dy) {
+
+  let start_x = cur_x;
+  let start_y = cur_y;
+
+  //----------
+  //----------
+  //----------
+  // even height, odd width
+  //
+  box_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": 4*y_len/5,
+    "initial_parity":0,
+    "nx": 5, "ny": 4,
+    "nopath": true,
+    "text_h" : "4h",
+    "text_w": "2w+1"
+  }
+
+  cur_x += dx - dx/8;
+  box_subdiv_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": 4*y_len/5,
+    "initial_parity":0,
+    "nx": 5, "ny": 4,
+    "line_ds" : [ 0, -y_len/10 ],
+    "text_h" : ["2h", "2h" ],
+    "nopath": true,
+
+    //"text_w": ["2w", "2w+1" ]
+
+    //"text_h" : ["2⌊h/2⌋+1", "2⌊h/2⌋" ],
+    "text_w" : ["2⌊w/2⌋", "2⌊w/2⌋+1" ]
+  };
+
+  mkbox(box_opt);
+  mkbox_subdiv(box_subdiv_opt);
+
+  //----------
+  //
+  cur_x = start_x;
+  cur_y += dy;
+  box_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": 6*y_len/5,
+    "initial_parity":0,
+    "nx": 5, "ny": 6,
+    "nopath": true,
+    "text_h" : "4h+2",
+    "text_w": "2w+1"
+  }
+
+  cur_x += dx - dx/8;
+  box_subdiv_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": 6*y_len/5,
+    "initial_parity":0,
+    "nx": 5, "ny": 6,
+    "line_ds" : [ -x_len/5, -y_len/10 ],
+    "nopath": true,
+    "text_h" : ["2h+1", "2h+1" ],
+    //"text_w": ["2w", "2w+1" ]
+    "text_w" : ["2⌊w/2⌋", "2⌊w/2⌋+1" ]
+  };
+
+  mkbox(box_opt);
+  mkbox_subdiv(box_subdiv_opt);
+
 }
 
 function config_production_init() {
@@ -353,165 +809,42 @@ function config_production_init() {
   var ele = document.getElementById("config_production_canvas");
   two.appendTo(ele);
 
-  mkbox();
-  return;
+  let start_x = 150,
+      start_y = 100;
 
-  //two.update();
+  let cur_x = start_x;
+  let cur_y = start_y;
 
-  let square_size = 50;
-
-
-  // y+ is downwards
-  //
-  let sx = 50,
-      sy = 50,
-      cur_x = 50,
-      cur_y = 50,
-      dx = 200,
+  let dx = 230,
       dy = 200;
 
-  // path creep fudge
-  let pcf = 0.35;
-  pcf = 0.45;
+  let x_len = 150,
+      y_len = 150;
 
-  //cur_x += dx;
-  cur_x = sx;
-  let opt_2x2_ul = {
-    "sx": cur_x, "sy": cur_y,
-    "nx": 2, "ny": 2,
-    "x_len": square_size, "y_len": square_size,
-    "path": [ [0,1], [1,1], [1,0], [0,0] ]
-  };
-  mk_checkerboard_path(opt_2x2_ul);
-  cur_x += dx - (3*square_size/2);
-
-  let opt_2x2_lr = {
-    "sx": cur_x, "sy": cur_y,
-    "nx": 2, "ny": 2,
-    "x_len": square_size, "y_len": square_size,
-    "path": [ [0,1], [0,0], [1,0], [1,1] ]
-  };
-  mk_checkerboard_path(opt_2x2_lr);
-  cur_x += dx - (3*square_size/2);
-
-  let opt_2x2_np = {
-    "sx": cur_x, "sy": cur_y,
-    "nx": 2, "ny": 2,
-    "nopath": true,
-    "x_len": square_size, "y_len": square_size,
-    "path": [ [0,1], [0,pcf],  [1,0] ]
-    //"path": [ [0,1], [0,0], [1,0], [1,1] ]
-  };
-  mk_checkerboard_path(opt_2x2_np);
-  //cur_x += dx - square_size;
-
-  cur_x = sx;
-  cur_y += dy - (3*square_size/2);
-  let opt_2x3_ur = {
-    "sx": cur_x, "sy": cur_y,
-    "nx": 2, "ny": 3,
-    "initial_parity": 1,
-    "x_len": square_size, "y_len": square_size,
-    "path": [ [0,2], [1,2], [1,1], [0,1], [0,0], [1,0] ]
-  };
-  mk_checkerboard_path(opt_2x3_ur);
-  cur_x += dx - (3*square_size/2);
-
-  let opt_2x3_lr= {
-    "sx": cur_x, "sy": cur_y,
-    "nx": 2, "ny": 3,
-    "initial_parity": 1,
-    "x_len": square_size, "y_len": square_size,
-    "path": [ [0,2], [0,1], [0,0], [1,0], [1,1], [1,2] ]
-  };
-  mk_checkerboard_path(opt_2x3_lr);
-  cur_x += dx - (3*square_size/2);
-
-  let opt_2x3_np = {
-    "sx": cur_x, "sy": cur_y,
-    "nx": 2, "ny": 3,
-    "nopath": true,
-    "initial_parity": 1,
-    "x_len": square_size, "y_len": square_size,
-    "path": [ [0,2], [1,2], [1,1+pcf], [0,0] ]
-    //"path": [ [0,2], [0,1], [0,0], [1,0], [1,1], [1,2] ]
-  };
-  mk_checkerboard_path(opt_2x3_np);
-  cur_x += dx;
+  let box_opt = {},
+      box_subdiv_opt = {};
 
 
-  cur_x = sx;
-  cur_y += dy - (1*square_size/2);
-  let opt_3x2_ur = {
-    "sx": cur_x, "sy": cur_y,
-    "nx": 3, "ny": 2,
-    "x_len": square_size, "y_len": square_size,
-    "path": [ [0,1], [0,0], [1,0], [1,1], [2,1], [2,0] ]
-  };
-  mk_checkerboard_path(opt_3x2_ur);
-  cur_x += dx - (square_size/2);
+  mk_oe(cur_x, cur_y, x_len, y_len, dx, dy);
 
-  let opt_3x2_ul = {
-    "sx": cur_x, "sy": cur_y,
-    "nx": 3, "ny": 2,
-    "x_len": square_size, "y_len": square_size,
-    "path": [ [0,1], [1,1], [2,1], [2,0], [1,0], [0,0] ]
-  };
-  mk_checkerboard_path(opt_3x2_ul);
-  cur_x += dx - (square_size/2);
+  cur_x = start_x + 4*dx;
+  cur_y = start_y ;
+  mk_oo(cur_x, cur_y, x_len, y_len, dx, dy);
 
-  let opt_3x2_np = {
-    "sx": cur_x, "sy": cur_y,
-    "nx": 3, "ny": 2,
-    "nopath": true,
-    "x_len": square_size, "y_len": square_size,
-    "path": [ [0,1], [0,0], [1-pcf,0], [2,1] ]
-    //"path": [ [0,1], [1,1], [2,1], [2,0], [1,0], [0,0] ]
-  };
-  mk_checkerboard_path(opt_3x2_np);
-  cur_x += dx;
+  cur_x = start_x + 4*dx;
+  cur_y = start_y + dy;
+  mk_eo(cur_x, cur_y, x_len, y_len, dx, dy);
+
+  // 
+  cur_x = start_x ;
+  cur_y = start_y + dy;
+  mk_ee(cur_x, cur_y, x_len, y_len, dx, dy);
 
 
-
-  cur_x = sx;
-  cur_y += dy - (3*square_size/2);
-  let opt_3x3_ur = {
-    "sx": cur_x, "sy": cur_y,
-    "nx": 3, "ny": 3,
-    "x_len": square_size, "y_len": square_size,
-    "path": [
-      [0,2], [0,1], [0,0],
-      [1,0], [1,1], [1,2],
-      [2,2], [2,1], [2,0]
-      ]
-  };
-  mk_checkerboard_path(opt_3x3_ur);
-  cur_x += dx - (square_size/2);
-
-  let opt_3x3_ul = {
-    "sx": cur_x, "sy": cur_y,
-    "nx": 3, "ny": 3,
-    "x_len": square_size, "y_len": square_size,
-    "path": [
-      [0,2], [0,1], [1,1], [1,2],
-      [2,2], [2,1], [2,0], [1,0], [0,0]
-      ]
-  };
-  mk_checkerboard_path(opt_3x3_ul);
-  cur_x += dx - (square_size/2);
-
-  let opt_3x3_lr = {
-    "sx": cur_x, "sy": cur_y,
-    "nx": 3, "ny": 3,
-    "x_len": square_size, "y_len": square_size,
-    "path": [
-      [0,2], [1,2], [1,1], [0,1],
-      [0,0], [1,0], [2,0], [2,1], [2,2]
-      ]
-  };
-  mk_checkerboard_path(opt_3x3_lr);
-
+  two.update();
+  return;
 
 }
+
 
 
