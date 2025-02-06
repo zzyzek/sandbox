@@ -225,6 +225,26 @@ From the paper:
 > then either it touches an unusually large empty sphere or its DT neighbors are
 > unusually close to each other.
 
+### Ideas
+
+Here's an idea for an algorithm:
+
+* $n = |V|$, $v \in [0, 1)^2$ uniformly random
+* Construct a grid, $G$, with cell size $(\sqrt{n},\sqrt{n})$
+  - fill grid with points from $V$, with a linear linked list for duplicates
+  - call the grid cells centered at $v$ of grid (integral) radius $r$ $G _ r (v)$
+* For each point $v \in V$:
+  - $P = \{v\}$
+  - grid fence relative radius resolution point $F _ {r,u,l,d} = \{\infty\}$
+  - for $r = \{0,1,\dots,\lceil \sqrt{n} \rceil\}$:
+    + for all $u \in G _ r (v) - P$
+      - find direction, $\{r,u,l,d\}$ and which relative grid radius, $r _ q$, secures the fence
+      - if $r _ q < F _ {dir(u-v)}$:
+        + $F _ {dir(u-v)} = r _ q$
+      - $P = P \cup \{u\}$
+    + if all $F _ {r,u,l,d} \le r$, break
+  - Construct the $RNG(v)$ testing only points $u \in G _ r (v)$
+
 
 
 Refernces
