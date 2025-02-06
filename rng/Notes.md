@@ -104,9 +104,32 @@ Some takeaways:
 * The worst case complexity comes from "pathological" cases when the points are exactly on the circle
   and don't trigger the removal because of the open nature of the regions
 
+UPDATE:
+
+To understand why special consideration needs to be done for points near the edge, both in the 6
+region and 8 region case, consider a point very near one of the sides.
+Let's say it's the closest point to the edge.
+
+This means it needs to walk the entire row/column of grid cells in order to determine if it has a neighbor
+or its hit an edge.
+K&N claim that the uppermost point needs to do $O(n)$ work but I don't see why.
+Instead, consider a special case where there are $\sqrt{n}$ points in the upper row (on average one
+point per grid cell, $O(\sqrt{n})$ cells, so $O(\sqrt{n})$ points) ordered by decreasing height from left to right.
+The left most point needs to traverse the whole top row on the right to fill $R _ 1$.
+The next point will have the first point at it's left neighbor, $R _ 3$, but again needs to traverse
+the whole right top row to fill it's $R _ 1$ wedge.
+Doing this for all points in the top row gives $\sum _ {k=1} ^ {\sqrt{n}} k = O(n)$.
+I'd have to think about it but I suspect random permutation doesn't save you.
+
+This happens for both 6 and 8 regions.
+
+
 ### KNT87
 
-* Now they believe the KN85 algorithm was 8 regions, not 6 for some reason
+* Now they believe the KN85 algorithm was 8 regions
+  - 8 regions, up from 6, to help simplify the algorithm
+  - They do other tricks so as not to handle edge cells as a special case and
+    8 regions allows for an additional heuristic to stop the spiral search
 * GNG has now turned into ARN (all region neighbors)
 
 On futher reading, I suspect this gives an $O(n)$ algorithm for $d=2, L _ 2$, and points in generic position.
