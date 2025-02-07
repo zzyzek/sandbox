@@ -245,6 +245,59 @@ Here's an idea for an algorithm:
     + if all $F _ {r,u,l,d} \le r$, break
   - Construct the $RNG(v)$ testing only points $u \in G _ r (v)$
 
+The fence needs to be relative to the point $v$ above, encased by the current grid fence.
+
+So, fence radius, $r _ {fence}$, is the minimum distance of point $v$ to the current grid region fence.
+A fence edge will be resolved when it goes completely past the edge of the grid.
+
+For simplicity, a fence edge that partially intersects the grid edge will still have it's boundary as if
+it didn't intersect the grid boundary, so past the edge of the grid.
+This might change later.
+
+To calculate the point at which the line secures the fence, consider the example:
+
+```
+
+ .__________.      u
+  \         |  ___/
+   \   q ___|_/
+    \  ./   |
+     \      |      7 v
+      \     |     /
+       \    |    /
+        \   |   /
+         \  |  /
+          \ | /
+           \|/
+            . p
+```
+
+$u, v$ are unit length.
+
+Some elementary calculations:
+
+$$
+\begin{array}{lll}
+ & & s _ q ( t _ 0 ) = q + t _ 0 u \\
+ & & s _ p ( t _ 1 ) = p + t _ 1 v \\
+\to & & q _ x - p _ x + t _ 0 u _ x - t _ 1 v _ x = 0 \\
+   &  & q _ y - p _ y + t _ 0 u _ y - t _ 1 v _ y = 0 \\
+\to & & (q _ x - p _ x) - \frac{v_y}{v_x}(q_y - p _ y) + t _ 0 (u _ x - \frac{v _ y}{v _ x}u _ y) = 0 \\
+\to & t _ 0 & = \frac{ \frac{v _ y}{v _ x} ( q _ y - p _ y)-(q _ x - p _ x) }{ u _ x - \frac{v _ y}{ v _ x} u _ y } \\
+&  & = \frac{v _ y (q _ y - p _ y) - v _ x(q _ x - p_ x)}{ v _ x u _ x - v _ y u _ y} \\
+\to & t _ 1 & = v ^ {t} (s _ q(t _ 0) - p) \\
+\to & t _ {I} & = \lceil \sqrt{2} t _ 1 - l _ 0 \rceil + 1\\
+\end{array}
+$$
+
+Where $t _ I$ is the integral radius at which the $q \perp q$ line will secure the fence edge.
+Here, $l _ 0$ is the initial length to the first fence around $p$.
+
+Still thinking about this but I think for 3d, we can take the projection into one of the six sides that's
+appropriate and make appropriate estimates for when the plane secures the fence face.
+
+
+
 
 
 Refernces
