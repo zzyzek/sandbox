@@ -282,9 +282,9 @@ $$
  & & s _ p ( t _ 1 ) = p + t _ 1 v \\
 \to & & q _ x - p _ x + t _ 0 u _ x - t _ 1 v _ x = 0 \\
    &  & q _ y - p _ y + t _ 0 u _ y - t _ 1 v _ y = 0 \\
-\to & & (q _ x - p _ x) - \frac{v_y}{v_x}(q_y - p _ y) + t _ 0 (u _ x - \frac{v _ y}{v _ x}u _ y) = 0 \\
-\to & t _ 0 & = \frac{ \frac{v _ y}{v _ x} ( q _ y - p _ y)-(q _ x - p _ x) }{ u _ x - \frac{v _ y}{ v _ x} u _ y } \\
-&  & = \frac{v _ y (q _ y - p _ y) - v _ x(q _ x - p_ x)}{ v _ x u _ x - v _ y u _ y} \\
+\to & & (q _ x - p _ x) - \frac{v_x}{v_y}(q_y - p _ y) + t _ 0 (u _ x - \frac{v _ x}{v _ y}u _ y) = 0 \\
+\to & t _ 0 & = \frac{ \frac{v _ x}{v _ y} ( q _ y - p _ y)-(q _ x - p _ x) }{ u _ x - \frac{v _ x}{ v _ y} u _ y } \\
+&  & = \frac{v _ x (q _ y - p _ y) - v _ y(q _ x - p_ x)}{ v _ y u _ x - v _ x u _ y} \\
 \to & t _ 1 & = v ^ {t} (s _ q(t _ 0) - p) \\
 \to & t _ {I} & = \lceil \sqrt{2} t _ 1 - l _ 0 \rceil + 1\\
 \end{array}
