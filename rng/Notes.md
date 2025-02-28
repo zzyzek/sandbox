@@ -31,7 +31,7 @@ G _ { \beta } (V) = \\{ (p,q) | U _ {p,q} (\beta) \cap V = \emptyset \\} \\
 $$
 
 * $RNG(V)$ : relative neighborhood graph
-* $GG(V)$ : Gabrial graph
+* $GG(V)$ : Gabriel graph
 * $G _ { \beta } (V)$ : $\beta$-skeleton neighborhood graph
   - $G _ 2 (V) = RNG(V)$
   - $G _ 1 (V) = GG(V)$
@@ -63,7 +63,7 @@ Algorithms
 * $\text{runtime}( \text{Alg}( DT(V) ) _ {RNG} ) = O( |V|^2 )$ (Delaunay triangulation speedup)
 
 NOTE: I don't know what JT is smoking but it looks like $d=2, L _ 2, O(n)$ is completely missed in the table, even
-though he talks about it explicitely.
+though he talks about it explicitly.
 I also don't trust that a generic condition $d=3, L _ 2, O(n)$ hadn't been discovered at that point.
 
 ### KN85
@@ -73,8 +73,8 @@ I'm only going to talk about the generic case.
 Assume $|V|=n$ points in the unit square, distributed generically (Poisson point process).
 
 The bulk of the KN85 algorithm works by considering radial regions for each point, computing the nearest neighbor in
-the six radial slices and noticing that this graph, called the "goegraphic neighbourhood graph" (GNG), is a superset of the
-relative neighbourhood graph (RNG) of the point in question.
+the six radial slices and noticing that this graph, called the "geographic neighborhood graph" (GNG), is a super set of the
+relative neighborhood graph (RNG) of the point in question.
 To find nearest points to construct the GNG, the cells are walked in a spiral fashion, effectively considering nearer
 cells first to do the distance test (maybe Bresenham's circle drawing would be more effective?).
 
@@ -98,7 +98,7 @@ Under generic conditions (for $d=2$, $L _ 2$), the algorithm works in expected l
 Some takeaways:
 
 * $RNG(v) \subseteq GNG(v)$ ($v$ a single point)
-* There are six regions, most likey due to the maximum (generic) neighbor count
+* There are six regions, most likely due to the maximum (generic) neighbor count
 * The special handling of border cells/points is handled in another algorithm/paper which
   I'm trying to find
 * The worst case complexity comes from "pathological" cases when the points are exactly on the circle
@@ -132,7 +132,7 @@ This happens for both 6 and 8 regions.
     8 regions allows for an additional heuristic to stop the spiral search
 * GNG has now turned into ARN (all region neighbors)
 
-On futher reading, I suspect this gives an $O(n)$ algorithm for $d=2, L _ 2$, and points in generic position.
+On further reading, I suspect this gives an $O(n)$ algorithm for $d=2, L _ 2$, and points in generic position.
 I also suspect that this can be adapted pretty easily to 3d, but I need to investigate more.
 
 The following focuses on $d=2, L _ 2$ and generic point positions.
@@ -143,7 +143,7 @@ The basis of the algorithm is:
 * Partition the grid into $\frac{1}{\sqrt{n}}$ sized cells, using a linked list
   to store multiple points
 * For each point $p = (x _ p, y _ p)$, create 8 radial regions centered at $p$
-* Add virtual points $((0, y _ p), (1, y _ p), (x _ p, 0), (x _ p, 1))$ as sentials
+* Add virtual points $((0, y _ p), (1, y _ p), (x _ p, 0), (x _ p, 1))$ as sentinels
   for edge detection
 * Spiral walk out from $p$, cataloging nearest point $q _ i$ in each region
   - Call a radial region "closed" if a $q _ j$ point is found in it
@@ -154,7 +154,7 @@ The basis of the algorithm is:
 * Use the $q _ j$ and $L$ to find the $RNG(p)$
 
 The idea is that, for a point $p$, the $RNG(p)$ is a sub graph if the $ARN(p)$, both of which are degree bounded.
-Constructing the $ARN(p)$ might need to walk many cells if, say, $p$ was near the boundary (conider $p$ near the
+Constructing the $ARN(p)$ might need to walk many cells if, say, $p$ was near the boundary (consider $p$ near the
 bottom left edge, with the radial region creating a thin sliver of cells all the way up to top left).
 
 With the condition that no two radial regions are open, we get some guarantees about how far we need to search
@@ -182,7 +182,7 @@ picture later:
 
 * Consider $p$, $SI _ p$ with the "radius" of $SI _ p$ to be $4 c$ (total width $8 c$)
   - $c = c _ { \text{max},p } = \text{max} _ { j } ( d _ {\infty} (p, q _ j) )$, where $j$ is over closed radial regions only
-* w.l.o.g. consider $q$ to be the point in the radial region $R _ 1$, with $R _ 1$ "open" and $R _ 2$ and $R _ 8$ closded
+* w.l.o.g. consider $q$ to be the point in the radial region $R _ 1$, with $R _ 1$ "open" and $R _ 2$ and $R _ 8$ closed
 * Call $q _ 2$ and $q _ 8$ the points in $R _ 1$ and $R _ 8$ that closed them
 * $|p,q _ 2| \le \sqrt{2} c$, $|p, q _ 8| \le \sqrt{2} c$, $|p, q| \ge 2 c$
 
@@ -190,7 +190,7 @@ Hm, I might be missing something but the way I see it, the $\theta _ 2 = \text{a
 would exclude $(p,q)$ if the outer square is $3c$ radius ($6c$ on a side total).
 
 That is, the worst case happens when $q _ 2$ is directly above $p$ (in radial region $R _ 2$), and when $q _ 8$ diagonal down from $p$,
-making regions above the $q _ 2$ horizontal line and to the right of the diganal line of perpendicular to $q _ 8$ regions where
+making regions above the $q _ 2$ horizontal line and to the right of the diagonal line of perpendicular to $q _ 8$ regions where
 $q$ would imply $\theta _ 2$ and $\theta _ 8$ to be greater than $\frac{\pi}{2}$.
 In this case, it means either $q _ 2$ or $q _ 8$ is in the lune of $(p,q)$, excluding $(p,q)$ from the $RNG$.
 
@@ -296,11 +296,187 @@ Here, $l _ 0$ is the initial length to the first fence around $p$.
 Still thinking about this but I think for 3d, we can take the projection into one of the six sides that's
 appropriate and make appropriate estimates for when the plane secures the fence face.
 
+---
+
+As a review, we only consider 2d and 3d with uniform random points in space restricted
+to a unit cube.
+Since the points are random, this ensures generic point configurations.
+In particular, no three points lie on a line, no three points create an equilateral triangle.
+
+The generic conditions ensures finite RNG degree in 2d and 3d.
+
+There are two algorithms for 2d and 3d.
+The 2d case is simpler so we'll focus on the 3d case.
+
+* Secure fence
+  - simple proof of concept to get $O(N)$ run time
+* Secure fence, shrinking window
+  - modification of secure fence to circumvent some potential bad cases
+  - still $O(N)$
+
+  
+### Secure the Increasing Fence (StIF)
 
 
+```
+V - vertices
+G - grid
+RNG - output RNG graph
+
+M = |V|^{1/3}
+s = 1 / |V|^{1/3}
+
+Create grid, G, of grid cell size s, ( each dimension of integral value ceil(M) )
+Foreach p in V:
+  Place p in G, using a linear linked list for grid collisions
+
+Foreach p in V:
+  fence = [M,M, M,M, M,M]
+  PointsInFence = []
+  for R=0 to M
+    if ( max _ { d \in \{0..5\} } fence[d] ) < R: break
+    Take square sub-grid, H, of grid G that has Manhattan radius of R with p at it's center
+    L_0 = minimum absolute distance of p to sub-grid H
+    create frustum vectors, bounding volume, and other 3d geometry and vector information,
+      F_0, F_1, F_2, F_3, F_4, F_5 in each of the idir directions, of size s.
+      Call F_{d,v_j} the (four, $j \in \{0..3\}$) frustum vectors of length s each.
+    foreach q not seen in H / p:
+      PointsInFence.push(q)
+      D_i = index of which unrestricted frustum q falls into relative to p (idir of q relative to p)
+      // Find maximum units that frustum vector $v_j$ intersects plane defined by $q$. That is:
+      // ( (q-p) / |q-p| ) \cdot ( p + t v_j - q ) = 0
+      t = max _ {j \in \{0..3\}} |p-q|^2 / ( (q-p) \cdot v_j )
+      if t < fence[D_i]: fence[D_i] = t
+  
+  RNG += NaiveRNG(p, PointsInFence)
+```
+
+Consider an anchor point $p$ and a candidate point $q$.
+Point $q$ excludes any potential point, $u$, that lie on the other side of
+the half plane cut, $\frac{q-p}{|q-p|} \cdot (u - q) = 0$.
+
+We could create a convex hull from the half plane cuts created by the $q$ neighboring
+points of $p$ but this might be costly.
+Instead, we only keep summary information of when the half plane fully encloses a
+growing 'fence' around $p$, where the fence is aligned with the binning grid.
+
+Each $q$ has the potential to 'secure' a fence face, where a secured fence has
+a recorded time of at least one $q-p$ plane fully enclosing the fence face
+less than the current fence radius.
+When all fence faces have been secured, we can stop and then run naive RNG
+on all $q$ points within the current sub-grid fence.
+
+Since the RNG degree is finite, we know the expected size of the growing sub-grid fence
+is finite.
+The finite sub-grid fence has an expected finite number of $q$ points within it (as
+well as finite variance), which gives an $O(N)$ algorithm.
+
+All this sounds complicated but it really is a simple (potentially trivial) extension to Jaromczyk & Toussainty,
+using one of their lemmas.
+
+A graphic will help.
+
+### Shrinking Window, Increasing Fence (SWIF)
+
+JT and KN85 (2d) linear time algorithms rely on some complicated book-keeping by either considering edge
+or corner points differently, or doing some analysis on the regions filled for an anchor point $p$.
+Choosing $q$ planes, as in StIF above, avoid the special cases and more complicated region analysis
+because the $q$ planes are orthogonal the the $q-p$ vector and regions of the JT and KN85 algorithms.
+
+In my opinion, one deeper issue is that if points are restricted to a certain simple geometry that
+isn't well conditioned to the algorithm, things might fail.
+In the case of JT and KN85, their regions meant that the unit square was a special case they had
+to guard against to keep their $O(N)$ algorithm.
+Other algorithms might have other simple geometry that could foil it through simple
+restrictions of point placement, even if points were still placed randomly within the restricted
+space.
+
+StIF above has the limitation that if points lie on a sliver just above an axis aligned plane,
+they wouldn't secure the fence with a value less than the grid size.
+This means that for certain simple "antagonistic" geometry, StIF would become quadratic, or worse,
+because of these points on the edge.
+This is reminiscent of the KN85 algorithm that needs to make special consideration for points near
+the edges of the grid.
+
+To overcome this, a shrinking window, increasing fence algorithm (SWIF) can be made that keeps
+more fine-grained book-keeping on where the $q$ planes intersect the growing grid.
+Instead of just keeping a single "time" value of when we know where the $q$ plane will fully enclose
+a fence face, we can keep information on a bounding window of where the $q$ plane intersects the
+fence face.
+
+When all the bounding windows on each of the fence face disappears, we know the fence is secured.
+
+The plane cuts from $q$ points on the sliver above of the axis-aligned planes will effectively
+only update the window bounds on one side.
+By itself, this wouldn't offer any relief, but paired with another method that could identify
+spatial regions where points are restricted from placement and then using them to update the
+window will help secure the fence even with these problem points.
+
+Here, the window is needed as keeping granularity on the whole fence face might fail for points
+that prevent the whole fence face to be secured through simple restricted geometry heuristics.
 
 
-Refernces
+Again, a graphic will help.
+
+So, while the window book-keeping complicates the basic StIF algorithm, the idea generalizes
+to 3d much more easily (in my opinion) than the JT algorithm.
+The JT algorithm could be extended and rely on some coupon collector property to fill the regions
+but has the same general limitation of ill conditioned restrictive geometry.
+JT overcomes this by waiting for a checkerboard pattern in the region binning and I suspect
+this gets intricate and complicated for 3d.
+
+Regardless, I'm not saying JT can't be extended, potentially naturally or easily to 3d, but,
+again in my opinion, conceptually SWIF is simpler to reason about and implement.
+
+---
+
+
+Some points:
+
+* JT and KN85 are really only specified for random 2d points restricted to the square
+* Given a Delaunay triangulation on random points (2d/3d), expected linear or $O(N \lg N)$ algorithms exist
+  but the DT triangulation itself can be tricky as even for generic points the maximum degree can be
+  unbounded ($O(N)$ in some cases) meaning that both the DT will require super linear time to compute
+* JT can potentially be extended to 3d but it's not clear how to do this naturally or simply
+* StIF gives a conceptually simple expected $O(N)$ time on square/cube restricted random points
+  but suffers for other restricted geometry, even if the restrictive geometry itself is very simple
+* SWIF adds some conceptual complexity by book-keeping the bounding windows in each face but recaptures
+  the expected linear run-time and addresses the ill conditioned restrictive geometry condition
+* *but* both StIF and SWIF suffer from large overhead as the number of neighboring $q$ points is
+  finite but potentially large (80+, depending on dimension and other restrictions) where, at least
+  in its simple formulation, a naive RNG calculation would need to be run on this large (but finite)
+  set of points
+  - This means StIF and SWIF are only for larger data sets where overhead is minimal compared with
+    algorithmic run times
+  - Future work can be done to try and speed up RNG calculations on the finite subsets
+* For SWIF, I haven't really gone into it but there's another facility to figure out when the window can
+  be further restricted when the frustum faces start colliding with the dead space of restricted geometry
+  - In the back of my mind I have an idea of an octree or bounding box regions (maybe of size $s$) that
+    can be used to decide if a frustum window portion falls completely in the restricted zone and can
+    be further shrunk
+  - The other (implicit) assumption is that the restrictive geometry does not allow for any RNG edges
+    through it
+* One simple hack is to just rotate the points by some random value and run the algorithm. I find
+  this unsatisfying as it's not clear what a good rotation is and whether it'll really address many
+  of the concerns, but this is always a possibility. Constant $K$ rotations, under some conditions, might
+  give exponentially more confident guarantees on expected linear time (though in some cases they may
+  not?)
+
+Though it should be clear, as a another reminder, StIF and SWIF are only meant to work on random
+points restricted to simple geometry.
+Structured point distributions can cause worst case complexity ($O(N^3)$) as can more complex
+restrictive geometry.
+
+Generic point distributions on complex geometry is, in some sense, interchangeable with structured
+point distribution on simple geometry.
+The exact definitions of what "complex" and "simple" mean in this context are vague and I won't go
+into it further.
+
+Maybe it's worth just using rectangular cuboids and their rotations to highlight the benefits
+and shortcomings of each algorithm.
+
+
+References
 ---
 
 * [JT] "Relative Neighborhood Graphs and Their Relatives" by Jerzy W. Jaromczyk and Godfried T. Toussainty
