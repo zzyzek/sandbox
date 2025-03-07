@@ -475,6 +475,98 @@ into it further.
 Maybe it's worth just using rectangular cuboids and their rotations to highlight the benefits
 and shortcomings of each algorithm.
 
+---
+
+I'm still trying to figure out the window update calculation.
+These are notes for it.
+
+w.l.o.g., consider `idir` 0 (`+x`), frustum vectors `[[1,1,1],[1,-1,1],[1,-1,-1],[1,1,-1]]`,
+$p$ considered at origin (`[0,0,0]`) and a random $q$ point inside of this frustum.
+
+* Frustum with vectors $(v _ 0, v _ 1, v _ 2, v _ 3) = [[1,1,1],[1,-1,1],[1,-1,-1],[1,1,-1]]$
+  - Frustum lines $k \in \{0 \dots 3\}$, $v _ k(t) = t \cdot v _ k$
+* Window direction vectors
+  - $v _ {0,1} = v _ 1 - v _ 0$
+  - $v _ {1,2} = v _ 2 - v _ 1$
+  - $v _ {2,3} = v _ 3 - v _ 2$
+  - $v _ {3,0} = v _ 3 - v _ 0$
+* Window line vectors: $k \in \{0 \dots 3\}$, $v _ {k,(k+1)\%4}(t) = v _ k + t \cdot v _ {k,k+1}$
+* $q$ random point inside Frustum $(v _ 0, v _ 1, v _ 2, v _ 3 )$
+  - $N _ q = \frac{q}{|q|}$
+  - $Q(u) = N _ q \cdot ( u - q )$, ($Q(u)=0$ plane equation)
+
+```
+.________.
+|   /\   |
+| 3/  \3 |
+| /    \ |
+|/      \|  ^
+|\   4  /|  |
+| \    / |  z
+| 3\  /3 |  |
+|   \/   |
+---------- 
+  = y => 
+     .
+    / \
+  --   --
+  \  x  /
+    \ /
+```
+
+If the point $q$ falls within the
+diamond `4` region, the plane intersects each of the frustum vectors going away from the origin.
+That is, the $Q$ plane that intersects each of $Q( v _ k(t _ k) ) = 0 \to t _ k > 0$.
+
+If the point $q$ falls within the
+quarter `3` diamond regions, there will be three frustum vector intersectionss away from the origin.
+The other frustum vector will intersect in the negative $t$ direction.
+That is, there will be three $t _ k > 0$ and one $t _ {k'} < 0$.
+
+For example, if $q$ is in the upper right hand corner,
+$Q( v _ 0(t _ 0) ) = 0 \to t _ 0 < 0$ and $t _ 1,  t _ 2, t _ 3 > 0$.
+
+So, define the fence edge by the counter clockwise rotation around the frustum vectors, aka
+the window direction vectors.
+For each window direction vector, store two numbers, the 'source' edge and the 'destintation' edge.
+Call them $v _ {k,\text{src}}$ and $v _ {k,\text{dst}}$ respectively.
+
+For each $0 < t _ k < 1$ such that $Q( v _ {k,(k+1) \% 4}(t _ k) ) = 0$, if $Q( v _ k ) > 0$,
+update $v _ {k,\text{src} = t _ k$, else if $Q( v _ k ) < 0$, $v _ {k,\text{dst}} = 1-t _ k$.
+
+
+---
+
+Here's a high level overview:
+
+```
+SWIF3D(P):
+  gridN = ceil( |P|^{1/3} )
+  bin P into grid G[gridN,gridN,gridN]
+  for p in P:
+    platList = [], qCarry = []
+    init coarseFence, windowFence
+    for ir in [0 .. gridN]:
+      inflate/update coarseFence with ir
+      inflate/update windowFence with ir
+      if (coarseFence secured) or (windowFence closed): break
+      fence           = Fence(G, p, ir)
+      platPerimeter   = PlatPerimeter(G,p,ir) // sub grid
+      tmpCarry = []
+      for q in {platPerimeter, qCarry}:
+        if !(q in qCarry): platList.push(q)
+        if !(q in fence): tmpCarry.push(q), continue
+        update coarseFence with q
+        update windowFence with q
+      qCarry = tmpCarry
+
+    NaiveRNG(p, platList)
+```
+
+coarseFence might be redundant here.
+
+
+
 
 References
 ---
