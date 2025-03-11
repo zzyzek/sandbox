@@ -519,7 +519,7 @@ diamond `4` region, the plane intersects each of the frustum vectors going away 
 That is, the $Q$ plane that intersects each of $Q( v _ k(t _ k) ) = 0 \to t _ k > 0$.
 
 If the point $q$ falls within the
-quarter `3` diamond regions, there will be three frustum vector intersectionss away from the origin.
+quarter `3` diamond regions, there will be three frustum vector intersections away from the origin.
 The other frustum vector will intersect in the negative $t$ direction.
 That is, there will be three $t _ k > 0$ and one $t _ {k'} < 0$.
 
@@ -528,7 +528,7 @@ $Q( v _ 0(t _ 0) ) = 0 \to t _ 0 < 0$ and $t _ 1,  t _ 2, t _ 3 > 0$.
 
 So, define the fence edge by the counter clockwise rotation around the frustum vectors, aka
 the window direction vectors.
-For each window direction vector, store two numbers, the 'source' edge and the 'destintation' edge.
+For each window direction vector, store two numbers, the 'source' edge and the 'destination' edge.
 Call them $v _ {k,\text{src}}$ and $v _ {k,\text{dst}}$ respectively.
 
 For each $0 < t _ k < 1$ such that $Q( v _ {k,(k+1) \% 4}(t _ k) ) = 0$, if $Q( v _ k ) > 0$,
@@ -566,6 +566,24 @@ SWIF3D(P):
 coarseFence might be redundant here.
 
 
+---
+
+The motivation for the shrinking fence is to allow for some of the simple bad cases to be handled.
+For example, in 2D, if there's a sliver of points with slope $\frac{pi}{4} + \epsilon$, the top fence
+will likely not be secured as the slope of the perpendicular line of the $q$ points will be nearly
+$\frac{3 pi}{4}$, never securing the fence.
+
+If we had regions labeled as inadmissible, marking the grid binning regions, say, if they're fully
+enclosed by the inadmissible region, then we could use them to update the shrinking fence, taking
+care of these conditions.
+
+Labeling inadmissible regions has to be done extrinsically, as it requires knowledge about the point
+distribution and region.
+We can make some simplifying assumptions, like the region is a convex set and try to find a bounding
+convex region to inform marking which grid boxes as inadmissible.
+In general, though, we need to specify it.
+For example, having a leaf silhouette has many concave regions that would need to be explicitly
+labeled in order to update the shrinking fence.
 
 
 References
