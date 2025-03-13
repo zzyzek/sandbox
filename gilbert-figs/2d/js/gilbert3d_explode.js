@@ -609,14 +609,17 @@ function gilbert3d_explode() {
 
   let qs = s0*Math.sqrt(3)/2;
 
-  let x1 = x0 - 3*qs,
-      y1 = y0 - 3*s0/2;
+  let sep = [3,3];
+  sep = [3.2,3.2];
+
+  let x1 = x0 - sep[0]*qs,
+      y1 = y0 - sep[1]*s0/2;
 
   let x2 = x0,
       y2 = y0 - s0;
 
-  let x3 = x0 - 2*qs,
-      y3 = y0 - 4*s0/2;
+  let x3 = x0 - (sep[0]-1)*qs,
+      y3 = y0 - (sep[1]+1)*s0/2;
 
   let x4 = x0 + qs,
       y4 = y0 - s0/2;
