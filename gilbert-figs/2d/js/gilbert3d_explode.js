@@ -391,21 +391,41 @@ function mk_square_lozenge() {
   two.update();
 }
 
-function mk_lozenge(x0,y0,s) {
+function _Line(x0,y0, x1,y1, lco) {
+  let two = g_fig_ctx.two;
+
+  let lw = 2;
+  //let lco = "rgba(80,80,140,1.0)";
+  //let fco = "rgba(180,180,240,1.0)";
+
+
+  let _l = two.makeLine(x0,y0, x1,y1);
+  _l.linewidth = lw;
+  _l.fill = "rgba(0,0,0,0)";
+  _l.stroke = lco;
+  _l.cbp = 'round';
+  _l.join = 'round';
+  _l.cap = 'round';
+
+  return _l;
+}
+
+
+function mk_lozenge(x0,y0,s, lco, fco, lXYZ) {
+  lXYZ = ((typeof lXYZ === "undefined") ? [1,1,1] : lXYZ);
   let two = g_fig_ctx.two;
 
   let lw = 2;
   let dy = 0;
 
-  let lco = "rgba(80,80,140,1.0)";
-  let fco = "rgba(180,180,240,1.0)";
-
+  //let lco = "rgba(80,80,140,1.0)";
+  //let fco = "rgba(180,180,240,1.0)";
 
   let q = s*Math.sqrt(3)/2;
 
-  let lenX = 2,
-      lenY = 1,
-      lenZ = 3;
+  let lenX = lXYZ[0],
+      lenY = lXYZ[1],
+      lenZ = lXYZ[2];
 
 
   for (let _z=0; _z<lenZ; _z++) {
@@ -454,59 +474,15 @@ function mk_lozenge(x0,y0,s) {
         let x = xy[0] + x0;
         let y = xy[1] + y0;
 
-        //if ((_x==0) &&  (_y == 0)) {
-        if (_x==0) {
-          let _l = two.makeLine(x-q,y+s/2, x-q,y-s/2);
-          _l.linewidth = lw;
-          _l.fill = "rgba(0,0,0,0)";
-          _l.stroke = lco;
-          _l.cbp = 'round';
-          _l.join = 'round';
-          _l.cap = 'round';
-
-          /*
-          if (_y==(lenY-1)) {
-            _l = two.makeLine(x,y, x,y+s);
-            _l.linewidth = lw;
-            _l.fill = "rgba(0,0,0,0)";
-            _l.stroke = lco;
-            _l.cbp = 'round';
-            _l.join = 'round';
-            _l.cap = 'round';
-          }
-          */
-
-          if (_z==0) {
-            _l = two.makeLine(x-q,y+s/2, x,y+s);
-            _l.linewidth = lw;
-            _l.fill = "rgba(0,0,0,0)";
-            _l.stroke = lco;
-            _l.cbp = 'round';
-            _l.join = 'round';
-            _l.cap = 'round';
-          }
-
-          if (_z==(lenZ-1)) {
-            _l = two.makeLine(x-q,y-s/2, x,y);
-            _l.linewidth = lw;
-            _l.fill = "rgba(0,0,0,0)";
-            _l.stroke = lco;
-            _l.cbp = 'round';
-            _l.join = 'round';
-            _l.cap = 'round';
-
-            _l = two.makeLine(x-q,y-s/2, x,y-s);
-            _l.linewidth = lw;
-            _l.fill = "rgba(0,0,0,0)";
-            _l.stroke = lco;
-            _l.cbp = 'round';
-            _l.join = 'round';
-            _l.cap = 'round';
-          }
-
-        }
-
-
+        if ((_x == 0) &&  (_y == 0))        { _Line(x-q, y+s/2, x-q, y-s/2, lco); }
+        if ((_x == 0) && (_z == (lenZ-1)))  { _Line(x-q, y-s/2, x, y-s, lco); }
+        if ((_y == 0) && (_z == 0))         { _Line(x-q, y+s/2, x, y+s, lco); }
+        if ((_y == 0) && (_z == (lenZ-1)))  { _Line(x-q, y-s/2, x, y,lco); }
+        if ((_x == (lenX-1)) && (_y == 0))  { _Line(x, y, x, y+s, lco); }
+        if ((_x == (lenX-1)) && (_y == (lenY-1)))  { _Line(x+q, y-s/2, x+q, y+s/2,lco); }
+        if ((_x == (lenX-1)) && (_z == 0))  { _Line(x, y+s, x+q, y+s/2, lco); }
+        if ((_x == (lenX-1)) && (_z == (lenZ-1)))  { _Line(x, y, x+q, y-s/2,lco); }
+        if ((_z == (lenZ-1)) && (_y == (lenY-1))) { _Line(x, y-s, x+q, y-s/2,lco); }
 
       }
     }
@@ -611,8 +587,46 @@ function gilbert3d_explode() {
   var ele = document.getElementById("gilbert3d_explode_canvas");
   two.appendTo(ele);
 
-  //mk_lozenge(150,110,40);
-  mk_lozenge(150,150,40);
+  let lco0 = "rgba(80,80,140,1.0)";
+  let fco0 = "rgba(180,180,240,1.0)";
+
+  let lco1 = "rgba(80,80,240,1.0)";
+  let fco1 = "rgba(120,120,240,1.0)";
+
+  let lco2 = "rgba(80,250,140,1.0)";
+  let fco2 = "rgba(180,250,240,1.0)";
+
+  let lco3 = "rgba(240,150,40,1.0)";
+  let fco3 = "rgba(250,150,80,1.0)";
+
+  let lco4 = "rgba(250,80,140,1.0)";
+  let fco4 = "rgba(250,180,240,1.0)";
+
+  let x0 = 190,
+      y0 = 250,
+      s0 = 40;
+  let dxyz = 100;
+
+  let qs = s0*Math.sqrt(3)/2;
+
+  let x1 = x0 - 3*qs,
+      y1 = y0 - 3*s0/2;
+
+  let x2 = x0,
+      y2 = y0 - s0;
+
+  let x3 = x0 - 2*qs,
+      y3 = y0 - 4*s0/2;
+
+  let x4 = x0 + qs,
+      y4 = y0 - s0/2;
+
+  mk_lozenge(x3,y3,s0, lco3, fco3, [1,1,2]);
+  mk_lozenge(x1,y1,s0, lco1, fco1, [1,1,2]);
+
+  mk_lozenge(x4,y4,s0, lco4, fco4, [1,1,1]);
+  mk_lozenge(x0,y0,s0, lco0, fco0, [1,1,1]);
+  mk_lozenge(x2,y2,s0, lco2, fco2, [1,2,1]);
 
   return;
 
