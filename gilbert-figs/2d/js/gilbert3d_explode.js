@@ -504,6 +504,49 @@ function gilbert3d_explode() {
   _c3_.stroke = "rgba(0,0,0,0)";
   _c3_.linewidth = 0;
 
+
+  //--
+
+  let _cs = two.makeCircle( x0, y0+2*jy, 3);
+  _cs.fill = "rgba(255,255,255, 0.9)";
+  _cs.stroke = "rgba(0,0,0,0)";
+  _cs.linewidth = 0;
+
+  let _ce = two.makeCircle( x4+jx, y4+jy, 3);
+  _ce.fill = "rgba(255,255,255, 0.9)";
+  _ce.stroke = "rgba(0,0,0,0)";
+  _ce.linewidth = 0;
+
+
+  //---
+
+  let style = {
+    "size": 18,
+    "weight": "bold",
+    "family": "Libertine, Linux Libertine O"
+  };
+
+  let text0 = new Two.Text("A", x0 + qs/2 - 9,y0 + s0/4 - 3, style);
+  text0.fill = "rgba(255,255,255,1)";
+
+  let text1 = new Two.Text("B", x1 + qs/2 - 9,y1 - s0/4 - 3, style);
+  text1.fill = "rgba(16,16,16,1)";
+
+  let text2 = new Two.Text("C", x2 +  13,y2 - s0/2 - 6, style);
+  text2.fill = "rgba(16,16,16,1)";
+
+  let text3 = new Two.Text("D", x3 + qs - 9,y3 - s0/2 - 3, style);
+  text3.fill = "rgba(16,16,16,1)";
+
+  let text4 = new Two.Text("E", x4 + qs/2 - 9,y4 + s0/4 - 0, style);
+  text4.fill = "rgba(255,255,255,1)";
+
+  two.add(text0);
+  two.add(text1);
+  two.add(text2);
+  two.add(text3);
+  two.add(text4);
+
   two.update();
 }
 
