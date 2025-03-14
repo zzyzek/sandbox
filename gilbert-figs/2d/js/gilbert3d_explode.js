@@ -66,6 +66,36 @@ var g_fig_ctx = {
 //----
 //----
 
+// 3d cross product.
+//
+function cross3(p,q) {
+  let c0 = ((p[1]*q[2]) - (p[2]*q[1])),
+      c1 = ((p[2]*q[0]) - (p[0]*q[2])),
+      c2 = ((p[0]*q[1]) - (p[1]*q[0]));
+
+  return [c0,c1,c2];
+}
+
+
+// euler rotation or olinde rodrigues
+// https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+//
+function rodrigues(v0, _vr, theta) {
+  let c = Math.cos(theta);
+  let s = Math.sin(theta);
+
+  let v_r = njs.mul( 1 / njs.norm2(_vr), _vr );
+
+  return njs.add(
+    njs.mul(c, v0),
+    njs.add(
+      njs.mul( s, cross3(v_r,v0)),
+      njs.mul( (1-c) * njs.dot(v_r, v0), v_r )
+    )
+  );
+}
+
+
 function _project(x,y,z, L) {
   L = ((typeof L === "undefined") ? 1 : L);
   let s = L*Math.sqrt(3)/2;
@@ -340,11 +370,66 @@ function mk_iso_cuboid(x0,y0,s, lco, fco, lXYZ, lw) {
   two.update();
 }
 
-function gilbert3d_explode() {
+function axis_fig() {
   let two = g_fig_ctx.two;
 
-  var ele = document.getElementById("gilbert3d_explode_canvas");
-  two.appendTo(ele);
+  let x0 = 50,
+      y0 = 50;
+
+  let s = 30;
+  let q = s*Math.sqrt(3)/2;
+
+  let lw = 3;
+
+  let _l = two.makeLine( x0,y0, x0+q,y0+s/2, 10);
+  _l.linewidth = lw;
+  _l.fill = "rgba(0,0,0,0)";
+  _l.stroke = "rgba(255,0,0,1)";
+  _l.cap = 'round';
+
+  _l = two.makeLine( x0,y0, x0+q,y0-s/2, 10);
+  _l.linewidth = lw;
+  _l.fill = "rgba(0,0,0,0)";
+  _l.stroke = "rgba(0,255,0,1)";
+  _l.cap = 'round';
+
+  _l = two.makeLine( x0,y0, x0,y0-s, 10);
+  _l.linewidth = lw;
+  _l.fill = "rgba(0,0,0,0)";
+  _l.stroke = "rgba(0,0,235,1)";
+  _l.join = 'bevel';
+  _l.cap = 'round';
+
+  let _c = two.makeCircle( x0,y0, lw/2 + 2);
+  _c.fill = "rgba(0,0,0,0.9)";
+  _c.stroke = "rgba(0,0,0,0)";
+  _c.linewidth = 0;
+
+  let style = {
+    "size": 18,
+    "weight": "normal",
+    "family": "Libertine, Linux Libertine O"
+  };
+
+  let xlabel = new Two.Text("x", x0 + q + 10,y0 + s - 10 , style);
+  xlabel.fill = "rgba(16,16,16,1)";
+  two.add(xlabel);
+
+  let ylabel = new Two.Text("y", x0 + q + 10,y0 - s + 10 , style);
+  ylabel.fill = "rgba(16,16,16,1)";
+  two.add(ylabel);
+
+  let zlabel = new Two.Text("z", x0,y0 - s - 10 , style);
+  zlabel.fill = "rgba(16,16,16,1)";
+  two.add(zlabel);
+
+  two.update();
+}
+
+
+
+function block3d_fig() {
+  let two = g_fig_ctx.two;
 
   let PAL = [
     'rgb(215,25,28)',
@@ -548,6 +633,96 @@ function gilbert3d_explode() {
   two.add(text4);
 
   two.update();
+}
+
+function curve3d_fig() {
+  let two = g_fig_ctx.two;
+
+  let x0 = 15,
+      y0 = 350;
+
+  let s = 20;
+  let q = s*Math.sqrt(3)/2;
+
+  let rotaxis = [.5, 0.5, 1],
+      rotangle = Math.PI/25;
+
+  rotaxis = [-0.0,0.5,2.25];
+  rotangle = -0.251;
+
+  let pfac = 30;
+
+
+  let idx_region_xy = [
+    [0,8,  _project( 2,-1,-0.0, pfac)],
+    [8,24, _project(-1,-1,-1, pfac)],
+    [24,40,_project( 4, -3, 2, pfac)],
+    [40,56,_project(-1, 1, 1, pfac)],
+    [56,64,_project( 0.5, 3.5,-0, pfac)]
+  ];
+
+  idx_region_xy = [
+    [0,8,  _project( 2, .5, -1, pfac)],
+    [8,24, _project( 0, 0, 0, pfac)],
+    [24,40,_project( 2, .5, -1, pfac)],
+    [40,56,_project( 0, 0, 0, pfac)],
+    [56,64,_project( 2, .5, -1, pfac)]
+  ];
+
+  let N = 4;
+
+  let _p = [];
+  for (let idx=0; idx<64; idx++) {
+    let _xyz = gilbert_d2xyz(idx, N,N,N);
+
+    let xyz = rodrigues( [N-_xyz.y, _xyz.x, _xyz.z], rotaxis, rotangle );
+
+
+    //let xyz = [ N-_xyz.y, _xyz.x, _xyz.z ];
+    //console.log(idx, xyz);
+
+    let ridx = 0;
+    for (ridx=0; ridx<idx_region_xy.length; ridx++) {
+      if ((idx_region_xy[ridx][0] <= idx) &&
+          (idx < idx_region_xy[ridx][1])) {
+        break;
+      }
+    }
+
+    let dxy = idx_region_xy[ridx][2];
+
+    //let xy = njs.add( _project(xyz.x, xyz.y, xyz.z, s), [x0,y0] );
+    let xy = njs.add( _project(xyz[0], xyz[1], xyz[2], s), [x0,y0] );
+    xy[0] += dxy[0];
+    xy[1] += dxy[1];
+    _p.push(xy);
+
+  }
+
+  let v = makeTwoVector(_p);
+  let p = two.makePath(v);
+  p.linewidth = 2;
+  p.stroke = "rgba(0,0,255,0.9)";
+  p.fill = "rgba(0,0,0,0)";
+  p.join = "round";
+  p.cap = "round";
+  p.closed = false;
+
+
+
+  two.update();
+
+}
+
+function gilbert3d_explode() {
+  let two = g_fig_ctx.two;
+
+  var ele = document.getElementById("gilbert3d_explode_canvas");
+  two.appendTo(ele);
+
+  axis_fig();
+  block3d_fig();
+  curve3d_fig();
 }
 
 
