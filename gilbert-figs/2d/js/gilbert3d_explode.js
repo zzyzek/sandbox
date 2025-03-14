@@ -265,7 +265,7 @@ function _Line(x0,y0, x1,y1, lco, lw) {
 }
 
 
-function mk_iso_cuboid(x0,y0,s, lco, fco, lXYZ, lw) {
+function _mk_iso_cuboid(x0,y0,s, lco, fco, lXYZ, lw) {
   lXYZ = ((typeof lXYZ === "undefined") ? [1,1,1] : lXYZ);
   lw = ((typeof lw === "undefined") ? 2 : lw);
   let two = g_fig_ctx.two;
@@ -497,11 +497,75 @@ function block3d_fig() {
       y4 = y0 - s0/2;
 
 
-  let js = s0/4;
+  let dw = 1/4;
+  let js = s0*dw;
 
   let jx = (s0 - js)*Math.sqrt(3)/2,
       jy = (s0 - js)/2;
 
+  let cuboid_size = [
+    [1,1,1],
+    [1,1,2],
+    [1,2,1],
+    [1,1,2],
+    [1,1,1]
+  ];
+
+  let D = 1.8;
+
+  let cxyz = [
+    [ D, 0, 0],
+    [-D, 0, 0],
+    [ D, 0, 1],
+    [-D, 1, 0],
+    [ D, 1, 0]
+  ];
+
+
+  let dock_xyz = [
+    [ D + 1 - dw, 0, 0 ],
+    [ D , 0, 0 ],
+
+    [ -D + 1 - dw, 0, 0],
+    [ -D + 1 - dw, 0, 2 - dw],
+
+    [ -D + 1 - dw, 2-dw, 0],
+    [ -D + 1 - dw, 2-dw, 2 - dw],
+
+    [ D, 2-dw, 2-dw],
+    [ D, 2-dw, 0],
+
+    [ D+1-dw, 2-dw, 0]
+
+
+  ];
+
+  let order = [4,0,2, 3,1];
+
+  let vr = [0,0,1];
+  let theta = -Math.PI/16;
+
+  for (let _i=0; _i<cxyz.length; _i++) {
+    let i = order[_i];
+    let rxyz = njs.mul( s0, rodrigues( cxyz[i], vr, theta ) );
+    let cxy = njs.add( [x0,y0], _project( rxyz[0], rxyz[1], rxyz[2]) );
+
+    let lco = lPAL[i];
+    let fco = PAL[i];
+
+    let cs = njs.mul( s0, cuboid_size[i] );
+    mk_iso_cuboid(cxy[0],cxy[1],1, lco, fco, cs, 2, vr, theta);
+  }
+
+  for (let i=0; i<dock_xyz.length; i++) {
+    let jxyz = njs.mul(s0, rodrigues(dock_xyz[i], vr, theta));
+    let jxy = njs.add( [x0,y0], _project( jxyz[0], jxyz[1], jxyz[2]) );
+    mk_iso_cuboid( jxy[0],jxy[1],js, "rgba(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0, vr, theta);
+  }
+
+  return;
+
+  /*
   mk_iso_cuboid(x3,y3,s0, lco3, fco3, [1,1,2]);
   mk_iso_cuboid(x3+jx, y3-(3 + (2/3))*jy,   js, "rbga(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0);
   mk_iso_cuboid(x3+jx, y3+jy,   js, "rbga(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0);
@@ -520,6 +584,7 @@ function block3d_fig() {
   mk_iso_cuboid(x2,y2,s0, lco2, fco2, [1,2,1]);
   mk_iso_cuboid(x2-jx,    y2-jy,   js, "rbga(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0);
   mk_iso_cuboid(x2+jx + (jx/3),  y2-3*jy - (jy/3), js, "rbga(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0);
+  */
 
   //---
 
@@ -677,10 +742,6 @@ function curve3d_fig() {
 
     let xyz = rodrigues( [N-_xyz.y, _xyz.x, _xyz.z], rotaxis, rotangle );
 
-
-    //let xyz = [ N-_xyz.y, _xyz.x, _xyz.z ];
-    //console.log(idx, xyz);
-
     let ridx = 0;
     for (ridx=0; ridx<idx_region_xy.length; ridx++) {
       if ((idx_region_xy[ridx][0] <= idx) &&
@@ -691,7 +752,6 @@ function curve3d_fig() {
 
     let dxy = idx_region_xy[ridx][2];
 
-    //let xy = njs.add( _project(xyz.x, xyz.y, xyz.z, s), [x0,y0] );
     let xy = njs.add( _project(xyz[0], xyz[1], xyz[2], s), [x0,y0] );
     xy[0] += dxy[0];
     xy[1] += dxy[1];
@@ -714,11 +774,70 @@ function curve3d_fig() {
 
 }
 
+function mk_iso_cuboid( x0,y0,s, lco, fco, lXYZ, lw, vr, theta) {
+  vr = ((typeof vr === "undefined") ? [0,0,1] : vr);
+  theta = ((typeof theta === "undefined") ? (-Math.PI/16) : theta);
+
+
+  let two = g_fig_ctx.two;
+
+  let faces3d = [
+    [
+      [0,0,0],
+      [0,0,lXYZ[2]],
+      [lXYZ[0],0,lXYZ[2]],
+      [lXYZ[0],0,0]
+    ],
+    [
+      [lXYZ[0],0,0],
+      [lXYZ[0],0,lXYZ[2]],
+      [lXYZ[0],lXYZ[1],lXYZ[2]],
+      [lXYZ[0],lXYZ[1],0]
+    ],
+    [
+      [0,0,lXYZ[2]],
+      [0,lXYZ[1],lXYZ[2]],
+      [lXYZ[0],lXYZ[1],lXYZ[2]],
+      [lXYZ[0],0,lXYZ[2]]
+    ]
+  ];
+
+
+  let faces2d = [];
+  let V = [],
+      P = [];
+
+
+  for (let fid=0; fid<faces3d.length; fid++) {
+    faces2d.push([]);
+    for (let i=0; i<faces3d[fid].length; i++) {
+      let xyz = rodrigues( faces3d[fid][i], vr, theta );
+      faces2d[fid].push( njs.add([x0,y0], _project(xyz[0], xyz[1], xyz[2], s)) );
+    }
+
+    V.push( makeTwoAnchor(faces2d[fid]) );
+
+    let p = two.makePath(V[fid], true);
+    P.push( p );
+
+    p.fill = fco;
+    p.closed = true;
+    p.join = "round";
+
+    p.stroke = lco;
+    p.linewidth = lw;
+  }
+
+
+  two.update();
+}
+
 function gilbert3d_explode() {
   let two = g_fig_ctx.two;
 
   var ele = document.getElementById("gilbert3d_explode_canvas");
   two.appendTo(ele);
+
 
   axis_fig();
   block3d_fig();
