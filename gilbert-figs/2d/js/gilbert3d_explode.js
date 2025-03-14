@@ -25,6 +25,24 @@
 
 var njs = numeric;
 
+var PAL = [
+  'rgb(215,25,28)',
+  'rgb(253,174,97)',
+  //'rgb(235,235,191)',
+  'rgb(255,255,159)',
+  'rgb(171,221,164)',
+  'rgb(43,131,186)'
+];
+
+var lPAL = [
+  'rgb(120,25,28)',
+  'rgb(203,134,37)',
+  //'rgb(235,235,191)',
+  'rgb(215,215,191)',
+  'rgb(121,181,124)',
+  'rgb(13,91,136)'
+];
+
 var g_fig_ctx = {
 
   "uniq_id_base": "customid_",
@@ -264,6 +282,21 @@ function _Line(x0,y0, x1,y1, lco, lw) {
   return _l;
 }
 
+function _Line1(x0,y0, x1,y1, lco, lw) {
+  lw = ((typeof lw === "undefined") ? 2 : lw);
+
+  let two = g_fig_ctx.two;
+
+  let _l = two.makeLine(x0,y0, x1,y1);
+  _l.linewidth = lw;
+  _l.fill = "rgba(0,0,0,0)";
+  _l.stroke = lco;
+  _l.cap = 'round';
+  _l.dashes = [8, 8];
+
+  return _l;
+}
+
 
 function _mk_iso_cuboid(x0,y0,s, lco, fco, lXYZ, lw) {
   lXYZ = ((typeof lXYZ === "undefined") ? [1,1,1] : lXYZ);
@@ -370,88 +403,87 @@ function _mk_iso_cuboid(x0,y0,s, lco, fco, lXYZ, lw) {
   two.update();
 }
 
-function axis_fig() {
+function axis_fig(x0,y0,s) {
   let two = g_fig_ctx.two;
 
-  let x0 = 50,
-      y0 = 50;
+  let vr = [0,0,1];
+  let theta = -Math.PI/16;
 
-  let s = 30;
-  let q = s*Math.sqrt(3)/2;
+  let vxyz = njs.mul(s, rodrigues( [1,0,0], vr, theta ));
+  let vxy = _project( vxyz[0], vxyz[1], vxyz[2] );
 
   let lw = 3;
 
-  let _l = two.makeLine( x0,y0, x0+q,y0+s/2, 10);
-  _l.linewidth = lw;
-  _l.fill = "rgba(0,0,0,0)";
-  _l.stroke = "rgba(255,0,0,1)";
-  _l.cap = 'round';
+  let v0xyz = [
+    [0,1,0],
+    [-1,0,0],
+    [0,0,1]
+  ];
 
-  _l = two.makeLine( x0,y0, x0+q,y0-s/2, 10);
-  _l.linewidth = lw;
-  _l.fill = "rgba(0,0,0,0)";
-  _l.stroke = "rgba(0,255,0,1)";
-  _l.cap = 'round';
 
-  _l = two.makeLine( x0,y0, x0,y0-s, 10);
-  _l.linewidth = lw;
-  _l.fill = "rgba(0,0,0,0)";
-  _l.stroke = "rgba(0,0,235,1)";
-  _l.join = 'bevel';
-  _l.cap = 'round';
+  let co = [
+    "rgba(255,0,0,0.7)",
+    "rgba(0,255,0,0.7)",
+    "rgba(0,0,255,0.7)"
+  ];
 
-  let _c = two.makeCircle( x0,y0, lw/2 + 2);
-  _c.fill = "rgba(0,0,0,0.9)";
-  _c.stroke = "rgba(0,0,0,0)";
-  _c.linewidth = 0;
+  co = [
+    "rgb(240,10,20)",
+    "rgb(32,220,32)",
+    "rgb(20,10,240)",
+  ];
 
   let style = {
-    "size": 18,
-    "weight": "normal",
+    "size": 12,
+    "weight": "bold",
     "family": "Libertine, Linux Libertine O"
   };
 
-  let xlabel = new Two.Text("x", x0 + q + 10,y0 + s - 10 , style);
-  xlabel.fill = "rgba(16,16,16,1)";
-  two.add(xlabel);
+  let _txt = ["x", "y", "z"];
+  _txt = [ "X", "Y", "Z" ];
 
-  let ylabel = new Two.Text("y", x0 + q + 10,y0 - s + 10 , style);
-  ylabel.fill = "rgba(16,16,16,1)";
-  two.add(ylabel);
+  let tdxyz = [
+    [  0, 0.5,   0 ],
+    [-0.5,   0,   0 ],
+    [  0,   0, 0.5 ],
+  ];
 
-  let zlabel = new Two.Text("z", x0,y0 - s - 10 , style);
-  zlabel.fill = "rgba(16,16,16,1)";
-  two.add(zlabel);
+  let xyz0 = njs.mul(s, rodrigues( [0,0,0], vr, theta ));
+  let xy0 = njs.add( [x0,y0], _project( xyz0[0], xyz0[1], xyz0[1] ) );
+
+  for (let xyz=0; xyz<3; xyz++) {
+    let vxyz = njs.mul(s, rodrigues( v0xyz[xyz], vr, theta ));
+    let vxy = _project( vxyz[0], vxyz[1], vxyz[2] );
+
+
+    let _l = two.makeLine( x0,y0, x0+vxy[0], y0+vxy[1], 10);
+    _l.linewidth = lw;
+    _l.fill = "rgba(0,0,0,0)";
+    _l.cap = 'round';
+    _l.stroke = co[xyz];
+
+    let txyz = njs.mul(s, rodrigues( njs.add(v0xyz[xyz] , tdxyz[xyz]), vr, theta ));
+    let txy = _project( txyz[0], txyz[1], txyz[2] );
+
+    let label = new Two.Text(_txt[xyz], x0+txy[0], y0+txy[1], style);
+    label.fill = "rgba(16,16,16,1)";
+    two.add(label);
+
+  }
+
+  let c = two.makeCircle( xy0[0], xy0[1], 3);
+  c.fill = "#000";
+  c.linewidth = 0;
 
   two.update();
 }
 
 
 
-function block3d_fig() {
+function block3d_fig(x0,y0,s0) {
   let two = g_fig_ctx.two;
 
-  let PAL = [
-    'rgb(215,25,28)',
-    'rgb(253,174,97)',
-    //'rgb(235,235,191)',
-    'rgb(255,255,159)',
-    'rgb(171,221,164)',
-    'rgb(43,131,186)'
-  ];
-
-  let lPAL = [
-    'rgb(120,25,28)',
-    'rgb(203,134,37)',
-    //'rgb(235,235,191)',
-    'rgb(215,215,191)',
-    'rgb(121,181,124)',
-    'rgb(13,91,136)'
-  ]
-
-  let x0 = 190,
-      y0 = 250,
-      s0 = 40;
+  //let x0 = 190, y0 = 250, s0 = 40;
   let dxyz = 100;
 
   let qs = s0*Math.sqrt(3)/2;
@@ -601,13 +633,13 @@ function block3d_fig() {
   two.update();
 }
 
-function curve3d_fig() {
+function curve3d_fig(x0,y0,s) {
   let two = g_fig_ctx.two;
 
-  let x0 = 15,
-      y0 = 350;
+  //let x0 = 15,
+  //    y0 = 350;
+  //let s = 20;
 
-  let s = 20;
   let q = s*Math.sqrt(3)/2;
 
   let rotaxis = [.5, 0.5, 1],
@@ -617,7 +649,6 @@ function curve3d_fig() {
   rotangle = -0.251;
 
   let pfac = 30;
-
 
   let idx_region_xy = [
     [0,8,  _project( 2,-1,-0.0, pfac)],
@@ -636,6 +667,120 @@ function curve3d_fig() {
   ];
 
   let N = 4;
+
+  let col = [
+    PAL[0],
+    PAL[1],
+
+    //PAL[2],
+    //"rgba()",
+    //'rgb(235,235,191)',
+    //'rgb(255,255,159)',
+    '#aa9803',
+
+    PAL[3],
+    PAL[4],
+  ];
+
+  let prv_beg = [-1,-1],
+      prv_end = [-1,-1];
+
+  let order = [4,3,2,1,0];
+
+  let join_points = [];
+  let curve_points  = [];
+  let endpoint = [];
+
+  for (let _gidx=0; _gidx<idx_region_xy.length; _gidx++) {
+
+    let gidx = order[_gidx];
+    gidx = _gidx;
+
+    let _beg = idx_region_xy[gidx][0];
+    let _end = idx_region_xy[gidx][1];
+    let dxy = idx_region_xy[gidx][2];
+
+    let cur_beg = [-1,-1],
+        cur_end = [-1,-1];
+
+
+    let _p = [];
+    for (let idx=_beg; idx<_end; idx++) {
+
+      let _xyz = gilbert_d2xyz(idx, N,N,N);
+      let xyz = rodrigues( [N-_xyz.y, _xyz.x, _xyz.z], rotaxis, rotangle );
+      //let xyz = rodrigues( [_xyz.x, N-_xyz.y, _xyz.z], rotaxis, rotangle );
+
+      let xy = njs.add(dxy, njs.add( _project(xyz[0], xyz[1], xyz[2],s), [x0,y0] ));
+      _p.push(xy);
+
+      if ((idx==0) || (idx==(N*N*N-1))) {
+        //two.makeCircle(xy[0], xy[1], 4);
+        endpoint.push( [xy[0], xy[1]] );
+      }
+
+
+      if      (idx == _beg)     { cur_beg = xy; }
+      else if (idx == (_end-1)) { cur_end = xy; }
+    }
+
+    if (_gidx>0) {
+      //_Line1( prv_end[0], prv_end[1], cur_beg[0], cur_beg[1], "rgba(0,0,0,0.8)", 4);
+      join_points.push( [[prv_end[0],prv_end[1]], [cur_beg[0], cur_beg[1]]] );
+    }
+    prv_beg = cur_beg;
+    prv_end = cur_end;
+
+    curve_points.push(_p);
+
+  }
+
+  let jp = join_points[3];
+  _Line1( jp[0][0], jp[0][1], jp[1][0], jp[1][1], "rgba(16,16,16,0.7)", 4);
+
+  for (let _gidx=0; _gidx< curve_points.length; _gidx++) {
+
+    let gidx = _gidx
+    let _p = curve_points[gidx];
+
+    let v = makeTwoVector(_p);
+    let p = two.makePath(v);
+    p.linewidth = 4;
+    p.stroke = col[gidx];
+    p.fill = "rgba(0,0,0,0)";
+    p.join = "round";
+    p.cap = "round";
+    p.closed = false;
+
+  }
+
+  for (let i=0; i<endpoint.length; i++) {
+    let c = two.makeCircle( endpoint[i][0], endpoint[i][1], 4 );
+    c.linewidth = 1;
+    c.stroke = '#000';
+    c.fill = 'rgba(240,240,240,1.0)';
+  }
+
+  for (let gidx=0; gidx<join_points.length; gidx++) {
+    let jp = join_points[gidx];
+    if (gidx != 3) {
+      _Line1( jp[0][0], jp[0][1], jp[1][0], jp[1][1], "rgba(16,16,16,0.7)", 4);
+    }
+
+    let _c0 = two.makeCircle( jp[0][0], jp[0][1], 3);
+    _c0.linewidth = 0;
+    _c0.stroke = "#000"
+    _c0.fill = "rgba(16,16,16,0.8)";
+
+    let _c1 = two.makeCircle( jp[1][0], jp[1][1], 3);
+    _c1.linewidth = 0;
+    _c1.stroke = "#000"
+    _c1.fill = "rgba(16,16,16,0.8)";
+  }
+
+  two.update();
+
+  return;
 
   let _p = [];
   for (let idx=0; idx<64; idx++) {
@@ -659,15 +804,6 @@ function curve3d_fig() {
     _p.push(xy);
 
   }
-
-  let v = makeTwoVector(_p);
-  let p = two.makePath(v);
-  p.linewidth = 2;
-  p.stroke = "rgba(0,0,255,0.9)";
-  p.fill = "rgba(0,0,0,0)";
-  p.join = "round";
-  p.cap = "round";
-  p.closed = false;
 
 
 
@@ -739,10 +875,9 @@ function gilbert3d_explode() {
   var ele = document.getElementById("gilbert3d_explode_canvas");
   two.appendTo(ele);
 
-
-  axis_fig();
-  block3d_fig();
-  curve3d_fig();
+  axis_fig(200, 50, 20);
+  block3d_fig(50, 160, 40);
+  curve3d_fig(15, 300, 20);
 }
 
 
