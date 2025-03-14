@@ -449,53 +449,12 @@ function block3d_fig() {
     'rgb(13,91,136)'
   ]
 
-  //let lco0 = "rgba(80,80,140,1.0)";
-  //let fco0 = "rgba(180,180,240,1.0)";
-  let lco0 = lPAL[0];
-  let fco0 = PAL[0];
-
-  //let lco1 = "rgba(80,80,240,1.0)";
-  //let fco1 = "rgba(120,120,240,1.0)";
-  let lco1 = lPAL[1];
-  let fco1 = PAL[1];
-
-  //let lco2 = "rgba(80,250,140,1.0)";
-  //let fco2 = "rgba(180,250,240,1.0)";
-  let lco2 = lPAL[2];
-  let fco2 = PAL[2];
-
-  //let lco3 = "rgba(240,150,40,1.0)";
-  //let fco3 = "rgba(250,150,80,1.0)";
-  let lco3 = lPAL[3];
-  let fco3 = PAL[3];
-
-  //let lco4 = "rgba(250,80,140,1.0)";
-  //let fco4 = "rgba(250,180,240,1.0)";
-  let lco4 = lPAL[4];
-  let fco4 = PAL[4];
-
   let x0 = 190,
       y0 = 250,
       s0 = 40;
   let dxyz = 100;
 
   let qs = s0*Math.sqrt(3)/2;
-
-  let sep = [3,3];
-  sep = [3.2,3.2];
-
-  let x1 = x0 - sep[0]*qs,
-      y1 = y0 - sep[1]*s0/2;
-
-  let x2 = x0,
-      y2 = y0 - s0;
-
-  let x3 = x0 - (sep[0]-1)*qs,
-      y3 = y0 - (sep[1]+1)*s0/2;
-
-  let x4 = x0 + qs,
-      y4 = y0 - s0/2;
-
 
   let dw = 1/4;
   let js = s0*dw;
@@ -524,26 +483,33 @@ function block3d_fig() {
 
   let dock_xyz = [
     [ D + 1 - dw, 0, 0 ],
-    [ D , 0, 0 ],
 
+    [ D , 0, 0 ],
     [ -D + 1 - dw, 0, 0],
+
     [ -D + 1 - dw, 0, 2 - dw],
+    [ D, 0, 2-dw],
+
+    [ -D + 1 - dw, 2-dw, 2 - dw],
+    [ D, 2-dw, 2-dw],
 
     [ -D + 1 - dw, 2-dw, 0],
-    [ -D + 1 - dw, 2-dw, 2 - dw],
-
-    [ D, 2-dw, 2-dw],
     [ D, 2-dw, 0],
 
     [ D+1-dw, 2-dw, 0]
-
-
   ];
 
-  let order = [4,0,2, 3,1];
+  let order = [3,1, 4,0,2];
 
   let vr = [0,0,1];
   let theta = -Math.PI/16;
+
+  let proj_cxy = [];
+  for (let i=0; i<dock_xyz.length; i++) {
+    let cxyz = njs.mul(s0, rodrigues( njs.add([dw/2, dw/2, dw/2], dock_xyz[i]), vr, theta));
+    let cxy = njs.add( [x0,y0], _project( cxyz[0], cxyz[1], cxyz[2]) );
+    proj_cxy.push( cxy );
+  }
 
   for (let _i=0; _i<cxyz.length; _i++) {
     let i = order[_i];
@@ -555,117 +521,47 @@ function block3d_fig() {
 
     let cs = njs.mul( s0, cuboid_size[i] );
     mk_iso_cuboid(cxy[0],cxy[1],1, lco, fco, cs, 2, vr, theta);
+
+    // special case where we want the majority of the line to be occluded by subsequent draws
+    //
+    if (i == 3) {
+      let li = proj_cxy.length-3;
+      _Line( proj_cxy[li][0], proj_cxy[li][1], proj_cxy[li+1][0], proj_cxy[li+1][1], "rgba(0,0,0,0.9)", 2.8 );
+    }
+
+
   }
+
 
   for (let i=0; i<dock_xyz.length; i++) {
+
     let jxyz = njs.mul(s0, rodrigues(dock_xyz[i], vr, theta));
     let jxy = njs.add( [x0,y0], _project( jxyz[0], jxyz[1], jxyz[2]) );
+
+    let cxyz = njs.mul(s0, rodrigues( njs.add([dw/2, dw/2, dw/2], dock_xyz[i]), vr, theta));
+    let cxy = njs.add( [x0,y0], _project( cxyz[0], cxyz[1], cxyz[2]) );
+
+    if (i==(dock_xyz.length-2)) { continue; }
+
     mk_iso_cuboid( jxy[0],jxy[1],js, "rgba(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0, vr, theta);
+
+    let _c = two.makeCircle( cxy[0], cxy[1],  4 );
+    _c.stroke = "rgba(0,0,0,0)";
+    _c.linewidth = 0;
+    if ((i==0) || (i==(dock_xyz.length-1))) {
+      _c.fill = "rgba(255,255,255,0.9)";
+    }
+    else {
+      _c.fill = "rgba(0,0,0,0.9)";
+    }
+
   }
 
-  return;
+  for (let i=1; i<(proj_cxy.length-1); i+=2) {
+    if (i==(proj_cxy.length-3)) { continue; }
+    _Line( proj_cxy[i][0], proj_cxy[i][1], proj_cxy[i+1][0], proj_cxy[i+1][1], "rgba(0,0,0,0.9)", 2.8);
+  }
 
-  /*
-  mk_iso_cuboid(x3,y3,s0, lco3, fco3, [1,1,2]);
-  mk_iso_cuboid(x3+jx, y3-(3 + (2/3))*jy,   js, "rbga(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0);
-  mk_iso_cuboid(x3+jx, y3+jy,   js, "rbga(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0);
-
-  mk_iso_cuboid(x1,y1,s0, lco1, fco1, [1,1,2]);
-  mk_iso_cuboid(x1,    y1+2*jy,     js, "rbga(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0);
-  mk_iso_cuboid(x1,    y1-s0,  js, "rbga(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0);
-
-  mk_iso_cuboid(x4,y4,s0, lco4, fco4, [1,1,1]);
-  mk_iso_cuboid(x4+jx, y4+jy,  js, "rbga(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0);
-
-  mk_iso_cuboid(x0,y0,s0, lco0, fco0, [1,1,1]);
-  mk_iso_cuboid(x0-jx, y0+jy,   js, "rbga(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0);
-  mk_iso_cuboid(x0,    y0+2*jy, js, "rbga(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0);
-
-  mk_iso_cuboid(x2,y2,s0, lco2, fco2, [1,2,1]);
-  mk_iso_cuboid(x2-jx,    y2-jy,   js, "rbga(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0);
-  mk_iso_cuboid(x2+jx + (jx/3),  y2-3*jy - (jy/3), js, "rbga(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0);
-  */
-
-  //---
-
-  let c01_xy = [
-    [x1, y1+(3*s0/4)],
-    [x0-(3*qs/4), y0+(3*s0/8)]
-  ];
-
-  let _c10 = two.makeCircle( c01_xy[0][0], c01_xy[0][1], 4 );
-  _c10.fill = "rgba(0,0,0,0.9)";
-  _c10.stroke = "rgba(0,0,0,0)";
-  _c10.linewidth = 0;
-
-  let _c01 = two.makeCircle( c01_xy[1][0], c01_xy[1][1], 4 );
-  _c01.fill = "rgba(0,0,0,0.9)";
-  _c01.stroke = "rgba(0,0,0,0)";
-  _c01.linewidth = 0;
-
-
-  _Line( c01_xy[0][0], c01_xy[0][1], c01_xy[1][0], c01_xy[1][1], "rgba(0,0,0,0.9)", 2.8);
-
-  //---
-
-  let c12_xy = [
-    [ x1, y1-s0 ],
-    [ x2-jx, y2-jy ]
-  ];
-
-  let _c12 = two.makeCircle( c12_xy[0][0], c12_xy[0][1], 4 );
-  _c12.fill = "rgba(0,0,0,0.9)";
-  _c12.stroke = "rgba(0,0,0,0)";
-  _c12.linewidth = 0;
-
-
-  let _c21 = two.makeCircle( c12_xy[1][0], c12_xy[1][1], 4 );
-  _c21.fill = "rgba(0,0,0,0.9)";
-  _c21.stroke = "rgba(0,0,0,0)";
-  _c21.linewidth = 0;
-
-  _Line( c12_xy[0][0], c12_xy[0][1], c12_xy[1][0], c12_xy[1][1], "rgba(0,0,0,0.9)", 2.8);
-
-  //---
-
-  let c32_xy = [
-    [ x3+jx,  y3-(3 + (2/3))*jy ],
-    [ x2+jx + (jx/3),  y2-3*jy - (jy/3) ]
-  ];
-
-
-  let _c32 = two.makeCircle( c32_xy[0][0], c32_xy[0][1], 4 );
-  _c32.fill = "rgba(0,0,0,0.9)";
-  _c32.stroke = "rgba(0,0,0,0)";
-  _c32.linewidth = 0;
-
-  let _c23 = two.makeCircle( c32_xy[1][0], c32_xy[1][1], 4 );
-  _c23.fill = "rgba(0,0,0,0.9)";
-  _c23.stroke = "rgba(0,0,0,0)";
-  _c23.linewidth = 0;
-
-  _Line( c32_xy[0][0], c32_xy[0][1], c32_xy[1][0], c32_xy[1][1], "rgba(0,0,0,0.9)", 2.8);
-
-
-  //---
-
-  let _c3_ = two.makeCircle( x3+jx, y3+jy, 3);
-  _c3_.fill = "rgba(0,0,0,0.4)";
-  _c3_.stroke = "rgba(0,0,0,0)";
-  _c3_.linewidth = 0;
-
-
-  //--
-
-  let _cs = two.makeCircle( x0, y0+2*jy, 3);
-  _cs.fill = "rgba(255,255,255, 0.9)";
-  _cs.stroke = "rgba(0,0,0,0)";
-  _cs.linewidth = 0;
-
-  let _ce = two.makeCircle( x4+jx, y4+jy, 3);
-  _ce.fill = "rgba(255,255,255, 0.9)";
-  _ce.stroke = "rgba(0,0,0,0)";
-  _ce.linewidth = 0;
 
 
   //---
@@ -676,26 +572,31 @@ function block3d_fig() {
     "family": "Libertine, Linux Libertine O"
   };
 
-  let text0 = new Two.Text("A", x0 + qs/2 - 9,y0 + s0/4 - 3, style);
-  text0.fill = "rgba(255,255,255,1)";
+  let text_dxyz = [
+    [ 1.0, 0.5, 0.6 ],
+    [ 1, 0.5, 1 ],
+    [ 0.6, 0.9, 1 ],
+    [ 1, 0.5, 1 ],
+    [ 1.0, 0.4, 0.55 ]
+  ];
 
-  let text1 = new Two.Text("B", x1 + qs/2 - 9,y1 - s0/4 - 3, style);
-  text1.fill = "rgba(16,16,16,1)";
+  let text_co = [
+    "rgba(255,255,255,1)",
+    "rgba(16,16,16,1)",
+    "rgba(16,16,16,1)",
+    "rgba(16,16,16,1)",
+    "rgba(255,255,255,1)"
+  ];
 
-  let text2 = new Two.Text("C", x2 +  13,y2 - s0/2 - 6, style);
-  text2.fill = "rgba(16,16,16,1)";
+  let text_ = [ "A", "B", "C", "D", "E" ];
 
-  let text3 = new Two.Text("D", x3 + qs - 9,y3 - s0/2 - 3, style);
-  text3.fill = "rgba(16,16,16,1)";
-
-  let text4 = new Two.Text("E", x4 + qs/2 - 9,y4 + s0/4 - 0, style);
-  text4.fill = "rgba(255,255,255,1)";
-
-  two.add(text0);
-  two.add(text1);
-  two.add(text2);
-  two.add(text3);
-  two.add(text4);
+  for (let i=0; i<text_dxyz.length; i++) {
+    let rxyz = njs.mul( s0, rodrigues( njs.add(text_dxyz[i], cxyz[i]), vr, theta ) );
+    let cxy = njs.add( [x0,y0], _project( rxyz[0], rxyz[1], rxyz[2]) );
+    let txt = new Two.Text(text_[i], cxy[0], cxy[1], style);
+    txt.fill = text_co[i];
+    two.add(txt);
+  }
 
   two.update();
 }
