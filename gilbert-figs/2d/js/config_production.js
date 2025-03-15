@@ -344,7 +344,10 @@ function mkbox(opt) {
   let box = two.makeRectangle(cx,cy, x_len,y_len);
   box.fill = "rgba(0,0,0,0)";
 
-  let txt_side      = two.makeText(opt.text_h, cx - x_len/2 - 2*font_offset[0], cy, font_style);
+  let fo_off_x = -2*font_offset[0] - 1.5*opt.text_h.length;
+
+  //let txt_side      = two.makeText(opt.text_h, cx - x_len/2 - 2*font_offset[0], cy, font_style);
+  let txt_side      = two.makeText(opt.text_h, cx - x_len/2 + fo_off_x, cy, font_style);
   //let txt_side_A    = two.makeText("A", cx - x_len/2 - 2*font_offset[0], cy + fs, font_style);
 
   let txt_bottom    = two.makeText(opt.text_w, cx, cy + (y_len/2) + font_offset[1], font_style);
@@ -392,11 +395,13 @@ function mkbox_subdiv(opt) {
       y_len = opt.y_len;
 
   let font_offset = [37,14];
+  font_offset = [10,14];
 
   let radius = 5,
       c_offset = 10;
 
   let fs = 16;
+  //fs = 18;
 
   let font_style = {
     "size": fs,
@@ -445,26 +450,19 @@ function mkbox_subdiv(opt) {
   line_ver.stroke = "rgba(20,20,20,1)";
   line_ver.fill = "rgba(0,0,0,0)";
 
+  let fo_off_x = [
+    - 2*font_offset[0] - (1.5*opt.text_h[0].length),
+    - 2*font_offset[0] - (1.5*opt.text_h[1].length)
+  ];
 
 
-  //let box_0 = two.makeRectangle(cx - (x_len/4), cy + (y_len/4), x_len/2,y_len/2);
-  //let box_1 = two.makeRectangle(cx + (x_len/4), cy + (y_len/4), x_len/2,y_len/2);
-  //box_0.fill = "rgba(0,0,0,0)";
-  //box_1.fill = "rgba(0,0,0,0)";
-
-
-  let txt_side_a1  = two.makeText(opt.text_h[0], cx - x_len/2 - font_offset[0], cy - (y_len/4) + dh/2, font_style);
-  //txt_side_a1.rotation = -Math.PI/2;
-  //let txt_side_a1     = two.makeText("a1",   cx - x_len/2 - 2*font_offset[0], cy - (1.25*y_len/4) + fs, font_style);
-
-  let txt_side_a0_eo  = two.makeText(opt.text_h[1], cx - x_len/2 - font_offset[0], cy + (y_len/4)+ dh/2, font_style);
-  //txt_side_a0_eo.rotation = -Math.PI/2;
+  //let txt_side_a1  = two.makeText(opt.text_h[0], cx - x_len/2 - font_offset[0], cy - (y_len/4) + dh/2, font_style);
+  //let txt_side_a0_eo  = two.makeText(opt.text_h[1], cx - x_len/2 - font_offset[0], cy + (y_len/4)+ dh/2, font_style);
+  let txt_side_a1     = two.makeText(opt.text_h[0], cx - x_len/2 + fo_off_x[0], cy - (y_len/4) + dh/2, font_style);
+  let txt_side_a0_eo  = two.makeText(opt.text_h[1], cx - x_len/2 + fo_off_x[1], cy + (y_len/4)+ dh/2, font_style);
 
   let txt_bottom_b0_eo  = two.makeText(opt.text_w[0], cx - x_len/4 + dw/2, cy + (y_len/2) + font_offset[1], font_style);
-
   let txt_bottom_b1_eo  = two.makeText(opt.text_w[1], cx + x_len/4 + dw/2, cy + (y_len/2) + font_offset[1], font_style);
-
-  //let txt_bottom_B  = two.makeText("B", cx, cy + (y_len/2) + font_offset[1], font_style);
 
   let circle_s = two.makeCircle(cx - (x_len/2) + c_offset, cy + (y_len/2) - c_offset, radius);
   circle_s.linewidth = 0;
@@ -474,7 +472,7 @@ function mkbox_subdiv(opt) {
   if (("nopath" in opt) &&
       (opt.nopath)) {
 
-  	let lc = [ cx + (x_len/2) - c_offset, cy  - c_offset + dh ];
+    let lc = [ cx + (x_len/2) - c_offset, cy  - c_offset + dh ];
 
     let cross_0 = two.makeLine( lc[0] - radius, lc[1] + radius, lc[0] + radius, lc[1] - radius );
     cross_0.linewidth = 1.5;
@@ -488,11 +486,9 @@ function mkbox_subdiv(opt) {
 
   }
   else {
-
-  let circle_a1_e = two.makeCircle(cx + (x_len/2) - c_offset, cy  - c_offset + dh, radius);
-  circle_a1_e.linewidth = 0;
-  circle_a1_e.fill = path_color_p;
-
+    let circle_a1_e = two.makeCircle(cx + (x_len/2) - c_offset, cy  - c_offset + dh, radius);
+    circle_a1_e.linewidth = 0;
+    circle_a1_e.fill = path_color_p;
   }
 
   let circle_e = two.makeCircle(cx + (x_len/2) - c_offset, cy + (y_len/2) - c_offset, radius);
@@ -511,8 +507,6 @@ function mkbox_subdiv(opt) {
   let circle_b1_s = two.makeCircle(cx + (x_len/2) - c_offset, cy  + c_offset + dh, radius);
   circle_b1_s.linewidth = 0;
   circle_b1_s.fill = path_color_p;
-  
-  //two.update();
 }
 
 function mk_oo(cur_x, cur_y, x_len, y_len, dx, dy) {
@@ -593,11 +587,24 @@ function mk_oe(cur_x, cur_y, x_len, y_len, dx, dy) {
   }
 
   cur_x += dx;
+
+  /*
   box_subdiv_opt = {
     "cx": cur_x, "cy": cur_y,
     "x_len": x_len, "y_len": 5*y_len/6,
     "nx": 6, "ny": 5,
     "line_ds": [ -x_len/12, 0 ],
+    "initial_parity": 1,
+    "text_h" : ["2⌊h/2⌋+1", "2⌊h/2⌋" ],
+    "text_w" : ["2w+1", "2w+1" ]
+  };
+  */
+
+  box_subdiv_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": 5*y_len/6,
+    "nx": 6, "ny": 5,
+    "line_ds": [  x_len/12, 0 ],
     "initial_parity": 1,
     "text_h" : ["2⌊h/2⌋+1", "2⌊h/2⌋" ],
     "text_w" : ["2w+1", "2w+1" ]
@@ -688,12 +695,24 @@ function mk_ee(cur_x, cur_y, x_len, y_len, dx, dy) {
   }
 
   cur_x += dx - dx/8;
+
+  /*
   box_subdiv_opt = {
     "cx": cur_x, "cy": cur_y,
     "x_len": x_len, "y_len": y_len,
     "initial_parity":0,
     "nx": 6, "ny": 6,
     "text_h" : ["2h+1", "2h+1" ],
+    "text_w": ["2w+1", "2w+1" ]
+  };
+  */
+  box_subdiv_opt = {
+    "cx": cur_x, "cy": cur_y,
+    "x_len": x_len, "y_len": y_len,
+    "initial_parity":0,
+    "nx": 6, "ny": 6,
+    "line_ds" : [ -x_len/6, 0 ],
+    "text_h" : ["2h", "2h+2" ],
     "text_w": ["2w+1", "2w+1" ]
   };
 
@@ -722,7 +741,7 @@ function mk_ee(cur_x, cur_y, x_len, y_len, dx, dy) {
     "initial_parity":0,
     "nx": 8, "ny": 6,
     "line_ds" : [ -x_len/8, 0],
-    "text_h" : ["2h+2", "2h" ],
+    "text_h" : ["2h", "2h+2" ],
     "text_w": ["2w", "2w" ]
   };
 
@@ -793,7 +812,7 @@ function mk_eo(cur_x, cur_y, x_len, y_len, dx, dy) {
     "nx": 5, "ny": 6,
     "line_ds" : [ -x_len/5, -y_len/10 ],
     "nopath": true,
-    "text_h" : ["2h+1", "2h+1" ],
+    "text_h" : ["2h", "2h+2" ],
     //"text_w": ["2w", "2w+1" ]
     "text_w" : ["2⌊w/2⌋", "2⌊w/2⌋+1" ]
   };
