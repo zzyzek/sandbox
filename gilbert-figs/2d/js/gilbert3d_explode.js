@@ -758,7 +758,7 @@ function curve3d_fig(x0,y0,s) {
     let c = two.makeCircle( endpoint[i][0], endpoint[i][1], 4 );
     c.linewidth = 1;
     c.stroke = '#000';
-    c.fill = 'rgba(240,240,240,1.0)';
+    c.fill = 'rgba(250,250,250,1.0)';
   }
 
   for (let gidx=0; gidx<join_points.length; gidx++) {
@@ -767,12 +767,14 @@ function curve3d_fig(x0,y0,s) {
       _Line1( jp[0][0], jp[0][1], jp[1][0], jp[1][1], "rgba(16,16,16,0.7)", 4);
     }
 
-    let _c0 = two.makeCircle( jp[0][0], jp[0][1], 3);
+    let _r = 3.5;
+
+    let _c0 = two.makeCircle( jp[0][0], jp[0][1], _r);
     _c0.linewidth = 0;
     _c0.stroke = "#000"
     _c0.fill = "rgba(16,16,16,0.8)";
 
-    let _c1 = two.makeCircle( jp[1][0], jp[1][1], 3);
+    let _c1 = two.makeCircle( jp[1][0], jp[1][1], _r);
     _c1.linewidth = 0;
     _c1.stroke = "#000"
     _c1.fill = "rgba(16,16,16,0.8)";
