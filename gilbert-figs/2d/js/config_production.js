@@ -558,7 +558,7 @@ function mk_oe(cur_x, cur_y, x_len, y_len, dx, dy) {
     "text_w": "4w"
   }
 
-  cur_x += dx;
+  cur_x += dx-30;
   box_subdiv_opt = {
     "cx": cur_x, "cy": cur_y,
     "x_len": 4*x_len/5, "y_len": y_len,
@@ -576,7 +576,7 @@ function mk_oe(cur_x, cur_y, x_len, y_len, dx, dy) {
   //
   //cur_x = start_x;
   //cur_y += dy;
-  cur_x += dx;
+  cur_x += dx-30;
   box_opt = {
     "cx": cur_x, "cy": cur_y,
     "x_len": x_len, "y_len": 5*y_len/6,
@@ -654,7 +654,7 @@ function mk_ee(cur_x, cur_y, x_len, y_len, dx, dy) {
   //
   //cur_x = start_x ;
   //cur_y += + dy - dy/8;
-  cur_x = start_x + 2*dx;
+  cur_x = start_x + 2*dx-30;
   cur_y = start_y;
   //cur_y += + dy - dy/8;
   box_opt = {
@@ -723,7 +723,7 @@ function mk_ee(cur_x, cur_y, x_len, y_len, dx, dy) {
 
   //cur_x = start_x + 2*dx - dx/4;
   //cur_y = start_y;
-  cur_x = start_x + 2*dx;
+  cur_x = start_x + 2*dx-30;
   cur_y = start_y + dy;
   box_opt = {
     "cx": cur_x, "cy": cur_y,
@@ -835,7 +835,7 @@ function config_production_init() {
   let cur_y = start_y;
 
   let dx = 230,
-      dy = 200;
+      dy = 250;
 
   let x_len = 150,
       y_len = 150;
@@ -843,14 +843,18 @@ function config_production_init() {
   let box_opt = {},
       box_subdiv_opt = {};
 
+  //TODO make diviisions, region identification
+  //and legend
 
+  cur_x = start_x ;
+  cur_y = start_y + 30;
   mk_oe(cur_x, cur_y, x_len, y_len, dx, dy);
 
-  cur_x = start_x + 4*dx;
-  cur_y = start_y ;
+  cur_x = start_x + 4*dx - 30;
+  cur_y = start_y + 30;
   mk_oo(cur_x, cur_y, x_len, y_len, dx, dy);
 
-  cur_x = start_x + 4*dx;
+  cur_x = start_x + 4*dx - 30;
   cur_y = start_y + dy;
   mk_eo(cur_x, cur_y, x_len, y_len, dx, dy);
 
