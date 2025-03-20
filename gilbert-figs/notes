@@ -1,0 +1,71 @@
+https://ar5iv.labs.arxiv.org/html/2210.01098
+
+---
+
+###### 2025-03-17
+
+Things are really bad for the 3D Gilbert curve.
+Not only are non-contiguous path jumps most likely
+unbounded, but it's not clear that the jump is even
+bounded.
+
+For example, a 5x5x5 has a jump of 2.
+Removing the initial orientation so that the width
+is anchored and doing larger realizations (8x11x11?)
+shows even bigger jumps.
+
+Unlike the 2D Gilbert curve, the 3D gilbert curve
+doesn't do any adaptive reshaping, other than a blind
+force of the A block to be even.
+This causes problems in other blocks downstream.
+
+There *might* be a way to fix this, but I'm still
+thinking about it.
+
+The observation is this:
+
+As a coarse metric, just having a path be possible
+with anchored start and endpoints means that the
+parity of the path through the rectangular cuboid
+has to match the parity of the width.
+
+So consider the parity table:
+
+| (W,H,D) | width endpoint | path endpoint | Possible path |
+|---------|----------------|---------------|---------------|
+| (0,0,0) | 0 | 0 | y |
+| (0,0,1) | 0 | 0 | y |
+| (0,1,0) | 0 | 0 | y |
+| (0,1,1) | 0 | 0 | y |
+| (1,0,0) | 1 | 0 | n |
+| (1,0,1) | 1 | 0 | n |
+| (1,1,0) | 1 | 0 | n |
+| (1,1,1) | 1 | 1 | y |
+
+For the case where the width is odd and the whole path is even,
+no path from the start point to end point is possible without
+a jump.
+
+What we can try to do is the same in the 2D case, where we
+try to push the jump to a specific block, making sure it's
+in a particular location and there's only one.
+
+So, as a first attempt, consider each of the three cases:
+
+* `(1,0,0)`
+  - choose `h2` to be even, creating an even `W` case so that blocks `A` and `E` are viable
+  - blocks `B` and `D` inherit their width from the even `H`, so are viable
+  - block `C` has odd width from `W`, so has a jump
+* `(1,0,1)`
+  - no way to do this without introducing multiple jumps
+  - instead, introduce a new block subdivision, where `A`, `E` connect to
+    `B`, `D` "logs" ( `1x2x1`, both on top ), that connect to `C` on bottom (`2x1x1`)
+  - chose `d2` to be even to make `A`, `E` viable, `h` makes the new `B`, `D` viable,
+    and `C` absorbs the inviability
+* `(1,1,0)`
+  - `h2` even, making `A`, `E` viable
+  - `d` even, making `B`, `D` viable
+  - `C` inherits the odd `w`, absorbing the inviability
+  - some choice on `w2` parity
+
+
