@@ -99,13 +99,13 @@ $$
 
 | `whd` | Config. |   A   |   B   |   C   |   D   |   E   |
 |-------|---------|-------|-------|-------|-------|-------|
-| `000` |  $P_0$  | $\beta_{2e}, \gamma_{2e}, \alpha_{2e}$ | $\gamma, \alpha_{2e}, \beta_{2*}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\gamma, -\beta_{2 * }, -\gamma_{2 * } $ | $-\beta_{2e}, \gamma_{2e}, -\beta_{2 * }$ |
+| `000` |  $P_0$  | $\beta_{2e}, \gamma_{2e}, \alpha_{2e}$ | $\gamma, \alpha_{2e}, \beta_{2*}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\gamma, -\alpha_{2 * }, -\beta_{2 * }$ | $-\beta_{2e}, \gamma_{2e}, -\beta_{2 * }$ |
 | `001` |  $P_1$  | $\gamma_{2e}, \alpha_{2e}, \beta_{2e}$ | $\beta, \gamma_{2 * }, \alpha_{2e}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $\beta, \gamma_{2 * }, -\beta_{2 * }$ | $-\gamma_{2 e}, \alpha_{2 * }, \beta_{2e}$ |
-| `010` |  $P_0$  | $\beta_{2e}, \gamma_{2e}, \alpha_{2e}$ | $\gamma, \alpha_{2e}, \beta_{2*}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\gamma, -\beta_{2 * }, -\gamma_{2 * } $ | $-\beta_{2e}, \gamma_{2e}, -\beta_{2 * }$ |
+| `010` |  $P_0$  | $\beta_{2e}, \gamma_{2e}, \alpha_{2e}$ | $\gamma, \alpha_{2e}, \beta_{2*}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\gamma, -\alpha_{2 * }, -\beta_{2 * }$ | $-\beta_{2e}, \gamma_{2e}, -\beta_{2 * }$ |
 | `011` |  $P_1$  | $\gamma_{2e}, \alpha_{2e}, \beta_{2e}$ | $\beta, \gamma_{2 * }, \alpha_{2e}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $\beta, \gamma_{2 * }, -\beta_{2 * }$ | $-\gamma_{2 e}, \alpha_{2 * }, \beta_{2e}$ |
-| `100` |  $P_0$  | $\beta_{2e}, \gamma_{2e}, \alpha_{2e}$ | $\gamma, \alpha_{2e}, \beta_{2*}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\gamma, -\beta_{2 * }, -\gamma_{2 * } $ | $-\beta_{2e}, \gamma_{2e}, -\beta_{2 * }$ |
+| `100` |  $P_0$  | $\beta_{2e}, \gamma_{2e}, \alpha_{2e}$ | $\gamma, \alpha_{2e}, \beta_{2*}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\gamma, -\alpha_{2 * }, -\beta_{2 * }$ | $-\beta_{2e}, \gamma_{2e}, -\beta_{2 * }$ |
 | `101` |  $P_1$  | $\gamma_{2e}, \alpha_{2e}, \beta_{2e}$ | $\beta, \gamma_{2 * }, \alpha_{2e}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $\beta, \gamma_{2 * }, -\beta_{2 * }$ | $-\gamma_{2 e}, \alpha_{2 * }, \beta_{2e}$ |
-| `110` |  $P_0$  | $\beta_{2e}, \gamma_{2e}, \alpha_{2e}$ | $\gamma, \alpha_{2e}, \beta_{2*}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\gamma, -\beta_{2 * }, -\gamma_{2 * } $ | $-\beta_{2e}, \gamma_{2e}, -\beta_{2 * }$ |
+| `110` |  $P_0$  | $\beta_{2e}, \gamma_{2e}, \alpha_{2e}$ | $\gamma, \alpha_{2e}, \beta_{2*}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\gamma, -\alpha_{2 * }, -\beta_{2 * }$ | $-\beta_{2e}, \gamma_{2e}, -\beta_{2 * }$ |
 | `111` |  $P_2$  | $\beta_{2e}, \gamma, \alpha_{2e}$ | $\gamma_{2e}, \alpha, \beta_{2 * }$ | $\alpha, \beta_{2 * }, \gamma_{2 * }$ | $-\beta_{2e}, \gamma_{2 * }, -\beta_{2 e}$ | $-\gamma_{2e}, -\alpha_{2 e}, \beta_{2e}$ |
 
 
