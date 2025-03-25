@@ -73,7 +73,7 @@ recursion can be done by using these basis vectors, with length and in axis adju
 $\alpha, \beta, \gamma \in \mathbb{R}^3$ but we'll abuse notation to say
 $f(\alpha) = (f(\alpha_x), f(\alpha_y), f(\alpha_z)$.
 For example $\lfloor \alpha \rfloor = ( \lfloor \alpha_x \rfloor, \lfloor \alpha_y \rfloor, \lfloor \alpha_z \rfloor)$
-and $\frac{\alpha}{2} = ( \frac{\alpha_x}{2}, \frac{\alpha_y}{2}, \frac{\alpha{z}{2} )$.
+and $\frac{\alpha}{2} = ( \frac{\alpha_x}{2}, \frac{\alpha_y}{2}, \frac{\alpha_z}{2} )$.
 
 Further, let $\alpha_{2e}$, $\beta_{2e}$, $\gamma_{2e}$ be
 $\frac{\alpha}{2}, \frac{\beta}{2}, \frac{\gamma}{2}$ with
