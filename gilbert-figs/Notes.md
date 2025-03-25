@@ -61,7 +61,7 @@ There are three major configurations, $P_0$, $P_1$, $P_2$:
 Here, $A$, $B$, $C$, $D$, $E$ have their parity in their local axis directions.
 
 Each of the local axis direction has the first axis, $\alpha$ in the direction of connectors,
-the second axis, $\beta$ "in-plane" and such that $\alpha \times \beta = \gamm$, where $\gamma$
+the second axis, $\beta$ "in-plane" and such that $\alpha \times \beta = \gamma$, where $\gamma$
 is the third axis.
 All three axies, $\alpha$, $\beta$, $\gamma$, should be on three sides of the enclosing
 rectangular cuboid.
