@@ -78,21 +78,32 @@ and $\frac{\alpha}{2} = ( \frac{\alpha_x}{2}, \frac{\alpha_y}{2}, \frac{\alpha_z
 Further, let $\alpha_{2e}$, $\beta_{2e}$, $\gamma_{2e}$ be
 $\frac{\alpha}{2}, \frac{\beta}{2}, \frac{\gamma}{2}$ with
 1 added to the major axis direction to force it to be even, respectively.
+Call $\alpha_{2q}, \beta_{2q}, \gamma_{2q}$ be 
+$\frac{\alpha}{2}, \frac{\beta}{2}, \frac{\gamma}{2}$ with 1 added to
+the major axis direction to roce it to be odd, respectively.
 
 That is, $\alpha_{2e}$ is integer division of 2 and adding one to force it to be even.
 Call the remaining value $\alpha_{2*} = \alpha - \alpha_{2e}$, which could be even or
 odd depending on what $\alpha$ is.
+$\alpha_{2q}$ is integer divison of 2 and one added to force an odd value.
+
 
 A more complicated way of saying this is:
 
 $$
 \begin{array}{l}
 \alpha_{2e} = 2 \cdot \lfloor \frac{\alpha}{4} \rfloor + \lfloor 2 \cdot \{ \frac{\alpha}{4} \} \rfloor \\
+\alpha_{2q} = 2 \cdot \lfloor \frac{\alpha}{4} \rfloor + 1 \\
 \alpha_{2 * } = \alpha - \alpha_{2e} \\
+\alpha_{2 q + } = \alpha - \alpha_{2q} \\
 \beta_{2e} = 2 \cdot \lfloor \frac{\beta}{4} \rfloor + \lfloor 2 \cdot \{ \frac{\beta}{4} \} \rfloor \\
+\beta_{2q} = 2 \cdot \lfloor \frac{\beta}{4} \rfloor + 1 \\
 \beta_{2 * } = \beta - \beta_{2e} \\
+\beta_{2 q+ } = \beta - \beta_{2q} \\
 \gamma_{2e} = 2 \cdot \lfloor \frac{\gamma}{4} \rfloor + \lfloor 2 \cdot \{ \frac{\gamma}{4} \} \rfloor \\
-\gamma_{2 * } = \gamma - \gamma_{2e}
+\gamma_{2q} = 2 \cdot \lfloor \frac{\gamma}{4} \rfloor + 1 \\
+\gamma_{2 * } = \gamma - \gamma_{2e} \\
+\gamma_{2 q+ } = \gamma - \gamma_{2q}
 \end{array}
 $$
 
@@ -102,7 +113,7 @@ $$
 | `000` |  $P_0$  | $\beta_{2e}, \gamma_{2e}, \alpha_{2e}$ | $\gamma, \alpha_{2e}, \beta_{2*}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\gamma, -\alpha_{2 * }, \beta_{2 * }$ | $-\beta_{2e}, \gamma_{2e}, -\alpha_{2 * }$ |
 | `001` |  $P_1$  | $\gamma_{2e}, \alpha_{2e}, \beta_{2e}$ | $\beta, \gamma_{2 * }, \alpha_{2e}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\beta, \gamma_{2 * }, -\alpha_{2 * }$ | $-\gamma_{2 e}, -\alpha_{2 * }, \beta_{2e}$ |
 | `010` |  $P_0$  | $\beta_{2e}, \gamma_{2e}, \alpha_{2e}$ | $\gamma, \alpha_{2e}, \beta_{2*}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\gamma, -\alpha_{2 * }, \beta_{2 * }$ | $-\beta_{2e}, \gamma_{2e}, -\alpha_{2 * }$ |
-| `011` |  $P_1$  | $\gamma_{2e}, \alpha_{2e}, \beta_{2e}$ | $\beta, \gamma_{2 * }, \alpha_{2e}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\beta, \gamma_{2 * }, -\alpha_{2 * }$ | $-\gamma_{2 e}, -\alpha_{2 * }, \beta_{2e}$ |
+| `011` |  $P_1$  | $\gamma_{2e}, \alpha_{2q}, \beta_{2e}$ | $\beta, \gamma_{2q}, \alpha_{2q}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\beta, \gamma_{2 * }, -\alpha_{2q}$ | $-\gamma_{2 e}, -\alpha_{2 q + }, \beta_{2e}$ |
 | `100` |  $P_0$  | $\beta_{2e}, \gamma_{2e}, \alpha_{2e}$ | $\gamma, \alpha_{2e}, \beta_{2*}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\gamma, -\alpha_{2 * }, \beta_{2 * }$ | $-\beta_{2e}, \gamma_{2e}, -\alpha_{2 * }$ |
 | `101` |  $P_1$  | $\gamma_{2e}, \alpha_{2e}, \beta_{2e}$ | $\beta, \gamma_{2 * }, \alpha_{2e}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\beta, \gamma_{2 * }, -\alpha_{2 * }$ | $-\gamma_{2 e}, -\alpha_{2 * }, \beta_{2e}$ |
 | `110` |  $P_0$  | $\beta_{2e}, \gamma_{2e}, \alpha_{2e}$ | $\gamma, \alpha_{2e}, \beta_{2*}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\gamma, -\alpha_{2 * }, \beta_{2 * }$ | $-\beta_{2e}, \gamma_{2e}, -\alpha_{2 * }$ |
