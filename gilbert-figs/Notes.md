@@ -13,7 +13,7 @@ First some assumptions:
   - two `1x1x1`
   - two `2x1x1` (congruent shaped blocks)
   - one `1x2x1`
-* any subdivison that forces a notch will be localized
+* any subdivision that forces a notch will be localized
   to a single sub-block
 
 Some basic ideas before we get into enumeration:
@@ -80,12 +80,12 @@ $\frac{\alpha}{2}, \frac{\beta}{2}, \frac{\gamma}{2}$ with
 1 added to the major axis direction to force it to be even, respectively.
 Call $\alpha_{2q}, \beta_{2q}, \gamma_{2q}$ be 
 $\frac{\alpha}{2}, \frac{\beta}{2}, \frac{\gamma}{2}$ with 1 added to
-the major axis direction to roce it to be odd, respectively.
+the major axis direction to force it to be odd, respectively.
 
 That is, $\alpha_{2e}$ is integer division of 2 and adding one to force it to be even.
 Call the remaining value $\alpha_{2*} = \alpha - \alpha_{2e}$, which could be even or
 odd depending on what $\alpha$ is.
-$\alpha_{2q}$ is integer divison of 2 and one added to force an odd value.
+$\alpha_{2q}$ is integer division of 2 and one added to force an odd value.
 
 
 A more complicated way of saying this is:
@@ -119,6 +119,31 @@ $$
 | `110` |  $P_0$  | $\beta_{2e}, \gamma_{2e}, \alpha_{2e}$ | $\gamma, \alpha_{2e}, \beta_{2*}$ | $\alpha, -\beta_{2 * }, -\gamma_{2 * }$ | $-\gamma, -\alpha_{2 * }, \beta_{2 * }$ | $-\beta_{2e}, \gamma_{2e}, -\alpha_{2 * }$ |
 | `111` |  $P_2$  | $\beta_{2e}, \gamma, \alpha_{2e}$ | $\gamma_{2e}, \alpha, \beta_{2 * }$ | $\alpha, \beta_{2 * }, \gamma_{2 * }$ | $-\beta_{2e}, \gamma_{2 * }, -\alpha_{2 * }$ | $-\gamma_{2e}, -\alpha_{2 * }, \beta_{2e}$ |
 
+This degrades into a special case analysis but, conceptually, this is pretty straight forward.
+
+There are a few key cases:
+
+* Choose all major sub cuboids have an even anchor axis (cases `000`, `001`, `010`)
+* A notch is forced so localize to cuboid $C$ (cases `100`, `101`, `110`)
+* The special case of `111`, choose all anchor cuboid axies to be even except
+  for $C$, which we choose to be all odd
+* The complicated case of `011`, where we choose $B$ and $D$ to have all odd cuboid
+  dimensions, choosing other cuboids to have even anchor direction ($\alpha$ is even, so
+  we can subdivided it into two odd portions, allowing us to force $B$ and $D$ to be all
+  odd cuboids)
+
+All configurations of cuboids alternate between $P_0$ and $P_1$, except for `111` which has $P_2$.
+For the configurations where a notch is forced, we shunt the notch to the $C$ cuboid.
+For each of the sub-cuboids that we know don't need a notch, we choose the anchor axis direction
+to be even, except for the special case of $B$ and $D$ for `011` and $C$ for `111`.
+
+There's some "don't care" states for cuboid dimensions.
+We should go through and label them, as this might provide an avenue to
+optimize various aspects of the subdivision (making it more parsimonious in some way)
+but, for simplicity, the above defaults to even for each of the dimensions when choosing the first ($A$) cuboid.
+
+
+
 
 ###### 2025-03-17
 
@@ -132,7 +157,7 @@ Removing the initial orientation so that the width
 is anchored and doing larger realizations (8x11x11?)
 shows even bigger jumps.
 
-Unlike the 2D Gilbert curve, the 3D gilbert curve
+Unlike the 2D Gilbert curve, the 3D Gilbert curve
 doesn't do any adaptive reshaping, other than a blind
 force of the A block to be even.
 This causes problems in other blocks downstream.
