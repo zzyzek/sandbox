@@ -71,7 +71,7 @@ original basis vectors (e.g. $(1,0,0), (0,1,0), (0,0,1)$ to start), then the
 recursion can be done by using these basis vectors, with length and in axis adjustments.
 
 $\alpha, \beta, \gamma \in \mathbb{R}^3$ but we'll abuse notation to say
-$f(\alpha) = (f(\alpha_x), f(\alpha_y), f(\alpha_z)$.
+$f(\alpha) = (f(\alpha_x), f(\alpha_y), f(\alpha_z) )$.
 For example $\lfloor \alpha \rfloor = ( \lfloor \alpha_x \rfloor, \lfloor \alpha_y \rfloor, \lfloor \alpha_z \rfloor)$
 and $\frac{\alpha}{2} = ( \frac{\alpha_x}{2}, \frac{\alpha_y}{2}, \frac{\alpha_z}{2} )$.
 
