@@ -12,11 +12,25 @@
   <script type='text/javascript' src='js/two.js'></script>
   <script type='text/javascript' src='js/mp_path.js'></script>
 
+  <script>
+  MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+    svg: { fontCache: 'global' }
+  };
+  </script>
+
+  <!-- <script type='text/javascript' src='js/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script> -->
+  <!-- <script id='MathJax-script' async src='js/mathjax/es5/tex-chtml.js'></script> -->
+  <script id='MathJax-script' type='text/javascript' async src='js/mathjax/es5/tex-svg.js'></script>
   <script type='text/javascript' src='js/gilbert3d_case.js'></script>
 
 </head>
 
 <body>
+
+  <div id='alpha'>$\alpha$</div>
+  <div id='beta'>$\beta$</div>
+  <div id='gamma'>$\gamma$</div>
 
   <div id='gilbert3d_case_canvas' style='width:1000px;height:1000px;'> </div>
 
