@@ -768,6 +768,29 @@ function mk_iso_cuboid( x0,y0,s, lco, fco, lXYZ, lw, vr, theta) {
   two.update();
 }
 
+function mkfullblock(start_xy, opos, cuboid_size, disp_order, scale) {
+  scale = ((typeof scale === "undefined") ? 25 : scale);
+  let two = g_fig_ctx.two;
+
+  let vr = [0,0,1];
+  let theta = -Math.PI/16 + Math.PI/2;
+
+  //let order = [3,4,1,0,2];
+
+  for (let _i=0; _i<5; _i++) {
+    let i = disp_order[_i];
+    let jxyz = njs.mul(scale, rodrigues(opos[i], vr, theta));
+    let jxy = njs.add( [start_xy[0], start_xy[1]], _project( jxyz[0], jxyz[1], jxyz[2]) );
+    let lco = lPAL[i];
+    let fco = PAL[i];
+    let cs = njs.mul(scale, cuboid_size[i]);
+
+    mk_iso_cuboid(jxy[0],jxy[1],1, lco, fco, cs, 2, vr, theta);
+  }
+
+  //two.update();
+}
+
 function gilbert3d_case() {
   let two = g_fig_ctx.two;
 
@@ -792,35 +815,6 @@ function gilbert3d_case() {
   let jx = (s0 - js)*Math.sqrt(3)/2,
       jy = (s0 - js)/2;
 
-  let D = 1.8;
-
-  let dock_xyz = [
-    [ D + 1 - dw, 0, 0 ],
-
-    [ D , 0, 0 ],
-    [ -D + 1 - dw, 0, 0],
-
-    [ -D + 1 - dw, 0, 2 - dw],
-    [ D, 0, 2-dw],
-
-    [ -D + 1 - dw, 2-dw, 2 - dw],
-    [ D, 2-dw, 2-dw],
-
-    [ -D + 1 - dw, 2-dw, 0],
-    [ D, 2-dw, 0],
-
-    [ D+1-dw, 2-dw, 0]
-  ];
-
-  /*
-  let proj_cxy = [];
-  for (let i=0; i<dock_xyz.length; i++) {
-    let cxyz = njs.mul(s0, rodrigues( njs.add([dw/2, dw/2, dw/2], dock_xyz[i]), vr, theta));
-    let cxy = njs.add( [x0,y0], _project( cxyz[0], cxyz[1], cxyz[2]) );
-    proj_cxy.push( cxy );
-  }
-  */
-
   let _D = 1/3;
   let _d = _D/2;
 
@@ -843,22 +837,35 @@ function gilbert3d_case() {
   let dock_P2 = [
     [ [0,0,0, _d,_d,_d], [0,1-_D,0, _d,1-_d,_d] ],
     [ [0,0,0, _d,_d,_d], [0,0,1-_D, _d,_d,1-_d] ],
-
     [ [0,0,0, _d,_d,_d], [2-_D,0,0, 2-_d,_d,_d] ], 
-
     [ [1-_D,1-_D,0, 1-_d,1-_d,_d], [1-_D,0,0, 1-_d,_d,_d] ],
     [ [1-_D,0,1-_D, 1-_d,_d,1-_d], [1-_D,0,0, 1-_d,_d,_d] ]
   ];
 
 
   let PConfig = [
-    { "xy": CXY_P0, "cuboid_size": [ [1,1,1], [1,1,2], [2,1,1], [1,1,2], [1,1,1] ],
-      "endpoint": dock_P0 },
-    { "xy": CXY_P1, "cuboid_size": [ [1,1,1], [1,2,1], [2,1,1], [1,2,1], [1,1,1] ],
-      "endpoint": dock_P1 },
-    { "xy": CXY_P2, "cuboid_size": [ [1,1,2], [2,1,1], [2,1,1], [1,1,1], [1,1,1] ],
-      "endpoint": dock_P2 }
-  ]
+    {
+      "xy": CXY_P0,
+      "opos" : [ [0,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,0] ],
+      "cuboid_size": [ [1,1,1], [1,1,2], [2,1,1], [1,1,2], [1,1,1] ],
+      "disp_order" : [3,4,1,0,2],
+      "endpoint": dock_P0
+    },
+    {
+      "xy": CXY_P1,
+      "opos" : [ [0,0,0], [0,0,1], [0,1,0], [1,0,1], [1,0,0] ],
+      "cuboid_size": [ [1,1,1], [1,2,1], [2,1,1], [1,2,1], [1,1,1] ],
+      "disp_order" : [2,4,3,0,1],
+      "endpoint": dock_P1
+    },
+    {
+      "xy": CXY_P2,
+      "opos" : [ [0,0,0], [0,1,0], [0,1,1], [1,0,1], [1,0,0] ],
+      "cuboid_size": [ [1,1,2], [2,1,1], [2,1,1], [1,1,1], [1,1,1] ],
+      "disp_order": [1,2,4,3,0],
+      "endpoint": dock_P2
+    }
+  ];
 
   for (let whd=0; whd<8; whd++) {
 
@@ -866,12 +873,16 @@ function gilbert3d_case() {
     let cxya = pc.xy;
     let cuboid_size_a = pc.cuboid_size;
 
-    let start_xy = [ ((whd%2) ? (scale*18) : 0), Math.floor(whd/2)*150 ];
+    //let start_xy = [ ((whd%2) ? (scale*18) : 0), Math.floor(whd/2)*150 ];
+    let start_xy = [ ((whd%2) ? (scale*18) : 0), Math.floor(whd/2)*105 ];
+
+    let sxy = [ start_xy[0] + 50, start_xy[1] + 150 ];
+
+    mkfullblock(sxy, pc.opos, pc.cuboid_size, pc.disp_order, 18);
 
     for (let idx=0; idx<5; idx++) {
-      let P = 0;
-      //let cxy = njs.add( [0,whd*150], cxya[idx]);
-      let cxy = njs.add( start_xy, cxya[idx]);
+      //let cxy = njs.add( start_xy, cxya[idx]);
+      let cxy = njs.add( [60,0], njs.add( start_xy, cxya[idx]) );
       let lco = lPAL[idx];
       let fco = PAL[idx];
       let cs = njs.mul(scale, cuboid_size_a[idx]);
@@ -883,58 +894,37 @@ function gilbert3d_case() {
         let dock_pos = pc.endpoint[idx][_di];
 
         let _dd = 1/3;
-        //let jxyz = njs.mul(scale, rodrigues([0,0,2-_dd], vr, theta));
-        //let jxyz = njs.mul(scale, rodrigues([ dock_pos[0],dock_pos[1],dock_pos[2]-_dd], vr, theta));
         let jxyz = njs.mul(scale, rodrigues([ dock_pos[0],dock_pos[1],dock_pos[2]], vr, theta));
         let jxy = njs.add( [cxy[0], cxy[1]], _project( jxyz[0], jxyz[1], jxyz[2]) );
         mk_iso_cuboid(jxy[0],jxy[1],scale*_dd, dock_co[0], dock_co[1], [1,1,1], 2, vr, theta);
 
-        //let dc_xyz = njs.mul(scale, rodrigues([_dd/2,_dd/2,2-_dd/2], vr, theta));
-        //let dc_xyz = njs.mul(scale, rodrigues([dock_pos[0]+_dd/2,dock_pos[1]+_dd/2,dock_pos[2]-_dd/2], vr, theta));
         let dc_xyz = njs.mul(scale, rodrigues([dock_pos[3],dock_pos[4],dock_pos[5]], vr, theta));
         let dc_xy = njs.add( [cxy[0], cxy[1]], _project( dc_xyz[0], dc_xyz[1], dc_xyz[2]) );
 
         let _c = two.makeCircle( dc_xy[0], dc_xy[1],  4 );
         _c.stroke = "rgba(0,0,0,0)";
         _c.linewidth = 0;
-        if (_di==1) {
-          _c.fill = "rgba(255,255,255,0.9)";
-        } else {
-          _c.fill = "rgba(0,0,0,0.9)";
-        }
+        if (_di==1) { _c.fill = "rgba(255,255,255,0.9)"; }
+        else        { _c.fill = "rgba(0,0,0,0.9)"; }
       }
 
     }
-
-    /*
-    let x0 = cxy[0];
-    let y0 = cxy[1];
-
-    for (let i=0; i<dock_xyz.length; i++) {
-
-      let jxyz = njs.mul(s0, rodrigues(dock_xyz[i], vr, theta));
-      let jxy = njs.add( [x0,y0], _project( jxyz[0], jxyz[1], jxyz[2]) );
-
-      let cxyz = njs.mul(s0, rodrigues( njs.add([dw/2, dw/2, dw/2], dock_xyz[i]), vr, theta));
-      let cxy = njs.add( [x0,y0], _project( cxyz[0], cxyz[1], cxyz[2]) );
-
-      mk_iso_cuboid( jxy[0],jxy[1],js, "rgba(0,0,0,0)", "rgba(0,0,0,0.3)", [1,1,1], 0, vr, theta);
-
-      let _c = two.makeCircle( cxy[0], cxy[1],  4 );
-      _c.stroke = "rgba(0,0,0,0)";
-      _c.linewidth = 0;
-      if ((i==0) || (i==(dock_xyz.length-1))) {
-        _c.fill = "rgba(255,255,255,0.9)";
-      }
-      else {
-        _c.fill = "rgba(0,0,0,0.9)";
-      }
-
-    }
-    */
 
   }
 
+  if (false) {
+    let pc0 = PConfig[0];
+    let pc1 = PConfig[1];
+    let pc2 = PConfig[2];
+
+    let disp_order0 = [3,4,1,0,2];
+    let disp_order1 = [2,4,3,0,1];
+    let disp_order2 = [1,2,4,3,0];
+
+    mkfullblock([150,100], pc0.opos, pc0.cuboid_size, disp_order0, 20);
+    mkfullblock([250,100], pc1.opos, pc1.cuboid_size, disp_order1, 20);
+    mkfullblock([200,200], pc2.opos, pc2.cuboid_size, disp_order2, 20);
+  }
 
   axis_fig(50, 50, 20);
   //block3d_fig(50, 160, 40);
