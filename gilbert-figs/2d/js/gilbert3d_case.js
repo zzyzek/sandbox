@@ -989,6 +989,7 @@ function gilbert3d_case() {
 
     mkfullblock(sxy, pc.opos, pc.cuboid_size, pc.disp_order, 18);
 
+    let vord_pos = [-1,-1];
     for (let idx=0; idx<5; idx++) {
       //let cxy = njs.add( start_xy, cxya[idx]);
       let cxy = njs.add( [60,0], njs.add( start_xy, cxya[idx]) );
@@ -1003,6 +1004,24 @@ function gilbert3d_case() {
       mathjax2twojs(_lbl.x.t, cxy[0]+_lbl.x.xy[0],cxy[1]+_lbl.x.xy[1], 0.015);
       mathjax2twojs(_lbl.y.t, cxy[0]+_lbl.y.xy[0],cxy[1]+_lbl.y.xy[1], 0.015);
       mathjax2twojs(_lbl.z.t, cxy[0]+_lbl.z.xy[0],cxy[1]+_lbl.z.xy[1], 0.015);
+
+      if (vord_pos[0] < 0) {
+        vord_pos[0] = cxy[0];
+        vord_pos[1] = cxy[1];
+      }
+      else {
+        vord_pos[0] = cxy[0];
+      }
+
+      mathjax2twojs(_lbl.x.t, vord_pos[0]-30,vord_pos[1]+50, 0.0125);
+      mathjax2twojs(_lbl.y.t, vord_pos[0]- 5,vord_pos[1]+50, 0.0125);
+      mathjax2twojs(_lbl.z.t, vord_pos[0]+20,vord_pos[1]+50, 0.0125);
+
+      let v_id = ["A", "B", "C", "D", "E"][idx];
+      v_id += "_P" + whd2pconfig[whd].toString();
+      console.log(">>", v_id, document.getElementById(v_id));
+
+      //mathjax2twojs(v_id, cxy[0]-35, cxy[1]+50, 0.015);
 
       //mathjax2twojs("gamma2q", cxy[0]+10,cxy[1]+5, 0.015);
       //mathjax2twojs("alpha2s", cxy[0]-30,cxy[1]-0, 0.015);
@@ -1098,7 +1117,8 @@ function mathjax2twojs(_id,x,y,s,s_sub) {
   two.update();
 
   let mask = document.getElementById(sgr.mask.id);
-  mask.firstChild.setAttribute("d", "M -10000 -10000 L 10000 -10000 L 10000 10000 L -10000 10000 Z");
+  //mask.firstChild.setAttribute("d", "M -10000 -10000 L 10000 -10000 L 10000 10000 L -10000 10000 Z");
+  mask.firstChild.setAttribute("d", "M -4000 -4000 L 4000 -4000 L 4000 4000 L -4000 4000 Z");
 
   two.update();
 }
