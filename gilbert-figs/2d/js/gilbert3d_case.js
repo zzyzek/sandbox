@@ -660,36 +660,6 @@ function curve3d_fig(x0,y0,s) {
   }
 
   two.update();
-
-  return;
-
-  let _p = [];
-  for (let idx=0; idx<64; idx++) {
-    let _xyz = gilbert_d2xyz(idx, N,N,N);
-
-    let xyz = rodrigues( [N-_xyz.y, _xyz.x, _xyz.z], rotaxis, rotangle );
-
-    let ridx = 0;
-    for (ridx=0; ridx<idx_region_xy.length; ridx++) {
-      if ((idx_region_xy[ridx][0] <= idx) &&
-          (idx < idx_region_xy[ridx][1])) {
-        break;
-      }
-    }
-
-    let dxy = idx_region_xy[ridx][2];
-
-    let xy = njs.add( _project(xyz[0], xyz[1], xyz[2], s), [x0,y0] );
-    xy[0] += dxy[0];
-    xy[1] += dxy[1];
-    _p.push(xy);
-
-  }
-
-
-
-  two.update();
-
 }
 
 
@@ -800,10 +770,6 @@ function gilbert3d_case() {
   var ele = document.getElementById("gilbert3d_case_canvas");
   two.appendTo(ele);
 
-  let CXY_P0 = [ [70, 150], [140, 150], [197, 125], [280, 150], [350, 150] ];
-  let CXY_P1 = [ [70, 150], [140, 150], [195,  125], [290, 150], [350, 150] ];
-  let CXY_P2 = [ [70, 150], [130, 150], [210, 125], [290, 150], [350, 150] ];
-
   let scale = 25;
   let s0 = scale;
 
@@ -817,6 +783,138 @@ function gilbert3d_case() {
 
   let _D = 1/3;
   let _d = _D/2;
+
+  let label_P0 = [
+    {
+      "x": { "t": "alpha2e", "xy": [10,5]  },
+      "y": { "t": "beta2e", "xy": [-25,0]  },
+      "z": { "t": "gamma2e", "xy": [-37,-20]  }
+    },
+
+    {
+      "x": { "t": "alpha2e", "xy": [10,5]  },
+      "y": { "t": "beta2s", "xy": [-25,0]  },
+      "z": { "t": "gamma", "xy": [-30,-20]  }
+    },
+
+    {
+      "x": { "t": "alpha", "xy": [10,5]  },
+      "y": { "t": "beta2s", "xy": [-25,0]  },
+      "z": { "t": "gamma2s", "xy": [-37,-20]  }
+    },
+
+    {
+      "x": { "t": "alpha2s", "xy": [10,5]  },
+      "y": { "t": "beta2s", "xy": [-25,0]  },
+      "z": { "t": "gamma", "xy": [-30,-20]  }
+    },
+
+    {
+      "x": { "t": "alpha2s", "xy": [10,5]  },
+      "y": { "t": "beta2e", "xy": [-25,0]  },
+      "z": { "t": "gamma2e", "xy": [-40,-20]  }
+    }
+
+  ];
+
+  let label_P1 = [
+    {
+      "x": { "t": "alpha2e", "xy": [10,5]  },
+      "y": { "t": "beta2e", "xy": [-25,0]  },
+      "z": { "t": "gamma2e", "xy": [-37,-20]  }
+    },
+
+    {
+      "x": { "t": "alpha2e", "xy": [10,5]  },
+      "y": { "t": "beta", "xy": [-25,0]  },
+      "z": { "t": "gamma2s", "xy": [-55,-35]  }
+    },
+
+    {
+      "x": { "t": "alpha", "xy": [10,5]  },
+      "y": { "t": "beta2s", "xy": [-25,0]  },
+      "z": { "t": "gamma2s", "xy": [-37,-20]  }
+    },
+
+    {
+      "x": { "t": "alpha2s", "xy": [10,5]  },
+      "y": { "t": "beta", "xy": [-25,0]  },
+      "z": { "t": "gamma2s", "xy": [-55,-40]  }
+    },
+
+    {
+      "x": { "t": "alpha2s", "xy": [10,5]  },
+      "y": { "t": "beta2e", "xy": [-25,0]  },
+      "z": { "t": "gamma2e", "xy": [-40,-20]  }
+    }
+
+  ];
+
+  let label_P1_011 = [
+    {
+      "x": { "t": "alpha2q", "xy": [10,5]  },
+      "y": { "t": "beta2e", "xy": [-25,0]  },
+      "z": { "t": "gamma2e", "xy": [-37,-20]  }
+    },
+
+    {
+      "x": { "t": "alpha2q", "xy": [10,5]  },
+      "y": { "t": "beta", "xy": [-25,0]  },
+      "z": { "t": "gamma2q", "xy": [-55,-35]  }
+    },
+
+    {
+      "x": { "t": "alpha", "xy": [10,5]  },
+      "y": { "t": "beta2q", "xy": [-25,0]  },
+      "z": { "t": "gamma2q", "xy": [-37,-20]  }
+    },
+
+    {
+      "x": { "t": "alpha2qp", "xy": [10,5]  },
+      "y": { "t": "beta", "xy": [-25,0]  },
+      "z": { "t": "gamma2q", "xy": [-55,-40]  }
+    },
+
+    {
+      "x": { "t": "alpha2qp", "xy": [10,5]  },
+      "y": { "t": "beta2e", "xy": [-25,0]  },
+      "z": { "t": "gamma2e", "xy": [-40,-20]  }
+    }
+
+  ];
+
+  let label_P2 = [
+    {
+      "x": { "t": "alpha2e", "xy": [10,5]  },
+      "y": { "t": "beta2e", "xy": [-25,0]  },
+      "z": { "t": "gamma", "xy": [-30,-20]  }
+    },
+
+    {
+      "x": { "t": "alpha", "xy": [10,5]  },
+      "y": { "t": "beta2q", "xy": [-25,0]  },
+      "z": { "t": "gamma2e", "xy": [-38,-25]  }
+    },
+
+    {
+      "x": { "t": "alpha", "xy": [10,5]  },
+      "y": { "t": "beta2q", "xy": [-25,0]  },
+      "z": { "t": "gamma2q", "xy": [-37,-20]  }
+    },
+
+    {
+      "x": { "t": "alpha2q", "xy": [10,5]  },
+      "y": { "t": "beta2q", "xy": [-25,0]  },
+      "z": { "t": "gamma2q", "xy": [-38,-25]  }
+    },
+
+    {
+      "x": { "t": "alpha2q", "xy": [10,5]  },
+      "y": { "t": "beta2e", "xy": [-25,0]  },
+      "z": { "t": "gamma2e", "xy": [-38,-20]  }
+    }
+
+  ];
 
   let dock_P0 = [
     [ [0,0,0, _d,_d,_d], [0,1-_D,0, _d, 1-_d,_d] ],
@@ -842,6 +940,13 @@ function gilbert3d_case() {
     [ [1-_D,0,1-_D, 1-_d,_d,1-_d], [1-_D,0,0, 1-_d,_d,_d] ]
   ];
 
+  let CXY_P0 = [ [70, 150], [140, 150], [197, 125], [280, 150], [350, 150] ];
+  let CXY_P1 = [ [70, 150], [140, 150], [195,  125], [290, 150], [350, 150] ];
+  let CXY_P2 = [ [70, 150], [130, 150], [210, 125], [290, 150], [350, 150] ];
+
+  CXY_P0 = [ [70, 150], [140, 150], [210, 125], [290, 150], [360, 150] ];
+  CXY_P1 = [ [75, 150], [160, 150], [225,  125], [335, 150], [410, 150] ];
+  CXY_P2 = [ [75, 150], [150, 150], [245, 125], [335, 150], [410, 150] ];
 
   let PConfig = [
     {
@@ -849,6 +954,7 @@ function gilbert3d_case() {
       "opos" : [ [0,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,0] ],
       "cuboid_size": [ [1,1,1], [1,1,2], [2,1,1], [1,1,2], [1,1,1] ],
       "disp_order" : [3,4,1,0,2],
+      "label": label_P0,
       "endpoint": dock_P0
     },
     {
@@ -856,6 +962,7 @@ function gilbert3d_case() {
       "opos" : [ [0,0,0], [0,0,1], [0,1,0], [1,0,1], [1,0,0] ],
       "cuboid_size": [ [1,1,1], [1,2,1], [2,1,1], [1,2,1], [1,1,1] ],
       "disp_order" : [2,4,3,0,1],
+      "label": label_P1,
       "endpoint": dock_P1
     },
     {
@@ -863,6 +970,7 @@ function gilbert3d_case() {
       "opos" : [ [0,0,0], [0,1,0], [0,1,1], [1,0,1], [1,0,0] ],
       "cuboid_size": [ [1,1,2], [2,1,1], [2,1,1], [1,1,1], [1,1,1] ],
       "disp_order": [1,2,4,3,0],
+      "label": label_P2,
       "endpoint": dock_P2
     }
   ];
@@ -874,7 +982,8 @@ function gilbert3d_case() {
     let cuboid_size_a = pc.cuboid_size;
 
     //let start_xy = [ ((whd%2) ? (scale*18) : 0), Math.floor(whd/2)*150 ];
-    let start_xy = [ ((whd%2) ? (scale*18) : 0), Math.floor(whd/2)*105 ];
+    //let start_xy = [ ((whd%2) ? (scale*18) : 0), Math.floor(whd/2)*105 ];
+    let start_xy = [ ((whd%2) ? (scale*18) : 0), Math.floor(whd/2)*155 ];
 
     let sxy = [ start_xy[0] + 50, start_xy[1] + 150 ];
 
@@ -887,6 +996,17 @@ function gilbert3d_case() {
       let fco = PAL[idx];
       let cs = njs.mul(scale, cuboid_size_a[idx]);
       mk_iso_cuboid(cxy[0],cxy[1],1, lco, fco, cs, 2, vr, theta);
+
+      let _lbl = pc.label[idx];
+      if (whd == 3) { _lbl = label_P1_011[idx]; }
+
+      mathjax2twojs(_lbl.x.t, cxy[0]+_lbl.x.xy[0],cxy[1]+_lbl.x.xy[1], 0.015);
+      mathjax2twojs(_lbl.y.t, cxy[0]+_lbl.y.xy[0],cxy[1]+_lbl.y.xy[1], 0.015);
+      mathjax2twojs(_lbl.z.t, cxy[0]+_lbl.z.xy[0],cxy[1]+_lbl.z.xy[1], 0.015);
+
+      //mathjax2twojs("gamma2q", cxy[0]+10,cxy[1]+5, 0.015);
+      //mathjax2twojs("alpha2s", cxy[0]-30,cxy[1]-0, 0.015);
+      //mathjax2twojs("beta2e", cxy[0]-40,cxy[1]-20, 0.015);
 
       let dock_co = [ "rgba(0,0,0,0", "rgba(0,0,0,0.3)" ];
 
@@ -931,3 +1051,69 @@ function gilbert3d_case() {
   //curve3d_fig(15, 300, 20);
 }
 
+var debug = [];
+
+// so very hacky
+// somehow we managed to shoehorn
+// mathjax notation into svg so that it
+// can be used by two.js.
+// We need to contort ourselves to get the mask
+// right so that it gets all the element
+//
+function mathjax2twojs(_id,x,y,s,s_sub) {
+  s = ((typeof s === "undefined") ? 0.02 : s);
+  s_sub = ((typeof s_sub === "undefined") ? 0.7 : s_sub);
+
+  let two = g_fig_ctx.two;
+
+  let ele = document.querySelector("#" + _id + " svg");
+  let ser = new XMLSerializer();
+  let str = ser.serializeToString(ele);
+
+  let parser = new DOMParser();
+  let sge = parser.parseFromString(str, "image/svg+xml").documentElement;
+
+  let sgr = two.interpret(sge);
+
+  sgr.position.x = x;
+  sgr.position.y = y;
+  sgr.scale.x =  s;
+  sgr.scale.y = -s;
+
+  //debug.push(sgr);
+
+  if (sgr.children.length > 0) {
+    if (sgr.children[0].children.length > 0) {
+      if (sgr.children[0].children[0].children.length > 0) {
+        if (sgr.children[0].children[0].children[0].children.length > 1) {
+          sgr.children[0].children[0].children[0].children[1].scale.x = s_sub;
+          sgr.children[0].children[0].children[0].children[1].scale.y = s_sub;
+        }
+      }
+    }
+  }
+
+  //yep, needed, so we can then get the make element
+  //
+  two.update();
+
+  let mask = document.getElementById(sgr.mask.id);
+  mask.firstChild.setAttribute("d", "M -10000 -10000 L 10000 -10000 L 10000 10000 L -10000 10000 Z");
+
+  two.update();
+}
+
+
+/*
+var debug = [];
+function okok() {
+  let two = g_fig_ctx.two;
+  let s = '<svg width="100" height="100"><circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" /></svg>';
+  const div = document.createElement('div');
+  div.innerHTML = s;
+  let fc = div.firstChild;
+  let g = two.interpret(fc);
+  console.log(s,div, g);
+  two.update();
+}
+*/

@@ -14,9 +14,17 @@
 
   <script>
   MathJax = {
+    startup : { pageReady: () => {
+      let _r = MathJax.startup.defaultPageReady();
+      setTimeout(mathjax_ready, 1);
+      return _r;
+    }},
     loader : { load: [ 'output/svg' ] },
     tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
-    svg: { fontCache: 'global' }
+    svg: {
+      //useGlobalCache: false }
+      fontCache: 'none' }
+      //fontCache: 'global' }
   };
   </script>
 
@@ -29,16 +37,34 @@
 
 <body>
 
-  <div id='alpha'>$\alpha$</div>
-  <div id='beta'>$\beta$</div>
-  <div id='gamma'>$\gamma$</div>
+  <div id='alpha' style='display:block;'>$\alpha$</div>
+  <div id='beta' style='display:block;'>$\beta$</div>
+  <div id='gamma' style='display:block;'>$\gamma$</div>
+
+  <div id='alpha2e' style='display:block;'>$\alpha_{2e}$</div>
+  <div id='beta2e' style='display:block;'>$\beta_{2e}$</div>
+  <div id='gamma2e' style='display:block;'>$\gamma_{2e}$</div>
+
+  <div id='alpha2q' style='display:block;'>$\alpha_{2q}$</div>
+  <div id='beta2q' style='display:block;'>$\beta_{2q}$</div>
+  <div id='gamma2q' style='display:block;'>$\gamma_{2q}$</div>
+
+  <div id='alpha2qp' style='display:block;'>$\alpha_{2q+}$</div>
+  <div id='beta2qp' style='display:block;'>$\beta_{2q+}$</div>
+  <div id='gamma2qp' style='display:block;'>$\gamma_{2q+}$</div>
+
+  <div id='alpha2s' style='display:block;'>$\alpha_{2 * }$</div>
+  <div id='beta2s' style='display:block;'>$\beta_{2 * }$</div>
+  <div id='gamma2s' style='display:block;'>$\gamma_{2 * }$</div>
 
   <div id='gilbert3d_case_canvas' style='width:1000px;height:1000px;'> </div>
 
 </body>
 
   <script>
-    gilbert3d_case();
+    function mathjax_ready() {
+      gilbert3d_case();
+    }
   </script>
 
 <html>
