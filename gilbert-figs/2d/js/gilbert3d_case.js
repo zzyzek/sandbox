@@ -786,32 +786,37 @@ function gilbert3d_case() {
 
   let label_P0 = [
     {
+      "order" : [1,2,0],
       "x": { "t": "alpha2e", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-37,-20]  }
     },
 
     {
+      "order" : [2,0,1],
       "x": { "t": "alpha2e", "xy": [10,5]  },
       "y": { "t": "beta2s", "xy": [-25,0]  },
       "z": { "t": "gamma", "xy": [-30,-20]  }
     },
 
     {
+      "order" : [0,1,2],
       "x": { "t": "alpha", "xy": [10,5]  },
-      "y": { "t": "beta2s", "xy": [-25,0]  },
-      "z": { "t": "gamma2s", "xy": [-37,-20]  }
+      "y": { "t": "m_beta2s", "xy": [-25,0]  },
+      "z": { "t": "m_gamma2s", "xy": [-37,-20]  }
     },
 
     {
-      "x": { "t": "alpha2s", "xy": [10,5]  },
+      "order" : [2,0,1],
+      "x": { "t": "m_alpha2s", "xy": [10,5]  },
       "y": { "t": "beta2s", "xy": [-25,0]  },
-      "z": { "t": "gamma", "xy": [-30,-20]  }
+      "z": { "t": "m_gamma", "xy": [-30,-20]  }
     },
 
     {
-      "x": { "t": "alpha2s", "xy": [10,5]  },
-      "y": { "t": "beta2e", "xy": [-25,0]  },
+      "order" : [1,2,0],
+      "x": { "t": "m_alpha2s", "xy": [10,5]  },
+      "y": { "t": "m_beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-40,-20]  }
     }
 
@@ -819,99 +824,114 @@ function gilbert3d_case() {
 
   let label_P1 = [
     {
+      "order": [2,0,1],
       "x": { "t": "alpha2e", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-37,-20]  }
     },
 
     {
+      "order": [1,2,0],
       "x": { "t": "alpha2e", "xy": [10,5]  },
       "y": { "t": "beta", "xy": [-25,0]  },
       "z": { "t": "gamma2s", "xy": [-55,-35]  }
     },
 
     {
+      "order": [0,1,2],
       "x": { "t": "alpha", "xy": [10,5]  },
-      "y": { "t": "beta2s", "xy": [-25,0]  },
-      "z": { "t": "gamma2s", "xy": [-37,-20]  }
+      "y": { "t": "m_beta2s", "xy": [-25,0]  },
+      "z": { "t": "m_gamma2s", "xy": [-37,-20]  }
     },
 
     {
-      "x": { "t": "alpha2s", "xy": [10,5]  },
-      "y": { "t": "beta", "xy": [-25,0]  },
+      "order": [1,2,0],
+      "x": { "t": "m_alpha2s", "xy": [10,5]  },
+      "y": { "t": "m_beta", "xy": [-25,0]  },
       "z": { "t": "gamma2s", "xy": [-55,-40]  }
     },
 
     {
-      "x": { "t": "alpha2s", "xy": [10,5]  },
+      "order": [2,0,1],
+      "x": { "t": "m_alpha2s", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
-      "z": { "t": "gamma2e", "xy": [-40,-20]  }
+      "z": { "t": "m_gamma2e", "xy": [-40,-20]  }
     }
 
   ];
 
   let label_P1_011 = [
     {
+      "order": [2,0,1],
       "x": { "t": "alpha2q", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-37,-20]  }
     },
 
     {
+      "order": [1,2,0],
       "x": { "t": "alpha2q", "xy": [10,5]  },
       "y": { "t": "beta", "xy": [-25,0]  },
       "z": { "t": "gamma2q", "xy": [-55,-35]  }
     },
 
     {
+      "order": [0,1,2],
       "x": { "t": "alpha", "xy": [10,5]  },
-      "y": { "t": "beta2q", "xy": [-25,0]  },
-      "z": { "t": "gamma2q", "xy": [-37,-20]  }
+      "y": { "t": "m_beta2q", "xy": [-25,0]  },
+      "z": { "t": "m_gamma2q", "xy": [-37,-20]  }
     },
 
     {
+      "order": [1,2,0],
       "x": { "t": "alpha2qp", "xy": [10,5]  },
-      "y": { "t": "beta", "xy": [-25,0]  },
-      "z": { "t": "gamma2q", "xy": [-55,-40]  }
+      "y": { "t": "m_beta", "xy": [-25,0]  },
+      "z": { "t": "m_gamma2q", "xy": [-55,-40]  }
     },
 
     {
-      "x": { "t": "alpha2qp", "xy": [10,5]  },
+      "order": [2,0,1],
+      "x": { "t": "m_alpha2qp", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
-      "z": { "t": "gamma2e", "xy": [-40,-20]  }
+      "z": { "t": "m_gamma2e", "xy": [-40,-20]  }
     }
 
   ];
 
   let label_P2 = [
     {
+      "order": [1,2,0],
       "x": { "t": "alpha2e", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma", "xy": [-30,-20]  }
     },
 
     {
+      "order": [2,0,1],
       "x": { "t": "alpha", "xy": [10,5]  },
       "y": { "t": "beta2q", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-38,-25]  }
     },
 
     {
+      "order": [0,1,2],
       "x": { "t": "alpha", "xy": [10,5]  },
       "y": { "t": "beta2q", "xy": [-25,0]  },
       "z": { "t": "gamma2q", "xy": [-37,-20]  }
     },
 
     {
-      "x": { "t": "alpha2q", "xy": [10,5]  },
-      "y": { "t": "beta2q", "xy": [-25,0]  },
+      "order": [1,2,0],
+      "x": { "t": "m_alpha2q", "xy": [10,5]  },
+      "y": { "t": "m_beta2q", "xy": [-25,0]  },
       "z": { "t": "gamma2q", "xy": [-38,-25]  }
     },
 
     {
-      "x": { "t": "alpha2q", "xy": [10,5]  },
+      "order": [2,0,1],
+      "x": { "t": "m_alpha2q", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
-      "z": { "t": "gamma2e", "xy": [-38,-20]  }
+      "z": { "t": "m_gamma2e", "xy": [-38,-20]  }
     }
 
   ];
@@ -947,6 +967,12 @@ function gilbert3d_case() {
   CXY_P0 = [ [70, 150], [140, 150], [210, 125], [290, 150], [360, 150] ];
   CXY_P1 = [ [75, 150], [160, 150], [225,  125], [335, 150], [410, 150] ];
   CXY_P2 = [ [75, 150], [150, 150], [245, 125], [335, 150], [410, 150] ];
+
+  let fstyle = {
+    "size": 12,
+    //"weight": "bold",
+    "family": "Libertine, Linux Libertine O"
+  };
 
   let PConfig = [
     {
@@ -1001,9 +1027,21 @@ function gilbert3d_case() {
       let _lbl = pc.label[idx];
       if (whd == 3) { _lbl = label_P1_011[idx]; }
 
-      mathjax2twojs(_lbl.x.t, cxy[0]+_lbl.x.xy[0],cxy[1]+_lbl.x.xy[1], 0.015);
-      mathjax2twojs(_lbl.y.t, cxy[0]+_lbl.y.xy[0],cxy[1]+_lbl.y.xy[1], 0.015);
-      mathjax2twojs(_lbl.z.t, cxy[0]+_lbl.z.xy[0],cxy[1]+_lbl.z.xy[1], 0.015);
+      let _xt = _lbl.x.t;
+      let _yt = _lbl.y.t;
+      let _zt = _lbl.z.t;
+
+      _xt = _xt.replace(/^m_/, '');
+      _yt = _yt.replace(/^m_/, '');
+      _zt = _zt.replace(/^m_/, '');
+
+      //mathjax2twojs(_lbl.x.t, cxy[0]+_lbl.x.xy[0],cxy[1]+_lbl.x.xy[1], 0.015);
+      //mathjax2twojs(_lbl.y.t, cxy[0]+_lbl.y.xy[0],cxy[1]+_lbl.y.xy[1], 0.015);
+      //mathjax2twojs(_lbl.z.t, cxy[0]+_lbl.z.xy[0],cxy[1]+_lbl.z.xy[1], 0.015);
+
+      mathjax2twojs(_xt, cxy[0]+_lbl.x.xy[0],cxy[1]+_lbl.x.xy[1], 0.015);
+      mathjax2twojs(_yt, cxy[0]+_lbl.y.xy[0],cxy[1]+_lbl.y.xy[1], 0.015);
+      mathjax2twojs(_zt, cxy[0]+_lbl.z.xy[0],cxy[1]+_lbl.z.xy[1], 0.015);
 
       if (vord_pos[0] < 0) {
         vord_pos[0] = cxy[0];
@@ -1013,13 +1051,62 @@ function gilbert3d_case() {
         vord_pos[0] = cxy[0];
       }
 
-      mathjax2twojs(_lbl.x.t, vord_pos[0]-30,vord_pos[1]+50, 0.0125);
-      mathjax2twojs(_lbl.y.t, vord_pos[0]- 5,vord_pos[1]+50, 0.0125);
-      mathjax2twojs(_lbl.z.t, vord_pos[0]+20,vord_pos[1]+50, 0.0125);
 
-      let v_id = ["A", "B", "C", "D", "E"][idx];
-      v_id += "_P" + whd2pconfig[whd].toString();
-      console.log(">>", v_id, document.getElementById(v_id));
+      // C fudge right for whd%2
+      //
+      if (((whd%2)==1) &&
+           (whd < 7) &&
+           (idx==2)) {
+        vord_pos[0]+=15;
+      }
+
+      // D fudge for 011
+      //
+      let rparen = 38;
+      if ((whd == 3) &&
+          (idx == 3)) {
+        vord_pos[0]-=10;
+        rparen = 44;
+      }
+
+      let _ord = _lbl.order;
+
+      let _ltxt = [ _lbl.x.t, _lbl.y.t, _lbl.z.t ];
+      let ltxt = [ _ltxt[_ord[0]], _ltxt[_ord[1]], _ltxt[_ord[2]] ];
+
+      let sub_block_order_inline = false;
+      if (sub_block_order_inline) {
+
+        two.makeText("(", vord_pos[0]-28, vord_pos[1]+47);
+        //mathjax2twojs(_lbl.x.t, vord_pos[0]-25,vord_pos[1]+50, 0.0125);
+        mathjax2twojs(ltxt[0], vord_pos[0]-25,vord_pos[1]+50, 0.0125);
+
+        two.makeText(",", vord_pos[0]-8, vord_pos[1]+45);
+        //mathjax2twojs(_lbl.y.t, vord_pos[0]- 5,vord_pos[1]+50, 0.0125);
+        mathjax2twojs(ltxt[1], vord_pos[0]- 5,vord_pos[1]+50, 0.0125);
+
+        two.makeText(",", vord_pos[0]+16, vord_pos[1]+45);
+        //mathjax2twojs(_lbl.z.t, vord_pos[0]+20,vord_pos[1]+50, 0.0125);
+        mathjax2twojs(ltxt[2], vord_pos[0]+20,vord_pos[1]+50, 0.0125);
+
+        //two.makeText(")", vord_pos[0]+38, vord_pos[1]+47);
+        two.makeText(")", vord_pos[0]+rparen, vord_pos[1]+47);
+
+      }
+
+      else {
+        let dx = [0,0,0];
+        for (let __i=0; __i<3; __i++) {
+          if (ltxt[__i].slice(0,2) == "m_") { dx[__i] -= 8; }
+        }
+        mathjax2twojs(ltxt[0], vord_pos[0]+dx[0],vord_pos[1]+30, 0.0125);
+        mathjax2twojs(ltxt[1], vord_pos[0]+dx[1],vord_pos[1]+42, 0.0125);
+        mathjax2twojs(ltxt[2], vord_pos[0]+dx[2],vord_pos[1]+54, 0.0125);
+      }
+
+      //let v_id = ["A", "B", "C", "D", "E"][idx];
+      //v_id += "_P" + whd2pconfig[whd].toString();
+      //console.log(">>", v_id, document.getElementById(v_id));
 
       //mathjax2twojs(v_id, cxy[0]-35, cxy[1]+50, 0.015);
 
@@ -1099,17 +1186,38 @@ function mathjax2twojs(_id,x,y,s,s_sub) {
   sgr.scale.x =  s;
   sgr.scale.y = -s;
 
-  //debug.push(sgr);
+  debug.push(sgr);
 
-  if (sgr.children.length > 0) {
+  if (_id.slice(0,2) == "m_") {
+
+    if (true) {
+
+    if (sgr.children.length > 0) {
     if (sgr.children[0].children.length > 0) {
-      if (sgr.children[0].children[0].children.length > 0) {
-        if (sgr.children[0].children[0].children[0].children.length > 1) {
-          sgr.children[0].children[0].children[0].children[1].scale.x = s_sub;
-          sgr.children[0].children[0].children[0].children[1].scale.y = s_sub;
-        }
-      }
+    if (sgr.children[0].children[0].children.length > 1) {
+    if (sgr.children[0].children[0].children[1].children.length > 1) {
+        sgr.children[0].children[0].children[1].children[1].scale.x = s_sub;
+        sgr.children[0].children[0].children[1].children[1].scale.y = s_sub;
     }
+    }
+    }
+    }
+
+    }
+  }
+  else {
+
+    if (sgr.children.length > 0) {
+    if (sgr.children[0].children.length > 0) {
+    if (sgr.children[0].children[0].children.length > 0) {
+    if (sgr.children[0].children[0].children[0].children.length > 1) {
+        sgr.children[0].children[0].children[0].children[1].scale.x = s_sub;
+        sgr.children[0].children[0].children[0].children[1].scale.y = s_sub;
+    }
+    }
+    }
+    }
+
   }
 
   //yep, needed, so we can then get the make element
