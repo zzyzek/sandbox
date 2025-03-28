@@ -1013,7 +1013,116 @@ function gilbert3d_case() {
 
     let sxy = [ start_xy[0] + 50, start_xy[1] + 150 ];
 
-    mkfullblock(sxy, pc.opos, pc.cuboid_size, pc.disp_order, 18);
+
+    //----
+    //----
+    //----
+
+    // STILL WIP
+    //
+    let show_funnel = false;
+    if (show_funnel) {
+      let s0_x = sxy[0];
+      let s0_y = sxy[1];
+
+      let e0_x = sxy[0] + 90;
+      let e0_y = sxy[1] - 3;
+
+      let s1_x = sxy[0];
+      let s1_y = sxy[1] - 20;
+
+      let e1_x = sxy[0] + 90;
+      let e1_y = sxy[1] - 45;
+
+
+      let cp_f_s = 30;
+      let funnel = new Two.Path([
+        new Two.Anchor(s0_x,s0_y,       0,0,   cp_f_s,0, Two.Commands.curve),
+        new Two.Anchor(e0_x,e0_y, -cp_f_s,0,        0,0, Two.Commands.curve),
+        new Two.Anchor(e1_x,e1_y,       0,0,  -cp_f_s,0, Two.Commands.curve),
+        new Two.Anchor(s1_x,s1_y,  cp_f_s,0,        0,0, Two.Commands.curve)
+      ], true, false, true);
+      funnel.linewidth = 1;
+      funnel.stroke = "rgba(0,0,0,0.5)";
+      funnel.fill = "rgba(47,55,55,0.2)";
+
+      two.add(funnel);
+
+      s0_x = sxy[0]-15;
+      s0_y = sxy[1]-15;
+
+      e0_x = s0_x + 170;
+      e0_y = s0_y + 0;
+
+      s1_x = s0_x;
+      s1_y = s0_y - 30;
+
+      e1_x = s0_x + 170;
+      e1_y = s0_y - 55;
+
+      cp_f_s = 30;
+      let funnelB = new Two.Path([
+        new Two.Anchor(s0_x,s0_y,       0,0,   cp_f_s,0, Two.Commands.curve),
+        new Two.Anchor(e0_x,e0_y, -cp_f_s,0,        0,0, Two.Commands.curve),
+        new Two.Anchor(e1_x,e1_y,       0,0,  -cp_f_s,0, Two.Commands.curve),
+        new Two.Anchor(s1_x,s1_y,  cp_f_s,0,        0,0, Two.Commands.curve)
+      ], true, false, true);
+      funnelB.linewidth = 1;
+      funnelB.stroke = "rgba(0,0,0,0.5)";
+      funnelB.fill = "rgba(47,55,55,0.2)";
+
+      two.add(funnelB);
+
+
+      s0_x = sxy[0]-0;
+      s0_y = sxy[1]-30;
+
+      e0_x = s0_x + 210;
+      e0_y = s0_y + 15;
+
+      s1_x = s0_x;
+      s1_y = s0_y - 15;
+
+      e1_x = s0_x + 210;
+      e1_y = s0_y - 55;
+
+      cp_f_s = 30;
+      let funnelC = new Two.Path([
+        new Two.Anchor(s0_x,s0_y,       0,0,   cp_f_s,0, Two.Commands.curve),
+        new Two.Anchor(e0_x,e0_y, -cp_f_s,0,        0,0, Two.Commands.curve),
+        new Two.Anchor(e1_x,e1_y,       0,0,  -cp_f_s,0, Two.Commands.curve),
+        new Two.Anchor(s1_x,s1_y,  cp_f_s,0,        0,0, Two.Commands.curve)
+      ], true, false, true);
+      funnelC.linewidth = 1;
+      funnelC.stroke = "rgba(0,0,0,0.5)";
+      funnelC.fill = "rgba(47,55,55,0.2)";
+
+      two.add(funnelC);
+
+    }
+
+    //----
+    //----
+    //----
+
+    //mkfullblock(sxy, pc.opos, pc.cuboid_size, pc.disp_order, 18);
+    let tsxy = [ sxy[0], sxy[1] ];
+    if (whd%2) { tsxy[0] -= 10; }
+    else { tsxy[0] -= 10; }
+
+    mkfullblock(tsxy, pc.opos, pc.cuboid_size, pc.disp_order, 18);
+
+    let _st = {
+      "size": 10,
+      "weight": "normal",
+      "family": "Libertine, Linux Libertine O"
+    };
+
+
+    //two.makeText("Recursion", sxy[0]+5, sxy[1]+30, _st);
+    //two.makeText("Order", sxy[0]+5, sxy[1]+45, _st);
+    let _tt = two.makeText("Reorientation", sxy[0]+0, sxy[1]+35, _st);
+    //_tt.stroke = "rgba(0,0,0.5)";
 
     let vord_pos = [-1,-1];
     for (let idx=0; idx<5; idx++) {
@@ -1024,98 +1133,89 @@ function gilbert3d_case() {
       let cs = njs.mul(scale, cuboid_size_a[idx]);
       mk_iso_cuboid(cxy[0],cxy[1],1, lco, fco, cs, 2, vr, theta);
 
-      let _lbl = pc.label[idx];
-      if (whd == 3) { _lbl = label_P1_011[idx]; }
+      let label_annotations = true;
+      if (label_annotations) {
 
-      let _xt = _lbl.x.t;
-      let _yt = _lbl.y.t;
-      let _zt = _lbl.z.t;
+        let _lbl = pc.label[idx];
+        if (whd == 3) { _lbl = label_P1_011[idx]; }
 
-      _xt = _xt.replace(/^m_/, '');
-      _yt = _yt.replace(/^m_/, '');
-      _zt = _zt.replace(/^m_/, '');
+        let _xt = _lbl.x.t;
+        let _yt = _lbl.y.t;
+        let _zt = _lbl.z.t;
 
-      //mathjax2twojs(_lbl.x.t, cxy[0]+_lbl.x.xy[0],cxy[1]+_lbl.x.xy[1], 0.015);
-      //mathjax2twojs(_lbl.y.t, cxy[0]+_lbl.y.xy[0],cxy[1]+_lbl.y.xy[1], 0.015);
-      //mathjax2twojs(_lbl.z.t, cxy[0]+_lbl.z.xy[0],cxy[1]+_lbl.z.xy[1], 0.015);
+        _xt = _xt.replace(/^m_/, '');
+        _yt = _yt.replace(/^m_/, '');
+        _zt = _zt.replace(/^m_/, '');
 
-      mathjax2twojs(_xt, cxy[0]+_lbl.x.xy[0],cxy[1]+_lbl.x.xy[1], 0.015);
-      mathjax2twojs(_yt, cxy[0]+_lbl.y.xy[0],cxy[1]+_lbl.y.xy[1], 0.015);
-      mathjax2twojs(_zt, cxy[0]+_lbl.z.xy[0],cxy[1]+_lbl.z.xy[1], 0.015);
+        mathjax2twojs(_xt, cxy[0]+_lbl.x.xy[0],cxy[1]+_lbl.x.xy[1], 0.015);
+        mathjax2twojs(_yt, cxy[0]+_lbl.y.xy[0],cxy[1]+_lbl.y.xy[1], 0.015);
+        mathjax2twojs(_zt, cxy[0]+_lbl.z.xy[0],cxy[1]+_lbl.z.xy[1], 0.015);
 
-      if (vord_pos[0] < 0) {
-        vord_pos[0] = cxy[0];
-        vord_pos[1] = cxy[1];
-      }
-      else {
-        vord_pos[0] = cxy[0];
-      }
-
-
-      // C fudge right for whd%2
-      //
-      if (((whd%2)==1) &&
-           (whd < 7) &&
-           (idx==2)) {
-        vord_pos[0]+=15;
-      }
-
-      // D fudge for 011
-      //
-      let rparen = 38;
-      if ((whd == 3) &&
-          (idx == 3)) {
-        vord_pos[0]-=10;
-        rparen = 44;
-      }
-
-      let _ord = _lbl.order;
-
-      let _ltxt = [ _lbl.x.t, _lbl.y.t, _lbl.z.t ];
-      let ltxt = [ _ltxt[_ord[0]], _ltxt[_ord[1]], _ltxt[_ord[2]] ];
-
-      let sub_block_order_inline = false;
-      if (sub_block_order_inline) {
-
-        two.makeText("(", vord_pos[0]-28, vord_pos[1]+47);
-        //mathjax2twojs(_lbl.x.t, vord_pos[0]-25,vord_pos[1]+50, 0.0125);
-        mathjax2twojs(ltxt[0], vord_pos[0]-25,vord_pos[1]+50, 0.0125);
-
-        two.makeText(",", vord_pos[0]-8, vord_pos[1]+45);
-        //mathjax2twojs(_lbl.y.t, vord_pos[0]- 5,vord_pos[1]+50, 0.0125);
-        mathjax2twojs(ltxt[1], vord_pos[0]- 5,vord_pos[1]+50, 0.0125);
-
-        two.makeText(",", vord_pos[0]+16, vord_pos[1]+45);
-        //mathjax2twojs(_lbl.z.t, vord_pos[0]+20,vord_pos[1]+50, 0.0125);
-        mathjax2twojs(ltxt[2], vord_pos[0]+20,vord_pos[1]+50, 0.0125);
-
-        //two.makeText(")", vord_pos[0]+38, vord_pos[1]+47);
-        two.makeText(")", vord_pos[0]+rparen, vord_pos[1]+47);
-
-      }
-
-      else {
-        let dx = [0,0,0];
-        for (let __i=0; __i<3; __i++) {
-          if (ltxt[__i].slice(0,2) == "m_") { dx[__i] -= 8; }
+        if (vord_pos[0] < 0) {
+          vord_pos[0] = cxy[0];
+          vord_pos[1] = cxy[1];
         }
-        mathjax2twojs(ltxt[0], vord_pos[0]+dx[0],vord_pos[1]+30, 0.0125);
-        mathjax2twojs(ltxt[1], vord_pos[0]+dx[1],vord_pos[1]+42, 0.0125);
-        mathjax2twojs(ltxt[2], vord_pos[0]+dx[2],vord_pos[1]+54, 0.0125);
+        else {
+          vord_pos[0] = cxy[0];
+        }
+
+        // C fudge right for whd%2
+        //
+        if (((whd%2)==1) &&
+             (whd < 7) &&
+             (idx==2)) {
+          vord_pos[0]+=15;
+        }
+
+        // D fudge for 011
+        //
+        let rparen = 38;
+        if ((whd == 3) &&
+            (idx == 3)) {
+          vord_pos[0]-=10;
+          rparen = 44;
+        }
+
+        let _ord = _lbl.order;
+
+        let _ltxt = [ _lbl.x.t, _lbl.y.t, _lbl.z.t ];
+        let ltxt = [ _ltxt[_ord[0]], _ltxt[_ord[1]], _ltxt[_ord[2]] ];
+
+        let sub_block_order_inline = false;
+        if (sub_block_order_inline) {
+
+          two.makeText("(", vord_pos[0]-28, vord_pos[1]+47);
+          //mathjax2twojs(_lbl.x.t, vord_pos[0]-25,vord_pos[1]+50, 0.0125);
+          mathjax2twojs(ltxt[0], vord_pos[0]-25,vord_pos[1]+50, 0.0125);
+
+          two.makeText(",", vord_pos[0]-8, vord_pos[1]+45);
+          //mathjax2twojs(_lbl.y.t, vord_pos[0]- 5,vord_pos[1]+50, 0.0125);
+          mathjax2twojs(ltxt[1], vord_pos[0]- 5,vord_pos[1]+50, 0.0125);
+
+          two.makeText(",", vord_pos[0]+16, vord_pos[1]+45);
+          //mathjax2twojs(_lbl.z.t, vord_pos[0]+20,vord_pos[1]+50, 0.0125);
+          mathjax2twojs(ltxt[2], vord_pos[0]+20,vord_pos[1]+50, 0.0125);
+
+          //two.makeText(")", vord_pos[0]+38, vord_pos[1]+47);
+          two.makeText(")", vord_pos[0]+rparen, vord_pos[1]+47);
+
+        }
+
+        else {
+          let dx = [0,0,0];
+          for (let __i=0; __i<3; __i++) {
+            if (ltxt[__i].slice(0,2) == "m_") { dx[__i] -= 8; }
+          }
+          mathjax2twojs(ltxt[0], vord_pos[0]+dx[0],vord_pos[1]+30, 0.0125);
+          mathjax2twojs(ltxt[1], vord_pos[0]+dx[1],vord_pos[1]+42, 0.0125);
+          mathjax2twojs(ltxt[2], vord_pos[0]+dx[2],vord_pos[1]+54, 0.0125);
+        }
+
       }
 
-      //let v_id = ["A", "B", "C", "D", "E"][idx];
-      //v_id += "_P" + whd2pconfig[whd].toString();
-      //console.log(">>", v_id, document.getElementById(v_id));
-
-      //mathjax2twojs(v_id, cxy[0]-35, cxy[1]+50, 0.015);
-
-      //mathjax2twojs("gamma2q", cxy[0]+10,cxy[1]+5, 0.015);
-      //mathjax2twojs("alpha2s", cxy[0]-30,cxy[1]-0, 0.015);
-      //mathjax2twojs("beta2e", cxy[0]-40,cxy[1]-20, 0.015);
-
+      // docking circles for each of the sub-blocks
+      //
       let dock_co = [ "rgba(0,0,0,0", "rgba(0,0,0,0.3)" ];
-
       for (let _di=0; _di<2; _di++) {
         let dock_pos = pc.endpoint[idx][_di];
 
@@ -1151,6 +1251,41 @@ function gilbert3d_case() {
     mkfullblock([250,100], pc1.opos, pc1.cuboid_size, disp_order1, 20);
     mkfullblock([200,200], pc2.opos, pc2.cuboid_size, disp_order2, 20);
   }
+
+  let W = g_fig_ctx.two.width;
+  let H = g_fig_ctx.two.height;
+
+  let h0 = 215;
+  let hline0 = two.makeLine(0, h0, W, h0);
+  hline0.stroke = "rgba(0,0,0,0.5)";
+
+  let h1 = h0+155;
+  let hline1 = two.makeLine(0, h1, W, h1);
+  hline1.stroke = "rgba(0,0,0,0.5)";
+
+  let h2 = h1+155;
+  let hline2 = two.makeLine(0, h2, W, h2);
+  hline2.stroke = "rgba(0,0,0,0.5)";
+
+  let h3 = h2+155;
+  let hline3 = two.makeLine(0, h3, W, h3);
+  hline3.stroke = "rgba(0,0,0,0.5)";
+
+  let h_s = 65;
+  let h_e = H-50;
+  h_e = h3;
+
+  let mid_x = W/2 - 45;
+  let vline = two.makeLine(mid_x, h_s, mid_x, h_e);
+  vline.stroke = "rgba(0,0,0,0.5)";
+
+  let w0 = 90;
+  let vline0 = two.makeLine(w0, h_s, w0, h_e);
+  vline0.stroke= "rgba(0,0,0,0.5)";
+
+  let w1 = mid_x+85;
+  let vline1 = two.makeLine(w1, h_s, w1, h_e);
+  vline1.stroke= "rgba(0,0,0,0.5)";
 
   axis_fig(50, 50, 20);
   //block3d_fig(50, 160, 40);
