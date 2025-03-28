@@ -282,6 +282,105 @@ function _Line1(x0,y0, x1,y1, lco, lw) {
   return _l;
 }
 
+function small_axis_fig(x0,y0,ord,sdir,s) {
+  let two = g_fig_ctx.two;
+
+  let vr = [0,0,1];
+  let theta = -Math.PI/16;
+
+  let vxyz = njs.mul(s, rodrigues( [1,0,0], vr, theta ));
+  let vxy = _project( vxyz[0], vxyz[1], vxyz[2] );
+
+  let lw_a = 5,
+      lw_b = 2;
+
+  let v0xyz = [
+    [0,1,0],
+    [-1,0,0],
+    [0,0,1]
+  ];
+
+
+  let co = [
+    "rgba(100,100,100,1)",
+    "rgba(100,100,100,1)",
+    "rgba(100,100,100,1)",
+  ];
+
+  let tdxyz = [
+    [  0, 0.5,   0 ],
+    [-0.5,   0,   0 ],
+    [  0,   0, 0.5 ],
+  ];
+
+  let xyz0 = njs.mul(s, rodrigues( [0,0,0], vr, theta ));
+  let xy0 = njs.add( [x0,y0], _project( xyz0[0], xyz0[1], xyz0[1] ) );
+
+  let vxy_a = [];
+  for (let idx=0; idx<3; idx++) {
+    xyz = ord[idx];
+
+    let vxyz = njs.mul(s, rodrigues( v0xyz[xyz], vr, theta ));
+    let vxy = _project( vxyz[0], vxyz[1], vxyz[2] );
+
+    vxy_a.push( [vxy[0], vxy[1]] );
+
+    let lw = lw_a;
+
+    if (idx < 2) {
+
+      if (sdir[idx] > 0) {
+        let _l = two.makeLine( x0,y0, x0+vxy[0], y0+vxy[1], 10);
+        _l.linewidth = lw;
+        _l.fill = "rgba(0,0,0,0)";
+        _l.cap = 'round';
+        _l.stroke = co[xyz];
+      }
+      else {
+        let _l = two.makeLine( x0,y0, x0-vxy[0], y0-vxy[1], 10);
+        _l.linewidth = lw;
+        _l.fill = "rgba(0,0,0,0)";
+        _l.cap = 'round';
+        _l.stroke = co[xyz];
+      }
+    }
+
+    else {
+      let N = 3;
+      let f = ((sdir[idx] > 0) ? 1 : -1);
+      for (ii=0; ii<=N; ii++) {
+        let lxy = [ x0 + (f*vxy[0]*ii/N), y0 + (f*vxy[1]*ii/N) ];
+        let _c = two.makeCircle( lxy[0], lxy[1], 1.5);
+        _c.fill = "#000";
+        _c.stroke = "#000";
+        _c.linewidth = 0;
+      }
+    }
+
+  }
+
+  let c = two.makeCircle( xy0[0], xy0[1], 3);
+  c.fill = "#000";
+  c.stroke = "#000";
+  c.linewidth = 1;
+
+
+  if (sdir[0] > 0) {
+    let c_e = two.makeCircle( xy0[0]+vxy_a[0][0], xy0[1]+vxy_a[0][1], 3 );
+    c_e.fill = "#fff";
+    c_e.stroke = "#000";
+    c_e.linewidth = 1;
+  }
+  else {
+    let c_e = two.makeCircle( xy0[0]-vxy_a[0][0], xy0[1]-vxy_a[0][1], 3 );
+    c_e.fill = "#fff";
+    c_e.stroke = "#000";
+    c_e.linewidth = 1;
+  }
+
+  two.update();
+}
+
 function axis_fig(x0,y0,s) {
   let two = g_fig_ctx.two;
 
@@ -787,6 +886,7 @@ function gilbert3d_case() {
   let label_P0 = [
     {
       "order" : [1,2,0],
+      "orientation" : [1,1,1],
       "x": { "t": "alpha2e", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-37,-20]  }
@@ -794,6 +894,7 @@ function gilbert3d_case() {
 
     {
       "order" : [2,0,1],
+      "orientation" : [1,1,1],
       "x": { "t": "alpha2e", "xy": [10,5]  },
       "y": { "t": "beta2s", "xy": [-25,0]  },
       "z": { "t": "gamma", "xy": [-30,-20]  }
@@ -801,6 +902,7 @@ function gilbert3d_case() {
 
     {
       "order" : [0,1,2],
+      "orientation" : [1,-1,-1],
       "x": { "t": "alpha", "xy": [10,5]  },
       "y": { "t": "m_beta2s", "xy": [-25,0]  },
       "z": { "t": "m_gamma2s", "xy": [-37,-20]  }
@@ -808,6 +910,7 @@ function gilbert3d_case() {
 
     {
       "order" : [2,0,1],
+      "orientation" : [-1,-1,1],
       "x": { "t": "m_alpha2s", "xy": [10,5]  },
       "y": { "t": "beta2s", "xy": [-25,0]  },
       "z": { "t": "m_gamma", "xy": [-30,-20]  }
@@ -815,6 +918,7 @@ function gilbert3d_case() {
 
     {
       "order" : [1,2,0],
+      "orientation" : [-1,1,-1],
       "x": { "t": "m_alpha2s", "xy": [10,5]  },
       "y": { "t": "m_beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-40,-20]  }
@@ -825,6 +929,7 @@ function gilbert3d_case() {
   let label_P1 = [
     {
       "order": [2,0,1],
+      "orientation" : [1,1,1],
       "x": { "t": "alpha2e", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-37,-20]  }
@@ -832,6 +937,7 @@ function gilbert3d_case() {
 
     {
       "order": [1,2,0],
+      "orientation" : [1,1,1],
       "x": { "t": "alpha2e", "xy": [10,5]  },
       "y": { "t": "beta", "xy": [-25,0]  },
       "z": { "t": "gamma2s", "xy": [-55,-35]  }
@@ -839,6 +945,7 @@ function gilbert3d_case() {
 
     {
       "order": [0,1,2],
+      "orientation" : [1,-1,-1],
       "x": { "t": "alpha", "xy": [10,5]  },
       "y": { "t": "m_beta2s", "xy": [-25,0]  },
       "z": { "t": "m_gamma2s", "xy": [-37,-20]  }
@@ -846,6 +953,7 @@ function gilbert3d_case() {
 
     {
       "order": [1,2,0],
+      "orientation" : [-1,1,-1],
       "x": { "t": "m_alpha2s", "xy": [10,5]  },
       "y": { "t": "m_beta", "xy": [-25,0]  },
       "z": { "t": "gamma2s", "xy": [-55,-40]  }
@@ -853,6 +961,7 @@ function gilbert3d_case() {
 
     {
       "order": [2,0,1],
+      "orientation" : [-1,-1,1],
       "x": { "t": "m_alpha2s", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-40,-20]  }
@@ -863,6 +972,7 @@ function gilbert3d_case() {
   let label_P1_011 = [
     {
       "order": [2,0,1],
+      "orientation" : [1,1,1],
       "x": { "t": "alpha2q", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-37,-20]  }
@@ -870,6 +980,7 @@ function gilbert3d_case() {
 
     {
       "order": [1,2,0],
+      "orientation" : [1,1,1],
       "x": { "t": "alpha2q", "xy": [10,5]  },
       "y": { "t": "beta", "xy": [-25,0]  },
       "z": { "t": "gamma2q", "xy": [-55,-35]  }
@@ -877,6 +988,7 @@ function gilbert3d_case() {
 
     {
       "order": [0,1,2],
+      "orientation" : [1,-1,-1],
       "x": { "t": "alpha", "xy": [10,5]  },
       "y": { "t": "m_beta2q", "xy": [-25,0]  },
       "z": { "t": "m_gamma2q", "xy": [-37,-20]  }
@@ -884,6 +996,7 @@ function gilbert3d_case() {
 
     {
       "order": [1,2,0],
+      "orientation" : [-1,-1,1],
       "x": { "t": "alpha2qp", "xy": [10,5]  },
       "y": { "t": "m_beta", "xy": [-25,0]  },
       "z": { "t": "m_gamma2q", "xy": [-55,-40]  }
@@ -891,6 +1004,7 @@ function gilbert3d_case() {
 
     {
       "order": [2,0,1],
+      "orientation" : [-1,-1,1],
       "x": { "t": "m_alpha2qp", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-40,-20]  }
@@ -901,6 +1015,7 @@ function gilbert3d_case() {
   let label_P2 = [
     {
       "order": [1,2,0],
+      "orientation" : [1,1,1],
       "x": { "t": "alpha2e", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma", "xy": [-30,-20]  }
@@ -908,6 +1023,7 @@ function gilbert3d_case() {
 
     {
       "order": [2,0,1],
+      "orientation" : [1,1,1],
       "x": { "t": "alpha", "xy": [10,5]  },
       "y": { "t": "beta2q", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-38,-25]  }
@@ -915,6 +1031,7 @@ function gilbert3d_case() {
 
     {
       "order": [0,1,2],
+      "orientation" : [1,1,1],
       "x": { "t": "alpha", "xy": [10,5]  },
       "y": { "t": "beta2q", "xy": [-25,0]  },
       "z": { "t": "gamma2q", "xy": [-37,-20]  }
@@ -922,6 +1039,7 @@ function gilbert3d_case() {
 
     {
       "order": [1,2,0],
+      "orientation" : [-1,1,-1],
       "x": { "t": "m_alpha2q", "xy": [10,5]  },
       "y": { "t": "m_beta2q", "xy": [-25,0]  },
       "z": { "t": "gamma2q", "xy": [-38,-25]  }
@@ -929,6 +1047,7 @@ function gilbert3d_case() {
 
     {
       "order": [2,0,1],
+      "orientation" : [-1,-1,1],
       "x": { "t": "m_alpha2q", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-38,-20]  }
@@ -1107,8 +1226,8 @@ function gilbert3d_case() {
 
     //mkfullblock(sxy, pc.opos, pc.cuboid_size, pc.disp_order, 18);
     let tsxy = [ sxy[0], sxy[1] ];
-    if (whd%2) { tsxy[0] -= 10; }
-    else { tsxy[0] -= 10; }
+    if (whd%2) { tsxy[0] -= 5; }
+    else { tsxy[0] -= 5; }
 
     mkfullblock(tsxy, pc.opos, pc.cuboid_size, pc.disp_order, 18);
 
@@ -1118,10 +1237,19 @@ function gilbert3d_case() {
       "family": "Libertine, Linux Libertine O"
     };
 
+    let bcode = [ "000", "001", "010", "011", "100", "101", "110", "111" ];
 
-    //two.makeText("Recursion", sxy[0]+5, sxy[1]+30, _st);
-    //two.makeText("Order", sxy[0]+5, sxy[1]+45, _st);
-    let _tt = two.makeText("Reorientation", sxy[0]+0, sxy[1]+35, _st);
+    //let _bt = two.makeText( bcode[whd], sxy[0]-20, sxy[1]-80, _st );
+
+    let _btx = two.makeText( bcode[whd][0], sxy[0]+15, sxy[1]+3, _st );
+    let _bty = two.makeText( bcode[whd][1], sxy[0]-25, sxy[1]-5, _st );
+    let _btz = two.makeText( bcode[whd][2], sxy[0]-38, sxy[1]-35, _st );
+
+
+
+    two.makeText("Block", sxy[0]+5, sxy[1]+30, _st);
+    two.makeText("Axis", sxy[0]+5, sxy[1]+45, _st);
+    //let _tt = two.makeText("Reorientation", sxy[0]+0, sxy[1]+35, _st);
     //_tt.stroke = "rgba(0,0,0.5)";
 
     let vord_pos = [-1,-1];
@@ -1133,10 +1261,40 @@ function gilbert3d_case() {
       let cs = njs.mul(scale, cuboid_size_a[idx]);
       mk_iso_cuboid(cxy[0],cxy[1],1, lco, fco, cs, 2, vr, theta);
 
+      if (vord_pos[0] < 0) {
+        vord_pos[0] = cxy[0];
+        vord_pos[1] = cxy[1];
+      }
+      else {
+        vord_pos[0] = cxy[0];
+      }
+
+      // C fudge right for whd%2
+      //
+      if (((whd%2)==1) &&
+           (whd < 7) &&
+           (idx==2)) {
+        vord_pos[0]+=15;
+      }
+
+      // D fudge for 011
+      //
+      let rparen = 38;
+      if ((whd == 3) &&
+          (idx == 3)) {
+        vord_pos[0]-=10;
+        rparen = 44;
+      }
+
+      let _lbl = pc.label[idx];
+
+      //WIP
+      small_axis_fig(vord_pos[0]-26, vord_pos[1] + 42, _lbl.order, _lbl.orientation, 12);
+
+
       let label_annotations = true;
       if (label_annotations) {
 
-        let _lbl = pc.label[idx];
         if (whd == 3) { _lbl = label_P1_011[idx]; }
 
         let _xt = _lbl.x.t;
@@ -1150,31 +1308,6 @@ function gilbert3d_case() {
         mathjax2twojs(_xt, cxy[0]+_lbl.x.xy[0],cxy[1]+_lbl.x.xy[1], 0.015);
         mathjax2twojs(_yt, cxy[0]+_lbl.y.xy[0],cxy[1]+_lbl.y.xy[1], 0.015);
         mathjax2twojs(_zt, cxy[0]+_lbl.z.xy[0],cxy[1]+_lbl.z.xy[1], 0.015);
-
-        if (vord_pos[0] < 0) {
-          vord_pos[0] = cxy[0];
-          vord_pos[1] = cxy[1];
-        }
-        else {
-          vord_pos[0] = cxy[0];
-        }
-
-        // C fudge right for whd%2
-        //
-        if (((whd%2)==1) &&
-             (whd < 7) &&
-             (idx==2)) {
-          vord_pos[0]+=15;
-        }
-
-        // D fudge for 011
-        //
-        let rparen = 38;
-        if ((whd == 3) &&
-            (idx == 3)) {
-          vord_pos[0]-=10;
-          rparen = 44;
-        }
 
         let _ord = _lbl.order;
 
@@ -1255,21 +1388,27 @@ function gilbert3d_case() {
   let W = g_fig_ctx.two.width;
   let H = g_fig_ctx.two.height;
 
+  let sep_lw = 3;
+
   let h0 = 215;
   let hline0 = two.makeLine(0, h0, W, h0);
-  hline0.stroke = "rgba(0,0,0,0.5)";
+  hline0.stroke = "rgba(0,0,0,0.8)";
+  hline0.linewidth = sep_lw;
 
   let h1 = h0+155;
   let hline1 = two.makeLine(0, h1, W, h1);
-  hline1.stroke = "rgba(0,0,0,0.5)";
+  hline1.stroke = "rgba(0,0,0,0.8)";
+  hline1.linewidth = sep_lw;
 
   let h2 = h1+155;
   let hline2 = two.makeLine(0, h2, W, h2);
-  hline2.stroke = "rgba(0,0,0,0.5)";
+  hline2.stroke = "rgba(0,0,0,0.8)";
+  hline2.linewidth = sep_lw;
 
   let h3 = h2+155;
   let hline3 = two.makeLine(0, h3, W, h3);
-  hline3.stroke = "rgba(0,0,0,0.5)";
+  hline3.stroke = "rgba(0,0,0,0.8)";
+  hline3.linewidth = sep_lw;
 
   let h_s = 65;
   let h_e = H-50;
@@ -1277,15 +1416,16 @@ function gilbert3d_case() {
 
   let mid_x = W/2 - 45;
   let vline = two.makeLine(mid_x, h_s, mid_x, h_e);
-  vline.stroke = "rgba(0,0,0,0.5)";
+  vline.stroke = "rgba(0,0,0,0.8)";
+  vline.linewidth = sep_lw;
 
   let w0 = 90;
   let vline0 = two.makeLine(w0, h_s, w0, h_e);
-  vline0.stroke= "rgba(0,0,0,0.5)";
+  vline0.stroke= "rgba(0,0,0,0.3)";
 
   let w1 = mid_x+85;
   let vline1 = two.makeLine(w1, h_s, w1, h_e);
-  vline1.stroke= "rgba(0,0,0,0.5)";
+  vline1.stroke= "rgba(0,0,0,0.3)";
 
   axis_fig(50, 50, 20);
   //block3d_fig(50, 160, 40);
