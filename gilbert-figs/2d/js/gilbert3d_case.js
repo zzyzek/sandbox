@@ -904,7 +904,7 @@ function gilbert3d_case() {
       "order" : [0,1,2],
       "orientation" : [1,-1,-1],
       "x": { "t": "alpha", "xy": [10,5]  },
-      "y": { "t": "m_beta2s", "xy": [-25,0]  },
+      "y": { "t": "m_beta2e", "xy": [-25,0]  },
       "z": { "t": "m_gamma2s", "xy": [-37,-20]  }
     },
 
@@ -948,7 +948,7 @@ function gilbert3d_case() {
       "orientation" : [1,-1,-1],
       "x": { "t": "alpha", "xy": [10,5]  },
       "y": { "t": "m_beta2s", "xy": [-25,0]  },
-      "z": { "t": "m_gamma2s", "xy": [-37,-20]  }
+      "z": { "t": "m_gamma2e", "xy": [-37,-20]  }
     },
 
     {
@@ -991,7 +991,7 @@ function gilbert3d_case() {
       "orientation" : [1,-1,-1],
       "x": { "t": "alpha", "xy": [10,5]  },
       "y": { "t": "m_beta2q", "xy": [-25,0]  },
-      "z": { "t": "m_gamma2q", "xy": [-37,-20]  }
+      "z": { "t": "m_gamma2e", "xy": [-37,-20]  }
     },
 
     {
@@ -1260,6 +1260,27 @@ function gilbert3d_case() {
       let fco = PAL[idx];
       let cs = njs.mul(scale, cuboid_size_a[idx]);
       mk_iso_cuboid(cxy[0],cxy[1],1, lco, fco, cs, 2, vr, theta);
+
+      if ((idx==2) &&
+          ((whd == 4) ||
+           (whd == 5) ||
+           (whd == 6)
+          )
+         ) {
+
+        let txy = [ cxy[0] + 15, cxy[1] - 38 ];
+        let notch0 = two.makeLine( txy[0], txy[1], txy[0]+10, txy[1]+10 );
+        notch0.cap = "round";
+        notch0.stroke = "#f00";
+        notch0.noFill();
+        notch0.linewidth = 4;
+
+        let notch1 = two.makeLine( txy[0], txy[1]+10, txy[0]+10, txy[1] );
+        notch1.cap = "round";
+        notch1.stroke = "#f00";
+        notch1.noFill();
+        notch1.linewidth = 4;
+      }
 
       if (vord_pos[0] < 0) {
         vord_pos[0] = cxy[0];
