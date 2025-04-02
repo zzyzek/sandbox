@@ -12,6 +12,15 @@ function d2q(v) {
   return v2+1;
 }
 
+function _divq(v,q) {
+  let u = [];
+  for (let i=0; i<v.length; i++) {
+    u.push( Math.floor(v[i] / q) );
+  }
+  return u;
+}
+function _div2(v) { return _divq(v,2); }
+
 function _sgn(v) {
   if (v>0) { return  1; }
   if (v<0) { return -1; }
@@ -19,12 +28,127 @@ function _sgn(v) {
 }
 
 function _neg(v) {
+  if (v.length==2) {
+    return [-v[0], -v[1]];
+  }
   return [ -v[0], -v[1], -v[2] ];
 }
 
 function _add(u,v) {
+  if ((u.length == 2) || (v.length == 2)) {
+    return [ u[0]+v[0], u[1]+v[1] ];
+  }
   return [ u[0]+v[0], u[1]+v[1], u[2]+v[2] ];
 }
+
+function _abs(v) {
+  let s = 0;
+  for (let i=0; i<v.length; i++) {
+    s += Math.abs(v[i]);
+  }
+  return s;
+}
+
+function _delta(v) {
+  let u = [];
+  for (let i=0; i<v.length; i++) {
+    u.push( _sgn(v[i]) );
+  }
+  return u;
+}
+
+function _print(v) {
+  if (v.length == 2)  { console.log(v[0], v[1]); }
+  else                { console.log(v[0], v[1], v[2]); }
+}
+
+function _clone(v) {
+  let u = [];
+  for (let i=0; i<v.length; i++) {
+    u.push(v[i]);
+  }
+  return u;
+}
+
+//-------------------
+//         ___     __
+//   ___ _|_  |___/ /
+//  / _ `/ __// _  / 
+//  \_, /____/\_,_/  
+// /___/             
+//-------------------
+
+
+function g2d_p(p, alpha, beta) {
+  let a = _abs(alpha);
+  let b = _abs(beta);
+
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+
+  if (b==1) {
+
+    let u = _clone(p);
+    for (let i=0; i<a; i++) {
+      _print(u);
+      u = _add(u, d_alpha);
+    }
+    return;
+  }
+
+  if (a==1) {
+    let u = _clone(p);
+    for (let i=0; i<b; i++) {
+      _print(u);
+      u = _add(u, d_beta);
+    }
+    return;
+  }
+
+
+  let alpha2 = _div2(alpha);
+  let beta2  = _div2(beta);
+
+  let a2 = _abs(alpha2);
+  let b2 = _abs(beta2);
+
+  if ( (2*a) > (3*b) ) {
+    if ((a2%2) && (a>2)) { alpha2 = _add(alpha2, d_alpha); }
+
+
+    g2d_p(p, alpha2, beta);
+    g2d_p( _add(p, alpha2),
+           _add(alpha, _neg(alpha2)),
+           beta);
+
+    return;
+  }
+
+
+  if ((b2%2) && (b>2)) { beta2 = _add(beta2, d_beta); }
+
+  g2d_p( p,
+         beta2,
+         alpha2);
+  g2d_p( _add(p, beta2),
+         alpha,
+         _add(beta, _neg(beta2)) );
+  g2d_p( _add(p,
+              _add( _add(alpha, _neg(d_alpha) ),
+                    _add(beta2, _neg( d_beta) ) ) ),
+         _neg(beta2),
+         _add(alpha2, _neg(alpha)) );
+
+}
+
+//-------------------
+//         ____    __
+//   ___ _|_  /___/ /
+//  / _ `//_ </ _  / 
+//  \_, /____/\_,_/  
+// /___/             
+//-------------------
+
 
 function g3d_p(p, alpha, beta, gamma) {
 
@@ -183,4 +307,19 @@ function gilbert3d_plus(w,h,d) {
 
 }
 
-gilbert3d_plus(2,2,2);
+//gilbert3d_plus(2,2,2);
+//
+
+
+let w = 8;
+let h = 8;
+
+if (process.argv.length > 2) {
+  w = parseInt(process.argv[2]);
+  if (process.argv.length > 3) {
+    h = parseInt(process.argv[3]);
+  }
+}
+
+
+g2d_p( [0,0, 0], [w,0, 0], [0,h, 0] );
