@@ -217,6 +217,7 @@ $$
 $$
 
 Making the same choice of $\frac{3}{2}$ a little suspicious ( $4^{\frac{1}{3}} \approx 1.5874 \dots$ ).
+Maybe $\frac{5}{3} \approx 1.666 \dots$ would be a better ratio.
 
 ---
 
