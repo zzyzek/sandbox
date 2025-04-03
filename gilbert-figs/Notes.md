@@ -128,7 +128,7 @@ So, as a recap, in the extreme case where:
   the new depth to be $\sigma \cdot d$
 
 We make progress if $\sigma > \frac{3}{5}$ and optimally so when $\sigma = \frac{4}{5}$
-(taking the two smaller regions as $(\varepsilon,\frac{\varepsilon}{2},(1-\sigma) \cdot s)$).
+(taking the two smaller regions as $(\varepsilon,\frac{\varepsilon}{2},(1-\sigma) \cdot s)$ ).
 
 I'm taking two dimensions equal as a simplifying step.
 
