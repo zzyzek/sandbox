@@ -198,8 +198,9 @@ To know when the crossover point happens, we want to find when we gain by splitt
 
 $$
 \begin{array}{ll}
- & \frac{2}{\sigma} < \sigma \\
-\to & \sigma > \sqrt{2} \\
+ & \lambda(V _ 1) < \lambda(V) \\
+ \to & \frac{2}{\sigma} < \sigma \\
+ \to & \sigma > \sqrt{2} \\
 \end{array}
 $$
 
