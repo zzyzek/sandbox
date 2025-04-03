@@ -179,15 +179,12 @@ As motivation for the $\frac{3}{2}$ constant when splitting in the 2d case,
 consider:
 
 ```
-                          V_1
-   _________           _________
-  |         |         |    |    |
-  |         |         |    |    |
-  |    V    | h       |    |    | h
-  |         |         |    |    |
-  |         |         | A  |    | 
-  |_________|         |____|____|
-    \sigma h            \sigma h/2
+           V                           V_1
+   _________________            _________________
+  |                 |          |        |        |
+  |                 | h        |   A    |        | h
+  |_________________|          |________|________|
+       \sigma h                \sigma h/2
 
 ```
 
