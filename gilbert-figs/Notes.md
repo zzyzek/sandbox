@@ -125,7 +125,7 @@ So, as a recap, in the extreme case where:
 * $h$ is long, relative to $w$ and $d$, taking $h$ to be $s$
 * we have to split on $w$ and we do so at the halfway mark
 * we split the "far" cuboid, keeping $w$ and $d$ as $\varepsilon$ but taking
-  the new depth to be $\sigm \cdot d$
+  the new depth to be $\sigma \cdot d$
 
 We make progress if $\sigma > \frac{3}{5}$ and optimally so when $\sigma = \frac{4}{5}$
 (taking the two smaller regions as $(\varepsilon,\frac{\varepsilon}{2},(1-\sigma) \cdot s)$).
