@@ -2,6 +2,211 @@ https://ar5iv.labs.arxiv.org/html/2210.01098
 
 ---
 
+###### 2025-04-02
+
+See `gilbert3d_case.html` for the bulk recursion atlas.
+
+The issue I'm fussing with now are the cases where one dimension
+is significantly larger than the others.
+
+There are six cases:
+
+$$
+\begin{array}{l}
+w >> h,d \\
+h >> w,d \\
+d >> w,h \\
+w,h >> d \\
+w,d >> h \\
+h,d >> w \\
+\end{array}
+$$
+
+Where we assume the begin/end are on the width axis.
+
+How and why to split the cuboid for the recursion
+make questions of motivation more apparent.
+
+Here are some proposals of what qualities we want keep during the recursion:
+
+* for powers of two, the recursion should reduce to the Hilbert curve case
+* the recursion should not introduce any more notches than is forced by
+  initial conditions (start/end path conditions and cuboid size)
+* for two dimension that are powers of two but the other exactly 1, it should
+  reduce to the 2d Hilbert curve case
+  - There's a pathological case that should be ignored when $w=1$ and $h,d>1$
+* keep the bulk cuboid region as cube like as possible
+* when splitting, maximize entropy (principle of maximum entropy)
+* the number of edges aligned with the axies should be relatively proportional to the
+  dimension of the cuboid
+* the algorithm should remain efficient
+  - that is, maximum recursion should be $O(\lg(\text{max}(w,h,d)))$
+
+There's tension between choosing maximum entropy splits and trying to keep regions
+as cube like as possible.
+
+We can introduce a "defect" term, $\lambda$:
+
+$$
+\lambda(w,h,d) = \frac{ w \cdot h \cdot d }{ (\text{min}(w,h,d))^3 }
+$$
+
+So maybe one concept is to try and reduce the average defect, where sub-cuboid
+regions defects are weighted by their volume proportion.
+Another take on this is that the defect is (potentially) effectively encoding some type of entropy
+in the system.
+
+So, take the case that $w$ and $d$ and small but $h$ is large.
+Call $w,d = \varepsilon$ and $h = s$.
+
+```
+         .__
+        /  /|
+       /  / |
+      /  /  |
+     /  /   |
+    /  /   /
+   /_ /   / h
+  |   |  /
+d |   | /
+  s___e/
+    w
+
+         ._____
+        /     /|
+       /  B  / |
+      /_____/  |
+     /  /  /| /
+    /  /  / |/ sigma h
+   /__/_ /  / 
+  |  |  |  /
+d |A |  | / (1-sigma)h
+  s__|__e/
+   w/2
+     w
+```
+
+Before the recursion, the defect would be $\lamba _ 0 = \frac{ w \cdot h \cdot d }{ \text{min}(w,h,d) } = \frac{ s \varepsilon^2 }{\varepsilon^3 } = \frac{s}{\varepsilon}$.
+Since the start and end of the path are on the base $w$ edge (labelled `s`, `e`), we're constrained in how we split.
+
+Say we split along the $w$ edge in half, and some portion of $h$, call it $\sigma$.
+
+The defect for $A$ will be $\lambda(A) = \frac{ (1-\sigma) s \varepsilon \frac{\varepsilon}{2} }{ (\frac{\varepsilon}{2})^3 } = 4 (1-\sigma) \frac{s}{\varepsilon}$
+and the defect for $B$ will be $\lambda(B) = \sigma \frac{s}{\varepsilon}$.
+
+The relative volume for $A$ is $\frac{1-\sigma}{2}$ and the relative volume for $B$ is $\sigma$, so the average defect for the subdivided cuboids is:
+
+$$
+\begin{array}{ll}
+ & 2 \cdot (\frac{1-\sigma}{2}) \cdot [4 \cdot (1-\sigma) \cdot \frac{s}{\varepsilon}] + \sigma \cdot [ \sigma \cdot \frac{s}{\varepsilon} ] \\
+= & \frac{s}{\varepsilon} \cdot [ 4 \cdot (1-\sigma)^2 + \sigma^2 ] \\
+= & \frac{s}{\varepsilon} \cdot [ 5 \sigma^2 - 8 \sigma + 4 ] \\
+\end{array}
+$$
+
+We want to know when we've reduced the average defect, so:
+
+$$
+\begin{array}{ll}
+& \frac{s}{\varepsilon} \cdot [ 5 \sigma^2 - 8 \sigma + 4 ]  < \frac{s}{\varepsilon} \\
+= &  5 \sigma^2 - 8 \sigma + 4 < 1 \\
+= &  5 \sigma^2 - 8 \sigma + 3 < 0 \\
+= & (\sigma - 1) \cdot (\sigma - \frac{3}{5}) < 0
+\end{array}
+$$
+
+When $\frac{3}{5} < \sigma < 1$, we reduce the average defect.
+Taking the derivative and solving when zero yields an optimum
+when $\sigma = \frac{4}{5}$.
+
+So, as a recap, in the extreme case where:
+
+* $w$ and $d$ are some small dimension, call them $\varepsilon$ each
+* $h$ is long, relative to $w$ and $d$, taking $h$ to be $s$
+* we have to split on $w$ and we do so at the halfway mark
+* we split the "far" cuboid, keeping $w$ and $d$ as $\varepsilon$ but taking
+  the new depth to be $\sigm \cdot d$
+
+We make progress if $\sigma > \frac{3}{5}$ and optimally so when $\sigma = \frac{4}{5}$
+(taking the two smaller regions as $(\varepsilon,\frac{\varepsilon}{2},(1-\sigma) \cdot s)$).
+
+I'm taking two dimensions equal as a simplifying step.
+
+If we do a back-of-the-envelope calculation for the case when two dimension are equal ($s$) and
+one axis is small ($\varepsilon$) with the split happening as in the bulk 2d case:
+
+```
+      ___________
+    /__________  |
+   |           | |
+   |     B     | |
+   |___________|/|
+   |     |     | |
+s/2|  A  |     | |
+   |_____|_____|/ epsilon
+    (s/2)
+
+```
+
+$$
+\begin{array}{ll}
+\lambda(V _ 0) & = \frac{s^2}{\varepsilon^2} \\
+\lambda(A) & = \frac{ (\frac{s}{2})^2 \cdot \varepsilon }{ \varepsilon^3 } \\
+  & = (\frac{1}{4}) \cdot (\frac{s^2}{\varepsilon^2}) \\
+\lambda(B) & = \frac{ s \cdot \frac{s}{2} \cdot \varepsilon }{\varepsilon^3 } \\
+  & = (\frac{1}{2}) \cdot (\frac{ s^2}{\varepsilon^2}) \\
+\lambda(V _ 1) & = 2 \cdot (\frac{1}{4}) \cdot \lambda(A) + (\frac{1}{2}) \cdot \lambda(B) \\
+ & = (\frac{1}{2}) ( (\frac{1}{4}) \cdot \frac{s^2}{\varepsilon}  + (\frac{1}{2}) \cdot \frac{s^2}{\varepsilon^2} ) \\
+ & = (\frac{3}{8}) \cdot \frac{s^2}{\varepsilon^2}
+\end{array}
+$$
+
+implying an average defect reduction ($1 \to \frac{3}{8}$).
+
+
+---
+
+One note, for the 2d case, is that using this average defect argument, the average
+defect actually goes up because of the long strip on top.
+This is spurious as the long strip will split and we can think of the recursion
+as actually creating four sub-squares, as in the standard Hilbert recursion case,
+keeping the average defect the same.
+
+So the argument is more about when we can reduce the average defect by splitting
+long strips.
+
+As motivation for the $\frac{3}{2}$ constant when splitting in the 2d case,
+consider:
+
+```
+                          V_1
+   _________           _________
+  |         |         |    |    |
+  |         |         |    |    |
+  |    V    | h       |    |    | h
+  |         |         |    |    |
+  |         |         | A  |    | 
+  |_________|         |____|____|
+    \sigma h            \sigma h/2
+
+```
+
+The defect $\lambda(V) = \sigma$, whereas $\lambda(V _ 1) = \frac{2}{\sigma}$, assuming
+$\frac{\sigma h}{2} < h$ or $\sigma < 2$.
+
+To know when the crossover point happens, we want to find when we gain by splitting:
+
+$$
+\begin{array}{ll}
+ & \frac{2}{\sigma} < \sigma \\
+\to & \sigma > \sqrt{2} \\
+\end{array}
+$$
+
+So, presumably, $\frac{3}{2} = 1.5$ was chosen because it's a nice fraction that is
+close to, but larger than, $\sqrt{2} \approx 1.4142 \dots$.
+
+
 ###### 2025-03-24
 
 Here's the idea for a mostly resolving 3d Gilbert curves.

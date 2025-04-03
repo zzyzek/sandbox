@@ -152,42 +152,55 @@ function g2d_p(p, alpha, beta) {
 
 function g3d_p(p, alpha, beta, gamma) {
 
+  let alpha2  = _div2(alpha);
+  let beta2   = _div2(beta);
+  let gamma2  = _div2(gamma);
+
+  // forced even axis
+  //
   let alpha_2e = [ d2e(alpha[0]), d2e(alpha[1]), d2e(alpha[2]) ];
   let beta_2e  = [ d2e( beta[0]), d2e( beta[1]), d2e( beta[2]) ];
   let gamma_2e = [ d2e(gamma[0]), d2e(gamma[1]), d2e(gamma[2]) ];
 
+  // remainder of even axis
+  //
   let alpha_2s = [ alpha[0] - alpha_2e[0], alpha[1] - alpha_2e[1], alpha[2] - alpha_2e[2] ];
   let beta_2s  = [  beta[0] -  beta_2e[0],  beta[1] -  beta_2e[1],  beta[2] -  beta_2e[2]  ];
   let gamma_2s = [ gamma[0] - gamma_2e[0], gamma[1] - gamma_2e[1], gamma[2] - gamma_2e[2] ];
 
+  // forced odd axis
+  //
   let alpha_2q = [ d2q(alpha[0]), d2q(alpha[1]), d2q(alpha[2]) ];
   let beta_2q  = [ d2q( beta[0]), d2q( beta[1]), d2q( beta[2]) ];
   let gamma_2q = [ d2q(gamma[0]), d2q(gamma[1]), d2q(gamma[2]) ];
 
+  // remainder of forced odd axis
+  //
   let alpha_2qp = [ alpha[0] - alpha_2q[0], alpha[1] - alpha_2q[1], alpha[2] - alpha_2q[2] ];
   let beta_2qp  = [  beta[0] -  beta_2q[0],  beta[1] -  beta_2q[1],  beta[2] -  beta_2q[2] ];
   let gamma_2qp = [ gamma[0] - gamma_2q[0], gamma[1] - gamma_2q[1], gamma[2] - gamma_2q[2] ];
 
+  // length of each axis
+  //
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
 
-  let a = Math.abs( alpha[0] + alpha[1] + alpha[2] );
-  let b = Math.abs(  beta[0] +  beta[1] +  beta[2] );
-  let g = Math.abs( gamma[0] + gamma[1] + gamma[2] );
-
-  console.log(p, a,b,g);
-
-  let d_alpha = [ _sgn(alpha[0]), _sgn(alpha[1]), _sgn(alpha[2]) ];
-  let d_beta  = [ _sgn( beta[0]), _sgn( beta[1]), _sgn( beta[2]) ];
-  let d_gamma = [ _sgn(gamma[0]), _sgn(gamma[1]), _sgn(gamma[2]) ];
+  // (unit) direction of each axis
+  //
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+  let d_gamma = _delta(gamma);
 
   let xyz = [ p[0], p[1], p[2] ];
 
+  // Two dimensions are 1, linear in the other,
+  // so enumerate.
+  //
   if ((a==1) && (b==1)) {
-
     for (let i=0; i<g; i++) {
       console.log(xyz[0], xyz[1], xyz[2]);
-      xyz[0] += d_alpha[0];
-      xyz[1] += d_alpha[1];
-      xyz[2] += d_alpha[2];
+      xyz = _add( xyz, d_alpha );
     }
     return;
   }
@@ -195,9 +208,7 @@ function g3d_p(p, alpha, beta, gamma) {
   else if ((a==1) && (g==1)) {
     for (let i=0; i<b; i++) {
       console.log(xyz[0], xyz[1], xyz[2]);
-      xyz[0] += d_beta[0];
-      xyz[1] += d_beta[1];
-      xyz[2] += d_beta[2];
+      xyz = _add( xyz, d_beta );
     }
     return;
   }
@@ -205,14 +216,95 @@ function g3d_p(p, alpha, beta, gamma) {
   else if ((b==1) && (g==1)) {
     for (let i=0; i<g; i++) {
       console.log(xyz[0], xyz[1], xyz[2]);
-      xyz[0] += d_gamma[0];
-      xyz[1] += d_gamma[1];
-      xyz[2] += d_gamma[2];
+      xyz = _add( xyz, d_gamma );
     }
     return;
   }
 
+  // This is a pathological case.
+  // If we have |alpha| = 1, it means
+  // the start and end are the same point
+  // but the region is non-trivial.
+  //
+  else if (a==1) {
+    g2d_p( xyz, beta, gamma );
+    return;
+  }
 
+  // Otherwse, we have a plane sheet,
+  // so reduce to the 2d Gilbert case.
+  //
+  else if (b==1) {
+    g2d_p( xyz, alpha, gamma );
+    return;
+  }
+
+  else if (g==1) {
+    g2d_p( xyz, alpha, beta );
+    return;
+  }
+
+  //WIP!!!!
+  // * need to check for end condition (a,b,g == 2)
+  //   and act accordingly
+  // * need to test
+  //
+
+  // 'width' is larger than height/depth
+  // (long skinny horizontal column)
+  //
+  if ( ((2*a) > (3*b)) &&
+       ((2*a) > (3*g)) ) {
+    g3d_p( xyz, alpha_2e, beta, gamma );
+    g3d_p( _add(xyz, alpha_2e), alpha_2s, beta, gamma );
+    return;
+  }
+
+
+  // height is too long
+  // (long skinny height column or height/width sheet)
+  //
+  else if ( (3*b) > (4*g) ) {
+
+    g3d_p( xyz, beta_2e, gamma, alpha2 );
+
+    g3d_p( _add(xyz, beta_2e),
+          alpha,
+          beta_2s,
+          gamma);
+
+    // !!!
+    g3d_p(_add(xyz, _add(alpha_2e, beta_2e)),
+          _neg(beta_2e),
+          _add(alpha, _neg(alpha2)),
+          gamma);
+
+    return;
+  }
+
+  else if ( (3*g) > (4*b) ) {
+
+    g3d_p(xyz,
+          gamma_2e,
+          alpha_2e,
+          beta);
+
+    g3d_p(_add(xyz, gamma_2e),
+          alpha,
+          beta,
+          gamma_2s);
+
+    g3d_p(_add(xyz, _add(alpha, gamma_2e)),
+          _neg(gamma_2e),
+          _neg(alpha_2s),
+          beta);
+
+    return;
+
+  }
+
+  // bulk recursion
+  //
 
   if ((g%2) == 0) {
 
