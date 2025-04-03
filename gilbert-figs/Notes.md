@@ -86,7 +86,7 @@ d |A |  | / (1-sigma)h
      w
 ```
 
-Before the recursion, the defect would be $\lamba _ 0 = \frac{ w \cdot h \cdot d }{ \text{min}(w,h,d) } = \frac{ s \varepsilon^2 }{\varepsilon^3 } = \frac{s}{\varepsilon}$.
+Before the recursion, the defect would be $\lambda _ 0 = \frac{ w \cdot h \cdot d }{ \text{min}(w,h,d) } = \frac{ s \varepsilon^2 }{\varepsilon^3 } = \frac{s}{\varepsilon}$.
 Since the start and end of the path are on the base $w$ edge (labelled `s`, `e`), we're constrained in how we split.
 
 Say we split along the $w$ edge in half, and some portion of $h$, call it $\sigma$.
