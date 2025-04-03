@@ -211,7 +211,7 @@ For the 3d case, where $h,d = s$ and $w = \sigma s$, we have ( $\frac{\sigma s}{
 $$
 \begin{array}{ll}
  & \lambda(V _ 1)  < \lambda(V _ 0) \\
-\to & \frac{4}{\sigma} < \sigma \\
+\to & \frac{4}{\sigma^2} < \sigma \\
 \to & \sigma > 4^{\frac{1}{3}}
 \end{array}
 $$
