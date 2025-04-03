@@ -60,13 +60,13 @@ So, take the case that $w$ and $d$ and small but $h$ is large.
 Call $w,d = \varepsilon$ and $h = s$.
 
 ```
-         .__
-        /  /|
-       /  / |
-      /  /  |
-     /  /   |
-    /  /   /
-   /_ /   / h
+         .___
+        /   /|
+       /   / |
+      /   /  |
+     /   /  /
+    /   /  /
+   /__ /  / h
   |   |  /
 d |   | /
   s___e/
@@ -205,6 +205,8 @@ $$
 
 So, presumably, $\frac{3}{2} = 1.5$ was chosen because it's a nice fraction that is
 close to, but larger than, $\sqrt{2} \approx 1.4142 \dots$.
+
+---
 
 
 ###### 2025-03-24
