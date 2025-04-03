@@ -206,6 +206,38 @@ close to, but larger than, $\sqrt{2} \approx 1.4142 \dots$.
 
 ---
 
+For the 3d case, where $h,d = s$ and $w = \sigma s$, we have ( $\frac{\sigma s}{2} < s \to \sigma < 2$ ):
+
+$$
+\begin{array}{ll}
+ & \lambda(V _ 1)  < \lambda(V _ 0) \\
+\to & \frac{4}{\sigma} < \sigma \\
+\to & \sigma > 4^{\frac{1}{3}}
+\end{array}
+$$
+
+Making the same choice of $\frac{3}{2}$ a little suspicious ( $4^{\frac{1}{3}} \approx 1.5874 \dots$ ).
+
+---
+
+To motivate the $\frac{4}{3}$ choice:
+
+If we assume $w \approx h$ and $d = s, w = h = \sigma s$, with $\frac{\sigma s}{2} < s \to \sigma < 2$ :
+
+$$
+\begin{array}{ll}
+ \lambda(V _ 0) & = \frac{\sigma^2 s^3}{s^3} = \sigma^2 \\
+ \lambda(V _ 1) & = \frac{ (\frac{\sigma s}{2})^2 s }{ (\frac{\sigma s}{2})^3 } = \frac{2}{\sigma} \\
+ \to & \lambda(V _ 1) < \lambda(V _ 0) \\
+ \to & \frac{2}{\sigma} < \sigma^2 \\
+ \to & \sigma > 2^{\frac{1}{3}}
+\end{array}
+$$
+
+Making the choice of $\frac{4}{3}$ a simple fraction that's near $2^{\frac{1}{3}} \approx 1.25992 \cdots$ .
+
+---
+
 
 ###### 2025-03-24
 
