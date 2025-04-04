@@ -2,6 +2,90 @@ https://ar5iv.labs.arxiv.org/html/2210.01098
 
 ---
 
+###### 2025-04-03
+
+This is me thinking out loud a bit.
+
+For the uneven cases, where the bulk volume strays from being
+cube like (the defect is significantly greater than 1), we have
+a few choices to split:
+
+* Choose a $\sigma$ proportion of one or two axies relative to the
+  third as the threshold to split on but otherwise split at the
+  halfway point, either with one split or two
+* Choose one split point at the halfway mark in one dimension but
+  at the $\rho$ point in the other
+
+In my case analysis below, one of the pathological cases is when
+two of the dimensions are significantly smaller than the third,
+leading to a choice of second split point that's larger than $\frac{1}{2}$.
+
+I'm not sure this pathological case is so relevant and it might be better
+to analyze based on small defect deviations.
+
+---
+
+I'm still working through calculations but I wanted to put them here
+for some reference.
+
+This is for the case where $w \sim h = s$, $d = \sigma s$.
+We're splitting half in the $w$ axis but we have a choice of $\rho$
+for the split point in the $h$ axis (see below ascii diagram).
+
+$A$ and $B$ are the smaller volumes, $V _ 0$ is the original volume and
+$V _ 1$ is the new partitioned volume.
+
+$$
+\begin{array}{ll}
+  \lambda(V _ 0) = \sigma \\
+  \lambda(V _ 1) = (1-\rho) \lambda(A) + \rho \lambda(B)  \\
+  l _ B  \to \rho \sigma s < s \to \rho < \frac{1}{\sigma} \\
+  g _ B  \to \rho \sigma s > s \to \rho > \frac{1}{\sigma} \\
+  l _ A  \to (1-\rho) \sigma s < \frac{s}{2} \to \rho > 1- \frac{1}{2 \sigma} \\
+  g _ A  \to (1-\rho) \sigma s > \frac{s}{2} \to \rho < 1 - \frac{1}{2 \sigma} \\
+\end{array}
+$$
+
+$$
+\begin{array}{ll}
+  l _ B l _ A & \to \lambda(V _ 1) = \frac{(2-\rho)}{\rho (1-\rho) \sigma^2 }, (\sigma < \frac{3}{2}) \\
+  l _ B g _ A & \to \lambda(V _ 1) = 4 (1-\rho)^2 \sigma + \frac{1}{\rho \sigma^2} \\
+  g _ B l _ A & \to \lambda(V _ 1) = \frac{1}{2(1-\rho)\sigma^2} + \sigma \rho^2 \\
+  g _ B g _ A & \to \lambda(V _ 1) = 4(1-\rho)^2\sigma + \rho^2 \sigma, (\sigma > \frac{3}{2}) \\
+\end{array}
+$$
+
+$$
+\begin{array}{l}
+ \lambda(V _ 1) < \lambda(V _ 0) \to \\
+  l _ B l _ A \to \rho^2 \sigma^3 + \rho(-\frac{1}{2} - \sigma^3) + 1 < 0, (\{ \frac{ (\frac{1}{2} + \sigma^3) \pm \sqrt{ (\frac{1}{2} + \sigma^3)^2 - 4\sigma^3 }}{2 \sigma^3} \} ) \\
+  l _ B g _ A \to (3\sigma^3)\rho^3 - (8\sigma^3)\rho^2 + (4 \sigma^3) \rho + 1 < 0 \\
+  g _ B l _ A \to -\rho^3 + \rho^2 + \rho - 1 + \frac{1}{2\sigma} < 0 \\
+  g _ B g _ A \to 5 \rho^2 - 8 \rho + 3 < 0, ( \{ 1, \frac{3}{5} \} ) \\
+\end{array}
+$$
+
+For convenience, here's some gnuplot commands:
+
+```
+ll(x,c) = (x*x*c*c*c) + (x*(-0.5 - (c*c*c))) +1
+lg(x,c) = (3*c*c*c*x*x*x) - (8*c*c*c*x*x) + (4*c*c*c)*x + 1
+gl(x,c) = (-x*x*x) + (x*x) + (x) -1 + (1.0/(2.0*c))
+gg(x,c) = (5.0*x*x) - (8.0*x) + 3
+
+plot [0:1] ll(x,1), ll(x,1.25), ll(x,1.5), ll(x,1.75), ll(x,2), ll(x,3), 0
+plot [0:1] lg(x,1), lg(x,1.25), lg(x,1.5), lg(x,1.75), lg(x,2), lg(x,3), 0
+plot [0:1] gl(x,1), gl(x,1.25), gl(x,1.5), gl(x,1.75), gl(x,2), gl(x,3), 0
+plot [0:1] gg(x,1), 0
+```
+
+Assuming all the above equations are derived correctly, and I don't have any other errors in logic,
+there's a defect reduction when those inequalities hold.
+That is, for values of $\rho$ that the respective inequality is less than zero (if a value of $\rho$ exists) will
+lead to a reduction in defect.
+
+
+
 ###### 2025-04-02
 
 See `gilbert3d_case.html` for the bulk recursion atlas.
