@@ -82,10 +82,10 @@ A quick recap:
 * There are six special cases when one dimension is significantly greater
   than or less than the other two:
   - $S _ 0$ : When $w >> h \sim d$, with a single split at the halfway point in $W$ (effectively making two copies)
-  - $S _ 1$ : $d > \frac{3h}{2}$,  split in $d$ then again in $w$ (a pseudo 2d split)
+  - $S _ 1$ : $d > (\frac{3}{2}) h$,  split in $d$ then again in $w$ (a pseudo 2d split)
     + $h << w \sim d$, take the split in $d$ at the halfway point and the other split at the halfway point in $w$
     + $d >> w \sim h$, take the split in $d$ to be $\frac{2}{3}$ with the remaining $\frac{1}{3}$ split in $w$ at the halfway point
-  - $S _ 2$ : $h > \frac{ 3 \text{min}(w,d) }{2}$
+  - $S _ 2$ : $h > (\frac{3}{2}) \text{min}(w,d)$
     + $h >> w \sim d$, split in $h$, top $\frac{2}{3}$ and remaining $\frac{1}{3}$ at the halfway point in $w$
     + $h \sim w >> d$, split at the halfway point in $h$ and again at the halfway point in $w$
     + $h \sim d >> w$, split in $h$, top $\frac{2}{3}$ and remaining $\frac{1}{3}$ at the halfway point in $w$
