@@ -1,6 +1,105 @@
-https://ar5iv.labs.arxiv.org/html/2210.01098
+References
+---
+
+* [lozenge tilings (viz)](https://ar5iv.labs.arxiv.org/html/2210.01098)
+* [lutanhho.net](https://lutanho.net/pic2html/draw_sfc.html)
+* [Zhang etal paper](https://www.researchgate.net/publication/220859824_A_Pseudo-hilbert_Scan_Algorithm_for_Arbitrarily-Sized_Rectangle_Region)
+
 
 ---
+
+###### 2025-04-04
+
+OK, so I think we've come through.
+
+All the complicated analysis below points to trying to choose a $\sigma$ to split
+and $\rho$ that will make the appropriate inequality work out.
+
+From inspection of the $\sigma$, $\rho$ graph on when regions switch from below/above,
+the crossover point is when $\sigma = \frac{3}{2}$ ( $\rho = \frac{2}{3}$ ).
+
+So, say we fix $\sigma = \frac{3}{2}$ and $\rho = \frac{2}{3}$.
+
+We have:
+
+$$
+\begin{array}{ll}
+ & \rho = \frac{2}{3}, \sigma \ge \frac{3}{2} \to \\
+ & \text{min}( \rho \sigma s, s ) = s \\
+ & \text{min}( (1-\rho) \sigma s, \frac{s}{2} ) = \frac{s}{2} \\
+\to & \lambda(V _ 0) = \sigma \\
+\to & \lambda(V _ 1) = 4(1-\rho)^2 \sigma + \rho^2 \sigma \\
+ & = \frac{8 sigma}{9} \\
+\to & \lambda(V _ 1) < \lambda(V _ 0)
+\end{array}
+$$
+
+To be more verbose, choosing $\sigma \ge \frac{3}{2}$ means the minimum
+axis for the $A$ and $B$ volumes are $\frac{s}{2}$ and $s$ respectively.
+Choosing $\rho = \frac{2}{3}$ puts us in the negative region for the
+$g _ A g _ B$ constraint polynomial ( $\frac{3}{5} < \frac{2}{3} < 1$ ).
+
+---
+
+When $d << w \sim h$ or $h << w \sim d$, call $\eta s$ the longer dimension and $s$ the small one
+( $\eta > 1$ ).
+Split at the half way point as in the 2d case.
+
+So:
+
+$$
+\begin{array}{ll}
+ & \lambda(V _ 0) = \eta^2 \\
+ & \text{min}(\frac{\eta s}{2}, s) = \frac{\eta s}{2} \\
+\to & \lambda(V _ 1) = (\frac{1}{2}) ( \frac{ \frac{\eta^2}{4} }{ \frac{\eta^3}{8} } ) + ( \frac{1}{2} ) ( \frac{ \frac{\eta}{2} \eta }{ \frac{\eta^3}{8} } ) \\
+  & = \frac{3}{\eta} \\
+ & \lambda(V _ 1) < \lambda(V _ 0) \\
+\to & \frac{3}{\eta} < \eta^2 \\
+\to & \eta > 3^{\frac{1}{3}} \\
+\to & \eta _ { * } = \frac{3}{2} > 3^{\frac{1}{3}} \\
+ & \text{min}(\frac{\eta s}{2}, s) = s \\
+\to & (\frac{1}{2}) ( \frac{\eta^2}{4} ) + (\frac{1}{2}) (\frac{\eta^2}{2}) \\
+ & = \frac{3 \eta^2}{8} < \eta^2
+\end{array}
+$$
+
+So choosing the split threshold to be $\frac{3}{2}$ in this case will yield progress.
+
+---
+
+In the case of $w = s << h \sim d = \eta s$, this is effectively like the case where $w >> h \sim d$,
+and we can use the same threshold for $\eta = \frac{3}{2}$ with $\rho = \frac{2}{3}$.
+
+---
+
+That should cover all the special cases.
+There still might be some fiddling if the assumption that the equal dimensions are too disparate,
+so we should think about that a bit more.
+
+A quick recap:
+
+* The bulk recursion is handled jakub split (`gilbert3d_case.html`)
+* There are six special cases when one dimension is significantly greater
+  than or less than the other two:
+  - $S _ 0$ : When $w >> h \sim d$, with a single split at the halfway point in $W$ (effectively making two copies)
+  - $S _ 1$ : $d > \frac{3h}{2}$,  split in $d$ then again in $w$ (a pseudo 2d split)
+    + $h << w \sim d$, take the split in $d$ at the halfway point and the other split at the halfway point in $w$
+    + $d >> w \sim h$, take the split in $d$ to be $\frac{2}{3}$ with the remaining $\frac{1}{3}$ split in $w$ at the halfway point
+  - $S _ 2$ : $h > \frac{ 3 \text{min}(w,d) }{2}$
+    + $h >> w \sim d$, split in $h$, top $\frac{2}{3}$ and remaining $\frac{1}{3}$ at the halfway point in $w$
+    + $h \sim w >> d$, split at the halfway point in $h$ and again at the halfway point in $w$
+    + $h \sim d >> w$, split in $h$, top $\frac{2}{3}$ and remaining $\frac{1}{3}$ at the halfway point in $w$
+
+So I think this highlights the unequal dimensions.
+We need to figure out how to choose what "similar" means to choose
+between the $\frac{2}{3}$ and the $\frac{1}{2}$ split case.
+
+Most of the complexity comes from requiring the split to be in the $w$ dimension because of the start/end path restriction,
+in addition to needing non-halfway splits to ensure defect reduction when the $w$ splits would make the split volumes too
+"plank-like".
+
+I'm a little wary because the `gilbert3d` code has some $\frac{4}{3}$ constants floating around, maybe suggesting there
+are better bounds/thresholds to split on (or that the ones I've calculated are incorrect).
 
 ###### 2025-04-03
 
@@ -30,7 +129,7 @@ for some reference.
 
 This is for the case where $w \sim h = s$, $d = \sigma s$.
 We're splitting half in the $w$ axis but we have a choice of $\rho$
-for the split point in the $h$ axis (see below ascii diagram).
+for the split point in the $h$ axis (see below ASCII diagram).
 
 $A$ and $B$ are the smaller volumes, $V _ 0$ is the original volume and
 $V _ 1$ is the new partitioned volume.
@@ -83,6 +182,9 @@ Assuming all the above equations are derived correctly, and I don't have any oth
 there's a defect reduction when those inequalities hold.
 That is, for values of $\rho$ that the respective inequality is less than zero (if a value of $\rho$ exists) will
 lead to a reduction in defect.
+
+So, ideally, we're trying to find a fixed $\sigma$ as the threshold value to go from
+the bulk recursion to this special case recursion, with a fixed $\rho$ that will ensure progress.
 
 
 
@@ -171,7 +273,7 @@ d |A |  | / (1-sigma)h
 ```
 
 Before the recursion, the defect would be $\lambda _ 0 = \frac{ w \cdot h \cdot d }{ \text{min}(w,h,d) } = \frac{ s \varepsilon^2 }{\varepsilon^3 } = \frac{s}{\varepsilon}$.
-Since the start and end of the path are on the base $w$ edge (labelled `s`, `e`), we're constrained in how we split.
+Since the start and end of the path are on the base $w$ edge (labeled `s`, `e`), we're constrained in how we split.
 
 Say we split along the $w$ edge in half, and some portion of $h$, call it $\sigma$.
 
