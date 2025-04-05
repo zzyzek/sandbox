@@ -101,6 +101,15 @@ in addition to needing non-halfway splits to ensure defect reduction when the $w
 I'm a little wary because the `gilbert3d` code has some $\frac{4}{3}$ constants floating around, maybe suggesting there
 are better bounds/thresholds to split on (or that the ones I've calculated are incorrect).
 
+---
+
+So, instead, let's just choose $\rho = \frac{2}{3}$ everywhere there's a special case split.
+
+---
+
+One issue that needs to be careful with is when splitting in the $w$ dimension.
+If this becomes a sheet of 1, we need to be sure to catch it and handle the recursion properly.
+
 ###### 2025-04-03
 
 This is me thinking out loud a bit.
