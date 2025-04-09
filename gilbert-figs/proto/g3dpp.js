@@ -249,9 +249,18 @@ function g3d_p(p, alpha, beta, gamma) {
   //   and act accordingly
   // * need to test
   //
+  // note order is important:
+  // - first test for w greater than both d,h (S_0, 1 case)
+  // - test for h bigger then either w,d (S_2, 3 cases)
+  // - test for d bigger than h (S_1, 2 cases)
+  //
 
-  // 'width' is larger than height/depth
+  // S_0
+  //
+  // width (\alpha) is larger than height/depth (\beta/\gamma)
   // (long skinny horizontal column)
+  //
+  // Split \alpha at halfway point.
   //
   if ( ((2*a) > (3*b)) &&
        ((2*a) > (3*g)) ) {
@@ -261,47 +270,78 @@ function g3d_p(p, alpha, beta, gamma) {
   }
 
 
-  // height is too long
+  // S_2
+  //
+  // height (\beta) is too long
   // (long skinny height column or height/width sheet)
   //
-  else if ( (3*b) > (4*g) ) {
+  // Split by \rho = 2/3 in \beta axis
+  //   and by 1/2 in \alpha axis
+  //
+  //
+  else if ( ((2*b) > (3*g)) ||
+            ((2*b) > (3*a)) ) {
 
-    g3d_p( xyz, beta_2e, gamma, alpha2 );
+    //TODO!!!
+    // handle special case where |alpha| == 2 (or other dimensions)
+    //
 
-    g3d_p( _add(xyz, beta_2e),
+    let beta_13   = _divq(beta, 3);
+    let beta_13e  = [ d2e(beta_13[0]), d2e(beta_13[1]), d2e(beta_13[2]) ];
+    let beta_23s  = [ beta[0] - beta_13e[0], beta[1] - beta_13e[1], beta[2] - beta_13e[3] ];
+
+    g3d_p( xyz, beta_13e, gamma, alpha_2e );
+
+    g3d_p( _add(xyz, beta_13e),
           alpha,
-          beta_2s,
+          beta_23s,
           gamma);
 
-    // !!!
-    g3d_p(_add(xyz, _add(alpha_2e, beta_2e)),
-          _neg(beta_2e),
-          _add(alpha, _neg(alpha2)),
-          gamma);
+    g3d_p(_add(xyz, _add(alpha, beta_13e)),
+          _neg(beta_13e),
+          gamma,
+          _neg(alpha_2s));
 
     return;
   }
 
-  else if ( (3*g) > (4*b) ) {
+  // S_1
+  //
+  // depth (\gamma) too long
+  //
+  // Split by \rho = 2/3 in \gamma dimension
+  // and then again by 1/2 in \alpha dimension
+  //
+  else if ( (2*g) > (3*b) ) {
+
+    //TODO!!!
+    // handle special case where |alpha| == 2 (or other dimensions)
+    //
+
+    let gamma_13   = _divq(gamma, 3);
+    let gamma_13e  = [ d2e(gamma_13[0]), d2e(gamma_13[1]), d2e(gamma_13[2]) ];
+    let gamma_23s  = [ gamma[0] - gamma_13e[0], gamma[1] - gamma_13e[1], gamma[2] - gamma_13e[3] ];
 
     g3d_p(xyz,
-          gamma_2e,
+          gamma_13e,
           alpha_2e,
           beta);
 
-    g3d_p(_add(xyz, gamma_2e),
+    g3d_p(_add(xyz, gamma_13e),
           alpha,
           beta,
-          gamma_2s);
+          gamma_23s);
 
-    g3d_p(_add(xyz, _add(alpha, gamma_2e)),
-          _neg(gamma_2e),
+    g3d_p(_add(xyz, _add(alpha, gamma_13e)),
+          _neg(gamma_23s),
           _neg(alpha_2s),
           beta);
 
     return;
 
   }
+
+
 
   // bulk recursion
   //
