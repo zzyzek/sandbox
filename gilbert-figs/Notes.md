@@ -15,7 +15,8 @@ Some notes on terminology:
 * `defect` : measure of how far away a cuboid is from being a cube, defined as $\lambda(w,h,d) = \frac{ w \cdot h \cdot d }{ (\text{min}(w,h,d))^3 }$
   or $\lambda(w,h) = \frac{ w \cdot h }{ (\text{min}(w,h))^2 }$
 * `eccentric` : state of a cuboid if it's past a certain defect threshold (e.g. $\frac{2}{3}$)
-* `loaf` : the cuboid subdivision that represents the bulk recursion step (maybe should be called jakub/cervany subdivision?)
+* `loaf` : the cuboid subdivision that represents the bulk recursion step (maybe should be called jakub/cervany subdivision?).
+  On reflection, maybe this is better named `J-split`.
 
 
 ###### 2025-04-04

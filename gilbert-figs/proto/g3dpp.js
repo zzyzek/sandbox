@@ -372,21 +372,21 @@ function g3d_p(p, alpha, beta, gamma) {
 
   // forced odd axis
   //
-  let alpha_2q = [ d2u(alpha[0]), d2u(alpha[1]), d2u(alpha[2]) ];
-  let beta_2q  = [ d2u( beta[0]), d2u( beta[1]), d2u( beta[2]) ];
-  let gamma_2q = [ d2u(gamma[0]), d2u(gamma[1]), d2u(gamma[2]) ];
+  let alpha_2u = [ d2u(alpha[0]), d2u(alpha[1]), d2u(alpha[2]) ];
+  let beta_2u  = [ d2u( beta[0]), d2u( beta[1]), d2u( beta[2]) ];
+  let gamma_2u = [ d2u(gamma[0]), d2u(gamma[1]), d2u(gamma[2]) ];
 
   // remainder of forced odd axis
   //
-  let alpha_2qp = [ alpha[0] - alpha_2q[0], alpha[1] - alpha_2q[1], alpha[2] - alpha_2q[2] ];
-  let beta_2qp  = [  beta[0] -  beta_2q[0],  beta[1] -  beta_2q[1],  beta[2] -  beta_2q[2] ];
-  let gamma_2qp = [ gamma[0] - gamma_2q[0], gamma[1] - gamma_2q[1], gamma[2] - gamma_2q[2] ];
+  let alpha_2up = [ alpha[0] - alpha_2u[0], alpha[1] - alpha_2u[1], alpha[2] - alpha_2u[2] ];
+  let beta_2up  = [  beta[0] -  beta_2u[0],  beta[1] -  beta_2u[1],  beta[2] -  beta_2u[2] ];
+  let gamma_2up = [ gamma[0] - gamma_2u[0], gamma[1] - gamma_2u[1], gamma[2] - gamma_2u[2] ];
 
   console.log("#a2/b2/g2:", alpha2, beta2, gamma2);
   console.log("#a2e/b2e/g2e:", alpha_2e, beta_2e, gamma_2e);
   console.log("#a2s/b2s/g2s:", alpha_2s, beta_2s, gamma_2s);
-  console.log("#a2q/b2q/g2q:", alpha_2q, beta_2q, gamma_2q);
-  console.log("#a2qp/b2qp/g2qp:", alpha_2qp, beta_2qp, gamma_2qp);
+  console.log("#a2u/b2u/g2u:", alpha_2u, beta_2u, gamma_2u);
+  console.log("#a2up/b2up/g2up:", alpha_2up, beta_2up, gamma_2up);
 
   // length of each axis
   //
@@ -724,47 +724,39 @@ function g3d_p(p, alpha, beta, gamma) {
   //
   // P_1q
   //
+  // we do need an opinion about alpha2 and beta2
+  // as they both need to be odd to get
+  // the B and D block to have all odd sides.
+  //
   else if ((a%2) == 0) {
-
-    let _alpha2 = alpha2;
-    let _alpha2p = _add( alpha, _neg(alpha2) );
-
-    let _beta2 = beta2;
-    let _beta2p = _add( beta, _neg(beta2) );
-
 
     console.log("#P_1q.A");
 
     xyz = [ p[0], p[1], p[2] ];
-    //g3d_p( xyz, gamma_2e, alpha_2q, beta_2e );
-    g3d_p( xyz, gamma_2e, _alpha2p, _beta2);
+    g3d_p( xyz, gamma_2e, alpha_2u, beta_2e );
 
     console.log("#P_1q.B");
 
     xyz = _add(p, gamma_2e);
-    //g3d_p( xyz, beta, gamma_2q, alpha_2q );
-    g3d_p( xyz, beta, gamma_2q, _alpha2p);
+    g3d_p( xyz, beta, gamma_2u, alpha_2u );
 
     console.log("#P_1q.C");
 
     // C
     xyz = _add( _add( p, _add(gamma_2e, _neg(d_gamma)) ), _add(beta, _neg(d_beta)) );
-    //g3d_p( xyz, alpha, _neg(beta_2q), _neg(gamma_2e) );
-    g3d_p( xyz, alpha, _neg(_beta2p), _neg(gamma_2e) );
+    g3d_p( xyz, alpha, _neg(beta_2u), _neg(gamma_2e) );
 
     console.log("#P_1q.D");
 
     // D
     xyz = _add( _add( _add( p, gamma_2e ), _add(beta, _neg(d_beta)) ), _add(alpha, _neg(d_alpha)) );
-    //g3d_p( xyz, _neg(beta), _neg(gamma_2q), alpha_2qp );
-    g3d_p( xyz, _neg(beta), _neg(gamma_2q), _alpha2p );
+    g3d_p( xyz, _neg(beta), _neg(gamma_2u), alpha_2up );
 
     console.log("#P_1q.E");
 
     // E
     xyz = _add( _add( p, _add(alpha, _neg(d_alpha)) ), _add(gamma_2e, _neg(d_gamma)) );
-    //g3d_p( xyz, _neg(gamma_2e), _neg(alpha_2qp), beta_2e );
-    g3d_p( xyz, _neg(gamma_2e), _neg(_alpha2p), _beta2 );
+    g3d_p( xyz, _neg(gamma_2e), _neg(alpha_2up), beta_2e );
 
     return;
   }
@@ -790,23 +782,23 @@ function g3d_p(p, alpha, beta, gamma) {
   console.log("#P_2.B");
 
   xyz = _add( p, beta_2e );
-  g3d_p( xyz, gamma_2e, alpha, beta_2q );
+  g3d_p( xyz, gamma_2e, alpha, beta_2u );
 
   console.log("#P_2.C");
 
   xyz = _add( _add( p, beta_2e ), gamma_2e );
-  g3d_p( xyz, alpha, beta_2q, gamma_2q );
+  g3d_p( xyz, alpha, beta_2u, gamma_2u );
 
   console.log("#P_2.D");
 
   xyz = _add( _add( _add( p, _add(beta_2e, _neg(d_beta)) ), gamma_2e ), _add(alpha, _neg(d_alpha)) );
-  //g3d_p( xyz, _neg(beta_2e), gamma_2q, _neg(alpha_2q) );
-  g3d_p( xyz, _neg(beta_2e), gamma_2q, _neg(_alpha2p) );
+  //g3d_p( xyz, _neg(beta_2e), gamma_2u, _neg(alpha_2u) );
+  g3d_p( xyz, _neg(beta_2e), gamma_2u, _neg(_alpha2p) );
 
   console.log("#P_2.E");
 
   xyz = _add( _add( p, _add(alpha, _neg(d_alpha)) ), _add(gamma_2e, _neg(d_gamma)) );
-  //g3d_p( xyz, _neg(gamma_2e), _neg(alpha_2q), beta_2e );
+  //g3d_p( xyz, _neg(gamma_2e), _neg(alpha_2u), beta_2e );
   g3d_p( xyz, _neg(gamma_2e), _neg(_alpha2p), beta_2e );
 
 }
