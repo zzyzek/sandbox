@@ -454,9 +454,9 @@ function g3d_p(p, alpha, beta, gamma) {
   //
   else if (a==1) {
 
-    console.log("#A_1");
+    console.log("#A_1", p, beta, gamma);
 
-    g2d_p( xyz, beta, gamma );
+    g2d_p( p, beta, gamma );
     return;
   }
 
@@ -465,17 +465,17 @@ function g3d_p(p, alpha, beta, gamma) {
   //
   else if (b==1) {
 
-    console.log("#B_1", alpha, gamma);
+    console.log("#B_1", p, alpha, gamma);
 
-    g2d_p( xyz, alpha, gamma );
+    g2d_p( p , alpha, gamma );
     return;
   }
 
   else if (g==1) {
 
-    console.log("#G_1");
+    console.log("#G_1", p, alpha, beta);
 
-    g2d_p( xyz, alpha, beta );
+    g2d_p( p, alpha, beta );
     return;
   }
 
@@ -605,7 +605,7 @@ function g3d_p(p, alpha, beta, gamma) {
     console.log("#S_1.C");
 
     g3d_p(_add(p, _add( _add(alpha, _neg(d_alpha)), _add(gamma_13e, _neg(d_gamma)) )),
-          _neg(gamma_23s),
+          _neg(gamma_13e),
           //_neg(alpha_2s),
           _neg(_alpha2p),
           beta);
