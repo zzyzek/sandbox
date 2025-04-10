@@ -887,15 +887,18 @@ function gilbert3d_case() {
     {
       "order" : [1,2,0],
       "orientation" : [1,1,1],
-      "x": { "t": "alpha2e", "xy": [10,5]  },
+      //"x": { "t": "alpha2e", "xy": [10,5]  },
+      "x": { "t": "alpha2", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
-      "z": { "t": "gamma2e", "xy": [-37,-20]  }
+      //"z": { "t": "gamma2e", "xy": [-37,-20]  }
+      "z": { "t": "gamma2", "xy": [-37,-20]  }
     },
 
     {
       "order" : [2,0,1],
       "orientation" : [1,1,1],
-      "x": { "t": "alpha2e", "xy": [10,5]  },
+      //"x": { "t": "alpha2e", "xy": [10,5]  },
+      "x": { "t": "alpha2", "xy": [10,5]  },
       "y": { "t": "beta2s", "xy": [-25,0]  },
       "z": { "t": "gamma", "xy": [-30,-20]  }
     },
@@ -905,13 +908,15 @@ function gilbert3d_case() {
       "orientation" : [1,-1,-1],
       "x": { "t": "alpha", "xy": [10,5]  },
       "y": { "t": "m_beta2e", "xy": [-25,0]  },
-      "z": { "t": "m_gamma2s", "xy": [-37,-20]  }
+      //"z": { "t": "m_gamma2s", "xy": [-37,-20]  }
+      "z": { "t": "m_gamma2p", "xy": [-37,-20]  }
     },
 
     {
       "order" : [2,0,1],
       "orientation" : [-1,-1,1],
-      "x": { "t": "m_alpha2s", "xy": [10,5]  },
+      //"x": { "t": "m_alpha2s", "xy": [10,5]  },
+      "x": { "t": "m_alpha2p", "xy": [10,5]  },
       "y": { "t": "beta2s", "xy": [-25,0]  },
       "z": { "t": "m_gamma", "xy": [-30,-20]  }
     },
@@ -919,9 +924,11 @@ function gilbert3d_case() {
     {
       "order" : [1,2,0],
       "orientation" : [-1,1,-1],
-      "x": { "t": "m_alpha2s", "xy": [10,5]  },
+      //"x": { "t": "m_alpha2s", "xy": [10,5]  },
+      "x": { "t": "m_alpha2p", "xy": [10,5]  },
       "y": { "t": "m_beta2e", "xy": [-25,0]  },
-      "z": { "t": "gamma2e", "xy": [-40,-20]  }
+      //"z": { "t": "gamma2e", "xy": [-40,-20]  }
+      "z": { "t": "gamma2", "xy": [-36,-20]  }
     }
 
   ];
@@ -930,15 +937,18 @@ function gilbert3d_case() {
     {
       "order": [2,0,1],
       "orientation" : [1,1,1],
-      "x": { "t": "alpha2e", "xy": [10,5]  },
-      "y": { "t": "beta2e", "xy": [-25,0]  },
+      //"x": { "t": "alpha2e", "xy": [10,5]  },
+      "x": { "t": "alpha2", "xy": [10,5]  },
+      //"y": { "t": "beta2e", "xy": [-25,0]  },
+      "y": { "t": "beta2", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-37,-20]  }
     },
 
     {
       "order": [1,2,0],
       "orientation" : [1,1,1],
-      "x": { "t": "alpha2e", "xy": [10,5]  },
+      //"x": { "t": "alpha2e", "xy": [10,5]  },
+      "x": { "t": "alpha2", "xy": [10,5]  },
       "y": { "t": "beta", "xy": [-25,0]  },
       "z": { "t": "gamma2s", "xy": [-55,-35]  }
     },
@@ -947,14 +957,16 @@ function gilbert3d_case() {
       "order": [0,1,2],
       "orientation" : [1,-1,-1],
       "x": { "t": "alpha", "xy": [10,5]  },
-      "y": { "t": "m_beta2s", "xy": [-25,0]  },
+      //"y": { "t": "m_beta2s", "xy": [-25,0]  },
+      "y": { "t": "m_beta2p", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-37,-20]  }
     },
 
     {
       "order": [1,2,0],
       "orientation" : [-1,1,-1],
-      "x": { "t": "m_alpha2s", "xy": [10,5]  },
+      //"x": { "t": "m_alpha2s", "xy": [10,5]  },
+      "x": { "t": "m_alpha2p", "xy": [10,5]  },
       "y": { "t": "m_beta", "xy": [-25,0]  },
       "z": { "t": "gamma2s", "xy": [-55,-40]  }
     },
@@ -962,8 +974,10 @@ function gilbert3d_case() {
     {
       "order": [2,0,1],
       "orientation" : [-1,-1,1],
-      "x": { "t": "m_alpha2s", "xy": [10,5]  },
-      "y": { "t": "beta2e", "xy": [-25,0]  },
+      //"x": { "t": "m_alpha2s", "xy": [10,5]  },
+      "x": { "t": "m_alpha2p", "xy": [10,5]  },
+      //"y": { "t": "beta2e", "xy": [-25,0]  },
+      "y": { "t": "beta2", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-40,-20]  }
     }
 
@@ -973,7 +987,7 @@ function gilbert3d_case() {
     {
       "order": [2,0,1],
       "orientation" : [1,1,1],
-      "x": { "t": "alpha2q", "xy": [10,5]  },
+      "x": { "t": "alpha2u", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-37,-20]  }
     },
@@ -981,31 +995,31 @@ function gilbert3d_case() {
     {
       "order": [1,2,0],
       "orientation" : [1,1,1],
-      "x": { "t": "alpha2q", "xy": [10,5]  },
+      "x": { "t": "alpha2u", "xy": [10,5]  },
       "y": { "t": "beta", "xy": [-25,0]  },
-      "z": { "t": "gamma2q", "xy": [-55,-35]  }
+      "z": { "t": "gamma2u", "xy": [-55,-35]  }
     },
 
     {
       "order": [0,1,2],
       "orientation" : [1,-1,-1],
       "x": { "t": "alpha", "xy": [10,5]  },
-      "y": { "t": "m_beta2q", "xy": [-25,0]  },
+      "y": { "t": "m_beta2u", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-37,-20]  }
     },
 
     {
       "order": [1,2,0],
       "orientation" : [-1,-1,1],
-      "x": { "t": "alpha2qp", "xy": [10,5]  },
+      "x": { "t": "alpha2up", "xy": [10,5]  },
       "y": { "t": "m_beta", "xy": [-25,0]  },
-      "z": { "t": "m_gamma2q", "xy": [-55,-40]  }
+      "z": { "t": "m_gamma2u", "xy": [-55,-40]  }
     },
 
     {
       "order": [2,0,1],
       "orientation" : [-1,-1,1],
-      "x": { "t": "m_alpha2qp", "xy": [10,5]  },
+      "x": { "t": "m_alpha2up", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-40,-20]  }
     }
@@ -1016,7 +1030,7 @@ function gilbert3d_case() {
     {
       "order": [1,2,0],
       "orientation" : [1,1,1],
-      "x": { "t": "alpha2e", "xy": [10,5]  },
+      "x": { "t": "alpha2", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma", "xy": [-30,-20]  }
     },
@@ -1025,7 +1039,7 @@ function gilbert3d_case() {
       "order": [2,0,1],
       "orientation" : [1,1,1],
       "x": { "t": "alpha", "xy": [10,5]  },
-      "y": { "t": "beta2q", "xy": [-25,0]  },
+      "y": { "t": "beta2u", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-38,-25]  }
     },
 
@@ -1033,22 +1047,22 @@ function gilbert3d_case() {
       "order": [0,1,2],
       "orientation" : [1,1,1],
       "x": { "t": "alpha", "xy": [10,5]  },
-      "y": { "t": "beta2q", "xy": [-25,0]  },
-      "z": { "t": "gamma2q", "xy": [-37,-20]  }
+      "y": { "t": "beta2u", "xy": [-25,0]  },
+      "z": { "t": "gamma2u", "xy": [-37,-20]  }
     },
 
     {
       "order": [1,2,0],
       "orientation" : [-1,1,-1],
-      "x": { "t": "m_alpha2q", "xy": [10,5]  },
-      "y": { "t": "m_beta2q", "xy": [-25,0]  },
-      "z": { "t": "gamma2q", "xy": [-38,-25]  }
+      "x": { "t": "m_alpha2p", "xy": [10,5]  },
+      "y": { "t": "beta2e", "xy": [-25,0]  },
+      "z": { "t": "gamma2u", "xy": [-38,-25]  }
     },
 
     {
       "order": [2,0,1],
       "orientation" : [-1,-1,1],
-      "x": { "t": "m_alpha2q", "xy": [10,5]  },
+      "x": { "t": "m_alpha2p", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-38,-20]  }
     }
@@ -1484,6 +1498,8 @@ function mathjax2twojs(_id,x,y,s,s_sub) {
 
   debug.push(sgr);
 
+  // rescale subscript HACK
+  //
   if (_id.slice(0,2) == "m_") {
 
     if (true) {
