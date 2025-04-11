@@ -1013,7 +1013,7 @@ function gilbert3d_case() {
     {
       "order": [1,2,0],
       "orientation" : [-1,-1,1],
-      "x": { "t": "alpha2up", "xy": [10,5]  },
+      "x": { "t": "m_alpha2up", "xy": [10,5]  },
       "y": { "t": "m_beta", "xy": [-25,0]  },
       "z": { "t": "gamma2u", "xy": [-55,-40]  }
     },

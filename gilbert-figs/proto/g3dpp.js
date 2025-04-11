@@ -759,8 +759,8 @@ function g3d_p(p, alpha, beta, gamma) {
 
     // D
     xyz = _add( _add( _add( p, gamma_2e ), _add(beta, _neg(d_beta)) ), _add(alpha, _neg(d_alpha)) );
-    //g3d_p( xyz, _neg(beta), _neg(gamma_2u), alpha_2up );
-    g3d_p( xyz, _neg(beta), gamma_2u, alpha_2up );
+    //g3d_p( xyz, _neg(beta), gamma_2u, _neg(alpha_2up) );
+    g3d_p( xyz, _neg(beta), gamma_2u, _neg(alpha_2up) );
 
     console.log("#P_1q.E");
 
