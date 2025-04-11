@@ -724,11 +724,19 @@ function g3d_p(p, alpha, beta, gamma) {
   //
   // P_1q
   //
-  // we do need an opinion about alpha2 and beta2
+  // we do need an opinion about alpha2 and gamma2
   // as they both need to be odd to get
   // the B and D block to have all odd sides.
   //
+  // We don't need an opinion on beta2
+  //
+  // KEEPING BETA AS IS FOR NOW TO DEBUG
+  // TODO: put agnostic beta2 back in
+  //
   else if ((a%2) == 0) {
+
+    let _beta2 = beta2;
+    let _beta2p = _add( beta, _neg(beta2) );
 
     console.log("#P_1q.A");
 
@@ -746,11 +754,13 @@ function g3d_p(p, alpha, beta, gamma) {
     xyz = _add( _add( p, _add(gamma_2e, _neg(d_gamma)) ), _add(beta, _neg(d_beta)) );
     g3d_p( xyz, alpha, _neg(beta_2u), _neg(gamma_2e) );
 
+    // HERE BE DRAGONS!!
     console.log("#P_1q.D");
 
     // D
     xyz = _add( _add( _add( p, gamma_2e ), _add(beta, _neg(d_beta)) ), _add(alpha, _neg(d_alpha)) );
-    g3d_p( xyz, _neg(beta), _neg(gamma_2u), alpha_2up );
+    //g3d_p( xyz, _neg(beta), _neg(gamma_2u), alpha_2up );
+    g3d_p( xyz, _neg(beta), gamma_2u, alpha_2up );
 
     console.log("#P_1q.E");
 

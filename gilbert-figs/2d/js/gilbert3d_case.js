@@ -988,7 +988,8 @@ function gilbert3d_case() {
       "order": [2,0,1],
       "orientation" : [1,1,1],
       "x": { "t": "alpha2u", "xy": [10,5]  },
-      "y": { "t": "beta2e", "xy": [-25,0]  },
+      //"y": { "t": "beta2e", "xy": [-25,0]  },
+      "y": { "t": "beta2", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-37,-20]  }
     },
 
@@ -1004,7 +1005,8 @@ function gilbert3d_case() {
       "order": [0,1,2],
       "orientation" : [1,-1,-1],
       "x": { "t": "alpha", "xy": [10,5]  },
-      "y": { "t": "m_beta2u", "xy": [-25,0]  },
+      //"y": { "t": "m_beta2u", "xy": [-25,0]  },
+      "y": { "t": "m_beta2p", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-37,-20]  }
     },
 
@@ -1013,14 +1015,15 @@ function gilbert3d_case() {
       "orientation" : [-1,-1,1],
       "x": { "t": "alpha2up", "xy": [10,5]  },
       "y": { "t": "m_beta", "xy": [-25,0]  },
-      "z": { "t": "m_gamma2u", "xy": [-55,-40]  }
+      "z": { "t": "gamma2u", "xy": [-55,-40]  }
     },
 
     {
       "order": [2,0,1],
       "orientation" : [-1,-1,1],
       "x": { "t": "m_alpha2up", "xy": [10,5]  },
-      "y": { "t": "beta2e", "xy": [-25,0]  },
+      //"y": { "t": "beta2e", "xy": [-25,0]  },
+      "y": { "t": "beta2", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-40,-20]  }
     }
 
