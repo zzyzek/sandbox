@@ -379,12 +379,6 @@ function g3d_p(p, alpha, beta, gamma) {
   let gamma_2up = [ gamma[0] - gamma_2u[0], gamma[1] - gamma_2u[1], gamma[2] - gamma_2u[2] ];
 
 
-  console.log("#a2/b2/g2:", alpha2, beta2, gamma2);
-  console.log("#a2e/b2e/g2e:", alpha_2e, beta_2e, gamma_2e);
-  console.log("#a2s/b2s/g2s:", alpha_2s, beta_2s, gamma_2s);
-  console.log("#a2u/b2u/g2u:", alpha_2u, beta_2u, gamma_2u);
-  console.log("#a2up/b2up/g2up:", alpha_2up, beta_2up, gamma_2up);
-
   // length of each axis
   //
   let a = _abs(alpha);
@@ -398,28 +392,18 @@ function g3d_p(p, alpha, beta, gamma) {
     return;
   }
 
-  if ((a==2) && (b==2) && (g==2)) { g2x2x2p(p, alpha, beta, gamma); return; }
+  if ((a==2) &&
+      (b==2) &&
+      (g==2)) {
+    g2x2x2p(p, alpha, beta, gamma);
+    return;
+  }
 
   // (unit) direction of each axis
   //
   let d_alpha = _delta(alpha);
   let d_beta  = _delta(beta);
   let d_gamma = _delta(gamma);
-
-
-  let alpha2  = alpha_2e;
-  let alpha2p = _add( alpha, _neg(alpha2) );
-
-  let beta2   = beta_2e;
-  let beta2p  = _add( beta, _neg(beta2) );
-
-  let gamma2  = gamma_2e;
-  let gamma2p = _add( gamma, _neg(gamma2) );
-
-  if (g%2) {
-    alpha2  = alpha_2u;
-    alpha2p = _add( alpha, _neg(alpha2) );
-  }
 
 
   let xyz = [ p[0], p[1], p[2] ];
@@ -492,6 +476,30 @@ function g3d_p(p, alpha, beta, gamma) {
     return;
   }
 
+
+  let alpha2  = ( (a==2) ? _div2(alpha) : alpha_2e );
+  let beta2   = ( (b==2) ?  _div2(beta) :  beta_2e );
+  let gamma2  = ( (g==2) ? _div2(gamma) : gamma_2e );
+
+  let alpha2p = _add( alpha, _neg(alpha2) );
+  let beta2p  = _add( beta, _neg(beta2) );
+  let gamma2p = _add( gamma, _neg(gamma2) );
+
+  if ((a>2) && (g%2)) {
+    alpha2  = alpha_2u;
+    alpha2p = _add( alpha, _neg(alpha2) );
+  }
+
+  console.log("#a2/b2/g2:", alpha2, beta2, gamma2);
+  console.log("#a2e/b2e/g2e:", alpha_2e, beta_2e, gamma_2e);
+  console.log("#a2s/b2s/g2s:", alpha_2s, beta_2s, gamma_2s);
+  console.log("#a2u/b2u/g2u:", alpha_2u, beta_2u, gamma_2u);
+  console.log("#a2up/b2up/g2up:", alpha_2up, beta_2up, gamma_2up);
+
+
+  // Eccentric tests
+  //
+
   // note order is important:
   // - first test for w greater than both d,h (S_0, 1 case)
   // - test for h bigger then either w,d (S_2, 3 cases)
@@ -510,11 +518,11 @@ function g3d_p(p, alpha, beta, gamma) {
 
     console.log("#S_0.A");
 
-    g3d_p( p, alpha2, beta, gamma );
+    g3d_p( p, alpha_2e, beta, gamma );
 
     console.log("#S_0.B");
 
-    g3d_p( _add(p, alpha2), alpha2p, beta, gamma );
+    g3d_p( _add(p, alpha_2e), alpha_2s, beta, gamma );
     return;
   }
 
