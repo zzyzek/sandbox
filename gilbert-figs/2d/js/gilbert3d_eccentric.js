@@ -870,21 +870,170 @@ function gilbert3d_eccentric() {
   two.appendTo(ele);
 
   let scale = 25;
-  let s0 = scale;
 
   //let whd2pconfig = [0,1,0,1,0,1,0,2];
   let idx2SConfig = [0, 1,1, 2,2,2];
 
   let dw = 1/4;
-  let js = s0*dw;
+  let js = scale*dw;
 
-  let jx = (s0 - js)*Math.sqrt(3)/2,
-      jy = (s0 - js)/2;
+  let jx = (scale - js)*Math.sqrt(3)/2,
+      jy = (scale - js)/2;
 
   let _D = 1/3;
   let _d = _D/2;
 
   //WIP!!!
+
+  let lco = lPAL[0];
+  let fco = PAL[0];
+
+  let cuboid_size = [1,1,1];
+
+  //------
+  //------
+  //------
+
+  // S_0
+  // w >>
+  //
+
+  let cxy = [100,100];
+  let dxyz = rodrigues([scale,0,0], vr, theta);
+  let dxy = _project(dxyz[0], dxyz[1], dxyz[2]);
+  let cs = njs.mul( scale, cuboid_size );
+  mk_iso_cuboid( cxy[0]+dxy[0], cxy[1]+dxy[1] , 1, lPAL[4], PAL[4], cs, 2, vr, theta );
+  mk_iso_cuboid( cxy[0]       , cxy[1]        , 1, lPAL[0], PAL[0], cs, 2, vr, theta );
+
+  //------
+  //------
+  //------
+
+  // S_2
+  // h >> ...
+  //
+
+  cxy = [200,100];
+
+  let _s23 = scale*2/3;
+  let _s13 = scale*1/3;
+
+  dxyz = rodrigues([0,scale/2,0], vr, theta);
+  dxy = _project(dxyz[0], dxyz[1], dxyz[2]);
+  cs = njs.mul( scale, [1,1,1] );
+  mk_iso_cuboid( cxy[0]+dxy[0], cxy[1]+dxy[1] , 1, lPAL[2], PAL[2], cs, 2, vr, theta );
+
+  dxyz = rodrigues([scale/2,0,0], vr, theta);
+  dxy = _project(dxyz[0], dxyz[1], dxyz[2]);
+  cs = njs.mul( scale, [0.5,0.5,1] );
+  mk_iso_cuboid( cxy[0]+dxy[0], cxy[1]+dxy[1] , 1, lPAL[4], PAL[4], cs, 2, vr, theta );
+
+  mk_iso_cuboid( cxy[0], cxy[1] , 1, lPAL[0], PAL[0], cs, 2, vr, theta );
+
+  //------
+  //------
+  //------
+
+  // S_1
+  // d >> ...
+  //
+
+  cxy = [300,100];
+
+  dxyz = rodrigues([scale/2,0,0], vr, theta);
+  dxy = _project(dxyz[0], dxyz[1], dxyz[2]);
+  cs = njs.mul( scale, [0.5,1,0.5] );
+  mk_iso_cuboid( cxy[0]+dxy[0], cxy[1]+dxy[1] , 1, lPAL[4], PAL[4], cs, 2, vr, theta );
+
+  mk_iso_cuboid( cxy[0], cxy[1] , 1, lPAL[0], PAL[0], cs, 2, vr, theta );
+
+  dxyz = rodrigues([0,0,scale/2], vr, theta);
+  dxy = _project(dxyz[0], dxyz[1], dxyz[2]);
+  cs = njs.mul( scale, [1,1,1] );
+  mk_iso_cuboid( cxy[0]+dxy[0], cxy[1]+dxy[1] , 1, lPAL[2], PAL[2], cs, 2, vr, theta );
+
+  //------
+  //------
+  //------
+
+  // S_2
+  // w << ...
+  //
+
+  cxy = [100,250];
+
+  dxyz = rodrigues([0,scale/2,0], vr, theta);
+  dxy = _project(dxyz[0], dxyz[1], dxyz[2]);
+  cs = njs.mul( scale, [1,2,2] );
+  mk_iso_cuboid( cxy[0]+dxy[0], cxy[1]+dxy[1] , 1, lPAL[2], PAL[2], cs, 2, vr, theta );
+
+  dxyz = rodrigues([scale/2,0,0], vr, theta);
+  dxy = _project(dxyz[0], dxyz[1], dxyz[2]);
+  cs = njs.mul( scale, [0.5,1,2] );
+  mk_iso_cuboid( cxy[0]+dxy[0], cxy[1]+dxy[1] , 1, lPAL[4], PAL[4], cs, 2, vr, theta );
+
+  mk_iso_cuboid( cxy[0], cxy[1] , 1, lPAL[0], PAL[0], cs, 2, vr, theta );
+
+
+  //------
+  //------
+  //------
+
+  // S_1
+  // h << ...
+  //
+
+  cxy = [200,250];
+
+  dxyz = rodrigues([scale,0,0], vr, theta);
+  dxy = _project(dxyz[0], dxyz[1], dxyz[2]);
+  cs = njs.mul( scale, [1,1,1] );
+  mk_iso_cuboid( cxy[0]+dxy[0], cxy[1]+dxy[1] , 1, lPAL[4], PAL[4], cs, 2, vr, theta );
+
+  mk_iso_cuboid( cxy[0], cxy[1] , 1, lPAL[0], PAL[0], cs, 2, vr, theta );
+
+  dxyz = rodrigues([0,0,scale], vr, theta);
+  dxy = _project(dxyz[0], dxyz[1], dxyz[2]);
+  cs = njs.mul( scale, [2,1,1.5] );
+  mk_iso_cuboid( cxy[0]+dxy[0], cxy[1]+dxy[1] , 1, lPAL[2], PAL[2], cs, 2, vr, theta );
+
+
+  //------
+  //------
+  //------
+
+
+
+  // S_2
+  // d << ...
+  //
+
+  cxy = [300,250];
+
+  dxyz = rodrigues([0,scale,0], vr, theta);
+  dxy = _project(dxyz[0], dxyz[1], dxyz[2]);
+  cs = njs.mul( scale, [2,1.5,1] );
+  mk_iso_cuboid( cxy[0]+dxy[0], cxy[1]+dxy[1] , 1, lPAL[2], PAL[2], cs, 2, vr, theta );
+
+
+  dxyz = rodrigues([scale,0,0], vr, theta);
+  dxy = _project(dxyz[0], dxyz[1], dxyz[2]);
+  cs = njs.mul( scale, [1,1,1] );
+  mk_iso_cuboid( cxy[0]+dxy[0], cxy[1]+dxy[1] , 1, lPAL[4], PAL[4], cs, 2, vr, theta );
+
+  mk_iso_cuboid( cxy[0], cxy[1] , 1, lPAL[0], PAL[0], cs, 2, vr, theta );
+
+
+  //------
+  //------
+  //------
+
+
+
+  axis_fig(50, 50, 20);
+
+  two.update();
+
   return;
 
   let label_S0 = [

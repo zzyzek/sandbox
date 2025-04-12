@@ -429,10 +429,20 @@ function axis_fig(x0,y0,s) {
   let xyz0 = njs.mul(s, rodrigues( [0,0,0], vr, theta ));
   let xy0 = njs.add( [x0,y0], _project( xyz0[0], xyz0[1], xyz0[1] ) );
 
+  let abg_txt = [ "alpha", "beta", "gamma" ];
+  let abg_dxy = [
+    [-1,15],
+    [-15, 10],
+    [5,0]
+  ];
+
   for (let xyz=0; xyz<3; xyz++) {
     let vxyz = njs.mul(s, rodrigues( v0xyz[xyz], vr, theta ));
     let vxy = _project( vxyz[0], vxyz[1], vxyz[2] );
 
+    //let mx = x0 + (vxy[0]/2) + abg_dxy[xyz][0];
+    //let my = y0 + (vxy[1]/2) + abg_dxy[xyz][1];
+    //mathjax2twojs(abg_txt[xyz], mx, my, 0.018);
 
     let _l = two.makeLine( x0,y0, x0+vxy[0], y0+vxy[1], 10);
     _l.linewidth = lw;
@@ -892,6 +902,8 @@ function mkfullblock(start_xy, opos, cuboid_size, disp_order, scale, highlight_i
 
 }
 
+// main entry point
+//
 function gilbert3d_case() {
   let two = g_fig_ctx.two;
 
