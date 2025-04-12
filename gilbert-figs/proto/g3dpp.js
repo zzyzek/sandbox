@@ -719,10 +719,7 @@ function g3d_p(p, alpha, beta, gamma) {
     return;
   }
 
-  // g == 1
-  // b == 1
-  //
-  // P_1q
+  // P_1q (a==0, b==1, g==1)
   //
   // we do need an opinion about alpha2 and gamma2
   // as they both need to be odd to get
@@ -738,77 +735,46 @@ function g3d_p(p, alpha, beta, gamma) {
     let _beta2 = beta2;
     let _beta2p = _add( beta, _neg(beta2) );
 
-    console.log("#P_1q.A");
-
     xyz = [ p[0], p[1], p[2] ];
-    g3d_p( xyz, gamma_2e, alpha_2u, beta_2e );
-
-    console.log("#P_1q.B");
+    //g3d_p( xyz, gamma_2e, alpha_2u, beta_2e );
+    g3d_p( xyz, gamma_2e, alpha_2u, _beta2 );
 
     xyz = _add(p, gamma_2e);
     g3d_p( xyz, beta, gamma_2u, alpha_2u );
 
-    console.log("#P_1q.C");
-
-    // C
     xyz = _add( _add( p, _add(gamma_2e, _neg(d_gamma)) ), _add(beta, _neg(d_beta)) );
-    g3d_p( xyz, alpha, _neg(beta_2u), _neg(gamma_2e) );
+    //g3d_p( xyz, alpha, _neg(beta_2u), _neg(gamma_2e) );
+    g3d_p( xyz, alpha, _neg(_beta2p), _neg(gamma_2e) );
 
-    // HERE BE DRAGONS!!
-    console.log("#P_1q.D");
-
-    // D
     xyz = _add( _add( _add( p, gamma_2e ), _add(beta, _neg(d_beta)) ), _add(alpha, _neg(d_alpha)) );
-    //g3d_p( xyz, _neg(beta), gamma_2u, _neg(alpha_2up) );
     g3d_p( xyz, _neg(beta), gamma_2u, _neg(alpha_2up) );
 
-    console.log("#P_1q.E");
-
-    // E
     xyz = _add( _add( p, _add(alpha, _neg(d_alpha)) ), _add(gamma_2e, _neg(d_gamma)) );
-    g3d_p( xyz, _neg(gamma_2e), _neg(alpha_2up), beta_2e );
+    //g3d_p( xyz, _neg(gamma_2e), _neg(alpha_2up), beta_2e );
+    g3d_p( xyz, _neg(gamma_2e), _neg(alpha_2up), _beta2 );
 
     return;
   }
 
-  console.log("#P_2");
-
-  // g == 1
-  // b == 1
-  // a == 1
-  //
-  // P_2
+  // P_2 (a==1, b==1, g==1)
   //
 
   let _alpha2 = alpha2;
   let _alpha2p = _add(alpha, _neg(alpha2));
 
-  console.log("#P_2.A");
-
   xyz = [ p[0], p[1], p[2] ];
-  //g3d_p( xyz, beta_2e, gamma, alpha_2e );
   g3d_p( xyz, beta_2e, gamma, _alpha2 );
-
-  console.log("#P_2.B");
 
   xyz = _add( p, beta_2e );
   g3d_p( xyz, gamma_2e, alpha, beta_2u );
 
-  console.log("#P_2.C");
-
   xyz = _add( _add( p, beta_2e ), gamma_2e );
   g3d_p( xyz, alpha, beta_2u, gamma_2u );
 
-  console.log("#P_2.D");
-
   xyz = _add( _add( _add( p, _add(beta_2e, _neg(d_beta)) ), gamma_2e ), _add(alpha, _neg(d_alpha)) );
-  //g3d_p( xyz, _neg(beta_2e), gamma_2u, _neg(alpha_2u) );
   g3d_p( xyz, _neg(beta_2e), gamma_2u, _neg(_alpha2p) );
 
-  console.log("#P_2.E");
-
   xyz = _add( _add( p, _add(alpha, _neg(d_alpha)) ), _add(gamma_2e, _neg(d_gamma)) );
-  //g3d_p( xyz, _neg(gamma_2e), _neg(alpha_2u), beta_2e );
   g3d_p( xyz, _neg(gamma_2e), _neg(_alpha2p), beta_2e );
 
 }

@@ -771,9 +771,10 @@ function curve3d_fig(x0,y0,s) {
 // vr rotation axis
 // theta rotation angle
 //
-function mk_iso_cuboid( x0,y0,s, lco, fco, lXYZ, lw, vr, theta) {
+function mk_iso_cuboid( x0,y0,s, lco, fco, lXYZ, lw, vr, theta, alpha) {
   vr = ((typeof vr === "undefined") ? [0,0,1] : vr);
   theta = ((typeof theta === "undefined") ? (-Math.PI/16) : theta);
+  alpha = ((typeof alpha === "undefined") ? 1 : alpha);
 
 
   let two = g_fig_ctx.two;
@@ -792,14 +793,6 @@ function mk_iso_cuboid( x0,y0,s, lco, fco, lXYZ, lw, vr, theta) {
       [0,lXYZ[1], lXYZ[2]],
       [0,lXYZ[1],0]
     ],
-    /*
-    [
-      [lXYZ[0],0,0],
-      [lXYZ[0],0,lXYZ[2]],
-      [lXYZ[0],lXYZ[1],lXYZ[2]],
-      [lXYZ[0],lXYZ[1],0]
-    ],
-    */
 
     [
       [0,0,lXYZ[2]],
@@ -831,20 +824,20 @@ function mk_iso_cuboid( x0,y0,s, lco, fco, lXYZ, lw, vr, theta) {
 
     p.stroke = lco;
     p.linewidth = lw;
+
+    p.opacity = alpha;
   }
 
 
   two.update();
 }
 
-function mkfullblock(start_xy, opos, cuboid_size, disp_order, scale) {
+function ORIGmkfullblock(start_xy, opos, cuboid_size, disp_order, scale) {
   scale = ((typeof scale === "undefined") ? 25 : scale);
   let two = g_fig_ctx.two;
 
   let vr = [0,0,1];
   let theta = -Math.PI/16 + Math.PI/2;
-
-  //let order = [3,4,1,0,2];
 
   for (let _i=0; _i<5; _i++) {
     let i = disp_order[_i];
@@ -857,7 +850,46 @@ function mkfullblock(start_xy, opos, cuboid_size, disp_order, scale) {
     mk_iso_cuboid(jxy[0],jxy[1],1, lco, fco, cs, 2, vr, theta);
   }
 
-  //two.update();
+}
+
+function mkfullblock(start_xy, opos, cuboid_size, disp_order, scale, highlight_idx, alpha_bg) {
+  scale = ((typeof scale === "undefined") ? 25 : scale);
+  highlight_idx = ((typeof highlight_idx === "undefined") ? -1 : highlight_idx);
+  alpha_bg = ((typeof alpha_bg === "undefined") ? 1 : alpha_bg);
+  let two = g_fig_ctx.two;
+
+  let vr = [0,0,1];
+  let theta = -Math.PI/16 + Math.PI/2;
+
+  for (let _i=0; _i<5; _i++) {
+    let i = disp_order[_i];
+    let jxyz = njs.mul(scale, rodrigues(opos[i], vr, theta));
+    let jxy = njs.add( [start_xy[0], start_xy[1]], _project( jxyz[0], jxyz[1], jxyz[2]) );
+    let lco = lPAL[i];
+    let fco = PAL[i];
+    let cs = njs.mul(scale, cuboid_size[i]);
+
+    if (i == highlight_idx) {
+      mk_iso_cuboid(jxy[0],jxy[1],1, lco, fco, cs, 2, vr, theta);
+    }
+    else {
+      mk_iso_cuboid(jxy[0],jxy[1],1, lco, fco, cs, 2, vr, theta, alpha_bg);
+    }
+  }
+
+  /*
+  if (highlight_idx >= 0) {
+    let i = highlight_idx;
+    let jxyz = njs.mul(scale, rodrigues(opos[i], vr, theta));
+    let jxy = njs.add( [start_xy[0], start_xy[1]], _project( jxyz[0], jxyz[1], jxyz[2]) );
+    let lco = lPAL[i];
+    let fco = PAL[i];
+    let cs = njs.mul(scale, cuboid_size[i]);
+    mk_iso_cuboid(jxy[0],jxy[1],1, lco, fco, cs, 2, vr, theta);
+
+  }
+  */
+
 }
 
 function gilbert3d_case() {
@@ -883,22 +915,29 @@ function gilbert3d_case() {
   let _D = 1/3;
   let _d = _D/2;
 
+  // there are four labels (3 + a slightly modified persion of P1)
+  // P_0, P_1, P_1q, and P_2
+  //
+  // these hold the html element ids (as they appear in the HTML)
+  //   of the rendered latex elements, their relative positions
+  //   to the drawn cuboid
+  // the order in which the labels are displayed, and the order of
+  //   the small sub axis displayed
+  // orientation is the dirtion of the axis (before order is applied)
+  //
   let label_P0 = [
     {
       "order" : [1,2,0],
       "orientation" : [1,1,1],
-      //"x": { "t": "alpha2e", "xy": [10,5]  },
-      "x": { "t": "alpha2", "xy": [10,5]  },
+      "x": { "t": "alpha2e", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
-      //"z": { "t": "gamma2e", "xy": [-37,-20]  }
-      "z": { "t": "gamma2", "xy": [-37,-20]  }
+      "z": { "t": "gamma2e", "xy": [-37,-20]  }
     },
 
     {
       "order" : [2,0,1],
       "orientation" : [1,1,1],
-      //"x": { "t": "alpha2e", "xy": [10,5]  },
-      "x": { "t": "alpha2", "xy": [10,5]  },
+      "x": { "t": "alpha2e", "xy": [10,5]  },
       "y": { "t": "beta2s", "xy": [-25,0]  },
       "z": { "t": "gamma", "xy": [-30,-20]  }
     },
@@ -908,15 +947,13 @@ function gilbert3d_case() {
       "orientation" : [1,-1,-1],
       "x": { "t": "alpha", "xy": [10,5]  },
       "y": { "t": "m_beta2e", "xy": [-25,0]  },
-      //"z": { "t": "m_gamma2s", "xy": [-37,-20]  }
-      "z": { "t": "m_gamma2p", "xy": [-37,-20]  }
+      "z": { "t": "m_gamma2s", "xy": [-37,-20]  }
     },
 
     {
       "order" : [2,0,1],
       "orientation" : [-1,-1,1],
-      //"x": { "t": "m_alpha2s", "xy": [10,5]  },
-      "x": { "t": "m_alpha2p", "xy": [10,5]  },
+      "x": { "t": "m_alpha2s", "xy": [10,5]  },
       "y": { "t": "beta2s", "xy": [-25,0]  },
       "z": { "t": "m_gamma", "xy": [-30,-20]  }
     },
@@ -924,11 +961,9 @@ function gilbert3d_case() {
     {
       "order" : [1,2,0],
       "orientation" : [-1,1,-1],
-      //"x": { "t": "m_alpha2s", "xy": [10,5]  },
-      "x": { "t": "m_alpha2p", "xy": [10,5]  },
+      "x": { "t": "m_alpha2s", "xy": [10,5]  },
       "y": { "t": "m_beta2e", "xy": [-25,0]  },
-      //"z": { "t": "gamma2e", "xy": [-40,-20]  }
-      "z": { "t": "gamma2", "xy": [-36,-20]  }
+      "z": { "t": "gamma2s", "xy": [-38,-20]  }
     }
 
   ];
@@ -937,18 +972,18 @@ function gilbert3d_case() {
     {
       "order": [2,0,1],
       "orientation" : [1,1,1],
-      //"x": { "t": "alpha2e", "xy": [10,5]  },
-      "x": { "t": "alpha2", "xy": [10,5]  },
-      //"y": { "t": "beta2e", "xy": [-25,0]  },
-      "y": { "t": "beta2", "xy": [-25,0]  },
+      //"x": { "t": "alpha2", "xy": [10,5]  },
+      "x": { "t": "alpha2u", "xy": [10,5]  },
+      //"y": { "t": "beta2", "xy": [-25,0]  },
+      "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-37,-20]  }
     },
 
     {
       "order": [1,2,0],
       "orientation" : [1,1,1],
-      //"x": { "t": "alpha2e", "xy": [10,5]  },
-      "x": { "t": "alpha2", "xy": [10,5]  },
+      //"x": { "t": "alpha2", "xy": [10,5]  },
+      "x": { "t": "alpha2u", "xy": [10,5]  },
       "y": { "t": "beta", "xy": [-25,0]  },
       "z": { "t": "gamma2s", "xy": [-55,-35]  }
     },
@@ -957,16 +992,16 @@ function gilbert3d_case() {
       "order": [0,1,2],
       "orientation" : [1,-1,-1],
       "x": { "t": "alpha", "xy": [10,5]  },
-      //"y": { "t": "m_beta2s", "xy": [-25,0]  },
-      "y": { "t": "m_beta2p", "xy": [-25,0]  },
+      //"y": { "t": "m_beta2p", "xy": [-25,0]  },
+      "y": { "t": "m_beta2s", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-37,-20]  }
     },
 
     {
       "order": [1,2,0],
       "orientation" : [-1,1,-1],
-      //"x": { "t": "m_alpha2s", "xy": [10,5]  },
-      "x": { "t": "m_alpha2p", "xy": [10,5]  },
+      //"x": { "t": "m_alpha2p", "xy": [10,5]  },
+      "x": { "t": "m_alpha2up", "xy": [10,5]  },
       "y": { "t": "m_beta", "xy": [-25,0]  },
       "z": { "t": "gamma2s", "xy": [-55,-40]  }
     },
@@ -974,10 +1009,10 @@ function gilbert3d_case() {
     {
       "order": [2,0,1],
       "orientation" : [-1,-1,1],
-      //"x": { "t": "m_alpha2s", "xy": [10,5]  },
-      "x": { "t": "m_alpha2p", "xy": [10,5]  },
-      //"y": { "t": "beta2e", "xy": [-25,0]  },
-      "y": { "t": "beta2", "xy": [-25,0]  },
+      //"x": { "t": "m_alpha2p", "xy": [10,5]  },
+      "x": { "t": "m_alpha2up", "xy": [10,5]  },
+      //"y": { "t": "beta2", "xy": [-25,0]  },
+      "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-40,-20]  }
     }
 
@@ -988,8 +1023,8 @@ function gilbert3d_case() {
       "order": [2,0,1],
       "orientation" : [1,1,1],
       "x": { "t": "alpha2u", "xy": [10,5]  },
-      //"y": { "t": "beta2e", "xy": [-25,0]  },
-      "y": { "t": "beta2", "xy": [-25,0]  },
+      //"y": { "t": "beta2", "xy": [-25,0]  },
+      "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma2e", "xy": [-37,-20]  }
     },
 
@@ -1005,8 +1040,8 @@ function gilbert3d_case() {
       "order": [0,1,2],
       "orientation" : [1,-1,-1],
       "x": { "t": "alpha", "xy": [10,5]  },
-      //"y": { "t": "m_beta2u", "xy": [-25,0]  },
-      "y": { "t": "m_beta2p", "xy": [-25,0]  },
+      //"y": { "t": "m_beta2p", "xy": [-25,0]  },
+      "y": { "t": "m_beta2s", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-37,-20]  }
     },
 
@@ -1022,8 +1057,8 @@ function gilbert3d_case() {
       "order": [2,0,1],
       "orientation" : [-1,-1,1],
       "x": { "t": "m_alpha2up", "xy": [10,5]  },
-      //"y": { "t": "beta2e", "xy": [-25,0]  },
-      "y": { "t": "beta2", "xy": [-25,0]  },
+      //"y": { "t": "beta2", "xy": [-25,0]  },
+      "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-40,-20]  }
     }
 
@@ -1033,7 +1068,8 @@ function gilbert3d_case() {
     {
       "order": [1,2,0],
       "orientation" : [1,1,1],
-      "x": { "t": "alpha2", "xy": [10,5]  },
+      //"x": { "t": "alpha2", "xy": [10,5]  },
+      "x": { "t": "alpha2u", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma", "xy": [-30,-20]  }
     },
@@ -1051,13 +1087,14 @@ function gilbert3d_case() {
       "orientation" : [1,1,1],
       "x": { "t": "alpha", "xy": [10,5]  },
       "y": { "t": "beta2u", "xy": [-25,0]  },
-      "z": { "t": "gamma2u", "xy": [-37,-20]  }
+      "z": { "t": "gamma2u", "xy": [-39,-20]  }
     },
 
     {
       "order": [1,2,0],
       "orientation" : [-1,1,-1],
-      "x": { "t": "m_alpha2p", "xy": [10,5]  },
+      //"x": { "t": "m_alpha2p", "xy": [10,5]  },
+      "x": { "t": "m_alpha2up", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "gamma2u", "xy": [-38,-25]  }
     },
@@ -1065,13 +1102,17 @@ function gilbert3d_case() {
     {
       "order": [2,0,1],
       "orientation" : [-1,-1,1],
-      "x": { "t": "m_alpha2p", "xy": [10,5]  },
+      //"x": { "t": "m_alpha2p", "xy": [10,5]  },
+      "x": { "t": "m_alpha2up", "xy": [10,5]  },
       "y": { "t": "beta2e", "xy": [-25,0]  },
       "z": { "t": "m_gamma2e", "xy": [-38,-20]  }
     }
 
   ];
 
+  // position of "docking" graphics, where the path in the sub-cuboid starts
+  // and ends
+  //
   let dock_P0 = [
     [ [0,0,0, _d,_d,_d], [0,1-_D,0, _d, 1-_d,_d] ],
     [ [0,0,0, _d,_d,_d], [0,0,2-_D, _d, _d, 2-_d] ],
@@ -1096,12 +1137,20 @@ function gilbert3d_case() {
     [ [1-_D,0,1-_D, 1-_d,_d,1-_d], [1-_D,0,0, 1-_d,_d,_d] ]
   ];
 
+  let jsplit_dock = [
+    [    0, 0, 0,    _d, _d, _d ],
+    [ 2-_D, 0, 0,  2-_d, _d, _d ]
+    //[ 1.5-_D, 0, 0,  1.5-_d, _d, _d ]
+  ];
+
+  // relative positions of sub-coboids displayed in the grid line
+  //
   let CXY_P0 = [ [70, 150], [140, 150], [197, 125], [280, 150], [350, 150] ];
   let CXY_P1 = [ [70, 150], [140, 150], [195,  125], [290, 150], [350, 150] ];
   let CXY_P2 = [ [70, 150], [130, 150], [210, 125], [290, 150], [350, 150] ];
 
   CXY_P0 = [ [70, 150], [140, 150], [210, 125], [290, 150], [360, 150] ];
-  CXY_P1 = [ [75, 150], [160, 150], [225,  125], [335, 150], [410, 150] ];
+  CXY_P1 = [ [75, 150], [160, 150], [225, 125], [335, 150], [410, 150] ];
   CXY_P2 = [ [75, 150], [150, 150], [245, 125], [335, 150], [410, 150] ];
 
   let fstyle = {
@@ -1110,6 +1159,9 @@ function gilbert3d_case() {
     "family": "Libertine, Linux Libertine O"
   };
 
+  // index positions of cuboids for display, as well as display order
+  // since we're drawing psuedo-iso cubes ourselves
+  //
   let PConfig = [
     {
       "xy": CXY_P0,
@@ -1143,18 +1195,18 @@ function gilbert3d_case() {
     let cxya = pc.xy;
     let cuboid_size_a = pc.cuboid_size;
 
-    //let start_xy = [ ((whd%2) ? (scale*18) : 0), Math.floor(whd/2)*150 ];
-    //let start_xy = [ ((whd%2) ? (scale*18) : 0), Math.floor(whd/2)*105 ];
     let start_xy = [ ((whd%2) ? (scale*18) : 0), Math.floor(whd/2)*155 ];
 
     let sxy = [ start_xy[0] + 50, start_xy[1] + 150 ];
-
 
     //----
     //----
     //----
 
     // STILL WIP
+    //
+    // think we're abandoning the funnel in lieu of high alpha full cubes
+    // with highlighted focus cuboid
     //
     let show_funnel = false;
     if (show_funnel) {
@@ -1241,12 +1293,43 @@ function gilbert3d_case() {
     //----
     //----
 
-    //mkfullblock(sxy, pc.opos, pc.cuboid_size, pc.disp_order, 18);
     let tsxy = [ sxy[0], sxy[1] ];
     if (whd%2) { tsxy[0] -= 5; }
     else { tsxy[0] -= 5; }
 
-    mkfullblock(tsxy, pc.opos, pc.cuboid_size, pc.disp_order, 18);
+    // draw the full J-split block
+    //
+    let jsplit_scale = 18;
+    mkfullblock(tsxy, pc.opos, pc.cuboid_size, pc.disp_order, jsplit_scale);
+
+
+    let show_jsplit_dock = true;
+    if (show_jsplit_dock) {
+
+      // docking circles for each of the sub-blocks
+      //
+      let dock_co = [ "rgba(0,0,0,0", "rgba(0,0,0,0.3)" ];
+      for (let _di=0; _di<2; _di++) {
+        let dock_pos = jsplit_dock[_di];
+
+        let _dd = 1/3;
+        let jxyz = njs.mul(jsplit_scale, rodrigues([ dock_pos[0],dock_pos[1],dock_pos[2]], vr, theta));
+        let jxy = njs.add( tsxy, _project( jxyz[0], jxyz[1], jxyz[2]) );
+        mk_iso_cuboid(jxy[0],jxy[1],jsplit_scale*_dd, dock_co[0], dock_co[1], [1,1,1], 2, vr, theta);
+
+        let dc_xyz = njs.mul(jsplit_scale, rodrigues([dock_pos[3],dock_pos[4],dock_pos[5]], vr, theta));
+        let dc_xy = njs.add( tsxy, _project( dc_xyz[0], dc_xyz[1], dc_xyz[2]) );
+
+        let _c = two.makeCircle( dc_xy[0], dc_xy[1],  4 );
+        _c.stroke = "rgba(0,0,0,0)";
+        _c.linewidth = 0;
+        if (_di==1) { _c.fill = "rgba(255,255,255,0.9)"; }
+        else        { _c.fill = "rgba(0,0,0,0.9)"; }
+      }
+
+    }
+
+
 
     let _st = {
       "size": 10,
@@ -1254,9 +1337,9 @@ function gilbert3d_case() {
       "family": "Libertine, Linux Libertine O"
     };
 
+    // show parity on full blocks sides
+    //
     let bcode = [ "000", "001", "010", "011", "100", "101", "110", "111" ];
-
-    //let _bt = two.makeText( bcode[whd], sxy[0]-20, sxy[1]-80, _st );
 
     let _btx = two.makeText( bcode[whd][0], sxy[0]+15, sxy[1]+3, _st );
     let _bty = two.makeText( bcode[whd][1], sxy[0]-25, sxy[1]-5, _st );
@@ -1266,18 +1349,45 @@ function gilbert3d_case() {
 
     two.makeText("Block", sxy[0]+5, sxy[1]+30, _st);
     two.makeText("Axis", sxy[0]+5, sxy[1]+45, _st);
-    //let _tt = two.makeText("Reorientation", sxy[0]+0, sxy[1]+35, _st);
-    //_tt.stroke = "rgba(0,0,0.5)";
+
+
+    //EXPERIMENTAL
+    //EXPERIMENTAL
+    let order_legend = false;
+    if (order_legend) {
+      let _smsc = 4;
+      mkfullblock( njs.add(tsxy, [-30, 30]), pc.opos, pc.cuboid_size, pc.disp_order, _smsc, 0, 0.2);
+      mkfullblock( njs.add(tsxy, [-10, 30]), pc.opos, pc.cuboid_size, pc.disp_order, _smsc, 1, 0.2);
+
+      mkfullblock( njs.add(tsxy, [ 10, 30]), pc.opos, pc.cuboid_size, pc.disp_order, _smsc, 2, 0.015);
+      mkfullblock( njs.add(tsxy, [ 30, 30]), pc.opos, pc.cuboid_size, pc.disp_order, _smsc, 3, 0.15);
+      mkfullblock( njs.add(tsxy, [ 50, 30]), pc.opos, pc.cuboid_size, pc.disp_order, _smsc, 4, 0.2);
+    }
+    //EXPERIMENTAL
+    //EXPERIMENTAL
 
     let vord_pos = [-1,-1];
     for (let idx=0; idx<5; idx++) {
-      //let cxy = njs.add( start_xy, cxya[idx]);
+
+      // draw sub-cuboid
+      //
       let cxy = njs.add( [60,0], njs.add( start_xy, cxya[idx]) );
       let lco = lPAL[idx];
       let fco = PAL[idx];
       let cs = njs.mul(scale, cuboid_size_a[idx]);
       mk_iso_cuboid(cxy[0],cxy[1],1, lco, fco, cs, 2, vr, theta);
 
+      //EXPERIMENTAL
+      let order_legend_local = false;
+      if (order_legend_local) {
+        let _smsc = 6;
+        let _smo = [ start_xy[0] + 60 - 25 + cxya[idx][0], start_xy[1] + 85 ];
+        mkfullblock( _smo, pc.opos, pc.cuboid_size, pc.disp_order, _smsc, idx, 0.1);
+      }
+      //EXPERIMENTAL
+
+      // draw red X's on cuboids that have a forced notch 
+      //
       if ((idx==2) &&
           ((whd == 4) ||
            (whd == 5) ||
@@ -1326,10 +1436,12 @@ function gilbert3d_case() {
 
       let _lbl = pc.label[idx];
 
-      //WIP
+      // local axis for the sub-cuboid
+      //
       small_axis_fig(vord_pos[0]-26, vord_pos[1] + 42, _lbl.order, _lbl.orientation, 12);
 
-
+      // axis annotations for the cuboids
+      //
       let label_annotations = true;
       if (label_annotations) {
 
@@ -1343,44 +1455,27 @@ function gilbert3d_case() {
         _yt = _yt.replace(/^m_/, '');
         _zt = _zt.replace(/^m_/, '');
 
+        // edge annotations on the cuboid proper
+        //
         mathjax2twojs(_xt, cxy[0]+_lbl.x.xy[0],cxy[1]+_lbl.x.xy[1], 0.015);
         mathjax2twojs(_yt, cxy[0]+_lbl.y.xy[0],cxy[1]+_lbl.y.xy[1], 0.015);
         mathjax2twojs(_zt, cxy[0]+_lbl.z.xy[0],cxy[1]+_lbl.z.xy[1], 0.015);
 
+
+        // axis order displayed in a column underneath the cuboid
+        //
         let _ord = _lbl.order;
 
         let _ltxt = [ _lbl.x.t, _lbl.y.t, _lbl.z.t ];
         let ltxt = [ _ltxt[_ord[0]], _ltxt[_ord[1]], _ltxt[_ord[2]] ];
 
-        let sub_block_order_inline = false;
-        if (sub_block_order_inline) {
-
-          two.makeText("(", vord_pos[0]-28, vord_pos[1]+47);
-          //mathjax2twojs(_lbl.x.t, vord_pos[0]-25,vord_pos[1]+50, 0.0125);
-          mathjax2twojs(ltxt[0], vord_pos[0]-25,vord_pos[1]+50, 0.0125);
-
-          two.makeText(",", vord_pos[0]-8, vord_pos[1]+45);
-          //mathjax2twojs(_lbl.y.t, vord_pos[0]- 5,vord_pos[1]+50, 0.0125);
-          mathjax2twojs(ltxt[1], vord_pos[0]- 5,vord_pos[1]+50, 0.0125);
-
-          two.makeText(",", vord_pos[0]+16, vord_pos[1]+45);
-          //mathjax2twojs(_lbl.z.t, vord_pos[0]+20,vord_pos[1]+50, 0.0125);
-          mathjax2twojs(ltxt[2], vord_pos[0]+20,vord_pos[1]+50, 0.0125);
-
-          //two.makeText(")", vord_pos[0]+38, vord_pos[1]+47);
-          two.makeText(")", vord_pos[0]+rparen, vord_pos[1]+47);
-
+        let dx = [0,0,0];
+        for (let __i=0; __i<3; __i++) {
+          if (ltxt[__i].slice(0,2) == "m_") { dx[__i] -= 8; }
         }
-
-        else {
-          let dx = [0,0,0];
-          for (let __i=0; __i<3; __i++) {
-            if (ltxt[__i].slice(0,2) == "m_") { dx[__i] -= 8; }
-          }
-          mathjax2twojs(ltxt[0], vord_pos[0]+dx[0],vord_pos[1]+30, 0.0125);
-          mathjax2twojs(ltxt[1], vord_pos[0]+dx[1],vord_pos[1]+42, 0.0125);
-          mathjax2twojs(ltxt[2], vord_pos[0]+dx[2],vord_pos[1]+54, 0.0125);
-        }
+        mathjax2twojs(ltxt[0], vord_pos[0]+dx[0],vord_pos[1]+30, 0.0125);
+        mathjax2twojs(ltxt[1], vord_pos[0]+dx[1],vord_pos[1]+42, 0.0125);
+        mathjax2twojs(ltxt[2], vord_pos[0]+dx[2],vord_pos[1]+54, 0.0125);
 
       }
 

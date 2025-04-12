@@ -8,6 +8,31 @@ References
 
 ---
 
+###### 2025-04-11
+
+Coming to the realization very late that Jakub's implementation doesn't produce any notches when sides are even.
+A moment of thought brings this to light:
+
+* If a side is even and the subdivision "prefers" even partitions, this will produce a chain of
+  subdivisions that are all even, with the exception of the base case ($n=2$)
+* If all sides are even, all sub blocks will have all even sides, creating a Gilbert curve without
+  notches
+
+This might also bring some light onto the constants chosen for the eccentric cases.
+
+So, I don't think the other analysis is without merit, but the benefits are mostly incrmental, being:
+
+* If all sides aren't even and there is a realization without a notch, Gilbert++ will find it
+* Gilbert++ will bound the number of total notches to be at most 1, with a notch appearing
+  if the $\alpha$ axis is odd and at least one of $\beta$ or $\gamma$ is even
+
+That is, Gilbert++ will find a realization without a notch if it exists.
+Should a notch be forced, Gilbert++ will make sure to only produce a total of
+one notch.
+
+I still need to see if there's a better way to understand the eccentric subdivision constants
+and if there's a way to reconcile or incorporate them into the Gilbert++ algorithm.
+
 ###### 2025-04-10
 
 Some notes on terminology:
@@ -15,8 +40,9 @@ Some notes on terminology:
 * `defect` : measure of how far away a cuboid is from being a cube, defined as $\lambda(w,h,d) = \frac{ w \cdot h \cdot d }{ (\text{min}(w,h,d))^3 }$
   or $\lambda(w,h) = \frac{ w \cdot h }{ (\text{min}(w,h))^2 }$
 * `eccentric` : state of a cuboid if it's past a certain defect threshold (e.g. $\frac{2}{3}$)
-* `loaf` : the cuboid subdivision that represents the bulk recursion step (maybe should be called jakub/cervany subdivision?).
-  On reflection, maybe this is better named `J-split`.
+* `J-split` : the cuboid subdivision that represents the bulk recursion step
+  - `J-split` can be rotated and the path through the J-split can change depending on which case we're in.
+    The J-split only refers to the cuboid subdivision.
 
 
 ###### 2025-04-04
