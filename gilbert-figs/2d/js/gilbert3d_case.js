@@ -963,7 +963,7 @@ function gilbert3d_case() {
       "orientation" : [-1,1,-1],
       "x": { "t": "m_alpha2s", "xy": [10,5]  },
       "y": { "t": "m_beta2e", "xy": [-25,0]  },
-      "z": { "t": "gamma2s", "xy": [-38,-20]  }
+      "z": { "t": "gamma2e", "xy": [-38,-20]  }
     }
 
   ];

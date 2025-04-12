@@ -354,6 +354,361 @@ function g3d_p(p, alpha, beta, gamma) {
 
   console.log("##>>", p, alpha, beta, gamma);
 
+  // forced even axis
+  //
+  let alpha_2e = [ d2e(alpha[0]), d2e(alpha[1]), d2e(alpha[2]) ];
+  let beta_2e  = [ d2e( beta[0]), d2e( beta[1]), d2e( beta[2]) ];
+  let gamma_2e = [ d2e(gamma[0]), d2e(gamma[1]), d2e(gamma[2]) ];
+
+  // remainder of even axis
+  //
+  let alpha_2s = [ alpha[0] - alpha_2e[0], alpha[1] - alpha_2e[1], alpha[2] - alpha_2e[2] ];
+  let beta_2s  = [  beta[0] -  beta_2e[0],  beta[1] -  beta_2e[1],  beta[2] -  beta_2e[2]  ];
+  let gamma_2s = [ gamma[0] - gamma_2e[0], gamma[1] - gamma_2e[1], gamma[2] - gamma_2e[2] ];
+
+  // forced odd axis
+  //
+  let alpha_2u = [ d2u(alpha[0]), d2u(alpha[1]), d2u(alpha[2]) ];
+  let beta_2u  = [ d2u( beta[0]), d2u( beta[1]), d2u( beta[2]) ];
+  let gamma_2u = [ d2u(gamma[0]), d2u(gamma[1]), d2u(gamma[2]) ];
+
+  // remainder of forced odd axis
+  //
+  let alpha_2up = [ alpha[0] - alpha_2u[0], alpha[1] - alpha_2u[1], alpha[2] - alpha_2u[2] ];
+  let beta_2up  = [  beta[0] -  beta_2u[0],  beta[1] -  beta_2u[1],  beta[2] -  beta_2u[2] ];
+  let gamma_2up = [ gamma[0] - gamma_2u[0], gamma[1] - gamma_2u[1], gamma[2] - gamma_2u[2] ];
+
+
+  console.log("#a2/b2/g2:", alpha2, beta2, gamma2);
+  console.log("#a2e/b2e/g2e:", alpha_2e, beta_2e, gamma_2e);
+  console.log("#a2s/b2s/g2s:", alpha_2s, beta_2s, gamma_2s);
+  console.log("#a2u/b2u/g2u:", alpha_2u, beta_2u, gamma_2u);
+  console.log("#a2up/b2up/g2up:", alpha_2up, beta_2up, gamma_2up);
+
+  // length of each axis
+  //
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
+  if ((a==0) ||
+      (b==0) ||
+      (g==0)) {
+    console.log("###!!!Z", a, b, g);
+    return;
+  }
+
+  if ((a==2) && (b==2) && (g==2)) { g2x2x2p(p, alpha, beta, gamma); return; }
+
+  // (unit) direction of each axis
+  //
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+  let d_gamma = _delta(gamma);
+
+
+  let alpha2  = alpha_2e;
+  let alpha2p = _add( alpha, _neg(alpha2) );
+
+  let beta2   = beta_2e;
+  let beta2p  = _add( beta, _neg(beta2) );
+
+  let gamma2  = gamma_2e;
+  let gamma2p = _add( gamma, _neg(gamma2) );
+
+  if (g%2) {
+    alpha2  = alpha_2u;
+    alpha2p = _add( alpha, _neg(alpha2) );
+  }
+
+
+  let xyz = [ p[0], p[1], p[2] ];
+
+  // Two dimensions are 1, linear in the other,
+  // so enumerate.
+  //
+  if ((a==1) && (b==1)) {
+
+    console.log("#L_ab");
+
+    for (let i=0; i<g; i++) {
+      console.log(xyz[0], xyz[1], xyz[2]);
+      xyz = _add( xyz, d_gamma );
+    }
+    return;
+  }
+
+  else if ((a==1) && (g==1)) {
+
+    console.log("#L_ag");
+
+    for (let i=0; i<b; i++) {
+      console.log(xyz[0], xyz[1], xyz[2]);
+      xyz = _add( xyz, d_beta );
+    }
+    return;
+  }
+
+  else if ((b==1) && (g==1)) {
+
+    console.log("#L_bg");
+
+    for (let i=0; i<a; i++) {
+      console.log(xyz[0], xyz[1], xyz[2]);
+      xyz = _add( xyz, d_alpha );
+    }
+    return;
+  }
+
+  // This is a pathological case.
+  // If we have |alpha| = 1, it means
+  // the start and end are the same point
+  // but the region is non-trivial.
+  //
+  else if (a==1) {
+
+    console.log("#A_1", p, beta, gamma);
+
+    g2d_p( p, beta, gamma );
+    return;
+  }
+
+  // Otherwse, we have a plane sheet,
+  // so reduce to the 2d Gilbert case.
+  //
+  else if (b==1) {
+
+    console.log("#B_1", p, alpha, gamma);
+
+    g2d_p( p , alpha, gamma );
+    return;
+  }
+
+  else if (g==1) {
+
+    console.log("#G_1", p, alpha, beta);
+
+    g2d_p( p, alpha, beta );
+    return;
+  }
+
+  // note order is important:
+  // - first test for w greater than both d,h (S_0, 1 case)
+  // - test for h bigger then either w,d (S_2, 3 cases)
+  // - test for d bigger than h (S_1, 2 cases)
+  //
+
+  // S_0
+  //
+  // width (\alpha) is larger than height/depth (\beta/\gamma)
+  // (long skinny horizontal column)
+  //
+  // Split \alpha at halfway point.
+  //
+  if ( ((2*a) > (3*b)) &&
+       ((2*a) > (3*g)) ) {
+
+    console.log("#S_0.A");
+
+    g3d_p( p, alpha2, beta, gamma );
+
+    console.log("#S_0.B");
+
+    g3d_p( _add(p, alpha2), alpha2p, beta, gamma );
+    return;
+  }
+
+
+  // S_2
+  //
+  // height (\beta) is too long
+  // (long skinny height column or height/width sheet)
+  //
+  // Split by \rho = 2/3 in \beta axis
+  //   and by 1/2 in \alpha axis
+  //
+  //
+  else if ( ((2*b) > (3*g)) ||
+            ((2*b) > (3*a)) ) {
+
+    let beta_13e  = [ dqe(beta[0],3), dqe(beta[1],3), dqe(beta[2],3) ];
+    let beta_23s  = [ beta[0] - beta_13e[0], beta[1] - beta_13e[1], beta[2] - beta_13e[2] ];
+
+    console.log("##b13e/b23s:", beta_13e, beta_23s);
+
+    console.log("#S_2.A");
+
+    g3d_p( p, beta_13e, gamma, alpha2 );
+
+    console.log("#S_2.B");
+
+    g3d_p( _add(p, beta_13e),
+          alpha,
+          beta_23s,
+          gamma);
+
+    console.log("#S_2.C");
+
+    g3d_p(_add(p, _add( _add(alpha, _neg(d_alpha)), _add(beta_13e, _neg(d_beta)) )),
+          _neg(beta_13e),
+          gamma,
+          _neg(alpha2p));
+
+    return;
+  }
+
+  // S_1
+  //
+  // depth (\gamma) too long
+  //
+  // Split by \rho = 2/3 in \gamma dimension
+  // and then again by 1/2 in \alpha dimension
+  //
+  else if ( (2*g) > (3*b) ) {
+
+    let gamma_13e  = [ dqe(gamma[0],3), dqe(gamma[1],3), dqe(gamma[2],3) ];
+    let gamma_23s  = [ gamma[0] - gamma_13e[0], gamma[1] - gamma_13e[1], gamma[2] - gamma_13e[2] ];
+
+    console.log("#S_1.A");
+
+    g3d_p(p,
+          gamma_13e,
+          alpha2,
+          beta);
+
+    console.log("#S_1.B");
+
+    g3d_p(_add(p, gamma_13e),
+          alpha,
+          beta,
+          gamma_23s);
+
+    console.log("#S_1.C");
+
+    g3d_p(_add(p, _add( _add(alpha, _neg(d_alpha)), _add(gamma_13e, _neg(d_gamma)) )),
+          _neg(gamma_13e),
+          _neg(alpha2p),
+          beta);
+
+    return;
+
+  }
+
+
+
+  // bulk recursion
+  //
+  //
+
+  // P_2 (a==1, b==1, g==1)
+  //
+  if (((a%2) == 1) &&
+      ((b%2) == 1) &&
+      ((g%2) == 1)) {
+
+
+    console.log("#P_2.A");
+
+    xyz = [ p[0], p[1], p[2] ];
+    g3d_p( xyz, beta2, gamma, alpha2 );
+
+    console.log("#P_2.B");
+
+    xyz = _add( p, beta2 );
+    g3d_p( xyz, gamma2, alpha, beta2p );
+
+    console.log("#P_2.C");
+
+    xyz = _add( _add( p, beta2 ), gamma2 );
+    g3d_p( xyz, alpha, beta2p, gamma2p );
+
+    console.log("#P_2.D");
+
+    xyz = _add( _add( _add( p, _add(beta2, _neg(d_beta)) ), gamma2 ), _add(alpha, _neg(d_alpha)) );
+    g3d_p( xyz, _neg(beta2), gamma2p, _neg(alpha2p) );
+
+    console.log("#P_2.E");
+
+    xyz = _add( _add( p, _add(alpha, _neg(d_alpha)) ), _add(gamma2, _neg(d_gamma)) );
+    g3d_p( xyz, _neg(gamma2), _neg(alpha2p), beta2 );
+
+    return;
+  }
+
+
+  // P_1 (a/b/g = {001, 011, 101})
+  //
+  else if ((g%2) == 1) {
+
+    console.log("#P_1.A");
+
+    // A
+    xyz = [ p[0], p[1], p[2] ];
+    g3d_p( xyz, gamma2, alpha2, beta2);
+
+    console.log("#P_1.B");
+
+    // B
+    xyz = _add( p, gamma2 );
+    g3d_p( xyz, beta, gamma2p, alpha2);
+
+    console.log("#P_1.C");
+
+    // C
+    xyz = _add( _add( p, _add(gamma2, _neg(d_gamma)) ), _add(beta, _neg(d_beta)) );
+    g3d_p( xyz, alpha, _neg(beta2p), _neg(gamma2) );
+
+    console.log("#P_1.D");
+
+    // D
+    xyz = _add( _add( _add( p, gamma2 ), _add(beta, _neg(d_beta)) ), _add(alpha, _neg(d_alpha)) );
+    g3d_p( xyz, _neg(beta), gamma2p, _neg(alpha2p) );
+
+    console.log("#P_1.E");
+
+    // E
+    xyz = _add( _add( p, _add(alpha, _neg(d_alpha)) ), _add(gamma2, _neg(d_gamma)) );
+    g3d_p( xyz, _neg(gamma2), _neg(alpha2p), beta2);
+
+    return;
+  }
+
+
+  //----
+  // P_0 (g==0)
+  //----
+
+  console.log("#P_0.A");
+
+  xyz = [ p[0], p[1], p[2] ];
+  g3d_p( xyz, beta2, gamma2, alpha2 );
+
+  console.log("#P_0.B");
+
+  xyz = _add(p, beta2);
+  g3d_p( xyz, gamma, alpha2, beta2p );
+
+  console.log("#P_0.C");
+
+  xyz = _add( _add( p, _add(beta2, _neg(d_beta)) ), _add(gamma, _neg(d_gamma)) );
+  g3d_p( xyz, alpha, _neg(beta2), _neg(gamma2p) );
+
+  console.log("#P_0.D");
+
+  xyz = _add( _add( _add(p, beta2), _add(alpha, _neg(d_alpha)) ), _add(gamma, _neg(d_gamma)) );
+  g3d_p( xyz, _neg(gamma), _neg(alpha2p), beta2p);
+
+  console.log("#P_0.E");
+
+  xyz = _add( _add(p, _add(beta2, _neg(d_beta)) ), _add(alpha, _neg(d_alpha)) );
+  g3d_p( xyz, _neg(beta2), gamma2, _neg(alpha2p) );
+
+}
+
+function __g3d_p(p, alpha, beta, gamma) {
+
+  console.log("##>>", p, alpha, beta, gamma);
+
   let alpha2  = _div2(alpha);
   let beta2   = _div2(beta);
   let gamma2  = _div2(gamma);
