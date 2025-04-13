@@ -66,7 +66,7 @@ $$
  & \text{min}( (1-\rho) \sigma s, \frac{s}{2} ) = \frac{s}{2} \\
 \to & \lambda(V _ 0) = \sigma \\
 \to & \lambda(V _ 1) = 4(1-\rho)^2 \sigma + \rho^2 \sigma \\
- & = \frac{8 sigma}{9} \\
+ & = \frac{8 \sigma}{9} \\
 \to & \lambda(V _ 1) < \lambda(V _ 0)
 \end{array}
 $$
