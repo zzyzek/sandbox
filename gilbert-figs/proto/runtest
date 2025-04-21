@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+
+for z in `seq 1 8` ; do
+  for y in `seq 1 8` ; do
+    for x in `seq 1 8` ; do
+      echo "## $x $y $z"
+      node ./g3dpp.js xyz $x $y $z | ./gilbert-check-curve
+    done
+  done
+done
+
+
