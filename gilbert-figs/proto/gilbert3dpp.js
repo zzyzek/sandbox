@@ -1611,13 +1611,6 @@ function test_suite(s,_w,_h,_d) {
 //---
 //---
 
-
-//gilbert3d_plus(2,2,2);
-//
-
-
-//test_suite(process.argv[2], process.argv[3], process.argv[4], process.argv[5]);
-
 // Gilbert3D++
 //
 function Gilbert3D(w, h, d) {
@@ -1640,7 +1633,7 @@ function _show_help(msg) {
 
   console.log("usage:");
   console.log("");
-  console.log("  node ./g3dpp.js [OP] [W] [H] [D]");
+  console.log("  node ./gilbert3dpp.js [OP] [W] [H] [D]");
   console.log("");
   console.log("  OP   one of 'xy' or 'xyz'");
   console.log("  W    width");
