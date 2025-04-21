@@ -765,8 +765,10 @@ function *g3d_S0_a(p, alpha, beta, gamma) {
   let a   = _abs(alpha);
   let a2  = _abs(alpha2);
 
+  console.log("#S0 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+
   if ((a > 2) && ((a2 % 2)==1)) {
-    alpha2 = _add(alpha, d_alpha);
+    alpha2 = _add(alpha2, d_alpha);
   }
 
   console.log("#S0.A");
@@ -793,6 +795,8 @@ function *g3d_S1_a(p, alpha, beta, gamma) {
   let a2 = _abs(alpha2);
   let g3 = _abs(gamma3);
 
+  console.log("#S1 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+
   if ((a > 2) && ((a2 % 2) == 1)) {
     alpha2 = _add(alpha2, d_alpha);
   }
@@ -814,7 +818,7 @@ function *g3d_S1_a(p, alpha, beta, gamma) {
   console.log("#S1.C");
 
   yield *g3d_r_a( _add(p, _add( _add(alpha, _neg(d_alpha)), _add(gamma3, _neg(d_gamma)) ) ),
-                  _neg(gamma3), _add(alpha, _neg(alpha2)), beta );
+                  _neg(gamma3), _neg(_add(alpha, _neg(alpha2))), beta );
 }
 
 function *g3d_S2_a(p, alpha, beta, gamma) {
@@ -829,6 +833,8 @@ function *g3d_S2_a(p, alpha, beta, gamma) {
 
   let a2 = _abs(alpha2);
   let b3 = _abs(beta3);
+
+  console.log("#S2 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
 
   if ((a > 2) && ((a2 % 2) == 1)) {
     alpha2 = _add(alpha2, d_alpha);
@@ -851,7 +857,7 @@ function *g3d_S2_a(p, alpha, beta, gamma) {
   console.log("#S2.C");
 
   yield *g3d_r_a( _add( p, _add( _add(alpha, _neg(d_alpha)), _add(beta3, _neg(d_beta)) ) ),
-                  _neg(beta3), gamma, _neg(alpha2) );
+                  _neg(beta3), gamma, _neg(_add(alpha, _neg(alpha2))) );
 
 }
 
@@ -864,17 +870,27 @@ function *g3d_J0_a(p, alpha, beta, gamma) {
   let d_beta   = _delta(beta);
   let d_gamma  = _delta(gamma);
 
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
   let a2 = _abs(alpha2);
   let b2 = _abs(beta2);
   let g2 = _abs(gamma2);
+
+  console.log("#J0 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+
+  if ((a > 2) && ((a2 % 2) == 1)) { alpha2 = _add(alpha2, d_alpha); }
+  if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
+  if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
 
   //if ((a2 > 2) && ((a2 % 2) == 1)) { alpha2 = _add(alpha2, d_alpha); }
   //if ((b2 > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
   //if ((g2 > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
 
-  if ((a2 % 2) == 1) { alpha2 = _add(alpha2, d_alpha); }
-  if ((b2 % 2) == 1) { beta2  = _add(beta2, d_beta); }
-  if ((g2 % 2) == 1) { gamma2 = _add(gamma2, d_gamma); }
+  //if ((a2 % 2) == 1) { alpha2 = _add(alpha2, d_alpha); }
+  //if ((b2 % 2) == 1) { beta2  = _add(beta2, d_beta); }
+  //if ((g2 % 2) == 1) { gamma2 = _add(gamma2, d_gamma); }
 
   console.log("#J0.A");
 
@@ -912,17 +928,27 @@ function *g3d_J1_a(p, alpha, beta, gamma) {
   let d_beta   = _delta(beta);
   let d_gamma  = _delta(gamma);
 
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
   let a2 = _abs(alpha2);
   let b2 = _abs(beta2);
   let g2 = _abs(gamma2);
+
+  console.log("#J1 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+
+  if ((a > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); }
+  if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
+  if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
 
   //if ((a2 > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); }
   //if ((b2 > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
   //if ((g2 > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
 
-  if ((a2 % 2) == 0) { alpha2 = _add(alpha2, d_alpha); }
-  if ((b2 % 2) == 1) { beta2  = _add(beta2, d_beta); }
-  if ((g2 % 2) == 1) { gamma2 = _add(gamma2, d_gamma); }
+  //if ((a2 % 2) == 0) { alpha2 = _add(alpha2, d_alpha); }
+  //if ((b2 % 2) == 1) { beta2  = _add(beta2, d_beta); }
+  //if ((g2 % 2) == 1) { gamma2 = _add(gamma2, d_gamma); }
 
   console.log("#J1.A");
 
@@ -962,17 +988,28 @@ function *g3d_J2_a(p, alpha, beta, gamma) {
   let d_beta   = _delta(beta);
   let d_gamma  = _delta(gamma);
 
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
   let a2 = _abs(alpha2);
   let b2 = _abs(beta2);
   let g2 = _abs(gamma2);
+
+  console.log("#J2 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+
+  if ((a > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); }
+  if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
+  if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
+
 
   //if ((a2 > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); }
   //if ((b2 > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
   //if ((g2 > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
 
-  if ((a2 % 2) == 0) { alpha2 = _add(alpha2, d_alpha); }
-  if ((b2 % 2) == 1) { beta2  = _add(beta2, d_beta); }
-  if ((g2 % 2) == 1) { gamma2 = _add(gamma2, d_gamma); }
+  //if ((a2 % 2) == 0) { alpha2 = _add(alpha2, d_alpha); }
+  //if ((b2 % 2) == 1) { beta2  = _add(beta2, d_beta); }
+  //if ((g2 % 2) == 1) { gamma2 = _add(gamma2, d_gamma); }
 
   console.log("#J2.A");
 
@@ -992,7 +1029,7 @@ function *g3d_J2_a(p, alpha, beta, gamma) {
   console.log("#J2.D");
 
   yield *g3d_r_a( _add( p, _add( _add( alpha, _neg(d_alpha) ), _add( _add(beta2, _neg(d_beta)), gamma2 ) ) ),
-                  _neg(beta2), _add(gamma, _neg(gamma2)), _neg(_add(alpha, _neg(d_alpha))) );
+                  _neg(beta2), _add(gamma, _neg(gamma2)), _neg(_add(alpha, _neg(alpha2))) );
 
   console.log("#J2.E");
 
@@ -1012,7 +1049,7 @@ function *g3d_r_a(p, alpha, beta, gamma) {
   let b0 = (b % 2);
   let g0 = (g % 2);
 
-  console.log("#g3d_r_a:", p, alpha, beta, gamma);
+  console.log("#g3d_r_a: p:", p, "a:", alpha, "b:", beta, "g:", gamma);
 
   // base cases
   //
