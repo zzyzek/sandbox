@@ -7,6 +7,14 @@
 //
 
 
+var DEBUG = 0;
+
+function _dprint() {
+  let _debug = ((typeof DEBUG === "undefined") ? false : DEBUG );
+  if (_debug) {
+    console.log.apply(this,Array.prototype.slice.call(arguments));
+  }
+}
 
 // Description:
 //
@@ -248,11 +256,12 @@ function g2d_p(p, alpha, beta) {
 //
 // recursive, async
 //
-function *g2d_r_a(p, alpha, beta) {
+function *Gilbert2DAsync(p, alpha, beta) {
   let a = _abs(alpha);
   let b = _abs(beta);
 
-  console.log("#g2d>>>", alpha, beta, "(", a, b, ")");
+  _dprint("#Gilbert2DAsync", alpha, beta, "(", a, b, ")");
+
   let d_alpha = _delta(alpha);
   let d_beta  = _delta(beta);
 
@@ -281,16 +290,16 @@ function *g2d_r_a(p, alpha, beta) {
   let a2 = _abs(alpha2);
   let b2 = _abs(beta2);
 
-  console.log("#  g2d>", alpha2, beta2, "(", a2, b2, ")");
+  _dprint("#  Gilbert2DAsync: (alpha2,beta2):", alpha2, beta2, "(", a2, b2, ")");
 
   if ( (2*a) > (3*b) ) {
     if ((a2%2) && (a>2)) { alpha2 = _add(alpha2, d_alpha); }
 
 
-    yield* g2d_r_a( p, alpha2, beta );
-    yield* g2d_r_a( _add(p, alpha2),
-                    _add(alpha, _neg(alpha2)),
-                    beta );
+    yield* Gilbert2DAsync( p, alpha2, beta );
+    yield* Gilbert2DAsync( _add(p, alpha2),
+                           _add(alpha, _neg(alpha2)),
+                           beta );
 
     return;
   }
@@ -298,17 +307,17 @@ function *g2d_r_a(p, alpha, beta) {
 
   if ((b2%2) && (b>2)) { beta2 = _add(beta2, d_beta); }
 
-  yield* g2d_r_a( p,
-                  beta2,
-                  alpha2 );
-  yield* g2d_r_a( _add(p, beta2),
-                  alpha,
-                  _add(beta, _neg(beta2)) );
-  yield* g2d_r_a( _add(p,
-                  _add( _add(alpha, _neg(d_alpha) ),
-                        _add(beta2, _neg( d_beta) ) ) ),
-                  _neg(beta2),
-                  _add(alpha2, _neg(alpha)) );
+  yield* Gilbert2DAsync( p,
+                         beta2,
+                         alpha2 );
+  yield* Gilbert2DAsync( _add(p, beta2),
+                         alpha,
+                         _add(beta, _neg(beta2)) );
+  yield* Gilbert2DAsync( _add(p,
+                         _add( _add(alpha, _neg(d_alpha) ),
+                               _add(beta2, _neg( d_beta) ) ) ),
+                         _neg(beta2),
+                         _add(alpha2, _neg(alpha)) );
 
   return;
 }
@@ -726,7 +735,7 @@ function g3d_p(p, alpha, beta, gamma) {
 //--------------------------------------------
 
 
-function *g2x2x2_a(p, alpha, beta, gamma) {
+function *Hilbert2x2x2Async(p, alpha, beta, gamma) {
   let xyz = _clone(p);
 
   let d_alpha = _delta(alpha);
@@ -757,7 +766,7 @@ function *g2x2x2_a(p, alpha, beta, gamma) {
   yield [ xyz[0], xyz[1], xyz[2] ];
 }
 
-function *g3d_S0_a(p, alpha, beta, gamma) {
+function *Gilbert3DS0Async(p, alpha, beta, gamma) {
 
   let alpha2  = _div2(alpha);
   let d_alpha = _delta(alpha);
@@ -765,24 +774,24 @@ function *g3d_S0_a(p, alpha, beta, gamma) {
   let a   = _abs(alpha);
   let a2  = _abs(alpha2);
 
-  console.log("#S0 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+  _dprint("#S0 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
 
   if ((a > 2) && ((a2 % 2)==1)) {
     alpha2 = _add(alpha2, d_alpha);
   }
 
-  console.log("#S0.A");
+  _dprint("#S0.A");
 
-  yield *g3d_r_a( p,
-                  alpha2, beta, gamma );
+  yield *Gilbert3DAsync( p,
+                         alpha2, beta, gamma );
 
-  console.log("#S0.B");
+  _dprint("#S0.B");
 
-  yield *g3d_r_a( _add(p, alpha2),
-                  _add(alpha, _neg(alpha2)), beta, gamma );
+  yield *Gilbert3DAsync( _add(p, alpha2),
+                         _add(alpha, _neg(alpha2)), beta, gamma );
 }
 
-function *g3d_S1_a(p, alpha, beta, gamma) {
+function *Gilbert3DS1Async(p, alpha, beta, gamma) {
   let alpha2 = _div2(alpha);
   let gamma3 = _divq(gamma, 3);
 
@@ -795,7 +804,7 @@ function *g3d_S1_a(p, alpha, beta, gamma) {
   let a2 = _abs(alpha2);
   let g3 = _abs(gamma3);
 
-  console.log("#S1 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+  _dprint("#S1 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
 
   if ((a > 2) && ((a2 % 2) == 1)) {
     alpha2 = _add(alpha2, d_alpha);
@@ -805,23 +814,23 @@ function *g3d_S1_a(p, alpha, beta, gamma) {
     gamma3 = _add(gamma3, d_gamma);
   }
 
-  console.log("#S1.A");
+  _dprint("#S1.A");
 
-  yield *g3d_r_a( p,
-                  gamma3, alpha2, beta );
+  yield *Gilbert3DAsync( p,
+                         gamma3, alpha2, beta );
 
-  console.log("#S1.B");
+  _dprint("#S1.B");
 
-  yield *g3d_r_a( _add(p, gamma3),
-                  alpha, beta, _add(gamma, _neg(gamma3)) );
+  yield *Gilbert3DAsync( _add(p, gamma3),
+                         alpha, beta, _add(gamma, _neg(gamma3)) );
 
-  console.log("#S1.C");
+  _dprint("#S1.C");
 
-  yield *g3d_r_a( _add(p, _add( _add(alpha, _neg(d_alpha)), _add(gamma3, _neg(d_gamma)) ) ),
-                  _neg(gamma3), _neg(_add(alpha, _neg(alpha2))), beta );
+  yield *Gilbert3DAsync( _add(p, _add( _add(alpha, _neg(d_alpha)), _add(gamma3, _neg(d_gamma)) ) ),
+                         _neg(gamma3), _neg(_add(alpha, _neg(alpha2))), beta );
 }
 
-function *g3d_S2_a(p, alpha, beta, gamma) {
+function *Gilbert3DS2Async(p, alpha, beta, gamma) {
   let alpha2 = _div2(alpha);
   let beta3 = _divq(beta, 3);
 
@@ -834,7 +843,7 @@ function *g3d_S2_a(p, alpha, beta, gamma) {
   let a2 = _abs(alpha2);
   let b3 = _abs(beta3);
 
-  console.log("#S2 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+  _dprint("#S2 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
 
   if ((a > 2) && ((a2 % 2) == 1)) {
     alpha2 = _add(alpha2, d_alpha);
@@ -844,24 +853,24 @@ function *g3d_S2_a(p, alpha, beta, gamma) {
     beta3 = _add(beta3, d_beta);
   }
 
-  console.log("#S2.A");
+  _dprint("#S2.A");
 
-  yield *g3d_r_a( p,
-                  beta3, gamma, alpha2 );
+  yield *Gilbert3DAsync( p,
+                         beta3, gamma, alpha2 );
 
-  console.log("#S2.B");
+  _dprint("#S2.B");
 
-  yield *g3d_r_a( _add(p, beta3),
-                  alpha, _add(beta, _neg(beta3)), gamma );
+  yield *Gilbert3DAsync( _add(p, beta3),
+                         alpha, _add(beta, _neg(beta3)), gamma );
 
-  console.log("#S2.C");
+  _dprint("#S2.C");
 
-  yield *g3d_r_a( _add( p, _add( _add(alpha, _neg(d_alpha)), _add(beta3, _neg(d_beta)) ) ),
-                  _neg(beta3), gamma, _neg(_add(alpha, _neg(alpha2))) );
+  yield *Gilbert3DAsync( _add( p, _add( _add(alpha, _neg(d_alpha)), _add(beta3, _neg(d_beta)) ) ),
+                         _neg(beta3), gamma, _neg(_add(alpha, _neg(alpha2))) );
 
 }
 
-function *g3d_J0_a(p, alpha, beta, gamma) {
+function *Gilbert3DJ0Async(p, alpha, beta, gamma) {
   let alpha2  = _div2(alpha);
   let beta2   = _div2(beta);
   let gamma2  = _div2(gamma);
@@ -878,47 +887,39 @@ function *g3d_J0_a(p, alpha, beta, gamma) {
   let b2 = _abs(beta2);
   let g2 = _abs(gamma2);
 
-  console.log("#J0 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+  _dprint("#J0 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
 
   if ((a > 2) && ((a2 % 2) == 1)) { alpha2 = _add(alpha2, d_alpha); }
   if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
   if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
 
-  //if ((a2 > 2) && ((a2 % 2) == 1)) { alpha2 = _add(alpha2, d_alpha); }
-  //if ((b2 > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
-  //if ((g2 > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
+  _dprint("#J0.A");
 
-  //if ((a2 % 2) == 1) { alpha2 = _add(alpha2, d_alpha); }
-  //if ((b2 % 2) == 1) { beta2  = _add(beta2, d_beta); }
-  //if ((g2 % 2) == 1) { gamma2 = _add(gamma2, d_gamma); }
+  yield *Gilbert3DAsync( p,
+                         beta2, gamma2, alpha2 );
 
-  console.log("#J0.A");
+  _dprint("#J0.B");
 
-  yield *g3d_r_a( p,
-                  beta2, gamma2, alpha2 );
+  yield *Gilbert3DAsync( _add(p, beta2),
+                         gamma, alpha2, _add(beta, _neg(beta2)) );
 
-  console.log("#J0.B");
+  _dprint("#J0.C");
 
-  yield *g3d_r_a( _add(p, beta2),
-                  gamma, alpha2, _add(beta, _neg(beta2)) );
+  yield *Gilbert3DAsync( _add( p, _add( _add(beta2, _neg(d_beta)), _add(gamma, _neg(d_gamma)) ) ),
+                         alpha, _neg(beta2), _neg( _add(gamma, _neg(gamma2)) ) );
 
-  console.log("#J0.C");
+  _dprint("#J0.D");
 
-  yield *g3d_r_a( _add( p, _add( _add(beta2, _neg(d_beta)), _add(gamma, _neg(d_gamma)) ) ),
-                  alpha, _neg(beta2), _neg( _add(gamma, _neg(gamma2)) ) );
+  yield *Gilbert3DAsync( _add( p, _add( _add(alpha, _neg(d_alpha)), _add(beta2, _add(gamma, _neg(d_gamma))) ) ),
+                         _neg(gamma), _neg( _add(alpha, _neg(alpha2)) ), _add(beta, _neg(beta2)) );
 
-  console.log("#J0.D");
+  _dprint("#J0.E");
 
-  yield *g3d_r_a( _add( p, _add( _add(alpha, _neg(d_alpha)), _add(beta2, _add(gamma, _neg(d_gamma))) ) ),
-                  _neg(gamma), _neg( _add(alpha, _neg(alpha2)) ), _add(beta, _neg(beta2)) );
-
-  console.log("#J0.E");
-
-  yield *g3d_r_a( _add( p, _add( _add(alpha, _neg(d_alpha)), _add(beta2, _neg(d_beta)) ) ),
-                  _neg(beta2), gamma2, _neg( _add(alpha, _neg(alpha2)) ) );
+  yield *Gilbert3DAsync( _add( p, _add( _add(alpha, _neg(d_alpha)), _add(beta2, _neg(d_beta)) ) ),
+                         _neg(beta2), gamma2, _neg( _add(alpha, _neg(alpha2)) ) );
 }
 
-function *g3d_J1_a(p, alpha, beta, gamma) {
+function *Gilbert3DJ1Async(p, alpha, beta, gamma) {
 
   let alpha2  = _div2(alpha);
   let beta2   = _div2(beta);
@@ -936,49 +937,41 @@ function *g3d_J1_a(p, alpha, beta, gamma) {
   let b2 = _abs(beta2);
   let g2 = _abs(gamma2);
 
-  console.log("#J1 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+  _dprint("#J1 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
 
   if ((a > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); }
   if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
   if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
 
-  //if ((a2 > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); }
-  //if ((b2 > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
-  //if ((g2 > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
+  _dprint("#J1.A");
 
-  //if ((a2 % 2) == 0) { alpha2 = _add(alpha2, d_alpha); }
-  //if ((b2 % 2) == 1) { beta2  = _add(beta2, d_beta); }
-  //if ((g2 % 2) == 1) { gamma2 = _add(gamma2, d_gamma); }
-
-  console.log("#J1.A");
-
-  yield *g3d_r_a( p,
-                  gamma2, alpha2, beta2 );
+  yield *Gilbert3DAsync(p,
+                        gamma2, alpha2, beta2 );
 
 
-  console.log("#J1.B");
+  _dprint("#J1.B");
 
-  yield *g3d_r_a( _add( p, gamma2 ),
-                  beta, _add(gamma, _neg(gamma2)), alpha2 );
+  yield *Gilbert3DAsync(_add( p, gamma2 ),
+                        beta, _add(gamma, _neg(gamma2)), alpha2 );
 
-  console.log("#J1.C");
+  _dprint("#J1.C");
 
-  yield *g3d_r_a( _add( p, _add( _add(gamma2, _neg(d_gamma)), _add(beta, _neg(d_beta)) ) ),
-                  alpha, _neg(_add(beta, _neg(beta2))), _neg(gamma2) );
+  yield *Gilbert3DAsync(_add( p, _add( _add(gamma2, _neg(d_gamma)), _add(beta, _neg(d_beta)) ) ),
+                        alpha, _neg(_add(beta, _neg(beta2))), _neg(gamma2) );
 
-  console.log("#J1.D");
+  _dprint("#J1.D");
 
-  yield *g3d_r_a( _add( p , _add( _add(alpha, _neg(d_alpha)), _add( _add(beta, _neg(d_beta)), gamma2 ) ) ),
-                  _neg(beta), _add(gamma, _neg(gamma2)), _neg(_add(alpha, _neg(alpha2))) );
+  yield *Gilbert3DAsync(_add( p , _add( _add(alpha, _neg(d_alpha)), _add( _add(beta, _neg(d_beta)), gamma2 ) ) ),
+                        _neg(beta), _add(gamma, _neg(gamma2)), _neg(_add(alpha, _neg(alpha2))) );
 
-  console.log("#J1.E");
+  _dprint("#J1.E");
 
-  yield *g3d_r_a( _add( p, _add( _add(alpha, _neg(d_alpha)), _add(gamma2, _neg(d_gamma)) ) ),
-                  _neg(gamma2), _neg(_add(alpha, _neg(alpha2))), beta2 );
+  yield *Gilbert3DAsync(_add( p, _add( _add(alpha, _neg(d_alpha)), _add(gamma2, _neg(d_gamma)) ) ),
+                        _neg(gamma2), _neg(_add(alpha, _neg(alpha2))), beta2 );
 
 }
 
-function *g3d_J2_a(p, alpha, beta, gamma) {
+function *Gilbert3DJ2Async(p, alpha, beta, gamma) {
 
   let alpha2  = _div2(alpha);
   let beta2   = _div2(beta);
@@ -996,51 +989,42 @@ function *g3d_J2_a(p, alpha, beta, gamma) {
   let b2 = _abs(beta2);
   let g2 = _abs(gamma2);
 
-  console.log("#J2 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+  _dprint("#J2 (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
 
   if ((a > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); }
   if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
   if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
 
+  _dprint("#J2.A");
 
-  //if ((a2 > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); }
-  //if ((b2 > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
-  //if ((g2 > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
+  yield *Gilbert3DAsync( p,
+                         beta2, gamma, alpha2 );
 
-  //if ((a2 % 2) == 0) { alpha2 = _add(alpha2, d_alpha); }
-  //if ((b2 % 2) == 1) { beta2  = _add(beta2, d_beta); }
-  //if ((g2 % 2) == 1) { gamma2 = _add(gamma2, d_gamma); }
+  _dprint("#J2.B");
 
-  console.log("#J2.A");
+  yield *Gilbert3DAsync( _add(p, beta2),
+                         gamma2, alpha, _add(beta, _neg(beta2)) );
 
-  yield *g3d_r_a( p,
-                  beta2, gamma, alpha2 );
+  _dprint("#J2.C");
 
-  console.log("#J2.B");
+  yield *Gilbert3DAsync( _add(p, _add(beta2, gamma2)),
+                         alpha, _add(beta, _neg(beta2)), _add(gamma, _neg(gamma2)) );
 
-  yield *g3d_r_a( _add(p, beta2),
-                  gamma2, alpha, _add(beta, _neg(beta2)) );
+  _dprint("#J2.D");
 
-  console.log("#J2.C");
+  yield *Gilbert3DAsync( _add( p, _add( _add( alpha, _neg(d_alpha) ), _add( _add(beta2, _neg(d_beta)), gamma2 ) ) ),
+                         _neg(beta2), _add(gamma, _neg(gamma2)), _neg(_add(alpha, _neg(alpha2))) );
 
-  yield *g3d_r_a( _add(p, _add(beta2, gamma2)),
-                  alpha, _add(beta, _neg(beta2)), _add(gamma, _neg(gamma2)) );
+  _dprint("#J2.E");
 
-  console.log("#J2.D");
-
-  yield *g3d_r_a( _add( p, _add( _add( alpha, _neg(d_alpha) ), _add( _add(beta2, _neg(d_beta)), gamma2 ) ) ),
-                  _neg(beta2), _add(gamma, _neg(gamma2)), _neg(_add(alpha, _neg(alpha2))) );
-
-  console.log("#J2.E");
-
-  yield *g3d_r_a( _add( p, _add( _add(alpha, _neg(d_alpha)), _add( gamma2, _neg(d_gamma) ) ) ),
-                  _neg(gamma2), _neg(_add(alpha, _neg(alpha2))), beta2);
+  yield *Gilbert3DAsync( _add( p, _add( _add(alpha, _neg(d_alpha)), _add( gamma2, _neg(d_gamma) ) ) ),
+                         _neg(gamma2), _neg(_add(alpha, _neg(alpha2))), beta2);
 
 }
 
 // Gilbert3dAsync
 //
-function *g3d_r_a(p, alpha, beta, gamma) {
+function *Gilbert3DAsync(p, alpha, beta, gamma) {
   let a = _abs(alpha);
   let b = _abs(beta);
   let g = _abs(gamma);
@@ -1049,7 +1033,7 @@ function *g3d_r_a(p, alpha, beta, gamma) {
   let b0 = (b % 2);
   let g0 = (g % 2);
 
-  console.log("#g3d_r_a: p:", p, "a:", alpha, "b:", beta, "g:", gamma);
+  _dprint("#Gilbert3DAsync: p:", p, "a:", alpha, "b:", beta, "g:", gamma);
 
   // base cases
   //
@@ -1057,41 +1041,41 @@ function *g3d_r_a(p, alpha, beta, gamma) {
       (b == 2) &&
       (g == 2)) {
 
-    console.log("#H2x2x2:");
+    _dprint("#H2x2x2:");
 
-    yield *g2x2x2_a(p, alpha, beta, gamma);
+    yield *Hilbert2x2x2Async(p, alpha, beta, gamma);
     return;
   }
 
-  if (a == 1) { yield *g2d_r_a(p, beta, gamma); return; }
-  if (b == 1) { yield *g2d_r_a(p, alpha, gamma); return; }
-  if (g == 1) { yield *g2d_r_a(p, alpha, beta); return; }
+  if (a == 1) { yield *Gilbert2DAsync(p, beta, gamma); return; }
+  if (b == 1) { yield *Gilbert2DAsync(p, alpha, gamma); return; }
+  if (g == 1) { yield *Gilbert2DAsync(p, alpha, beta); return; }
 
   // eccentric cases
   //
   if (((3*a) > (5*b)) &&
       ((3*a) > (5*g))) {
 
-    console.log("#S0:");
+    _dprint("#S0:");
 
-    yield *g3d_S0_a(p, alpha, beta, gamma);
+    yield *Gilbert3DS0Async(p, alpha, beta, gamma);
     return;
   }
 
   if (((2*b) > (3*g)) ||
       ((2*b) > (3*a))) {
 
-    console.log("#S2:");
+    _dprint("#S2:");
 
-    yield *g3d_S2_a(p, alpha, beta, gamma);
+    yield *Gilbert3DS2Async(p, alpha, beta, gamma);
     return;
   }
 
   if ((2*g) > (3*b)) {
 
-    console.log("#S1:");
+    _dprint("#S1:");
 
-    yield *g3d_S1_a(p, alpha, beta, gamma);
+    yield *Gilbert3DS1Async(p, alpha, beta, gamma);
     return;
   }
 
@@ -1099,25 +1083,25 @@ function *g3d_r_a(p, alpha, beta, gamma) {
   //
   if (g0 == 0) {
 
-    console.log("#J0:");
+    _dprint("#J0:");
 
-    yield *g3d_J0_a(p, alpha, beta, gamma);
+    yield *Gilbert3DJ0Async(p, alpha, beta, gamma);
     return;
   }
 
   if ((a0 == 0) || (b0 == 0)) {
 
-    console.log("#J1:");
+    _dprint("#J1:");
 
-    yield *g3d_J1_a(p, alpha, beta, gamma);
+    yield *Gilbert3DJ1Async(p, alpha, beta, gamma);
     return;
   }
 
-  console.log("#J2:");
+  _dprint("#J2:");
 
   // a0 == b0 == g0 == 1
   //
-  yield *g3d_J2_a(p, alpha, beta, gamma);
+  yield *Gilbert3DJ2Async(p, alpha, beta, gamma);
 }
 
 
@@ -1252,12 +1236,7 @@ function __g3d_p(p, alpha, beta, gamma) {
     return;
   }
 
-  //WIP!!!!
-  // * need to check for end condition (a,b,g == 2)
-  //   and act accordingly
-  // * need to test
-  //
-  // note order is important:
+  // NOTE: order is important:
   // - first test for w greater than both d,h (S_0, 1 case)
   // - test for h bigger then either w,d (S_2, 3 cases)
   // - test for d bigger than h (S_1, 2 cases)
@@ -1296,20 +1275,8 @@ function __g3d_p(p, alpha, beta, gamma) {
   else if ( ((2*b) > (3*g)) ||
             ((2*b) > (3*a)) ) {
 
-    //TODO!!!
-    // handle special case where |alpha| == 2 (or other dimensions)
-    //
-
-
-    //let beta_13   = _divq(beta, 3);
-    //let beta_13e  = [ d2e(beta_13[0]), d2e(beta_13[1]), d2e(beta_13[2]) ];
-    //let beta_23s  = [ beta[0] - beta_13e[0], beta[1] - beta_13e[1], beta[2] - beta_13e[2] ];
-    //
-    //console.log("##b13/b13e/b23s:", beta_13, beta_13e, beta_23s);
-
     let _alpha2 = alpha2;
     let _alpha2p = _add( alpha, _neg(alpha2) );
-
 
     let beta_13e  = [ dqe(beta[0],3), dqe(beta[1],3), dqe(beta[2],3) ];
     let beta_23s  = [ beta[0] - beta_13e[0], beta[1] - beta_13e[1], beta[2] - beta_13e[2] ];
@@ -1318,7 +1285,6 @@ function __g3d_p(p, alpha, beta, gamma) {
 
     console.log("#S_2.A");
 
-    //g3d_p( xyz, beta_13e, gamma, alpha_2e );
     g3d_p( p, beta_13e, gamma, _alpha2 );
 
     console.log("#S_2.B");
@@ -1333,7 +1299,6 @@ function __g3d_p(p, alpha, beta, gamma) {
     g3d_p(_add(p, _add( _add(alpha, _neg(d_alpha)), _add(beta_13e, _neg(d_beta)) )),
           _neg(beta_13e),
           gamma,
-          //_neg(alpha_2s));
           _neg(_alpha2p));
 
     return;
@@ -1348,15 +1313,9 @@ function __g3d_p(p, alpha, beta, gamma) {
   //
   else if ( (2*g) > (3*b) ) {
 
-    //TODO!!!
-    // handle special case where |alpha| == 2 (or other dimensions)
-    //
-
     let _alpha2 = alpha2;
     let _alpha2p = _add( alpha, _neg(alpha2) );
 
-    //let gamma_13   = _divq(gamma, 3);
-    //let gamma_13e  = [ d2e(gamma_13[0]), d2e(gamma_13[1]), d2e(gamma_13[2]) ];
     let gamma_13e  = [ dqe(gamma[0],3), dqe(gamma[1],3), dqe(gamma[2],3) ];
     let gamma_23s  = [ gamma[0] - gamma_13e[0], gamma[1] - gamma_13e[1], gamma[2] - gamma_13e[2] ];
 
@@ -1364,7 +1323,6 @@ function __g3d_p(p, alpha, beta, gamma) {
 
     g3d_p(p,
           gamma_13e,
-          //alpha_2e,
           _alpha2,
           beta);
 
@@ -1379,7 +1337,6 @@ function __g3d_p(p, alpha, beta, gamma) {
 
     g3d_p(_add(p, _add( _add(alpha, _neg(d_alpha)), _add(gamma_13e, _neg(d_gamma)) )),
           _neg(gamma_13e),
-          //_neg(alpha_2s),
           _neg(_alpha2p),
           beta);
 
@@ -1411,31 +1368,26 @@ function __g3d_p(p, alpha, beta, gamma) {
     console.log("#J_0.A");
 
     xyz = [ p[0], p[1], p[2] ];
-    //g3d_p( xyz, beta_2e, gamma_2e, alpha_2e );
     g3d_p( xyz, beta_2e, _gamma2, _alpha2 );
 
     console.log("#J_0.B");
 
     xyz = _add(p, beta_2e);
-    //g3d_p( xyz, gamma, alpha_2e, beta_2s );
     g3d_p( xyz, gamma, _alpha2, beta_2s );
 
     console.log("#J_0.C");
 
     xyz = _add( _add( p, _add(beta_2e, _neg(d_beta)) ), _add(gamma, _neg(d_gamma)) );
-    //g3d_p( xyz, alpha, _neg(beta_2s), _neg(gamma_2s) );
     g3d_p( xyz, alpha, _neg(beta_2e), _neg(_gamma2p) );
 
     console.log("#J_0.D");
 
     xyz = _add( _add( _add(p, beta_2e), _add(alpha, _neg(d_alpha)) ), _add(gamma, _neg(d_gamma)) );
-    //g3d_p( xyz, _neg(gamma), _neg(alpha_2s), beta_2s );
     g3d_p( xyz, _neg(gamma), _neg(_alpha2p), beta_2s );
 
     console.log("#J_0.E");
 
     xyz = _add( _add(p, _add(beta_2e, _neg(d_beta)) ), _add(alpha, _neg(d_alpha)) );
-    //g3d_p( xyz, _neg(beta_2e), gamma_2e, _neg(alpha_2s) );
     g3d_p( xyz, _neg(beta_2e), _gamma2, _neg(_alpha2p) );
 
     return;
@@ -1458,35 +1410,30 @@ function __g3d_p(p, alpha, beta, gamma) {
 
     // A
     xyz = [ p[0], p[1], p[2] ];
-    //g3d_p( xyz, gamma_2e, alpha_2e, beta_2e );
     g3d_p( xyz, gamma_2e, _alpha2, _beta2);
 
     console.log("#J_1.B");
 
     // B
     xyz = _add( p, gamma_2e );
-    //g3d_p( xyz, beta, gamma_2s, alpha_2e );
     g3d_p( xyz, beta, gamma_2s, _alpha2);
 
     console.log("#J_1.C");
 
     // C
     xyz = _add( _add( p, _add(gamma_2e, _neg(d_gamma)) ), _add(beta, _neg(d_beta)) );
-    //g3d_p( xyz, alpha, _neg(beta_2s), _neg(gamma_2e) );
     g3d_p( xyz, alpha, _neg(_beta2p), _neg(gamma_2e) );
 
     console.log("#J_1.D");
 
     // D
     xyz = _add( _add( _add( p, gamma_2e ), _add(beta, _neg(d_beta)) ), _add(alpha, _neg(d_alpha)) );
-    //g3d_p( xyz, _neg(beta), gamma_2s, _neg(alpha_2s) );
     g3d_p( xyz, _neg(beta), gamma_2s, _neg(_alpha2p) );
 
     console.log("#J_1.E");
 
     // E
     xyz = _add( _add( p, _add(alpha, _neg(d_alpha)) ), _add(gamma_2e, _neg(d_gamma)) );
-    //g3d_p( xyz, _neg(gamma_2e), _neg(alpha_2s), beta_2e );
     g3d_p( xyz, _neg(gamma_2e), _neg(_alpha2p), _beta2);
 
     return;
@@ -1509,21 +1456,18 @@ function __g3d_p(p, alpha, beta, gamma) {
     let _beta2p = _add( beta, _neg(beta2) );
 
     xyz = [ p[0], p[1], p[2] ];
-    //g3d_p( xyz, gamma_2e, alpha_2u, beta_2e );
     g3d_p( xyz, gamma_2e, alpha_2u, _beta2 );
 
     xyz = _add(p, gamma_2e);
     g3d_p( xyz, beta, gamma_2u, alpha_2u );
 
     xyz = _add( _add( p, _add(gamma_2e, _neg(d_gamma)) ), _add(beta, _neg(d_beta)) );
-    //g3d_p( xyz, alpha, _neg(beta_2u), _neg(gamma_2e) );
     g3d_p( xyz, alpha, _neg(_beta2p), _neg(gamma_2e) );
 
     xyz = _add( _add( _add( p, gamma_2e ), _add(beta, _neg(d_beta)) ), _add(alpha, _neg(d_alpha)) );
     g3d_p( xyz, _neg(beta), gamma_2u, _neg(alpha_2up) );
 
     xyz = _add( _add( p, _add(alpha, _neg(d_alpha)) ), _add(gamma_2e, _neg(d_gamma)) );
-    //g3d_p( xyz, _neg(gamma_2e), _neg(alpha_2up), beta_2e );
     g3d_p( xyz, _neg(gamma_2e), _neg(alpha_2up), _beta2 );
 
     return;
@@ -1682,7 +1626,7 @@ function Gilbert3D(w, h, d) {
       beta = [0,h,0],
       gamma = [0,0,d];
 
-  let g3xyz = g3d_r_a(p, alpha, beta, gamma);
+  let g3xyz = Gilbert3DAsync(p, alpha, beta, gamma);
   for (let hv = g3xyz.next() ; !hv.done ; hv = g3xyz.next()) {
     let v = hv.value;
     console.log(v[0], v[1], v[2]);
@@ -1746,16 +1690,7 @@ function _main(argv) {
       }
     }
     else if (op == "xyz") {
-
       Gilbert3D(w,h,d);
-
-      /*
-      let g3xyz = g3d_r_a([0,0,0], [w,0,0], [0,h,0], [0,0,d]);
-      for (let hv = g3xyz.next(); !hv.done; hv = g3xyz.next()) {
-        let _val = hv.value;
-        console.log(_val[0], _val[1]);
-      }
-      */
     }
 
     else if (op == "xyzp") {
