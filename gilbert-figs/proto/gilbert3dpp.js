@@ -166,6 +166,110 @@ function _clone(v) {
   return u;
 }
 
+// Test to see if q is within bounds of volume
+// whose corner is at p and volume defined by a,b,g
+//
+// If volume coordinate is positive, the corresponding p
+// coordinate is taken to be lower bound.
+// Otherwise, if the volume coordinate is negative,
+// corresponding p coordinate is taken to be the
+// upper bound.
+//
+// Works in 2 and 3 dimensions.
+// Assumes q,p,a,b,g are all simple arrays (of length 2 or 3)
+//
+// q - query point
+// p - corner point
+// a - width like dimension
+// b - height like dimension
+// g - depth like dimension
+//
+function _inBounds(q, p, a, b, g) {
+  let _a = [0,0,0], _b = [0,0,0];
+  let default_g = [0,0,1];
+  let _g = ((typeof g === "undefined") ? default_g : g);
+
+  let _p = [0,0,0];
+  let _q = [0,0,0];
+
+  _a[0] = a[0];
+  _a[1] = a[1];
+  _a[2] = ((a.length > 2) ? a[2] : 0);
+
+  _b[0] = b[0];
+  _b[1] = b[1];
+  _b[2] = ((b.length > 2) ? b[2] : 0);
+
+  _q[0] = q[0];
+  _q[1] = q[1];
+  _q[2] = ((q.length > 2) ? q[2] : 0);
+
+  _p[0] = p[0];
+  _p[1] = p[1];
+  _p[2] = ((p.length > 2) ? p[2] : 0);
+
+  let _d = [
+    _a[0] + _b[0] + _g[0],
+    _a[1] + _b[1] + _g[1],
+    _a[2] + _b[2] + _g[2]
+  ];
+
+
+  for (let xyz=0; xyz<3; xyz++) {
+    if ( _d[xyz] < 0 ) {
+      if ((q[xyz] >  p[xyz]) ||
+          (q[xyz] <= (p[xyz] + d[xyz]))) { return false; }
+    }
+    else {
+      if ((q[xyz] <  p[xyz]) ||
+          (q[xyz] >= (p[xyz] + d[xyz]))) { return false; }
+    }
+  }
+
+  return true;
+
+}
+
+/*
+function in_bounds2(p, s, a, b) {
+  let d = { "x": a.x + b.x, "y": a.y + b.y };
+
+  if (d.x < 0) {
+    if ((p.x > s.x) || (p.x <= (s.x + d.x))) { return false; }
+  }
+  else if ((p.x < s.x) || (p.x >= (s.x + d.x))) { return false; }
+
+  if (d.y < 0) {
+    if ((p.y > s.y) || (p.y <= (s.y + d.y))) { return false; }
+  }
+  else if ((p.y < s.y) || (p.y >= (s.y + d.y))) { return false; }
+
+  return true;
+}
+
+function in_bounds3(p, s, a, b, c) {
+  let d = { "x": a.x + b.x + c.x, "y": a.y + b.y + c.y, "z": a.z + b.z + c.z };
+
+  if (d.x < 0) {
+    if ((p.x > s.x) || (p.x <= (s.x + d.x))) { return false; }
+  }
+  else if ((p.x < s.x) || (p.x >= (s.x + d.x))) { return false; }
+
+  if (d.y < 0) {
+    if ((p.y > s.y) || (p.y <= (s.y + d.y))) { return false; }
+  }
+  else if ((p.y < s.y) || (p.y >= (s.y + d.y))) { return false; }
+
+  if (d.z < 0) {
+    if ((p.z > s.z) || (p.z <= (s.z + d.z))) { return false; }
+  }
+  else if ((p.z < s.z) || (p.z >= (s.z + d.z))) { return false; }
+
+  return true;
+}
+*/
+ 
+
 //-------------------
 //         ___     __
 //   ___ _|_  |___/ /
@@ -724,6 +828,87 @@ function g3d_p(p, alpha, beta, gamma) {
   g3d_p( xyz, _neg(beta2), gamma2, _neg(alpha2p) );
 
 }
+
+//----------------------------------------
+//                             ____    __
+//   ___ __ _____  ____  ___ _|_  /___/ /
+//  (_-</ // / _ \/ __/ / _ `//_ </ _  / 
+// /___/\_, /_//_/\__/  \_, /____/\_,_/  
+//     /___/           /___/             
+//----------------------------------------
+
+function Hilbert2x2x2_d2xyz(cur_idx, dst_idx, p, alpha, beta, gamma) {
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+  let d_gamma = _delta(gamma);
+
+  let d_idx = dst_idx - cur_idx;
+
+  switch (d_idx) {
+    case 0: return [ p[0], p[1], p[2] ]; break;
+    case 1: return _add(p, d_beta); break;
+    case 2: return _add(p, _add(d_beta, d_gamma)); break;
+    case 3: return _add(p, d_gamma); break;
+    case 4: return _add(p, _add(d_alpha, d_gamma)); break;
+    case 5: return _add(p, _add(d_alpha, _add(d_beta, d_gamma))); break;
+    case 6: return _add(p, _add(d_alpha, d_beta)); break;
+    case 7: return _add(p, d_alpha); break;
+    default: return [-1,-1,-1]; break;
+  }
+
+  return [-1,-1,-1];
+}
+
+function Hilbert2x2x2_xyz2d(idx, q, p, alpha, beta, gamma) {
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+  let d_gamma = _delta(gamma);
+
+  let lu = [ 0, 7,  1, 6,  3, 4,  2, 5 ];
+
+  let dxyz = [
+    q[0] - p[0],
+    q[1] - p[1],
+    q[2] - p[2]
+  ];
+
+  let p_idx = (4*dxyz[2]) + (2*dxyz[1]) + dxyz[0];
+
+  if ((p_idx < 0) ||
+      (p_idx > 7)) {
+    return -1;
+  }
+
+  return idx + lu[p_idx];
+}
+
+
+function Gilbert3DS0_d2xyz(cur_idx, dst_idx, p, alpha, beta, gamma) {
+
+  let alpha2  = _div2(alpha);
+  let d_alpha = _delta(alpha);
+
+  let a   = _abs(alpha);
+  let a2  = _abs(alpha2);
+
+  _dprint("#S0_d2xyz (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+
+  if ((a > 2) && ((a2 % 2)==1)) {
+    alpha2 = _add(alpha2, d_alpha);
+  }
+
+  _dprint("#S0.A");
+
+  yield *Gilbert3DAsync( p,
+                         alpha2, beta, gamma );
+
+  _dprint("#S0.B");
+
+  yield *Gilbert3DAsync( _add(p, alpha2),
+                         _add(alpha, _neg(alpha2)), beta, gamma );
+}
+
+
 
 
 //--------------------------------------------
@@ -1676,7 +1861,7 @@ function _main(argv) {
     }
 
     if (op == "xy") {
-      let g2xy = g2d_r_a( [0,0, 0], [w,0, 0], [0,h, 0] );
+      let g2xy = Gilbert2DAsync( [0,0, 0], [w,0, 0], [0,h, 0] );
       for (let hv = g2xy.next(); !hv.done; hv = g2xy.next()) {
         let _val = hv.value;
         console.log(_val[0], _val[1]);
