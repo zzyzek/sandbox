@@ -137,6 +137,20 @@ function _add(u,v) {
   return [ u[0]+v[0], u[1]+v[1], u[2]+v[2] ];
 }
 
+function _mul(c,v) {
+  if (v.length == 2) {
+    return [ c*v[0], c*v[1] ];
+  }
+  return [ c*v[0], c*v[1], c*v[2] ];
+}
+
+function _dot(u,v) {
+  if ((u.length == 2) || (v.length == 2)) {
+    return  (u[0]*v[0]) + (u[1]*v[1]);
+  }
+  return (u[0]*v[0]) + (u[1]*v[1]) + (u[2]*v[2]);
+}
+
 function _abs(v) {
   let s = 0;
   for (let i=0; i<v.length; i++) {
@@ -371,21 +385,15 @@ function Gilbert2D_d2xyz(dst_idx, cur_idx, p, alpha, beta) {
 
   if (b==1) {
     let u = _clone(p);
-    for (let i=0; i<a; i++) {
-      yield u;
-      u = _add(u, d_alpha);
-    }
-    return;
+    let d_idx = dst_idx - cur_idx;
+    return _add(u, _mul(d_idx, d_dalpha));
   }
 
 
   if (a==1) {
     let u = _clone(p);
-    for (let i=0; i<b; i++) {
-      yield u;
-      u = _add(u, d_beta);
-    }
-    return;
+    let d_idx = dst_idx - cur_idx;
+    return _add(u, _mul(d_idx, d_beta));
   }
 
   let alpha2 = _div2(alpha);
@@ -394,37 +402,141 @@ function Gilbert2D_d2xyz(dst_idx, cur_idx, p, alpha, beta) {
   let a2 = _abs(alpha2);
   let b2 = _abs(beta2);
 
-  _dprint("#  Gilbert2DAsync: (alpha2,beta2):", alpha2, beta2, "(", a2, b2, ")");
+  _dprint("#  Gilbert2D_d2xyz: dst_idx:", dst_idx, "cur_idx:", cur_idx, "(alpha2,beta2):", alpha2, beta2, "(", a2, b2, ")");
 
   if ( (2*a) > (3*b) ) {
     if ((a2%2) && (a>2)) { alpha2 = _add(alpha2, d_alpha); }
 
+    let nxt_idx = cur_idx + (a2*b);
+    if ((cur_idx <= dst_idx) && (dst_idx < nxt_idx)) {
+      return Gilbert2D_d2xyz( dst_idx, cur_idx,
+                              p,
+                              alpha2,
+                              beta );
+    }
+    cur_idx = nxt_idx;
 
-    yield* Gilbert2DAsync( p, alpha2, beta );
-    yield* Gilbert2DAsync( _add(p, alpha2),
-                           _add(alpha, _neg(alpha2)),
-                           beta );
+    return Gilbert2D_d2xyz( dst_idx, cur_idx,
+                            _add(p, alpha2),
+                            _add(alpha, _neg(alpha2)),
+                            beta );
 
-    return;
   }
 
 
   if ((b2%2) && (b>2)) { beta2 = _add(beta2, d_beta); }
 
-  yield* Gilbert2DAsync( p,
-                         beta2,
-                         alpha2 );
-  yield* Gilbert2DAsync( _add(p, beta2),
-                         alpha,
-                         _add(beta, _neg(beta2)) );
-  yield* Gilbert2DAsync( _add(p,
-                         _add( _add(alpha, _neg(d_alpha) ),
-                               _add(beta2, _neg( d_beta) ) ) ),
-                         _neg(beta2),
-                         _add(alpha2, _neg(alpha)) );
+  let nxt_idx = cur_idx + (b2*a2);
+  if ((cur_idx <= dst_idx) && (dst_idx < nxt_idx)) {
+    return Gilbert2D_d2xyz( dst_idx, cur_idx,
+                            p,
+                            beta2,
+                            alpha2 );
+  }
+  cur_idx = nxt_idx;
+
+  nxt_idx = cur_idx + (a*(b-b2));
+  if ((cur_idx <= dst_idx) && (dst_idx < nxt_idx)) {
+    return Gilbert2D_d2xyz( dst_idx, cur_idx,
+                            _add(p, beta2),
+                            alpha,
+                            _add(beta, _neg(beta2)) );
+  }
+  cur_idx = nxt_idx;
+
+  return Gilbert2D_d2xyz( dst_idx, cur_idx,
+                          _add(p,
+                          _add( _add(alpha, _neg(d_alpha) ),
+                                _add(beta2, _neg( d_beta) ) ) ),
+                          _neg(beta2),
+                          _add(alpha2, _neg(alpha)) );
 
   return;
 }
+
+// "generalized" 2d gilbert curve
+//
+// alpha - width-like axis
+// beta - height-like axis
+//
+// Enumerate points for the 2d Gilbert curve
+// in alpha and beta axis.
+// alpha/beta can be in 3d and should work properly.
+//
+// recursive, async
+//
+function Gilbert2D_xyz2d(cur_idx, q, p, alpha, beta) {
+  let a = _abs(alpha);
+  let b = _abs(beta);
+
+  _dprint("#Gilbert2D_xyz2d: dst_idx:", dst_idx, "cur_idx:", cur_idx, "alpha:", alpha, "beta:", beta, "(", a, b, ")");
+
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+
+  if (b==1) {
+    return cur_idx + _dot(d_alpha, _add(q, _neg(p)));
+  }
+
+  if (a==1) {
+    return cur_idx + _dot(d_beta, _add(q, _neg(p)));
+  }
+
+  let alpha2 = _div2(alpha);
+  let beta2  = _div2(beta);
+
+  let a2 = _abs(alpha2);
+  let b2 = _abs(beta2);
+
+  _dprint("#  Gilbert2D_xyz2d: dst_idx:", dst_idx, "cur_idx:", cur_idx, "(alpha2,beta2):", alpha2, beta2, "(", a2, b2, ")");
+
+  if ( (2*a) > (3*b) ) {
+    if ((a2%2) && (a>2)) { alpha2 = _add(alpha2, d_alpha); }
+
+    if (_inBounds(q, p, alpha2, beta)) {
+      return Gilbert2D_xyz2d( cur_idx, q,
+                              p,
+                              alpha2,
+                              beta );
+    }
+    cur_idx += (a2*b);
+
+    return Gilbert2D_xyz2d( cur_idx, q,
+                            _add(p, alpha2),
+                            _add(alpha, _neg(alpha2)),
+                            beta );
+
+  }
+
+
+  if ((b2%2) && (b>2)) { beta2 = _add(beta2, d_beta); }
+
+  if (_inBounds(q, p, beta2, alpha2)) {
+    return Gilbert2D_xyz2d( cur_idx, q,
+                            p,
+                            beta2,
+                            alpha2 );
+  }
+  cur_idx += (b2*a2);
+
+  if (_inBounds(q, p, alpha, _add(beta, _neg(beta2)))) {
+    return Gilbert2D_xyz2d( cur_idx, q,
+                            _add(p, beta2),
+                            alpha,
+                            _add(beta, _neg(beta2)) );
+  }
+  cur_idx += (a*(b-b2));
+
+  return Gilbert2D_xyz2d( cur_idx, q,
+                          _add(p,
+                          _add( _add(alpha, _neg(d_alpha) ),
+                                _add(beta2, _neg( d_beta) ) ) ),
+                          _neg(beta2),
+                          _add(alpha2, _neg(alpha)) );
+
+}
+
+
 
 
 
