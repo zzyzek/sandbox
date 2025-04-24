@@ -7,6 +7,29 @@
 //
 
 
+// WARNING WIP
+// WARNING WIP
+// WARNING WIP
+// Currently working on synchronous d2xyz and xyz2d
+// currently failing for 3d xyz2d 6 5 2 (and others)
+// WARNING WIP
+// WARNING WIP
+// WARNING WIP
+
+// This is a accompanying reference implementation for the
+// Gilbert2D and Gilbert3D functions referenced in the
+// paper https://github.com/jakubcerveny/gilbert-paper
+//
+// The code here's main focus is legibility, not execution
+// speed or memory usage.
+// There are both asynchronous functions that closely match
+// the psuedo code from the paper as well as synchronous
+// functions with their corresponding d2xyz and xyz2d
+// functions.
+//
+// Running from the command line will list options.
+//
+
 var DEBUG = 1;
 
 function _dprint() {
@@ -244,46 +267,6 @@ function _inBounds(q, p, a, b, g) {
 
 }
 
-/*
-function in_bounds2(p, s, a, b) {
-  let d = { "x": a.x + b.x, "y": a.y + b.y };
-
-  if (d.x < 0) {
-    if ((p.x > s.x) || (p.x <= (s.x + d.x))) { return false; }
-  }
-  else if ((p.x < s.x) || (p.x >= (s.x + d.x))) { return false; }
-
-  if (d.y < 0) {
-    if ((p.y > s.y) || (p.y <= (s.y + d.y))) { return false; }
-  }
-  else if ((p.y < s.y) || (p.y >= (s.y + d.y))) { return false; }
-
-  return true;
-}
-
-function in_bounds3(p, s, a, b, c) {
-  let d = { "x": a.x + b.x + c.x, "y": a.y + b.y + c.y, "z": a.z + b.z + c.z };
-
-  if (d.x < 0) {
-    if ((p.x > s.x) || (p.x <= (s.x + d.x))) { return false; }
-  }
-  else if ((p.x < s.x) || (p.x >= (s.x + d.x))) { return false; }
-
-  if (d.y < 0) {
-    if ((p.y > s.y) || (p.y <= (s.y + d.y))) { return false; }
-  }
-  else if ((p.y < s.y) || (p.y >= (s.y + d.y))) { return false; }
-
-  if (d.z < 0) {
-    if ((p.z > s.z) || (p.z <= (s.z + d.z))) { return false; }
-  }
-  else if ((p.z < s.z) || (p.z >= (s.z + d.z))) { return false; }
-
-  return true;
-}
-*/
- 
-
 //-------------------
 //         ___     __
 //   ___ _|_  |___/ /
@@ -301,6 +284,8 @@ function in_bounds3(p, s, a, b, c) {
 // Enumerate points for the 2d Gilbert curve
 // in alpha and beta axis.
 // alpha/beta can be in 3d and should work properly.
+//
+// first prototype/reference implementation, single function, print only
 //
 function g2d_p(p, alpha, beta) {
   let a = _abs(alpha);
@@ -362,6 +347,14 @@ function g2d_p(p, alpha, beta) {
          _add(alpha2, _neg(alpha)) );
 
 }
+
+//--------------------------------------------------------------
+//   ______ ____           __  ___  ___       _____             
+//  / ___(_) / /  ___ ____/ /_|_  |/ _ \  ___/ /_  |_ ____ _____
+// / (_ / / / _ \/ -_) __/ __/ __// // / / _  / __/\ \ / // /_ /
+// \___/_/_/_.__/\__/_/  \__/____/____/  \_,_/____/_\_\\_, //__/
+//                                                    /___/     
+//--------------------------------------------------------------
 
 // "generalized" 2d gilbert curve
 //
@@ -474,6 +467,14 @@ function Gilbert2D_d2xyz(dst_idx, cur_idx, p, alpha, beta) {
                           _add(alpha2, _neg(alpha)) );
 }
 
+//-----------------------------------------------------------------
+//   ______ ____           __  ___  ___                  ___     __
+//  / ___(_) / /  ___ ____/ /_|_  |/ _ \  __ ____ _____ |_  |___/ /
+// / (_ / / / _ \/ -_) __/ __/ __// // /  \ \ / // /_ // __// _  / 
+// \___/_/_/_.__/\__/_/  \__/____/____/  /_\_\\_, //__/____/\_,_/  
+//                                           /___/                 
+//-----------------------------------------------------------------
+
 // "generalized" 2d gilbert curve
 //
 // alpha - width-like axis
@@ -483,7 +484,7 @@ function Gilbert2D_d2xyz(dst_idx, cur_idx, p, alpha, beta) {
 // in alpha and beta axis.
 // alpha/beta can be in 3d and should work properly.
 //
-// recursive, async
+// recursive, synchronous
 //
 function Gilbert2D_xyz2d(cur_idx, q, p, alpha, beta) {
   let a = _abs(alpha);
@@ -548,8 +549,8 @@ function Gilbert2D_xyz2d(cur_idx, q, p, alpha, beta) {
                             alpha2 );
   }
   cur_idx += (b2*a2);
-  u = _add(p, beta2);
 
+  u = _add(p, beta2);
   if (_inBounds(q, u, alpha, _add(beta, _neg(beta2)))) {
     return Gilbert2D_xyz2d( cur_idx, q,
                             u,
@@ -557,10 +558,10 @@ function Gilbert2D_xyz2d(cur_idx, q, p, alpha, beta) {
                             _add(beta, _neg(beta2)) );
   }
   cur_idx += (a*(b-b2));
+
   u = _add(p,
            _add( _add(alpha, _neg(d_alpha) ),
                  _add(beta2, _neg( d_beta) ) ) );
-
   return Gilbert2D_xyz2d( cur_idx, q,
                           u,
                           _neg(beta2),
@@ -569,8 +570,13 @@ function Gilbert2D_xyz2d(cur_idx, q, p, alpha, beta) {
 }
 
 
-
-
+//---------------------------------------------------------------
+//   ______ ____           __  ___  ___  ___                    
+//  / ___(_) / /  ___ ____/ /_|_  |/ _ \/ _ | ___ __ _____  ____
+// / (_ / / / _ \/ -_) __/ __/ __// // / __ |(_-</ // / _ \/ __/
+// \___/_/_/_.__/\__/_/  \__/____/____/_/ |_/___/\_, /_//_/\__/ 
+//                                              /___/           
+//---------------------------------------------------------------
 
 // "generalized" 2d gilbert curve
 //
@@ -657,6 +663,8 @@ function *Gilbert2DAsync(p, alpha, beta) {
 // /___/             
 //-------------------
 
+// proof of concept hilbert2x2x2, single function, print out only
+//
 function g2x2x2p(p, alpha, beta, gamma) {
 
   let xyz = _clone(p);
@@ -689,6 +697,8 @@ function g2x2x2p(p, alpha, beta, gamma) {
   console.log(xyz[0], xyz[1], xyz[2]);
 }
 
+// proof of concept implimentation (single function (mostly), print out only
+//
 function g3d_p(p, alpha, beta, gamma) {
 
   console.log("##>>", p, alpha, beta, gamma);
@@ -1060,12 +1070,14 @@ function g3d_p(p, alpha, beta, gamma) {
 //     /___/           /___/             
 //----------------------------------------
 
-function Hilbert2x2x2_d2xyz(cur_idx, dst_idx, p, alpha, beta, gamma) {
+function Hilbert2x2x2_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
   let d_alpha = _delta(alpha);
   let d_beta  = _delta(beta);
   let d_gamma = _delta(gamma);
 
   let d_idx = dst_idx - cur_idx;
+
+  _dprint("#H2x2x2: d_idx:", d_idx, "dst_idx:", dst_idx, "cur_idx:", cur_idx);
 
   switch (d_idx) {
     case 0: return [ p[0], p[1], p[2] ]; break;
@@ -1095,7 +1107,17 @@ function Hilbert2x2x2_xyz2d(idx, q, p, alpha, beta, gamma) {
     q[2] - p[2]
   ];
 
+  let m_qp = _add(q, _neg(p));
+
+  dxyz = [
+    _dot(d_alpha, m_qp),
+    _dot(d_beta, m_qp),
+    _dot(d_gamma, m_qp)
+  ];
+
   let p_idx = (4*dxyz[2]) + (2*dxyz[1]) + dxyz[0];
+
+  _dprint("#Hilbert2x2x2_xyz2d: idx:", idx, "q:", q, "p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma, "dxyz:", dxyz);
 
   if ((p_idx < 0) ||
       (p_idx > 7)) {
@@ -1105,8 +1127,15 @@ function Hilbert2x2x2_xyz2d(idx, q, p, alpha, beta, gamma) {
   return idx + lu[p_idx];
 }
 
+//------------------------------------------------
+//    ____    __  _______       _____             
+//   |_  /___/ / / __/ _ \  ___/ /_  |_ ____ _____
+//  _/_ </ _  / _\ \/ // / / _  / __/\ \ / // /_ /
+// /____/\_,_/ /___/\___/  \_,_/____/_\_\\_, //__/
+//                                      /___/     
+//------------------------------------------------
 
-function Gilbert3DS0_d2xyz(cur_idx, dst_idx, p, alpha, beta, gamma) {
+function Gilbert3DS0_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
 
   let alpha2  = _div2(alpha);
   let d_alpha = _delta(alpha);
@@ -1121,11 +1150,13 @@ function Gilbert3DS0_d2xyz(cur_idx, dst_idx, p, alpha, beta, gamma) {
 
   if ((a > 2) && ((a2 % 2)==1)) {
     alpha2 = _add(alpha2, d_alpha);
+    a2 = _abs(alpha2);
   }
 
-  _dprint("#S0.A_d2xyz");
+  let nxt_idx = cur_idx + (a2*b*g);
 
-  let nxt_idx = cur_idx + (a*b*g);
+  _dprint("#S0.A_d2xyz {dst:",dst_idx, "cur:", cur_idx, "nxt:", nxt_idx, "}");
+
   if ((cur_idx <= dst_idx) && (dst_idx < nxt_idx)) {
 
     return Gilbert3D_d2xyz( dst_idx, cur_idx,
@@ -1136,14 +1167,64 @@ function Gilbert3DS0_d2xyz(cur_idx, dst_idx, p, alpha, beta, gamma) {
 
   _dprint("#S0.B_d2xyz");
 
-
   return Gilbert3D_d2xyz( dst_idx, cur_idx,
                           _add(p, alpha2),
                           _add(alpha, _neg(alpha2)), beta, gamma );
 }
 
+//---------------------------------------------------
+//    ____    __  _______                  ___     __
+//   |_  /___/ / / __/ _ \  __ ____ _____ |_  |___/ /
+//  _/_ </ _  / _\ \/ // /  \ \ / // /_ // __// _  / 
+// /____/\_,_/ /___/\___/  /_\_\\_, //__/____/\_,_/  
+//                             /___/                 
+//---------------------------------------------------
 
-function Gilbert3DS1_d2xyz( dst_idx, cur_idx, p, alpha, beta, gamma) {
+function Gilbert3DS0_xyz2d( cur_idx, q, p, alpha, beta, gamma ) {
+
+  let alpha2  = _div2(alpha);
+  let d_alpha = _delta(alpha);
+
+  let a   = _abs(alpha);
+  let a2  = _abs(alpha2);
+
+  let b   = _abs(beta);
+  let g   = _abs(gamma);
+
+  _dprint("#S0_xyz2d (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+
+  if ((a > 2) && ((a2 % 2)==1)) {
+    alpha2 = _add(alpha2, d_alpha);
+    a2 = _abs(alpha2);
+  }
+
+  _dprint("#S0.A_xyz2d");
+
+  let u = _clone(p);
+  if (_inBounds( q, p, alpha2, beta, gamma )) {
+    return Gilbert3D_xyz2d( cur_idx, q,
+                            u,
+                            alpha2, beta, gamma );
+  }
+  cur_idx += (a2*b*g);
+
+  _dprint("#S0.B_xyz2d");
+
+  u = _add(p, alpha2);
+  return Gilbert3D_xyz2d( cur_idx, q,
+                          u,
+                          _add(alpha, _neg(alpha2)), beta, gamma );
+}
+
+//----------------------------------------------
+//    ____    __  _______     _____             
+//   |_  /___/ / / __<  / ___/ /_  |_ ____ _____
+//  _/_ </ _  / _\ \ / / / _  / __/\ \ / // /_ /
+// /____/\_,_/ /___//_/  \_,_/____/_\_\\_, //__/
+//                                    /___/     
+//----------------------------------------------
+
+function Gilbert3DS1_d2xyz( dst_idx, cur_idx, p, alpha, beta, gamma ) {
   let alpha2 = _div2(alpha);
   let gamma3 = _divq(gamma, 3);
 
@@ -1161,21 +1242,21 @@ function Gilbert3DS1_d2xyz( dst_idx, cur_idx, p, alpha, beta, gamma) {
 
   if ((a > 2) && ((a2 % 2) == 1)) {
     alpha2 = _add(alpha2, d_alpha);
+    a2 = _abs(alpha2);
   }
 
   if ((g > 2) && ((g3 % 2) == 1)) {
     gamma3 = _add(gamma3, d_gamma);
+    g3 = _abs(gamma3);
   }
 
   _dprint("#S1.A_d2xyz");
 
   let nxt_idx = cur_idx + (g3*a2*b);
   if ((cur_idx <= dst_idx) && (dst_idx < nxt_idx)) {
-
-    return Gilbert3DAsync_d2xyz(dst_idx, cur_idx,
-                                p,
-                                gamma3, alpha2, beta );
-
+    return Gilbert3D_d2xyz( dst_idx, cur_idx,
+                            p,
+                            gamma3, alpha2, beta );
   }
   cur_idx = nxt_idx;
 
@@ -1183,22 +1264,93 @@ function Gilbert3DS1_d2xyz( dst_idx, cur_idx, p, alpha, beta, gamma) {
 
   nxt_idx = cur_idx + (a*b*(g-g3));
   if ((cur_idx <= dst_idx) && (dst_idx < nxt_idx)) {
-
-    return Gilbert3DAsync_d2xyz(dst_idx, cur_idx,
-                                _add(p, gamma3),
-                                alpha, beta, _add(gamma, _neg(gamma3)) );
-
+    return Gilbert3D_d2xyz( dst_idx, cur_idx,
+                            _add(p, gamma3),
+                            alpha, beta, _add(gamma, _neg(gamma3)) );
   }
   cur_idx = nxt_idx;
 
   _dprint("#S1.C_d2xyz");
 
-  return Gilbert3DAsync_d2xyz(dst_idx, cur_idx,
-                              _add(p, _add( _add(alpha, _neg(d_alpha)), _add(gamma3, _neg(d_gamma)) ) ),
-                              _neg(gamma3), _neg(_add(alpha, _neg(alpha2))), beta );
+  return Gilbert3D_d2xyz( dst_idx, cur_idx,
+                          _add(p, _add( _add(alpha, _neg(d_alpha)), _add(gamma3, _neg(d_gamma)) ) ),
+                          _neg(gamma3), _neg(_add(alpha, _neg(alpha2))), beta );
 }
 
-function Gilbert3DS2_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
+//-------------------------------------------------
+//    ____    __  _______                ___     __
+//   |_  /___/ / / __<  / __ ____ _____ |_  |___/ /
+//  _/_ </ _  / _\ \ / /  \ \ / // /_ // __// _  / 
+// /____/\_,_/ /___//_/  /_\_\\_, //__/____/\_,_/  
+//                           /___/                 
+//-------------------------------------------------
+
+function Gilbert3DS1_xyz2d( cur_idx, q, p, alpha, beta, gamma ) {
+  let alpha2 = _div2(alpha);
+  let gamma3 = _divq(gamma, 3);
+
+  let d_alpha = _delta(alpha);
+  let d_gamma = _delta(gamma);
+
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
+  let a2 = _abs(alpha2);
+  let g3 = _abs(gamma3);
+
+  _dprint("#S1_xyz2d (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+
+  if ((a > 2) && ((a2 % 2) == 1)) {
+    alpha2 = _add(alpha2, d_alpha);
+    a2 = _abs(alpha2);
+  }
+
+  if ((g > 2) && ((g3 % 2) == 1)) {
+    gamma3 = _add(gamma3, d_gamma);
+    g3 = _abs(gamma3);
+  }
+
+  _dprint("#S1.A_xyz2d");
+
+  let u = _clone(p);
+  if (_inBounds(q, u, gamma3, alpha2, beta )) {
+    return Gilbert3D_xyz2d( cur_idx, q,
+                            u,
+                            gamma3, alpha2, beta );
+  }
+  cur_idx += (g3*a2*b);
+
+  _dprint("#S1.B_xyz2d");
+
+  u =_add(p, gamma3);
+  if (_inBounds(q, u, alpha, beta, _add(gamma, _neg(gamma3)) )) {
+    return Gilbert3D_xyz2d( cur_idx, q,
+                            u,
+                            alpha, beta, _add(gamma, _neg(gamma3)) );
+
+  }
+  cur_idx += (a*b*(g-g3));
+
+  _dprint("#S1.C_xyz2d");
+
+  u = _add(p, _add( _add(alpha, _neg(d_alpha)), _add(gamma3, _neg(d_gamma)) ) );
+  return Gilbert3D_xyz2d( cur_idx, q,
+                          u,
+                          _neg(gamma3), _neg(_add(alpha, _neg(alpha2))), beta );
+}
+
+
+
+//------------------------------------------------
+//    ____    __  _______       _____             
+//   |_  /___/ / / __/_  |  ___/ /_  |_ ____ _____
+//  _/_ </ _  / _\ \/ __/  / _  / __/\ \ / // /_ /
+// /____/\_,_/ /___/____/  \_,_/____/_\_\\_, //__/
+//                                      /___/     
+//------------------------------------------------
+
+function Gilbert3DS2_d2xyz( dst_idx, cur_idx, p, alpha, beta, gamma ) {
   let alpha2 = _div2(alpha);
   let beta3 = _divq(beta, 3);
 
@@ -1216,10 +1368,12 @@ function Gilbert3DS2_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
 
   if ((a > 2) && ((a2 % 2) == 1)) {
     alpha2 = _add(alpha2, d_alpha);
+    a2 = _abs(alpha2);
   }
 
   if ((b > 2) && ((b3 % 2) == 1)) {
     beta3 = _add(beta3, d_beta);
+    b3 = _abs(beta3);
   }
 
   _dprint("#S2.A_d2xyz");
@@ -1227,9 +1381,9 @@ function Gilbert3DS2_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
   let nxt_idx = cur_idx + (b3*g*a2);
   if ((cur_idx <= dst_idx) && (dst_idx < nxt_idx)) {
 
-    return Gilbert3DAsync_d2xyz(dst_idx, cur_idx,
-                                p,
-                                beta3, gamma, alpha2 );
+    return Gilbert3D_d2xyz( dst_idx, cur_idx,
+                            p,
+                            beta3, gamma, alpha2 );
   }
   cur_idx = nxt_idx;
 
@@ -1238,21 +1392,93 @@ function Gilbert3DS2_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
   nxt_idx = cur_idx + (a*(b-b3)*g);
   if ((cur_idx <= dst_idx) && (dst_idx < nxt_idx)) {
 
-    return Gilbert3DAsync_d2xyz(dst_idx, cur_idx,
-                                _add(p, beta3),
-                                alpha, _add(beta, _neg(beta3)), gamma );
+    return Gilbert3D_d2xyz( dst_idx, cur_idx,
+                            _add(p, beta3),
+                            alpha, _add(beta, _neg(beta3)), gamma );
 
   }
   cur_idx = nxt_idx;
 
   _dprint("#S2.C_d2xyz");
 
-  return Gilbert3DAsync_d2xyz(dst_idx, cur_idx,
-                              _add( p, _add( _add(alpha, _neg(d_alpha)), _add(beta3, _neg(d_beta)) ) ),
-                              _neg(beta3), gamma, _neg(_add(alpha, _neg(alpha2))) );
+  return Gilbert3D_d2xyz( dst_idx, cur_idx,
+                          _add( p, _add( _add(alpha, _neg(d_alpha)), _add(beta3, _neg(d_beta)) ) ),
+                          _neg(beta3), gamma, _neg(_add(alpha, _neg(alpha2))) );
 
 }
 
+
+//----------------------------------------------------
+//    ____    __  _______                  ___     __
+//   |_  /___/ / / __/_  |  __ ____ _____ |_  |___/ /
+//  _/_ </ _  / _\ \/ __/   \ \ / // /_ // __// _  / 
+// /____/\_,_/ /___/____/  /_\_\\_, //__/____/\_,_/  
+//                             /___/                 
+//----------------------------------------------------
+
+function Gilbert3DS2_xyz2d(cur_idx, q, p, alpha, beta, gamma) {
+  let alpha2 = _div2(alpha);
+  let beta3 = _divq(beta, 3);
+
+  let d_alpha = _delta(alpha);
+  let d_beta = _delta(beta);
+
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
+  let a2 = _abs(alpha2);
+  let b3 = _abs(beta3);
+
+  _dprint("#S2_xyz2d (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+
+  if ((a > 2) && ((a2 % 2) == 1)) {
+    alpha2 = _add(alpha2, d_alpha);
+    a2 = _abs(alpha2);
+  }
+
+  if ((b > 2) && ((b3 % 2) == 1)) {
+    beta3 = _add(beta3, d_beta);
+    b3 = _abs(beta3);
+  }
+
+  _dprint("#S2.A_xyz2d");
+
+  let u = _clone(p);
+  if (_inBounds(q, u, beta3, gamma, alpha2 )) {
+    return Gilbert3D_xyz2d( cur_idx, q,
+                            u,
+                            beta3, gamma, alpha2 );
+  }
+  cur_idx += (b3*g*a2);
+
+  _dprint("#S2.B_xyz2d");
+
+  u = _add(p, beta3);
+  if (_inBounds(q, u, alpha, _add(beta, _neg(beta3)), gamma )) {
+    return Gilbert3D_xyz2d( cur_idx, q,
+                            u,
+                            alpha, _add(beta, _neg(beta3)), gamma );
+  }
+  cur_idx += (a*(b-b3)*g);
+
+  _dprint("#S2.C_xyz2d");
+
+  u = _add( p, _add( _add(alpha, _neg(d_alpha)), _add(beta3, _neg(d_beta)) ) );
+  return Gilbert3D_xyz2d( cur_idx, q,
+                          u,
+                          _neg(beta3), gamma, _neg(_add(alpha, _neg(alpha2))) );
+
+}
+
+
+//-------------------------------------------------
+//    ____    __     _____       _____             
+//   |_  /___/ / __ / / _ \  ___/ /_  |_ ____ _____
+//  _/_ </ _  / / // / // / / _  / __/\ \ / // /_ /
+// /____/\_,_/  \___/\___/  \_,_/____/_\_\\_, //__/
+//                                       /___/     
+//-------------------------------------------------
 
 function Gilbert3DJ0_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
   let alpha2  = _div2(alpha);
@@ -1273,9 +1499,9 @@ function Gilbert3DJ0_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
 
   _dprint("#J0_d2xyz (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
 
-  if ((a > 2) && ((a2 % 2) == 1)) { alpha2 = _add(alpha2, d_alpha); }
-  if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
-  if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
+  if ((a > 2) && ((a2 % 2) == 1)) { alpha2 = _add(alpha2, d_alpha); a2 = _abs(alpha2); }
+  if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta);   b2 = _abs(beta2); }
+  if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); g2 = _abs(gamma2); }
 
   _dprint("#J0.A_d2xyz");
 
@@ -1324,6 +1550,93 @@ function Gilbert3DJ0_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
                           _neg(beta2), gamma2, _neg( _add(alpha, _neg(alpha2)) ) );
 }
 
+//----------------------------------------------------
+//    ____    __     _____                  ___     __
+//   |_  /___/ / __ / / _ \  __ ____ _____ |_  |___/ /
+//  _/_ </ _  / / // / // /  \ \ / // /_ // __// _  / 
+// /____/\_,_/  \___/\___/  /_\_\\_, //__/____/\_,_/  
+//                              /___/                 
+//----------------------------------------------------
+
+function Gilbert3DJ0_xyz2d(cur_idx, q, p, alpha, beta, gamma) {
+  let alpha2  = _div2(alpha);
+  let beta2   = _div2(beta);
+  let gamma2  = _div2(gamma);
+
+  let d_alpha  = _delta(alpha);
+  let d_beta   = _delta(beta);
+  let d_gamma  = _delta(gamma);
+
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
+  let a2 = _abs(alpha2);
+  let b2 = _abs(beta2);
+  let g2 = _abs(gamma2);
+
+  _dprint("#J0_xyz2d (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+
+  if ((a > 2) && ((a2 % 2) == 1)) { alpha2 = _add(alpha2, d_alpha); a2 = _abs(alpha2); }
+  if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta);   b2 = _abs(beta2); }
+  if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); g2 = _abs(gamma2); }
+
+  _dprint("#J0.A_xyz2d");
+
+  let u = _clone(p);
+  if (_inBounds(q, u, beta2, gamma2, alpha2)) {
+    return Gilbert3D_xyz2d( cur_idx, q,
+                            u,
+                            beta2, gamma2, alpha2 );
+  }
+  cur_idx += (b2*g2*a2);
+
+  _dprint("#J0.B_xyz2d");
+
+  u = _add(p, beta2);
+  if (_inBounds(q, u, gamma, alpha2, _add(beta, _neg(beta2)) )) {
+    return Gilbert3D_xyz2d( cur_idx, q,
+                            u,
+                            gamma, alpha2, _add(beta, _neg(beta2)) );
+  }
+  cur_idx += (g*a2*(b-b2));
+
+  _dprint("#J0.C_xyz2d");
+
+  u = _add( p, _add( _add(beta2, _neg(d_beta)), _add(gamma, _neg(d_gamma)) ) );
+  if (_inBounds(q, u, alpha, _neg(beta2), _neg( _add(gamma, _neg(gamma2)) ) )) {
+    return Gilbert3D_xyz2d( cur_idx, q,
+                            u,
+                            alpha, _neg(beta2), _neg( _add(gamma, _neg(gamma2)) ) );
+  }
+  cur_idx += (a*b2*(g-g2));
+
+  _dprint("#J0.D_xyz2d");
+
+  u = _add( p, _add( _add(alpha, _neg(d_alpha)), _add(beta2, _add(gamma, _neg(d_gamma))) ) );
+  if (_inBounds(q, u, _neg(gamma), _neg( _add(alpha, _neg(alpha2)) ), _add(beta, _neg(beta2)) )) {
+    return Gilbert3D_xyz2d( cur_idx, q,
+                            u,
+                            _neg(gamma), _neg( _add(alpha, _neg(alpha2)) ), _add(beta, _neg(beta2)) );
+  }
+  cur_idx += (g*(a-a2)*(b-b2));
+
+  _dprint("#J0.E_xyz2d");
+
+  u = _add( p, _add( _add(alpha, _neg(d_alpha)), _add(beta2, _neg(d_beta)) ) );
+  return Gilbert3D_xyz2d( cur_idx, q,
+                          u,
+                          _neg(beta2), gamma2, _neg( _add(alpha, _neg(alpha2)) ) );
+}
+
+//-----------------------------------------------
+//    ____    __     _____     _____             
+//   |_  /___/ / __ / <  / ___/ /_  |_ ____ _____
+//  _/_ </ _  / / // // / / _  / __/\ \ / // /_ /
+// /____/\_,_/  \___//_/  \_,_/____/_\_\\_, //__/
+//                                     /___/     
+//-----------------------------------------------
+
 function Gilbert3DJ1_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
 
   let alpha2  = _div2(alpha);
@@ -1344,9 +1657,9 @@ function Gilbert3DJ1_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
 
   _dprint("#J1_d2xyz (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
 
-  if ((a > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); }
-  if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
-  if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
+  if ((a > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); a2 = _abs(alpha2); }
+  if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta);   b2 = _abs(beta2); }
+  if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); g2 = _abs(gamma2); }
 
   _dprint("#J1.A_d2xyz");
 
@@ -1396,6 +1709,95 @@ function Gilbert3DJ1_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
 
 }
 
+//--------------------------------------------------
+//    ____    __     _____                ___     __
+//   |_  /___/ / __ / <  / __ ____ _____ |_  |___/ /
+//  _/_ </ _  / / // // /  \ \ / // /_ // __// _  / 
+// /____/\_,_/  \___//_/  /_\_\\_, //__/____/\_,_/  
+//                            /___/                 
+//--------------------------------------------------
+
+function Gilbert3DJ1_xyz2d(cur_idx, q, p, alpha, beta, gamma) {
+
+  let alpha2  = _div2(alpha);
+  let beta2   = _div2(beta);
+  let gamma2  = _div2(gamma);
+
+  let d_alpha  = _delta(alpha);
+  let d_beta   = _delta(beta);
+  let d_gamma  = _delta(gamma);
+
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
+  let a2 = _abs(alpha2);
+  let b2 = _abs(beta2);
+  let g2 = _abs(gamma2);
+
+  _dprint("#J1_xyz2d (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+
+  if ((a > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); a2 = _abs(alpha2); }
+  if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta);   b2 = _abs(beta2); }
+  if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); g2 = _abs(gamma2); }
+
+  _dprint("#J1.A_xyz2d");
+
+  let u = _clone(p);
+  if (_inBounds(q, u, gamma, alpha2, beta2)) {
+    return Gilbert3D_xyz2d( dst_idx, cur_idx,
+                            p,
+                            gamma2, alpha2, beta2 );
+  }
+  cur_idx += (g2*a2*b2);
+
+  _dprint("#J1.B_xyz2d");
+
+  u = _add(p, gamma2);
+  if (_inBounds(q, u, beta, _add(gamma, _neg(gamma2)), alpha2)) {
+    return Gilbert3D_xyz2d( dst_idx, cur_idx,
+                            u,
+                            beta, _add(gamma, _neg(gamma2)), alpha2 );
+  }
+  cur_idx += b*(g-g2)*a2;
+
+  _dprint("#J1.C_xyz2d");
+
+  u = _add( p, _add( _add(gamma2, _neg(d_gamma)), _add(beta, _neg(d_beta)) ) );
+  if (_inBounds(q, u, alpha, _neg(_add(beta, _neg(beta2))), _neg(gamma2) )) {
+    return Gilbert3D_xyz2d( dst_idx, cur_idx,
+                            u,
+                            alpha, _neg(_add(beta, _neg(beta2))), _neg(gamma2) );
+  }
+  cur_idx =+ a*(b-b2)*g2;
+
+  _dprint("#J1.D_xyz2d");
+
+  u = _add( p , _add( _add(alpha, _neg(d_alpha)), _add( _add(beta, _neg(d_beta)), gamma2 ) ) );
+  if (_inBounds(q, u, _neg(beta), _add(gamma, _neg(gamma2)), _neg(_add(alpha, _neg(alpha2))) )) {
+    return Gilbert3D_xyz2d( dst_idx, cur_idx,
+                            u,
+                            _neg(beta), _add(gamma, _neg(gamma2)), _neg(_add(alpha, _neg(alpha2))) );
+  }
+  cur_idx += (b*(g-g2)*(a-a2));
+
+  _dprint("#J1.E_xyz2d");
+
+  u = _add( p, _add( _add(alpha, _neg(d_alpha)), _add(gamma2, _neg(d_gamma)) ) );
+  return Gilbert3D_xyz2d( cur_idx, q,
+                          u,
+                          _neg(gamma2), _neg(_add(alpha, _neg(alpha2))), beta2 );
+
+}
+
+//-----------------------------------------------
+//    ____    __     _____       _____             
+//   |_  /___/ / __ / /_  |  ___/ /_  |_ ____ _____
+//  _/_ </ _  / / // / __/  / _  / __/\ \ / // /_ /
+// /____/\_,_/  \___/____/  \_,_/____/_\_\\_, //__/
+//                                       /___/     
+//-----------------------------------------------
+
 function Gilbert3DJ2_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
 
   let alpha2  = _div2(alpha);
@@ -1416,13 +1818,13 @@ function Gilbert3DJ2_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
 
   _dprint("#J2_d2xyz (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
 
-  if ((a > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); }
-  if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta); }
-  if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); }
+  if ((a > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); a2 = _abs(alpha2); }
+  if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta);   b2 = _abs(beta2); }
+  if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); g2 = _abs(gamma2); }
 
   _dprint("#J2.A_d2xyz");
 
-  let nxt_idx = cur_idx + (b*(g-g2)*(a-a2));
+  let nxt_idx = cur_idx + (b2*g*a2);
   if ((cur_idx <= dst_idx) && (dst_idx < nxt_idx)) {
     return Gilbert3D_d2xyz( dst_idx, cur_idx,
                             p,
@@ -1468,8 +1870,98 @@ function Gilbert3DJ2_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
 
 }
 
+//----------------------------------------------------
+//    ____    __     _____                  ___     __
+//   |_  /___/ / __ / /_  |  __ ____ _____ |_  |___/ /
+//  _/_ </ _  / / // / __/   \ \ / // /_ // __// _  / 
+// /____/\_,_/  \___/____/  /_\_\\_, //__/____/\_,_/  
+//                              /___/                 
+//----------------------------------------------------
 
-// Gilbert3dAsync
+
+function Gilbert3DJ2_xyz2d(cur_idx, q, p, alpha, beta, gamma) {
+
+  let alpha2  = _div2(alpha);
+  let beta2   = _div2(beta);
+  let gamma2  = _div2(gamma);
+
+  let d_alpha  = _delta(alpha);
+  let d_beta   = _delta(beta);
+  let d_gamma  = _delta(gamma);
+
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
+  let a2 = _abs(alpha2);
+  let b2 = _abs(beta2);
+  let g2 = _abs(gamma2);
+
+
+  _dprint("#J2_xyz2d (a:", _abs(alpha), "b:", _abs(beta), "g:", _abs(gamma), ")");
+
+  if ((a > 2) && ((a2 % 2) == 0)) { alpha2 = _add(alpha2, d_alpha); a2 = _abs(alpha2); }
+  if ((b > 2) && ((b2 % 2) == 1)) { beta2  = _add(beta2, d_beta);   b2 = _abs(beta2); }
+  if ((g > 2) && ((g2 % 2) == 1)) { gamma2 = _add(gamma2, d_gamma); g2 = _abs(gamma2); }
+
+  _dprint("#J2.A_xyz2d");
+
+  let u = _clone(p);
+  if (_inBounds(q, p, beta2, gamma, alpha2)) {
+    return Gilbert3D_xyz2d( cur_idx, q,
+                            u,
+                            beta2, gamma, alpha2 );
+  }
+  cur_idx += (b2*g*a2);
+
+  _dprint("#J2.B_xyz2d");
+
+  u = _add(p, beta2);
+  if (_inBounds(q, u, gamma2, alpha, _add(beta, _neg(beta2)))) {
+    return Gilbert3D_xyz2d( cur_idx, q,
+                            u,
+                            gamma2, alpha, _add(beta, _neg(beta2)) );
+  }
+  cur_idx += (g2*a*(b-b2));
+
+  _dprint("#J2.C_xyz2d");
+
+  u = _add(p, _add(beta2, gamma2));
+  if (_inBounds(q, u, alpha, _add(beta, _neg(beta2)), _add(gamma, _neg(gamma2)))) {
+    return Gilbert3D_xyz2d( cur_idx, q,
+                            u,
+                            alpha, _add(beta, _neg(beta2)), _add(gamma, _neg(gamma2)) );
+  }
+  cur_idx += (a*(b-b2)*(g-g2));
+
+  _dprint("#J2.D_xyz2d");
+
+  u = _add( p, _add( _add( alpha, _neg(d_alpha) ), _add( _add(beta2, _neg(d_beta)), gamma2 ) ) );
+  if (_inBounds(q, u, _neg(beta2), _add(gamma, _neg(gamma2)), _neg(_add(alpha, _neg(alpha2))))) {
+    return Gilbert3D_xyz2d( cur_idx, q,
+                            u,
+                            _neg(beta2), _add(gamma, _neg(gamma2)), _neg(_add(alpha, _neg(alpha2))) );
+  }
+  cur_idx += (b2*(g-g2)*(a-a2));
+
+  _dprint("#J2.E_xyz2d");
+
+  u = _add( p, _add( _add(alpha, _neg(d_alpha)), _add( gamma2, _neg(d_gamma) ) ) );
+  return Gilbert3D_xyz2d( cur_idx, q,
+                          u,
+                          _neg(gamma2), _neg(_add(alpha, _neg(alpha2))), beta2);
+
+}
+
+//--------------------------------------------------------------
+//   ______ ____           __  ____ ___       _____             
+//  / ___(_) / /  ___ ____/ /_|_  // _ \  ___/ /_  |_ ____ _____
+// / (_ / / / _ \/ -_) __/ __//_ </ // / / _  / __/\ \ / // /_ /
+// \___/_/_/_.__/\__/_/  \__/____/____/  \_,_/____/_\_\\_, //__/
+//                                                    /___/     
+//--------------------------------------------------------------
+
+// Gilbert3d d2xyz
 //
 function Gilbert3D_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
   let a = _abs(alpha);
@@ -1543,6 +2035,90 @@ function Gilbert3D_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma) {
   // a0 == b0 == g0 == 1
   //
   return Gilbert3DJ2_d2xyz(dst_idx, cur_idx, p, alpha, beta, gamma);
+}
+
+//-----------------------------------------------------------------
+//   ______ ____           __  ____ ___                  ___     __
+//  / ___(_) / /  ___ ____/ /_|_  // _ \  __ ____ _____ |_  |___/ /
+// / (_ / / / _ \/ -_) __/ __//_ </ // /  \ \ / // /_ // __// _  / 
+// \___/_/_/_.__/\__/_/  \__/____/____/  /_\_\\_, //__/____/\_,_/  
+//                                           /___/                 
+//-----------------------------------------------------------------
+
+// Gilbert3d xyz2d
+//
+function Gilbert3D_xyz2d(cur_idx, q, p, alpha, beta, gamma) {
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
+  let a0 = (a % 2);
+  let b0 = (b % 2);
+  let g0 = (g % 2);
+
+  _dprint("#Gilbert3D_xyz2d: cur_idx:", cur_idx, "p:", p, "a:", alpha, "b:", beta, "g:", gamma);
+
+  // base cases
+  //
+  if ((a == 2) &&
+      (b == 2) &&
+      (g == 2)) {
+
+    _dprint("#H2x2x2_xyz2d:");
+
+    return Hilbert2x2x2_xyz2d(cur_idx, q, p, alpha, beta, gamma);
+  }
+
+  if (a == 1) { return Gilbert2D_xyz2d(cur_idx, q, p, beta, gamma); }
+  if (b == 1) { return Gilbert2D_xyz2d(cur_idx, q, p, alpha, gamma); }
+  if (g == 1) { return Gilbert2D_xyz2d(cur_idx, q, p, alpha, beta); }
+
+  // eccentric cases
+  //
+  if (((3*a) > (5*b)) &&
+      ((3*a) > (5*g))) {
+
+    _dprint("#S0_xyz2d:");
+
+    return Gilbert3DS0_xyz2d(cur_idx, q, p, alpha, beta, gamma);
+  }
+
+  if (((2*b) > (3*g)) ||
+      ((2*b) > (3*a))) {
+
+    _dprint("#S2_xyz2d:");
+
+    return Gilbert3DS2_xyz2d(cur_idx, q, p, alpha, beta, gamma);
+  }
+
+  if ((2*g) > (3*b)) {
+
+    _dprint("#S1_xyz2d:");
+
+    return Gilbert3DS1_xyz2d(cur_idx, q, p, alpha, beta, gamma);
+  }
+
+  // bulk recursion
+  //
+  if (g0 == 0) {
+
+    _dprint("#J0_xyz2d:");
+
+    return Gilbert3DJ0_xyz2d(cur_idx, q, p, alpha, beta, gamma);
+  }
+
+  if ((a0 == 0) || (b0 == 0)) {
+
+    _dprint("#J1_xyz2d:");
+
+    return Gilbert3DJ1_xyz2d(cur_idx, q, p, alpha, beta, gamma);
+  }
+
+  _dprint("#J2_xyz2d:");
+
+  // a0 == b0 == g0 == 1
+  //
+  return Gilbert3DJ2_xyz2d(cur_idx, q, p, alpha, beta, gamma);
 }
 
 
@@ -2560,7 +3136,7 @@ function _main(argv) {
       for (let z=0; z<d; z++) {
         for (let y=0; y<h; y++) {
           for (let x=0; x<w; x++) {
-            let idx = Gilbert3D_xyz2d([x,y,z], [0,0,0], [w,0,0], [0,h,0], [0,0,d]);
+            let idx = Gilbert3D_xyz2d(0, [x,y,z], [0,0,0], [w,0,0], [0,h,0], [0,0,d]);
             console.log(idx, x,y,z);
           }
         }

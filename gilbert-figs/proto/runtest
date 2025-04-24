@@ -3,6 +3,36 @@
 
 
 testtype="xyz"
+testtype="d2xyz"
+
+testtype="xyz2d"
+
+for z in `seq 1 8` ; do
+  for y in `seq 1 8` ; do
+    for x in `seq 1 8` ; do
+      echo "## $x $y $z"
+      node ./gilbert3dpp.js $testtype $x $y $z | \
+        grep -v '#' | \
+        sort -n | \
+        cut -f2- -d' ' | ./gilbert-check-curve
+    done
+  done
+done
+
+exit 0
+
+for z in `seq 1 8` ; do
+  for y in `seq 1 8` ; do
+    for x in `seq 1 8` ; do
+      echo "## $x $y $z"
+      node ./gilbert3dpp.js $testtype $x $y $z | ./gilbert-check-curve
+    done
+  done
+done
+
+
+exit 0
+
 
 if [[ "$testtype" == "xyzp" ]] ; then
 
@@ -27,4 +57,6 @@ elif [[ "$testtype" == "xyz" ]] ; then
   done
 
 fi
+
+
 
