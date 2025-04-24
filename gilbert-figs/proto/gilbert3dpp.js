@@ -7,7 +7,7 @@
 //
 
 
-var DEBUG = 0;
+var DEBUG = 1;
 
 function _dprint() {
   let _debug = ((typeof DEBUG === "undefined") ? false : DEBUG );
@@ -232,11 +232,11 @@ function _inBounds(q, p, a, b, g) {
   for (let xyz=0; xyz<3; xyz++) {
     if ( _d[xyz] < 0 ) {
       if ((q[xyz] >  p[xyz]) ||
-          (q[xyz] <= (p[xyz] + d[xyz]))) { return false; }
+          (q[xyz] <= (p[xyz] + _d[xyz]))) { return false; }
     }
     else {
       if ((q[xyz] <  p[xyz]) ||
-          (q[xyz] >= (p[xyz] + d[xyz]))) { return false; }
+          (q[xyz] >= (p[xyz] + _d[xyz]))) { return false; }
     }
   }
 
@@ -384,16 +384,20 @@ function Gilbert2D_d2xyz(dst_idx, cur_idx, p, alpha, beta) {
   let d_beta  = _delta(beta);
 
   if (b==1) {
-    let u = _clone(p);
+
+    _dprint("#Gilbert2D_d2xyz.Lb: dst_idx:", dst_idx, "cur_idx:", cur_idx, "alpha:", alpha, "beta:", beta, "(", a, b, ")");
+
     let d_idx = dst_idx - cur_idx;
-    return _add(u, _mul(d_idx, d_dalpha));
+    return _add(p, _mul(d_idx, d_alpha));
   }
 
 
   if (a==1) {
-    let u = _clone(p);
+
+    _dprint("#Gilbert2D_d2xyz.La: dst_idx:", dst_idx, "cur_idx:", cur_idx, "alpha:", alpha, "beta:", beta, "(", a, b, ")");
+
     let d_idx = dst_idx - cur_idx;
-    return _add(u, _mul(d_idx, d_beta));
+    return _add(p, _mul(d_idx, d_beta));
   }
 
   let alpha2 = _div2(alpha);
@@ -405,7 +409,13 @@ function Gilbert2D_d2xyz(dst_idx, cur_idx, p, alpha, beta) {
   _dprint("#  Gilbert2D_d2xyz: dst_idx:", dst_idx, "cur_idx:", cur_idx, "(alpha2,beta2):", alpha2, beta2, "(", a2, b2, ")");
 
   if ( (2*a) > (3*b) ) {
-    if ((a2%2) && (a>2)) { alpha2 = _add(alpha2, d_alpha); }
+    if ((a2%2) && (a>2)) {
+      alpha2 = _add(alpha2, d_alpha);
+      a2 = _abs(alpha2);
+    }
+
+
+    _dprint("#Gilbert2D_d2xyz.S0: dst_idx:", dst_idx, "cur_idx:", cur_idx, "(alpha2,beta2):", alpha2, beta2, "(", a2, b2, ")");
 
     let nxt_idx = cur_idx + (a2*b);
     if ((cur_idx <= dst_idx) && (dst_idx < nxt_idx)) {
@@ -416,6 +426,8 @@ function Gilbert2D_d2xyz(dst_idx, cur_idx, p, alpha, beta) {
     }
     cur_idx = nxt_idx;
 
+    _dprint("#Gilbert2D_d2xyz.S1: dst_idx:", dst_idx, "cur_idx:", cur_idx, "(alpha2,beta2):", alpha2, beta2, "(", a2, b2, ")");
+
     return Gilbert2D_d2xyz( dst_idx, cur_idx,
                             _add(p, alpha2),
                             _add(alpha, _neg(alpha2)),
@@ -424,7 +436,13 @@ function Gilbert2D_d2xyz(dst_idx, cur_idx, p, alpha, beta) {
   }
 
 
-  if ((b2%2) && (b>2)) { beta2 = _add(beta2, d_beta); }
+  if ((b2%2) && (b>2)) {
+    beta2 = _add(beta2, d_beta);
+    b2 = _abs(beta2);
+  }
+
+
+  _dprint("#Gilbert2D_d2xyz.A: dst_idx:", dst_idx, "cur_idx:", cur_idx, "(alpha2,beta2):", alpha2, beta2, "(", a2, b2, ")");
 
   let nxt_idx = cur_idx + (b2*a2);
   if ((cur_idx <= dst_idx) && (dst_idx < nxt_idx)) {
@@ -435,6 +453,8 @@ function Gilbert2D_d2xyz(dst_idx, cur_idx, p, alpha, beta) {
   }
   cur_idx = nxt_idx;
 
+  _dprint("#Gilbert2D_d2xyz.B: dst_idx:", dst_idx, "cur_idx:", cur_idx, "(alpha2,beta2):", alpha2, beta2, "(", a2, b2, ")");
+
   nxt_idx = cur_idx + (a*(b-b2));
   if ((cur_idx <= dst_idx) && (dst_idx < nxt_idx)) {
     return Gilbert2D_d2xyz( dst_idx, cur_idx,
@@ -444,14 +464,14 @@ function Gilbert2D_d2xyz(dst_idx, cur_idx, p, alpha, beta) {
   }
   cur_idx = nxt_idx;
 
+  _dprint("#Gilbert2D_d2xyz.C: dst_idx:", dst_idx, "cur_idx:", cur_idx, "(alpha2,beta2):", alpha2, beta2, "(", a2, b2, ")");
+
   return Gilbert2D_d2xyz( dst_idx, cur_idx,
                           _add(p,
                           _add( _add(alpha, _neg(d_alpha) ),
                                 _add(beta2, _neg( d_beta) ) ) ),
                           _neg(beta2),
                           _add(alpha2, _neg(alpha)) );
-
-  return;
 }
 
 // "generalized" 2d gilbert curve
@@ -469,17 +489,19 @@ function Gilbert2D_xyz2d(cur_idx, q, p, alpha, beta) {
   let a = _abs(alpha);
   let b = _abs(beta);
 
-  _dprint("#Gilbert2D_xyz2d: dst_idx:", dst_idx, "cur_idx:", cur_idx, "alpha:", alpha, "beta:", beta, "(", a, b, ")");
+  let u = _clone(p);
+
+  _dprint("#Gilbert2D_xyz2d: cur_idx:", cur_idx, "alpha:", alpha, "beta:", beta, "(", a, b, ")");
 
   let d_alpha = _delta(alpha);
   let d_beta  = _delta(beta);
 
   if (b==1) {
-    return cur_idx + _dot(d_alpha, _add(q, _neg(p)));
+    return cur_idx + _dot(d_alpha, _add(q, _neg(u)));
   }
 
   if (a==1) {
-    return cur_idx + _dot(d_beta, _add(q, _neg(p)));
+    return cur_idx + _dot(d_beta, _add(q, _neg(u)));
   }
 
   let alpha2 = _div2(alpha);
@@ -488,49 +510,59 @@ function Gilbert2D_xyz2d(cur_idx, q, p, alpha, beta) {
   let a2 = _abs(alpha2);
   let b2 = _abs(beta2);
 
-  _dprint("#  Gilbert2D_xyz2d: dst_idx:", dst_idx, "cur_idx:", cur_idx, "(alpha2,beta2):", alpha2, beta2, "(", a2, b2, ")");
+  _dprint("#  Gilbert2D_xyz2d: cur_idx:", cur_idx, "(alpha2,beta2):", alpha2, beta2, "(", a2, b2, ")");
 
   if ( (2*a) > (3*b) ) {
-    if ((a2%2) && (a>2)) { alpha2 = _add(alpha2, d_alpha); }
+    if ((a2%2) && (a>2)) {
+      alpha2 = _add(alpha2, d_alpha);
+      a2 = _abs(alpha2);
+    }
 
-    if (_inBounds(q, p, alpha2, beta)) {
+
+    if (_inBounds(q, u, alpha2, beta)) {
       return Gilbert2D_xyz2d( cur_idx, q,
-                              p,
+                              u,
                               alpha2,
                               beta );
     }
     cur_idx += (a2*b);
+    u = _add(u, alpha2);
 
     return Gilbert2D_xyz2d( cur_idx, q,
-                            _add(p, alpha2),
+                            u,
                             _add(alpha, _neg(alpha2)),
                             beta );
 
   }
 
 
-  if ((b2%2) && (b>2)) { beta2 = _add(beta2, d_beta); }
+  if ((b2%2) && (b>2)) {
+    beta2 = _add(beta2, d_beta);
+    b2 = _abs(beta2);
+  }
 
-  if (_inBounds(q, p, beta2, alpha2)) {
+  if (_inBounds(q, u, beta2, alpha2)) {
     return Gilbert2D_xyz2d( cur_idx, q,
-                            p,
+                            u,
                             beta2,
                             alpha2 );
   }
   cur_idx += (b2*a2);
+  u = _add(p, beta2);
 
-  if (_inBounds(q, p, alpha, _add(beta, _neg(beta2)))) {
+  if (_inBounds(q, u, alpha, _add(beta, _neg(beta2)))) {
     return Gilbert2D_xyz2d( cur_idx, q,
-                            _add(p, beta2),
+                            u,
                             alpha,
                             _add(beta, _neg(beta2)) );
   }
   cur_idx += (a*(b-b2));
+  u = _add(p,
+           _add( _add(alpha, _neg(d_alpha) ),
+                 _add(beta2, _neg( d_beta) ) ) );
 
   return Gilbert2D_xyz2d( cur_idx, q,
-                          _add(p,
-                          _add( _add(alpha, _neg(d_alpha) ),
-                                _add(beta2, _neg( d_beta) ) ) ),
+                          u,
                           _neg(beta2),
                           _add(alpha2, _neg(alpha)) );
 
@@ -2414,16 +2446,35 @@ function Gilbert3D(w, h, d) {
   }
 }
 
+function Gilbert2D(w,h) {
+  let p = [0,0,0],
+      alpha = [w,0,0],
+      beta = [0,h,0];
+
+  let g2xy = Gilbert2DAsync(p, alpha, beta);
+  for (let hv = g2xy.next() ; !hv.done ; hv = g2xy.next()) {
+    let v = hv.value;
+    console.log(v[0], v[1]);
+  }
+}
+
 
 function _show_help(msg) {
   msg = ((typeof msg !== "undefined") ? msg : "");
   if (msg.length > 0) { console.log(msg, "\n"); }
 
+  let op_list = [
+    "xy", "xyz", "xyzp",
+    "xy2d", "d2xy",
+    "xyz2d", "d2xyz"
+  ];
+
+
   console.log("usage:");
   console.log("");
   console.log("  node ./gilbert3dpp.js [OP] [W] [H] [D]");
   console.log("");
-  console.log("  OP   one of 'xy' or 'xyz'");
+  console.log("  OP   one of '" + op_list.join("', '") + "'");
   console.log("  W    width");
   console.log("  H    height");
   console.log("  D    depth");
@@ -2438,6 +2489,12 @@ function _main(argv) {
 
   let arg_idx = 1;
 
+  let op_list = [
+    "xy", "xyz", "xyzp",
+    "xy2d", "d2xy",
+    "xyz2d", "d2xyz"
+  ];
+
 
   if (argv.length <= 1) {
     _show_help();
@@ -2449,9 +2506,11 @@ function _main(argv) {
     if (argv.length > 3) { h = parseInt(argv[3]); }
     if (argv.length > 4) { d = parseInt(argv[4]); }
 
-    if ((op != "xy") &&
-        (op != "xyz") &&
-        (op != "xyzp")) {
+    let op_found = false
+    for (let i=0; i<op_list.length; i++) {
+      if (op == op_list[i]) { op_found = true; break; }
+    }
+    if (!op_found) {
       _show_help();
       return;
     }
@@ -2464,6 +2523,8 @@ function _main(argv) {
     }
 
     if (op == "xy") {
+      Gilbert2D(w,h);
+      return;
       let g2xy = Gilbert2DAsync( [0,0, 0], [w,0, 0], [0,h, 0] );
       for (let hv = g2xy.next(); !hv.done; hv = g2xy.next()) {
         let _val = hv.value;
@@ -2472,6 +2533,48 @@ function _main(argv) {
     }
     else if (op == "xyz") {
       Gilbert3D(w,h,d);
+    }
+
+    else if (op == "xy2d") {
+
+      for (let y=0; y<h; y++) {
+        for (let x=0; x<w; x++) {
+          let idx = Gilbert2D_xyz2d(0, [x,y,0], [0,0,0], [w,0,0], [0,h,0]);
+          console.log(idx, x,y);
+        }
+      }
+
+    }
+
+    else if (op == "d2xy") {
+
+      for (let idx=0; idx<(w*h); idx++) {
+        let xyz = Gilbert2D_d2xyz(idx, 0, [0,0,0], [w,0,0], [0,h,0]);
+        console.log(idx, xyz[0], xyz[1]);
+      }
+
+    }
+
+    else if (op == "xyz2d") {
+
+      for (let z=0; z<d; z++) {
+        for (let y=0; y<h; y++) {
+          for (let x=0; x<w; x++) {
+            let idx = Gilbert3D_xyz2d([x,y,z], [0,0,0], [w,0,0], [0,h,0], [0,0,d]);
+            console.log(idx, x,y,z);
+          }
+        }
+      }
+
+    }
+
+    else if (op == "d2xyz") {
+
+      for (let idx=0; idx<(w*h*d); idx++) {
+        let xyz = Gilbert3D_d2xyz(idx, 0, [0,0,0], [w,0,0], [0,h,0], [0,0,d]);
+        console.log(xyz[0], xyz[1], xyz[2]);
+      }
+
     }
 
     else if (op == "xyzp") {
