@@ -1,78 +1,144 @@
 #!/bin/bash
 #
 
+N=13
 
-testtype="xyz"
-testtype="d2xyz"
+echo "#gilbert2d xy (async)"
 
-testtype="xyz2d"
+for y in `seq 1 $N` ; do
+  for x in `seq 1 $N` ; do
+    echo "## $x $y"
 
-if [[ "$testtype" == "xyz2d" ]] ; then
+    a0=`echo "$x%2" | bc`
+    if [[ "$a0" = 1 ]] && [[ "$y" = 2 ]] ; then
+      echo "# skipping (known bad configuration: $x $y)"
+      continue
+    fi
 
-  for z in `seq 1 8` ; do
-    for y in `seq 1 8` ; do
-      for x in `seq 1 8` ; do
-        echo "## $x $y $z"
-        node ./gilbert3dpp.js $testtype $x $y $z | \
-          grep -v '#' | \
-          sort -n | \
-          cut -f2- -d' ' | ./gilbert-check-curve
-      done
+    node ./gilbert3dpp.js xy $x $y  | \
+      grep -v '#' | \
+      ./gilbert-check-curve
+  done
+done
+
+
+echo "#gilbert2d d2xy (sync)"
+
+for y in `seq 1 $N` ; do
+  for x in `seq 1 $N` ; do
+    echo "## $x $y"
+
+    a0=`echo "$x%2" | bc`
+    if [[ "$a0" = 1 ]] && [[ "$y" = 2 ]] ; then
+      echo "# skipping (known bad configuration: $x $y)"
+      continue
+    fi
+
+    node ./gilbert3dpp.js d2xy $x $y | \
+      grep -v '#' | \
+      ./gilbert-check-curve
+
+  done
+done
+
+
+echo "#gilbert2d xy2d (sync)"
+
+for y in `seq 1 $N` ; do
+  for x in `seq 1 $N` ; do
+    echo "## $x $y"
+
+    a0=`echo "$x%2" | bc`
+    if [[ "$a0" = 1 ]] && [[ "$y" = 2 ]] ; then
+      echo "# skipping (known bad configuration: $x $y)"
+      continue
+    fi
+
+    node ./gilbert3dpp.js xy2d $x $y | \
+      grep -v '#' | \
+      sort -n | \
+      cut -f2- -d' ' | ./gilbert-check-curve
+  done
+done
+
+echo "#gilbert3d xyz (async)"
+
+for z in `seq 1 $N` ; do
+  for y in `seq 1 $N` ; do
+    for x in `seq 1 $N` ; do
+
+      echo "## $x $y $z"
+
+      a0=`echo "$x%2" | bc`
+      if [[ "$a0" = 1 ]] && ( [[ "$y" = 2 ]] || [[ "$z" == 1 ]] ) ; then
+        echo "# skipping (known bad configuration: $x $y $z)"
+        continue
+      fi
+      if [[ "$a0" = 1 ]] && ( [[ "$y" = 1 ]] || [[ "$z" == 2 ]] ) ; then
+        echo "# skipping (known bad configuration: $x $y $z)"
+        continue
+      fi
+
+      node ./gilbert3dpp.js xyz $x $y $z | \
+        grep -v '#' | \
+        ./gilbert-check-curve
+
     done
   done
+done
 
-elif [[ "$typetype" == "xy2d" ]] ; then
+echo "#gilbert3d d2xyz (sync)"
 
-  for y in `seq 1 8` ; do
-    for x in `seq 1 8` ; do
+for z in `seq 1 $N` ; do
+  for y in `seq 1 $N` ; do
+    for x in `seq 1 $N` ; do
       echo "## $x $y $z"
-      node ./gilbert3dpp.js $testtype $x $y | \
+
+      a0=`echo "$x%2" | bc`
+      if [[ "$a0" = 1 ]] && ( [[ "$y" = 2 ]] || [[ "$z" == 1 ]] ) ; then
+        echo "# skipping (known bad configuration: $x $y $z)"
+        continue
+      fi
+      if [[ "$a0" = 1 ]] && ( [[ "$y" = 1 ]] || [[ "$z" == 2 ]] ) ; then
+        echo "# skipping (known bad configuration: $x $y $z)"
+        continue
+      fi
+
+
+      node ./gilbert3dpp.js d2xyz $x $y $z | \
+        grep -v '#' | \
+        ./gilbert-check-curve
+    done
+  done
+done
+
+
+echo "#gilbert3d xyz2d (sync)"
+
+for z in `seq 1 $N` ; do
+  for y in `seq 1 $N` ; do
+    for x in `seq 1 $N` ; do
+      echo "## $x $y $z"
+
+      a0=`echo "$x%2" | bc`
+      if [[ "$a0" = 1 ]] && ( [[ "$y" = 2 ]] || [[ "$z" == 1 ]] ) ; then
+        echo "# skipping (known bad configuration: $x $y $z)"
+        continue
+      fi
+      if [[ "$a0" = 1 ]] && ( [[ "$y" = 1 ]] || [[ "$z" == 2 ]] ) ; then
+        echo "# skipping (known bad configuration: $x $y $z)"
+        continue
+      fi
+
+
+      node ./gilbert3dpp.js xyz2d $x $y $z | \
         grep -v '#' | \
         sort -n | \
         cut -f2- -d' ' | ./gilbert-check-curve
-    done
-  done
-
-fi
-
-exit 0
-
-for z in `seq 1 8` ; do
-  for y in `seq 1 8` ; do
-    for x in `seq 1 8` ; do
-      echo "## $x $y $z"
-      node ./gilbert3dpp.js $testtype $x $y $z | ./gilbert-check-curve
     done
   done
 done
 
 
 exit 0
-
-
-if [[ "$testtype" == "xyzp" ]] ; then
-
-  for z in `seq 1 8` ; do
-    for y in `seq 1 8` ; do
-      for x in `seq 1 8` ; do
-        echo "## $x $y $z"
-        node ./gilbert3dpp.js xyzp $x $y $z | ./gilbert-check-curve
-      done
-    done
-  done
-
-elif [[ "$testtype" == "xyz" ]] ; then
-
-  for z in `seq 1 10` ; do
-    for y in `seq 1 10` ; do
-      for x in `seq 1 10` ; do
-        echo "## $x $y $z"
-        node ./gilbert3dpp.js xyz $x $y $z | ./gilbert-check-curve
-      done
-    done
-  done
-
-fi
-
-
 

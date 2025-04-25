@@ -30,7 +30,7 @@
 // Running from the command line will list options.
 //
 
-var DEBUG = 1;
+var DEBUG = 0;
 
 function _dprint() {
   let _debug = ((typeof DEBUG === "undefined") ? false : DEBUG );
@@ -3145,7 +3145,7 @@ function _main(argv) {
 
       for (let idx=0; idx<(w*h); idx++) {
         let xyz = Gilbert2D_d2xyz(idx, 0, [0,0,0], [w,0,0], [0,h,0]);
-        console.log(idx, xyz[0], xyz[1]);
+        console.log(xyz[0], xyz[1]);
       }
 
     }
