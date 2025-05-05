@@ -58,13 +58,17 @@ function _dprint() {
 // all vector operations can be done with 2d or 3d vectors (only)
 //
 
-function _d2e(v) {
-  let v2 = Math.floor(v/2);
-  if (v==0) { return 0; }
-  if ((v2%2)==0) { return v2; }
-  return v2+1;
-}
+// floor version
+//
+//function _d2e(v) {
+//  let v2 = Math.floor(v/2);
+//  if (v==0) { return 0; }
+//  if ((v2%2)==0) { return v2; }
+//  return v2+1;
+//}
 
+// round to zero version
+//
 function d2e(_v) {
   let v = Math.abs(_v);
   let m = ((_v<0)? -1 : 1);
@@ -74,13 +78,17 @@ function d2e(_v) {
   return m*(v2+1);
 }
 
-function _d2u(v) {
-  let v2 = Math.floor(v/2);
-  if (v==0) { return 0; }
-  if ((v2%2)==1) { return v2; }
-  return v2+1;
-}
+// floor version
+//
+//function d2u_floor(v) {
+//  let v2 = Math.floor(v/2);
+//  if (v==0) { return 0; }
+//  if ((v2%2)==1) { return v2; }
+//  return v2+1;
+//}
 
+// round to zero version
+//
 function d2u(_v) {
   let v = Math.abs(_v);
   let m = ((_v<0)? -1 : 1);
@@ -90,12 +98,16 @@ function d2u(_v) {
   return m*(v2+1);
 }
 
-function _dqe(v,q) {
-  let vq = Math.floor(v/q);
-  if ((vq%2)==0) { return vq; }
-  return vq+1;
-}
+// floor version
+//
+//function dqe_floor(v,q) {
+//  let vq = Math.floor(v/q);
+//  if ((vq%2)==0) { return vq; }
+//  return vq+1;
+//}
 
+// round to zero version
+//
 function dqe(_v,q) {
   let v = Math.abs(_v);
   let m = ((_v<0)? -1 : 1);
@@ -104,12 +116,15 @@ function dqe(_v,q) {
   return m*(vq+1);
 }
 
-function _dqu(v,q) {
-  let vq = Math.floor(v/q);
-  if (v==0) { return 0; }
-  if ((vq%2)==1) { return vq; }
-  return vq+1;
-}
+// floor version
+//
+//function dqu_floor(v,q) {
+//  let vq = Math.floor(v/q);
+//  if (v==0) { return 0; }
+//  if ((vq%2)==1) { return vq; }
+//  return vq+1;
+//}
+
 
 function dqu(_v,q) {
   let v = Math.abs(_v);
@@ -120,14 +135,18 @@ function dqu(_v,q) {
   return m*(vq+1);
 }
 
-function __divq(v,q) {
-  let u = [];
-  for (let i=0; i<v.length; i++) {
-    u.push( Math.floor(v[i] / q) );
-  }
-  return u;
-}
+// floor version
+//
+//function _divq_floor(v,q) {
+// let u = [];
+//  for (let i=0; i<v.length; i++) {
+//    u.push( Math.floor(v[i] / q) );
+//  }
+//  return u;
+//}
 
+// round to zero version
+//
 function _divq(v,q) {
   let u = [];
   for (let i=0; i<v.length; i++) {
@@ -647,8 +666,12 @@ function *Gilbert2DAsync(p, alpha, beta) {
   if ( (2*a) > (3*b) ) {
     if ((a2%2) && (a>2)) { alpha2 = _add(alpha2, d_alpha); }
 
+    _dprint("#  Gilbert2DAsync: 2a>3b:A");
 
     yield* Gilbert2DAsync( p, alpha2, beta );
+
+    _dprint("#  Gilbert2DAsync: 2a>3b:B");
+
     yield* Gilbert2DAsync( _add(p, alpha2),
                            _add(alpha, _neg(alpha2)),
                            beta );
@@ -659,12 +682,20 @@ function *Gilbert2DAsync(p, alpha, beta) {
 
   if ((b2%2) && (b>2)) { beta2 = _add(beta2, d_beta); }
 
+  _dprint("#  Gilbert2DAsync: A (alpha:", alpha, "beta:", beta, "alpha2:", alpha2, "beta2:", beta2, ")", "(|a2|:", a2, "|b2|:", b2, ")");
+
   yield* Gilbert2DAsync( p,
                          beta2,
                          alpha2 );
+
+  _dprint("#  Gilbert2DAsync: B (alpha:", alpha, "beta:", beta, "alpha2:", alpha2, "beta2:", beta2, ")", "(|a2|:", a2, "|b2|:", b2, ")");
+
   yield* Gilbert2DAsync( _add(p, beta2),
                          alpha,
                          _add(beta, _neg(beta2)) );
+
+  _dprint("#  Gilbert2DAsync: C (alpha:", alpha, "beta:", beta, "alpha2:", alpha2, "beta2:", beta2, ")", "(|a2|:", a2, "|b2|:", b2, ")");
+
   yield* Gilbert2DAsync( _add(p,
                          _add( _add(alpha, _neg(d_alpha) ),
                                _add(beta2, _neg( d_beta) ) ) ),

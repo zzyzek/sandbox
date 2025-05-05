@@ -1,6 +1,13 @@
 References
 ---
 
+###### 2025-05-05
+
+Moved to [github.com/jakubcerveny/gilbert-paper](https://github.com/jakubcerveny/gilbert-paper)
+
+
+---
+
 * [lozenge tilings (viz)](https://ar5iv.labs.arxiv.org/html/2210.01098)
 * [lutanhho.net](https://lutanho.net/pic2html/draw_sfc.html)
 * [Zhang etal paper](https://www.researchgate.net/publication/220859824_A_Pseudo-hilbert_Scan_Algorithm_for_Arbitrarily-Sized_Rectangle_Region)
