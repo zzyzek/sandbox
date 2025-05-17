@@ -7,7 +7,7 @@
 //
 
 
-// inefficient reference implemenatation of spave filling curves
+// inefficient reference implemenatation of space filling curves
 //
 // curves implemented (2d):
 //
@@ -282,13 +282,19 @@ function pnorm_diff(pnta, pntb, p) {
   return Math.pow(s, 1/p);
 }
 
-function experiment2(lvl,p) {
+function experiment_pnorm_bindiff(profile) {
   let count=0;
   let F = [];
 
-  let pnt = sfc_hilbert(lvl);
+  let lvl = profile.lvl;
+  let p = profile.p;
 
-  console.log("#n:", pnt.length);
+  let pnt = profile.f(lvl);
+
+  if (profile.verbose > 0) {
+    console.log("#" + profile.name + ", lvl:", lvl, ", n:", pnt.length, ", pnorm:", p);
+  }
+
 
   for (let i=0; i<pnt.length; i++) { F.push(0); }
 
@@ -302,7 +308,7 @@ function experiment2(lvl,p) {
     }
   }
 
-  console.log("# n:", pnt.length,  "p:", p);
+  //console.log("# n:", pnt.length,  "p:", p);
   for (let i=0; i<pnt.length; i++) {
     F[i] /= count;
     console.log(i, F[i]);
@@ -310,13 +316,31 @@ function experiment2(lvl,p) {
   console.log("\n");
 }
 
-//let p = sfc_hilbert(3);
-//console.log("#", p[0][0], p[0][1], p[0][2], p[0][3] );
-//printpoint( sfc_hilbert(3) );
-//printpoint( sfc_moore(3) );
-//printpoint( sfc_peano(3) );
+//----
 
-//printpoint( sfc_morton(3) );
+let curve = "hilbert";
+let lvl = 5;
 
+let profile = {
+  "hilbert": { "name": "hilbert", "lvl": 5, "f": sfc_hilbert, "verbose": 1, "p": 1 },
+  "peano": { "name": "peano", "lvl": 3, "f": sfc_peano, "verbose": 1, "p": 1 },
+  "morton": { "name": "morton", "lvl": 5, "f": sfc_morton, "verbose": 1, "p": 1 },
+  "moore": { "name": "moore", "lvl": 5, "f": sfc_moore, "verbose": 1, "p": 1  }
+};
 
-experiment2(6,1/2);
+if (process.argv.length > 2) {
+  curve = process.argv[2];
+  if (process.argv.length > 3) {
+    lvl = parseInt(process.argv[3]);
+  }
+}
+
+if (!(curve in profile)) {
+  console.log("curve '" + curve + "' not in profile, must be one of hilbert, peano, morton, moore");
+  process.exit(-1);
+}
+
+profile[curve].lvl = lvl;
+
+experiment_pnorm_bindiff(profile[curve]);
+

@@ -1,6 +1,17 @@
 Current Focus
 ---
 
+###### 2025-05-16
+
+* Gilbert paper
+  - submit PR of local gilbert copy with extenstions back to main repo
+    + get graphic of adaptive 3,5,4 for paper and PR
+    + move test script to appropriate location
+    + create readme with usage etc.
+  - add appendix graphics for eccentric split cases
+  - add corner case graphics
+  - edit
+
 ###### 2025-01-14
 
 * Block Path Consistency optimization
