@@ -1,0 +1,7 @@
+set style fill  transparent solid 0.35 noborder
+set xlabel 'x'
+set ylabel 'y'
+set zlabel 'z'
+splot 'd2d_w128h128_w129h129.gp' u 1:2:3:(0.001) w circles, 'd2d_w128h128_w257h257.gp' u 1:2:3:(0.001) w circles, 'd2d_w128h128_w513h513.gp' u 1:2:3:(0.001) w circles
+set logscale z
+splot 'd2d_w128h128_w129h129.gp' u 1:2:3:(0.001) w circles, 'd2d_w128h128_w257h257.gp' u 1:2:3:(0.001) w circles, 'd2d_w128h128_w513h513.gp' u 1:2:3:(0.001) w circles, 'd2d_w128h128_w1023h1023.gp' u 1:2:3:(0.001) w circles
