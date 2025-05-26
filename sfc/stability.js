@@ -62,17 +62,51 @@ function stable_diff_2d( wh0, wh1 ) {
 
   let fin = [];
 
-  for (let idx0=0; idx0<pnt0.length; idx0++) {
+  for (let i=0; i<pnt0.length; i++) {
+    pnt0[i][0] /= wh0[0];
+    pnt0[i][1] /= wh0[1];
+    pnt0[i][0] += 1/(2*wh0[0]);
+    pnt0[i][1] += 1/(2*wh0[1]);
+  }
 
-    let idx1 = Math.floor( idx0 * pnt1.length / pnt0.length );
+  for (let i=0; i<pnt1.length; i++) {
+    pnt1[i][0] /= wh1[0];
+    pnt1[i][1] /= wh1[1];
 
-    let p = [ pnt0[idx0][0] / wh0[0], pnt0[idx0][1] / wh0[1] ];
-    let q = [ pnt1[idx1][0] / wh1[0], pnt1[idx1][1] / wh1[1] ];
+    pnt1[i][0] += 1/(2*wh1[0]);
+    pnt1[i][1] += 1/(2*wh1[1]);
+  }
 
-    fin.push( [p[0], p[1], dist(p,q) ] );
+  let ref_reference = 0;
+
+  if (ref_reference) {
+    for (let idx0=0; idx0<pnt0.length; idx0++) {
+      let idx1 = Math.floor( idx0 * pnt1.length / pnt0.length );
+      fin.push( [pnt0[idx0][0], pnt0[idx0][1], dist(pnt0[idx0],pnt1[idx1]) ] );
+      //let p = [ pnt0[idx0][0] / wh0[0], pnt0[idx0][1] / wh0[1] ];
+      //let q = [ pnt1[idx1][0] / wh1[0], pnt1[idx1][1] / wh1[1] ];
+      //fin.push( [p[0], p[1], dist(p,q) ] );
+    }
+  }
+  else {
+    for (let idx1=0; idx1<pnt1.length; idx1++) {
+      let idx0 = Math.floor( idx1 * pnt0.length / pnt1.length );
+      fin.push( [pnt1[idx1][0], pnt1[idx1][1], dist(pnt0[idx0],pnt1[idx1]) ] );
+      //let p = [ pnt0[idx0][0] / wh0[0], pnt0[idx0][1] / wh0[1] ];
+      //let q = [ pnt1[idx1][0] / wh1[0], pnt1[idx1][1] / wh1[1] ];
+      //fin.push( [p[0], p[1], dist(p,q) ] );
+    }
   }
 
   return fin;
+}
+
+
+function spot_test_hilbert() {
+  let p = stable_diff_2d( [128,128], [256,256] );
+  write_data(p, "ok256.gp");
+  p = stable_diff_2d( [256,256], [512,512] );
+  write_data(p, "ok512.gp");
 }
 
 function write_data(data, fn) {
@@ -100,10 +134,14 @@ function output_diff_data() {
   let wh = [128,128];
   let dwh = 1;
   let H = 1025;
+
+  let wh_prv  = wh;
   for (let h_1=(wh[1]+dwh); h_1<H; h_1+=dwh) {
     let w_1 = h_1;
-    let p = stable_diff_2d(wh, [w_1,h_1]);
-    write_data(p, "data/d2d_w" + wh[0].toString() + "h" + wh[1].toString() + "_w" + w_1.toString() + "h" + h_1.toString() + ".gp");
+    let p = stable_diff_2d(wh_prv, [w_1,h_1]);
+    write_data(p, "data/d2d_w" + wh_prv[0].toString() + "h" + wh_prv[1].toString() + "_w" + w_1.toString() + "h" + h_1.toString() + ".gp");
+
+    wh_prv = [w_1,h_1];
   }
 }
 
