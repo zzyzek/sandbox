@@ -13,15 +13,14 @@ from natsort import  natsorted, ns
 
 import time
 
+inp_dir = "data.linear/"
+
 data_set = []
 
-Nx = 128
-Ny = 128
-
-num_frames = len(os.listdir("data/"))
+num_frames = len(os.listdir(inp_dir))
 num_frames = 0
 
-FNS = os.listdir("data/")
+FNS = os.listdir(inp_dir)
 FNS = natsorted(FNS)
 
 fns = []
@@ -32,34 +31,22 @@ for idx in range(0,len(FNS),dfn):
 _min_val = 3.0
 _max_val = -1.0
 
-#DEBUG_COUNT_MAX = 3
-#DEBUG_COUNT = 0
-
 for fn in fns:
 
   if len(fn)==0: continue
   if fn[0] == '.': continue
 
-  fqfn = "data/" + fn
+  #fqfn = "data/" + fn
+  fqfn = inp_dir + fn
   print(fqfn)
 
   num_frames += 1
-
-  #data = []
-  #for y in range(Ny):
-  #  data.append([])
-  #  for x in range(Nx):
-  #    data[y].append(0.0)
 
   uniq_x = {}
   uniq_y = {}
 
   uniq_x_count = 0
   uniq_y_count = 0
-
-  #data = []
-  #cur_data_x = 0
-  #cur_data_y = 0
 
   with open(fqfn, "r") as fp:
     lines = fp.readlines()

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+for fn in `ls -v data/nu_nu_*.gp` ; do
+
+  bn=`basename $fn .gp | sed 's/nu_nu_//' | sed 's/_/ /'`
+  mu=`cut -f2,5 -d' ' $fn | ./simple-regression.py /dev/stdin | grep mu | cut -f2 -d' '`
+
+  mu0idx=`echo ${bn} | cut -f1 -d' '`
+  mu1idx=`echo ${bn} | cut -f2 -d' '`
+  mu0=`echo "($mu0idx / 15) + 0.75" | bc -l`
+  mu1=`echo "($mu1idx / 15) + 0.75" | bc -l`
+  echo "$mu0 $mu1 $mu"
+done

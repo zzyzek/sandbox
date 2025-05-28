@@ -125,16 +125,20 @@ function output_diff_data_w100h100_dwh1() {
   }
 }
 
-function output_diff_data() {
-  let wh = [128,128];
+function output_diff_data_linear(h_s, h_e, data_dir) {
+  h_s = ((typeof h_s === "undefined") ? 128 : h_s);
+  h_e = ((typeof h_e === "undefined") ? 1025 : h_e);
+  data_dir = ((typeof data_dir === "undefined") ? "." : data_dir);
+
+  let wh = [h_s,h_s];
   let dwh = 1;
-  let H = 1025;
+  let H = h_e;
 
   let wh_prv  = wh;
   for (let h_1=(wh[1]+dwh); h_1<H; h_1+=dwh) {
     let w_1 = h_1;
     let p = stable_diff_2d(wh_prv, [w_1,h_1]);
-    write_data(p, "data/d2d_w" + wh_prv[0].toString() + "h" + wh_prv[1].toString() + "_w" + w_1.toString() + "h" + h_1.toString() + ".gp");
+    write_data(p, data_dir + "/d2d_w" + wh_prv[0].toString() + "h" + wh_prv[1].toString() + "_w" + w_1.toString() + "h" + h_1.toString() + ".gp");
 
     wh_prv = [w_1,h_1];
   }
@@ -248,7 +252,7 @@ function nu_nu_experiment0() {
 //output_diff_data();
 //output_diff_data_nu(1,1.1);
 //output_diff_data_nu(0.9,1.4, "data_9_14");
-nu_nu_experiment();
+output_diff_data_linear(128, 1024, "data.linear");
 
 
 if (0) {
