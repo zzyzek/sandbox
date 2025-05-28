@@ -78,7 +78,7 @@ The idea with the eccentric splits is that they promote harmony.
 
 | |
 |---|
-| ![harmony example](harmony_example.svg) |
+| ![harmony example](harmonious_example.svg) |
 
 In the figure, the diagram shows a potential split of the Gilbert curve vs. a straight subdivision
 if the width is smaller than 3/4 of the height, say.
