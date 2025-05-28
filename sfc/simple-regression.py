@@ -1,8 +1,17 @@
 #!/usr/bin/python3
 
 import math
+import os
+import sys
 
-fn = "./mean_9_14.gp"
+#fn = "./mean_9_14.gp"
+
+if len(sys.argv) < 2:
+  print("provide mean gnuplot file")
+  sys.exit(-1)
+
+fn = sys.argv[1]
+
 
 data = []
 
@@ -14,7 +23,7 @@ with open(fn, "r") as fp:
 
     tok = line.split(" ")
 
-    print(tok)
+    #print(tok)
     x = float(tok[0])
     y = float(tok[1])
 
@@ -34,6 +43,7 @@ C_e = 1
 C_N = int((C_e - C_s) / C_d)
 
 mu_s = -0.05
+#mu_s = 0.05
 mu_d = -0.0025
 mu_e = -0.6
 mu_N = int((mu_e - mu_s) / mu_d)
@@ -55,7 +65,7 @@ for iC in range(C_N):
       err_star = loss(C,mu,data)
       mu_star = mu
       C_star = C
-      print(">>>", C_star, mu_star, "(", err_star, ")")
+      #print(">>>", C_star, mu_star, "(", err_star, ")")
       continue
 
     err = loss(C,mu,data)
@@ -63,6 +73,10 @@ for iC in range(C_N):
       err_star = err
       mu_star = mu
       C_star = C
-      print(">>>", C_star, mu_star, "(", err_star, ")")
+      #print(">>>", C_star, mu_star, "(", err_star, ")")
 
+
+print("#err:", err_star)
+print("#C:", C_star)
+print("#mu:", mu_star)
 

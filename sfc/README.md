@@ -71,6 +71,21 @@ Note that the range of $3/4$ was chosen as that's the width fraction that will c
 and $3/2$ causes an eccentric split outright.
   
 
+Harmony
+---
+
+The idea with the eccentric splits is that they promote harmony.
+
+| |
+|---|
+| ![harmony example](harmony_example.svg) |
+
+In the figure, the diagram shows a potential split of the Gilbert curve vs. a straight subdivision
+if the width is smaller than 3/4 of the height, say.
+The top figure shows how the Gilbert curve makes a more harmonious split by reducing the average defect.
+The bottom split uses a simple subdivision which could promote longer rectangles instead of trying to make
+them more square like.
+
 
 References
 ---
