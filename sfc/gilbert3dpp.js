@@ -281,6 +281,13 @@ function _add(u,v) {
   return [ u[0]+v[0], u[1]+v[1], u[2]+v[2] ];
 }
 
+function _sub(u,v) {
+  if ((u.length == 2) || (v.length == 2)) {
+    return [ u[0]-v[0], u[1]-v[1] ];
+  }
+  return [ u[0]-v[0], u[1]-v[1], u[2]-v[2] ];
+}
+
 function _mul(c,v) {
   if (v.length == 2) {
     return [ c*v[0], c*v[1] ];
@@ -2204,13 +2211,196 @@ function Gilbert2D(w,h) {
   return pnt;
 }
 
+
+//---------------------------
+//                  _        
+//  ___ _ __   __ _| | _____ 
+// / __| '_ \ / _` | |/ / _ \
+// \__ \ | | | (_| |   <  __/
+// |___/_| |_|\__,_|_|\_\___|
+//---------------------------
+
+function *Guiseppe2DAsync_line(p, alpha, beta) {
+  let a = _abs(alpha);
+  let b = _abs(beta);
+
+  let d_alpha = _delta(alpha);
+  let d_beta = _delta(beta);
+
+  if (b == 1) {
+    let u = _clone(p);
+    for (let i=0; i<a; i++) {
+      yield u;
+      u = _add(u, d_alpha);
+    }
+    return;
+  }
+
+  if (a == 1) {
+    let u = _clone(p);
+    for (let i=0; i<b; i++) {
+      yield u;
+      u = _add(u, d_beta);
+    }
+    return;
+  }
+
+  return;
+}
+
+function *Guiseppe2DAsync_base(p, alpha, beta) {
+
+  let a = _abs(alpha);
+  let b = _abs(beta);
+
+  let d_alpha = _delta(alpha);
+  let d_beta = _delta(beta);
+
+  let d_2x2 = [ [0,0], [1,0],
+                [0,1], [1,1] ];
+
+  let d_3x2 = [ [0,0], [0,1],
+                [1,1], [1,0],
+                [2,0], [2,1] ];
+
+  let d_2x3 = [ [0,0], [1,0], [1,1],
+                [0,1], [0,2],[1,2] ];
+
+  let d_3x3 = [ [0,0], [1,0], [2,0],
+                [2,1], [1,1], [0,1],
+                [0,2], [1,2], [2,2] ];
+
+  let d_m = [];
+
+  if ((a == 1) || (b == 1)) {
+    yield* Guiseppe2DAsync_line(p, alpha, beta);
+    return;
+  }
+
+  if      ((a == 2) && (b == 2)) { d_m = d_2x2; }
+  else if ((a == 2) && (b == 3)) { d_m = d_2x3; }
+  else if ((a == 3) && (b == 2)) { d_m = d_3x2; }
+  else if ((a == 3) && (b == 3)) { d_m = d_3x3; }
+
+  for (let i = 0; i < d_m.length; i++) {
+    yield _add(p, _add( _mul(d_m[i][0], d_alpha), _mul(d_m[i][1], d_beta) ) );
+  }
+
+  return;
+}
+
+// we assume point starts at p and ends at diagonal
+//
+function *Guiseppe2DAsync(p, alpha, beta) {
+  let a = _abs(alpha);
+  let b = _abs(beta);
+
+  _vprint("#Guiseppe2dasync: p:", p, "alpha:", alpha, "beta:", beta);
+
+  if ((a == 1) || (b == 1)) {
+    yield* Guiseppe2DAsync_line(p, alpha, beta);
+    return;
+  }
+
+  if ((a <= 3) && (b <= 3)) {
+    yield* Guiseppe2DAsync_base(p, alpha, beta);
+    return;
+  }
+
+  if (b > a) {
+    let u = alpha;
+    alpha = beta;
+    beta = u;
+
+    a = _abs(alpha);
+    b = _abs(beta);
+  }
+
+  let d_alpha = _delta(alpha);
+  let d_beta = _delta(beta);
+
+  let alpha3_0 = _divq(alpha, 3);
+  let alpha3_1 = _div2( _sub( alpha, alpha3_0 ) );
+  let alpha3_2 = _sub( alpha, _add(alpha3_0, alpha3_1) );
+
+  let a3_0 = _abs(alpha3_0);
+  let a3_1 = _abs(alpha3_1);
+  let a3_2 = _abs(alpha3_2);
+
+  if ((b%2) == 0) {
+
+    if ((a3_0%2) == 0) {
+      alpha3_0 = _add(alpha3_0, d_alpha);
+      alpha3_1 = _sub(alpha3_1, d_alpha);
+
+      a3_0 = _abs(alpha3_0);
+      a3_1 = _abs(alpha3_1);
+    }
+
+    if ((a3_1%2) == 0) {
+      alpha3_1 = _add(alpha3_1, d_alpha);
+      alpha3_2 = _sub(alpha3_2, d_alpha);
+
+      a3_1 = _abs(alpha3_1);
+      a3_2 = _abs(alpha3_2);
+    }
+
+  }
+
+  let q = _clone(p);
+  yield* Guiseppe2DAsync( q,
+                          alpha3_0,
+                          beta );
+
+  q = _add( p, _add(alpha3_0, _sub(beta, d_beta)) );
+  yield* Guiseppe2DAsync( q,
+                          alpha3_1,
+                          _neg(beta) );
+
+  q = _add( p, _add(alpha3_0, alpha3_1) );
+  yield* Guiseppe2DAsync( q,
+                          alpha3_2,
+                          beta );
+
+  return;
+}
+
+
+function Guiseppe2D(width, height) {
+  let p = [0,0,0],
+      alpha = [width,0,0],
+      beta = [0,height,0];
+
+  let pnt = [];
+
+  let g2xy = Guiseppe2DAsync(p, alpha, beta);
+  for (let hv = g2xy.next() ; !hv.done ; hv = g2xy.next()) {
+    let v = hv.value;
+    pnt.push( [v[0], v[1]] );
+  }
+
+  return pnt;
+}
+
+
+//--------------------------
+//                  _       
+//  _ __ ___   __ _(_)_ __  
+// | '_ ` _ \ / _` | | '_ \ 
+// | | | | | | (_| | | | | |
+// |_| |_| |_|\__,_|_|_| |_|
+//--------------------------
+
+
 var OP_LIST = [
   "xy", "xyz", "xyzp",
   "xy2d", "d2xy",
   "xyz2d", "d2xyz",
 
   "xyz2da", "d2xyza",
-  "xy2da", "d2xya"
+  "xy2da", "d2xya",
+
+  "guiseppe2d"
 ];
 
 
@@ -2391,6 +2581,15 @@ function _main(argv) {
 
     }
 
+    else if (op == "guiseppe2d") {
+
+      let p = Guiseppe2D(w,h);
+      for (let i=0; i<p.length; i++) {
+        console.log(p[i][0],p[i][1]);
+      }
+
+    }
+
   }
 }
 
@@ -2412,6 +2611,9 @@ if (typeof module !== "undefined") {
 
   module.exports["Gilbert3DAdapt_d2xyz"] = Gilbert3DAdapt_d2xyz;
   module.exports["Gilbert3DAdapt_xyz2d"] = Gilbert3DAdapt_xyz2d;
+
+  module.exports["Guiseppe2DAsync"] = Guiseppe2DAsync;
+  module.exports["Guiseppe2D"] = Guiseppe2D;
 
   module.exports["ADAPT_METHOD"] = GILBERT_ADAPT_METHOD;
 }
