@@ -2365,6 +2365,244 @@ function *Guiseppe2DAsync(p, alpha, beta) {
   return;
 }
 
+function *Guiseppe3DAsync_base(p, alpha, beta, gamma) {
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
+
+  if (a == 1) { yield* Guiseppe2DAsync(p, beta, gamma); return; }
+  if (b == 1) { yield* Guiseppe2DAsync(p, alpha, gamma); return; }
+  if (g == 1) { yield* Guiseppe2DAsync(p, alpha, beta); return; }
+
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+  let d_gamma = _delta(gamma);
+
+  let s = a + b + g;
+
+  // 3x3x3
+  //
+  if (s == 9) {
+
+    let u = _clone(p);
+    yield* Guiseppe2DAsync(u, beta, gamma);
+
+    u = _add(p, _add( _add( _sub(beta, d_beta), _sub(gamma, d_gamma) ), d_alpha ) );
+    yield* Guiseppe2DAsync(u, _neg(beta), _neg(gamma));
+
+    u = _add(p, _mul(2, d_alpha));
+    yield* Guiseppe2DAsync(u, beta, gamma);
+
+    return;
+  }
+
+  // 3x3x2, 3x2x3, 2x3x3
+  //
+  if (s == 8) {
+
+    let sched = [
+      [0,0,0], [1,0,0], [1,0,1], [0,0,1], [0,0,2], [1,0,2],
+      [1,1,2], [0,1,2], [0,1,1], [1,1,1], [1,1,0], [0,1,0],
+      [0,2,0], [1,2,0], [1,2,1], [0,2,1], [0,2,2], [1,2,2]
+    ];
+
+    // force alpha to be the len 2 vector
+    //
+    if (b == 2) {
+      let _v = alpha;
+      alpha = beta;
+      beta = _v;
+
+      let _d = d_alpha;
+      d_alpha = d_beta;
+      d_beta = _d;
+    }
+
+    else if (g == 2) {
+      let _v = alpha;
+      alpha = gamma;
+      gamma = _v;
+
+      let _d = d_alpha;
+      d_alpha = d_gamma;
+      d_gamma = _d;
+    }
+
+
+    let u = _clone(p);
+    for (let i=0; i<sched.length; i++) {
+      u = _add(p, _add( _mul(sched[i][0], d_alpha), _add( _mul(sched[i][1], d_beta), _mul(sched[i][2], d_gamma) ) ) );
+      yield u;
+    }
+
+    return;
+  }
+
+  // s == 7 (2x2x3, 2x3x2, 3x2x2) only condition that remains
+  //
+  let sched = [
+    [0,0,0], [0,0,1], [0,1,1], [0,1,0],
+    [1,1,0], [1,1,1], [1,0,1], [1,0,0],
+    [2,0,0], [2,0,1], [2,1,0], [2,1,1]
+  ];
+
+  // shuffle around so alpha is the length 3 dimension
+  //
+
+  if (b == 3) {
+    let _v = alpha;
+    alpha = beta;
+    beta = _v;
+
+    let _d = d_alpha;
+    d_alpha = d_beta;
+    d_beta = _d;
+  }
+
+  else if (g == 3) {
+    let _v = alpha;
+    alpha = gamma;
+    gamma = _v;
+
+    let _d = d_alpha;
+    d_alpha = d_gamma;
+    d_gamma = _d;
+  }
+
+  let u = _clone(p);
+  for (let i=0; i<sched.length; i++) {
+    u = _add(p, _add( _mul(sched[i][0], d_alpha), _add( _mul(sched[i][1], d_beta), _mul(sched[i][2], d_gamma) ) ) );
+    yield u;
+  }
+
+}
+
+// we assume point starts at p and ends at
+// diagonal (alpha + beta + gamma).
+//
+function *Guiseppe3DAsync(p, alpha, beta, gamma) {
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
+  _vprint("#Guiseppe3dasync: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma);
+
+  if (a == 1) { yield* Guiseppe2DAsync(p, beta, gamma); return; }
+  if (b == 1) { yield* Guiseppe2DAsync(p, alpha, gamma); return; }
+  if (g == 1) { yield* Guiseppe2DAsync(p, alpha, beta); return; }
+
+  if ((a <= 3) && (b <= 3) && (g <= 3)) {
+    yield* Guiseppe3DAsync_base(p, alpha, beta, gamma);
+    return;
+  }
+
+  // Wwap to make alpha prime subdivision axis.
+  // Recalculate size.
+  //
+  if      ((b >= a) && (b >= g)) { let u = alpha; alpha = beta;  beta = u;  }
+  else if ((g >= a) && (g >= b)) { let u = alpha; alpha = gamma; gamma = u; }
+  a = _abs(alpha);
+  b = _abs(beta);
+  g = _abs(gamma);
+
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+  let d_gamma = _delta(gamma);
+
+  let alpha3_0 = _divq(alpha, 3);
+  let alpha3_1 = _div2( _sub( alpha, alpha3_0 ) );
+  let alpha3_2 = _sub( alpha, _add(alpha3_0, alpha3_1) );
+
+  let a3_0 = _abs(alpha3_0);
+  let a3_1 = _abs(alpha3_1);
+  let a3_2 = _abs(alpha3_2);
+
+  let path_parity0 = (a3_0 + b + g) % 2;
+  let path_parity1 = (a3_1 + b + g) % 2;
+  let path_parity2 = (a3_2 + b + g) % 2;
+
+  let cuboid_parity0 = (a3_0 * b * g) % 2;
+  let cuboid_parity1 = (a3_1 * b * g) % 2;
+  let cuboid_parity2 = (a3_2 * b * g) % 2;
+
+  _vprint("#  path_parity:", path_parity0, path_parity1, path_parity2,
+    "cuboid_parity:", cuboid_parity0, cuboid_parity1, cuboid_parity2);
+
+  // fix parity for first and secnd subdivided
+  // surface, leaving the top surface to absorb
+  // the notch, if present.
+  //
+  if (path_parity0 != cuboid_parity0) {
+    alpha3_0 = _add(alpha3_0, d_alpha);
+    alpha3_1 = _sub(alpha3_1, d_alpha);
+
+    a3_0 = _abs(alpha3_0);
+    a3_1 = _abs(alpha3_1);
+
+    path_parity0 = (a3_0 + b + g) % 2;
+    path_parity1 = (a3_1 + b + g) % 2;
+
+    cuboid_parity0 = (a3_0 * b * g) % 2;
+    cuboid_parity1 = (a3_1 * b * g) % 2;
+  }
+
+  if (path_parity1 != cuboid_parity1) {
+    alpha3_1 = _add(alpha3_1, d_alpha);
+    alpha3_2 = _sub(alpha3_2, d_alpha);
+
+    a3_1 = _abs(alpha3_1);
+    a3_2 = _abs(alpha3_2);
+
+    path_parity1 = (a3_1 + b + g) % 2;
+    path_parity2 = (a3_2 + b + g) % 2;
+
+    cuboid_parity1 = (a3_1 * b * g) % 2;
+    cuboid_parity2 = (a3_2 * b * g) % 2;
+  }
+
+  _vprint("#  >>Guiseppe3dasync: alpha3[]:", alpha3_0, alpha3_1, alpha3_2);
+
+  if ( a3_1 == 0 ) {
+
+    let q = _clone(p);
+    yield* Gilbert3DAsync( q,
+                           alpha3_0,
+                           beta,
+                           gamma );
+
+    q = _add( p, alpha3_0 );
+    yield* Guiseppe3DAsync( q,
+                            alpha3_2,
+                            beta,
+                            gamma );
+
+
+    return;
+  }
+
+
+  let q = _clone(p);
+  yield* Guiseppe3DAsync( q,
+                          alpha3_0,
+                          beta,
+                          gamma );
+
+  q = _add( p, _add( alpha3_0, _add( _sub(beta, d_beta), _sub(gamma, d_gamma)) ) );
+  yield* Guiseppe3DAsync( q,
+                          alpha3_1,
+                          _neg(beta),
+                          _neg(gamma) );
+
+  q = _add( p,_add(alpha3_0, alpha3_1) );
+  yield* Guiseppe3DAsync( q,
+                          alpha3_2,
+                          beta,
+                          gamma );
+
+  return;
+}
+
 
 function Guiseppe2D(width, height) {
   let p = [0,0,0],
@@ -2377,6 +2615,23 @@ function Guiseppe2D(width, height) {
   for (let hv = g2xy.next() ; !hv.done ; hv = g2xy.next()) {
     let v = hv.value;
     pnt.push( [v[0], v[1]] );
+  }
+
+  return pnt;
+}
+
+function Guiseppe3D(width, height,depth) {
+  let p = [0,0,0],
+      alpha = [width,0,0],
+      beta = [0,height,0],
+      gamma = [0,0,depth] ;
+
+  let pnt = [];
+
+  let g2xyz = Guiseppe3DAsync(p, alpha, beta, gamma);
+  for (let hv = g2xyz.next() ; !hv.done ; hv = g2xyz.next()) {
+    let v = hv.value;
+    pnt.push( [v[0], v[1],v[2]] );
   }
 
   return pnt;
@@ -2400,7 +2655,8 @@ var OP_LIST = [
   "xyz2da", "d2xyza",
   "xy2da", "d2xya",
 
-  "guiseppe2d"
+  "guiseppe2d",
+  "guiseppe3d"
 ];
 
 
@@ -2590,6 +2846,15 @@ function _main(argv) {
 
     }
 
+    else if (op == "guiseppe3d") {
+
+      let p = Guiseppe3D(w,h,d);
+      for (let i=0; i<p.length; i++) {
+        console.log(p[i][0],p[i][1], p[i][2]);
+      }
+
+    }
+
   }
 }
 
@@ -2614,6 +2879,9 @@ if (typeof module !== "undefined") {
 
   module.exports["Guiseppe2DAsync"] = Guiseppe2DAsync;
   module.exports["Guiseppe2D"] = Guiseppe2D;
+
+  module.exports["Guiseppe3DAsync"] = Guiseppe3DAsync;
+  module.exports["Guiseppe3D"] = Guiseppe3D;
 
   module.exports["ADAPT_METHOD"] = GILBERT_ADAPT_METHOD;
 }
