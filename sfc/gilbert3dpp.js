@@ -2381,6 +2381,8 @@ function *Guiseppe3DAsync_base(p, alpha, beta, gamma) {
 
   let s = a + b + g;
 
+  _vprint("#  guisepped3dasync_base: s:", s);
+
   // 3x3x3
   //
   if (s == 9) {
@@ -2439,36 +2441,54 @@ function *Guiseppe3DAsync_base(p, alpha, beta, gamma) {
     return;
   }
 
-  // s == 7 (2x2x3, 2x3x2, 3x2x2) only condition that remains
-  //
+  else if (s == 7) {
+
+    // s == 7 (2x2x3, 2x3x2, 3x2x2) only condition that remains
+    //
+    let sched = [
+      [0,0,0], [0,0,1], [0,1,1], [0,1,0],
+      [1,1,0], [1,1,1], [1,0,1], [1,0,0],
+      [2,0,0], [2,0,1], [2,1,0], [2,1,1]
+    ];
+
+    // shuffle around so alpha is the length 3 dimension
+    //
+
+    if (b == 3) {
+      let _v = alpha;
+      alpha = beta;
+      beta = _v;
+
+      let _d = d_alpha;
+      d_alpha = d_beta;
+      d_beta = _d;
+    }
+
+    else if (g == 3) {
+      let _v = alpha;
+      alpha = gamma;
+      gamma = _v;
+
+      let _d = d_alpha;
+      d_alpha = d_gamma;
+      d_gamma = _d;
+    }
+
+    let u = _clone(p);
+    for (let i=0; i<sched.length; i++) {
+      u = _add(p, _add( _mul(sched[i][0], d_alpha), _add( _mul(sched[i][1], d_beta), _mul(sched[i][2], d_gamma) ) ) );
+      yield u;
+    }
+
+    return;
+  }
+
+  // s == 6 (2x2x2)
+  
   let sched = [
-    [0,0,0], [0,0,1], [0,1,1], [0,1,0],
-    [1,1,0], [1,1,1], [1,0,1], [1,0,0],
-    [2,0,0], [2,0,1], [2,1,0], [2,1,1]
+    [0,0,0], [0,1,0], [0,1,1], [0,0,1],
+    [1,0,1], [1,0,0], [1,1,0], [1,1,1]
   ];
-
-  // shuffle around so alpha is the length 3 dimension
-  //
-
-  if (b == 3) {
-    let _v = alpha;
-    alpha = beta;
-    beta = _v;
-
-    let _d = d_alpha;
-    d_alpha = d_beta;
-    d_beta = _d;
-  }
-
-  else if (g == 3) {
-    let _v = alpha;
-    alpha = gamma;
-    gamma = _v;
-
-    let _d = d_alpha;
-    d_alpha = d_gamma;
-    d_gamma = _d;
-  }
 
   let u = _clone(p);
   for (let i=0; i<sched.length; i++) {

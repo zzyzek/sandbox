@@ -1,0 +1,25 @@
+#!/bin/bash
+
+GUISEPPE2D=''
+GUISEPPE3D=1
+
+
+if [[ $GUISEPPE2D ]] ; then
+  for w in `seq 2 13` ; do
+    for h in `seq 2 13` ; do
+      node gilbert3dpp.js guiseppe2d $w $h | ./gilbert-check-curve verbose notch-parity=diag
+    done
+  done
+fi
+
+if [[ $GUISEPPE3D ]] ; then
+
+  for d in `seq 2 13` ; do
+    for w in `seq 2 13` ; do
+      for h in `seq 2 13` ; do
+        node gilbert3dpp.js guiseppe3d $w $h $d | ./gilbert-check-curve verbose notch-parity=diag
+      done
+    done
+  done
+
+fi
