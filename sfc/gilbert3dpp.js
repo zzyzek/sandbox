@@ -2212,13 +2212,13 @@ function Gilbert2D(w,h) {
 }
 
 
-//---------------------------
-//                  _        
-//  ___ _ __   __ _| | _____ 
-// / __| '_ \ / _` | |/ / _ \
-// \__ \ | | | (_| |   <  __/
-// |___/_| |_|\__,_|_|\_\___|
-//---------------------------
+//--------------------------------------//
+//            _                         //
+//  __ _ _  _(_)___ ___ _ __ _ __  ___  //
+// / _` | || | (_-</ -_) '_ \ '_ \/ -_) //
+// \__, |\_,_|_/__/\___| .__/ .__/\___| //
+// |___/               |_|  |_|         //
+//--------------------------------------//
 
 function *Guiseppe2DAsync_line(p, alpha, beta) {
   let a = _abs(alpha);
@@ -2517,7 +2517,7 @@ function *Guiseppe3DAsync(p, alpha, beta, gamma) {
     return;
   }
 
-  // Wwap to make alpha prime subdivision axis.
+  // Swap to make alpha prime subdivision axis.
   // Recalculate size.
   //
   if      ((b >= a) && (b >= g)) { let u = alpha; alpha = beta;  beta = u;  }
@@ -2657,6 +2657,195 @@ function Guiseppe3D(width, height,depth) {
   return pnt;
 }
 
+
+//--------------------------//
+//  _ __  ___ ___ _ _ _  _  //
+// | '_ \/ -_) _ \ ' \ || | //
+// | .__/\___\___/_||_\_, | //
+// |_|                |__/  //
+//--------------------------//
+
+// WIP!!!!!
+// WIP!!!!!
+// WIP!!!!!
+// WIP!!!!!
+
+/*
+ * abg | |a|+|b|-1 | |a|+|b|+|g| | |a|.|b|.|g| | P | D |
+ * -----------------------------------------------------
+ * 000 |    1      |      0      |      0      | x |   |
+ * 001 |    1      |      1      |      0      | x | x |
+ * 010 |    0      |      1      |      0      |   | x |
+ * 011 |    0      |      0      |      0      |   |   |
+ * 100 |    0      |      1      |      0      |   | x |
+ * 101 |    0      |      0      |      0      |   |   |
+ * 110 |    1      |      0      |      0      | x |   |
+ * 111 |    1      |      1      |      1      |   |   |
+ *
+ *
+ * -> ______@_____________
+ *   /     /      /      /|
+ *  /------------------o/ |
+ *  | a_2 | a_ 1 | a_0 | /
+ *  o------------@------/
+ *
+ *  o - start/end point
+ *  @ - intermediate points
+ *
+ *  Guiseppe for a_2 a_1, Peony for a_0
+ *
+ *  abg | a_2 | a_1 |  a_0    |
+ *  ---------------------------
+ *  000 |  0  |  0  |   0 (x) |
+ *  001 |  1  |  1  |   0 (x) |
+ *  010 |  1  |  1  |   1     |
+ *  011 |  0  |  0  |   0     |
+ *  100 |  0  |  0  |   1     |
+ *  101 |  1  |  1  |   1     |
+ *  110 |  1  |  1  |   1 (x) |
+ *  111 |  0  |  0  |   1     |
+ *
+ *  I think the edge cases are when:
+ *
+ *  |alpha| = 2 (|beta| = 2)
+ *  |alpha| = 4 (|beta| = 2,3,4)
+ *  |alpha| = 3 (|beta| = 2,3)
+ *
+ *  We choose |alpha| >= |beta|.
+ *  When |alpha| even, alpha_{1,2,3} split into
+ *   000 or 110, for |alpha| = 6 -> 222, 114,
+ *   leaving |alpha| = 4 and 2 to handle.
+ *  When |alpha| odd, alpha_{1,2,3} split into
+ *   001, 111, for |alpha| = 5 -> 221, 113,
+ *   leaving |alpha| = 3.
+ *
+ *
+ */
+
+// we assume point starts at p and ends at
+// plane diagonal (alpha + beta).
+//
+function *Peony3DAsync(p, alpha, beta, gamma) {
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
+  _vprint("#Peony3dasync: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma);
+
+  if (a == 1) { yield* Guiseppe2DAsync(p, beta, gamma); return; }
+  if (b == 1) { yield* Guiseppe2DAsync(p, alpha, gamma); return; }
+  if (g == 1) { yield* Guiseppe2DAsync(p, alpha, beta); return; }
+
+  if ((a <= 5) &&
+      (b <= 5) &&
+      (g <= 5)) {
+    yield *Peony3DAsync_base(p, alpha, beta, gamma);
+    return;
+  }
+
+  // make alpha largest of alpha, beta
+  //
+  if (a < b) { let u = alpha; alpha = beta; beta = alpha; }
+  a = _abs(alpha);
+  b = _abs(beta);
+  g = _abs(gamma);
+
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+  let d_gamma = _delta(gamma);
+
+  // special case handling where we get too close
+  // to the base case and the remainder calculations don't
+  // work, so we have to do 'by hand'.
+  //
+  // Some things to remember:
+  //
+  //   |alpha| = max(|alpha|, |beta|)
+  //
+  //   2 <= |beta| <= |alpha|
+  //
+  //   |gamma| > 1
+  //
+  if (a <= 4) {
+
+    // I think we can get away with hard coding only the following configurations:
+    //
+    // 2x2x2, 2x2x3
+    // 4x2x2, 4x3x3
+    // 4x4x2, 4x4x3 4x4x5, 4x4x6(?)
+    //
+    // 3x2x2, 3x3x3
+    //
+    if ((a == 2) || (a == 4)) {
+
+      let alpha2 = _div2( alpha );
+      let gamma3 = _divq( gamma, 3 );
+      let g3 = _abs(gamma3);
+
+      // force gamma3 (lower base 'height') odd
+      //
+      if ((g3%2) == 0) {
+        gamma3 = _add(gamma3, d_gamma);
+        g3 = _abs(gamma3);
+      }
+
+      let u = _clone(p);
+      yield* Peony3DAsync( u, beta, gamma3, alpha2 );
+
+      u = _add(p, gamma3, _sub(beta, d_beta) );
+      yield* Peony3DAsync( u, _neg(alpha), beta, _sub(gamma, gamma3) );
+
+      u = _add(p, _sub(gamma3, d_gamma), _sub(alpha, d_alpha) );
+      yield* Peony3DAsync( u, beta, _neg(gamma3), _neg(alpha2) );
+
+      return;
+    }
+
+    else if (a == 3) {
+    }
+
+    return;
+  }
+
+  // alpha_0 on *right* end
+  //
+
+  let alpha3_0 = _divq(alpha, 3);
+  let alpha3_1 = _div2( _sub( alpha, alpha3_0 ) );
+  let alpha3_2 = _sub( alpha, _add(alpha3_0, alpha3_1) );
+
+  let a3_0 = _abs(alpha3_0);
+  let a3_1 = _abs(alpha3_1);
+  let a3_2 = _abs(alpha3_2);
+
+  let path_parity0 = (a3_0 + b + 1) % 2;
+  let path_parity1 = (a3_1 + b + g) % 2;
+  let path_parity2 = (a3_2 + b + g) % 2;
+
+  let cuboid_parity0 = (a3_0 * b * g) % 2;
+  let cuboid_parity1 = (a3_1 * b * g) % 2;
+  let cuboid_parity2 = (a3_2 * b * g) % 2;
+
+
+
+}
+
+function Peony3D(width, height, depth) {
+  let p = [0,0,0],
+      alpha = [width,0,0],
+      beta = [0,height,0],
+      gamma = [0,0,depth] ;
+
+  let pnt = [];
+
+  let g2xyz = Peony3DAsync(p, alpha, beta, gamma);
+  for (let hv = g2xyz.next() ; !hv.done ; hv = g2xyz.next()) {
+    let v = hv.value;
+    pnt.push( [v[0], v[1],v[2]] );
+  }
+
+  return pnt;
+}
 
 //--------------------------
 //                  _       
