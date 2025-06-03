@@ -2722,14 +2722,21 @@ function Guiseppe3D(width, height,depth) {
  *
  */
 
+// We have to think about it but for right now, I
+// think the base case should handle all cuboids with
+// each length <= 6.
+// This might be too broad but everything above that
+// can be handled by the bulk recursion.
+// 
 
 // !2x2x2, !2x2x3
 // !4x2x2, 4x3x3
 // 4x4x2, 4x4x3 4x4x5, 4x4x6(?)
 //
 // !3x2x2, !3x3x3
-
+//
 function *Peony3DAsync_base(p, alpha, beta, gamma) {
+
   //ok
   let sched2x2x2 = [
     [0,0,0], [1,0,0], [1,0,1], [0,0,1],
@@ -2754,14 +2761,6 @@ function *Peony3DAsync_base(p, alpha, beta, gamma) {
     [1,1,0], [1,1,1], [1,0,1], [1,0,0],
     [2,0,0], [2,0,1], [2,1,1], [2,1,0]
   ];
-
-  /*
-  let sched2x3x2 = [
-    [0,0,0], [0,0,1], [0,1,1], [0,1,0],
-    [1,1,0], [1,1,1], [1,0,1], [1,0,0],
-    [2,0,0], [2,0,1], [2,1,1], [2,1,0]
-  ];
-  */
 
   //ok
   let sched3x3x3 = [
@@ -2798,17 +2797,46 @@ function *Peony3DAsync_base(p, alpha, beta, gamma) {
     b = _abs(beta);
   }
 
+  if ( ((a == 4) && (b == 3) && (g == 2)) ||
+       ((a == 4) && (b == 3) && (g == 3)) ||
+       ((a == 4) && (b == 4) && (g == 3)) ||
+       ((a == 4) && (b == 4) && (g == 5)) ) {
+    //NOT FUNCTIONAL 
+    /*
+    yield* Guiseppe2DAsync(u, beta, gamma);
+    yield* Guiseppe2DAsync(u, -beta, -gamma)
+    yield* Peony3DAsync(u, alpha2, beta, gamma);
+    return;
+    */
+  }
+
+  else if ( ((a == 4) && (b == 4) && (g == 2)) ||
+            ((a == 4) && (b == 4) && (g == 4)) ||
+            ((a == 4) && (b == 4) && (g == 6)) ) {
+    //NOT FUNCTIONAL
+    /*
+    yield* Guiseppe3DAsync(u, alpha2, beta, gamma);
+    yield* Peony3DAsync(u, beta, alpha2, gamma);
+    return;
+    */
+  }
+
   let d_alpha = _delta(alpha);
   let d_beta  = _delta(beta);
   let d_gamma = _delta(gamma);
 
   let sched = sched2x2x2;
 
-  if      ( (a==2) && (b==2) && (g==2) ) { sched = sched2x2x2; }
+  // 2x2x4 will be split along gamma and reduce to other base cases
+  // 2x3x2 reduces to 3x2x2 since we force alpha axis to be largest
+  // 2x4x2 reduces to 4x2x2 since we force alpha axis to be largest
+  //
 
+  if      ( (a==2) && (b==2) && (g==2) ) { sched = sched2x2x2; }
   else if ( (a==2) && (b==2) && (g==3) ) { sched = sched2x2x3; }
-  //else if ( (a==2) && (b==3) && (g==2) ) { sched = sched2x3x2; }
+
   else if ( (a==3) && (b==2) && (g==2) ) { sched = sched3x2x2; }
+
   else if ( (a==3) && (b==3) && (g==3) ) { sched = sched3x3x3; }
 
   else if ( (a==4) && (b==2) && (g==2) ) { sched = sched4x2x2; }
