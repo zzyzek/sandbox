@@ -2722,6 +2722,163 @@ function Guiseppe3D(width, height,depth) {
  *
  */
 
+
+// !2x2x2, !2x2x3
+// !4x2x2, 4x3x3
+// 4x4x2, 4x4x3 4x4x5, 4x4x6(?)
+//
+// !3x2x2, !3x3x3
+
+function *Peony3DAsync_base(p, alpha, beta, gamma) {
+  //ok
+  let sched2x2x2 = [
+    [0,0,0], [1,0,0], [1,0,1], [0,0,1],
+    [0,1,1], [1,1,1],
+    [0,1,0], [1,1,0]
+  ];
+
+  //ok
+  let sched2x2x3 = [
+    [0,0,0], [1,0,0],
+    [1,0,1], [0,0,1],
+    [0,0,2], [1,0,2],
+
+    [1,1,2], [0,1,2],
+    [0,1,1], [1,1,1],
+    [0,1,0], [1,1,0]
+  ];
+
+  //ok
+  let sched3x2x2 = [
+    [0,0,0], [0,0,1], [0,1,1], [0,1,0],
+    [1,1,0], [1,1,1], [1,0,1], [1,0,0],
+    [2,0,0], [2,0,1], [2,1,1], [2,1,0]
+  ];
+
+  /*
+  let sched2x3x2 = [
+    [0,0,0], [0,0,1], [0,1,1], [0,1,0],
+    [1,1,0], [1,1,1], [1,0,1], [1,0,0],
+    [2,0,0], [2,0,1], [2,1,1], [2,1,0]
+  ];
+  */
+
+  //ok
+  let sched3x3x3 = [
+    [0,0,0], [0,1,0], [0,2,0],
+    [0,2,1], [0,1,1], [0,0,1],
+    [0,0,2], [0,1,2], [0,2,2],
+
+    [1,2,2], [1,2,1], [1,2,0],
+    [1,1,0], [1,1,1], [1,1,2],
+    [1,0,2], [1,0,1], [1,0,0],
+
+    [2,0,0], [2,0,1], [2,0,2],
+    [2,1,2], [2,2,2], [2,2,1],
+    [2,1,1], [2,1,0], [2,2,0]
+  ];
+
+  let sched4x2x2 = [
+    [0,0,0], [0,0,1], [0,1,1], [0,1,0],
+    [1,1,0], [1,0,0], [1,0,1], [1,1,1],
+    [2,1,1], [2,1,0], [2,0,0], [2,0,1],
+    [3,0,1], [3,0,0], [3,1,1], [3,1,0]
+  ];
+
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
+  if (a < b) {
+    let u = alpha;
+    alpha = beta;
+    beta = u;
+
+    a = _abs(alpha);
+    b = _abs(beta);
+  }
+
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+  let d_gamma = _delta(gamma);
+
+  let sched = sched2x2x2;
+
+  if      ( (a==2) && (b==2) && (g==2) ) { sched = sched2x2x2; }
+
+  else if ( (a==2) && (b==2) && (g==3) ) { sched = sched2x2x3; }
+  //else if ( (a==2) && (b==3) && (g==2) ) { sched = sched2x3x2; }
+  else if ( (a==3) && (b==2) && (g==2) ) { sched = sched3x2x2; }
+  else if ( (a==3) && (b==3) && (g==3) ) { sched = sched3x3x3; }
+
+  else if ( (a==4) && (b==2) && (g==2) ) { sched = sched4x2x2; }
+
+
+  for (let i=0; i<sched.length; i++) {
+    let u = _add( p,
+                  _add( _mul(sched[i][0], d_alpha),
+                        _add( _mul(sched[i][1], d_beta),
+                              _mul(sched[i][2], d_gamma) ) ) );
+    yield u;
+  }
+
+  return;
+}
+
+function _test() {
+
+  let test_type = '3x3x3';
+  test_type = '2x2x3';
+  test_type = '2x2x2';
+  test_type = '3x2x2';
+  test_type = '2x3x2';
+  test_type = '4x2x2';
+
+  let p = [0,0,0],
+      alpha = [2,0,0],
+      beta = [0,2,0],
+      gamma = [0,0,2];
+
+  if (test_type == '2x2x2') {
+    //...
+  }
+
+  if (test_type == '2x2x3') {
+    gamma = [0,0,3];
+  }
+
+  else if (test_type == '3x2x2') {
+    alpha = [3,0,0];
+  }
+
+  else if (test_type == '2x3x2') {
+    beta = [0,3,0];
+  }
+
+  else if (test_type == '3x3x3') {
+    alpha = [3,0,0];
+    beta = [0,3,0];
+    gamma = [0,0,3];
+  }
+
+  else if (test_type == '4x2x2') {
+    alpha = [4,0,0];
+    beta = [0,2,0];
+    gamma = [0,0,2];
+  }
+
+  let p3xyz = Peony3DAsync_base(p, alpha, beta, gamma);
+  for (let hv = p3xyz.next() ; !hv.done ; hv = p3xyz.next()) {
+    let v = hv.value;
+    console.log(v[0], v[1], v[2]);
+  }
+  return;
+}
+
+_test();
+process.exit();
+
+
 // we assume point starts at p and ends at
 // plane diagonal (alpha + beta).
 //
