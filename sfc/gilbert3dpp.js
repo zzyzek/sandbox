@@ -281,6 +281,15 @@ function _add(u,v) {
   return [ u[0]+v[0], u[1]+v[1], u[2]+v[2] ];
 }
 
+function _vadd() {
+  if (arguments.length == 0) { return []; }
+  let u = _clone(arguments[0]);
+  for (let i=1; i<arguments.length; i++) {
+    u = _add(u, arguments[i]);
+  }
+  return u;
+}
+
 function _sub(u,v) {
   if ((u.length == 2) || (v.length == 2)) {
     return [ u[0]-v[0], u[1]-v[1] ];
@@ -2722,6 +2731,50 @@ function Guiseppe3D(width, height,depth) {
  *
  */
 
+
+function *Peony3DAsync_2x2(p, alpha, beta, gamma) {
+
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+  let d_gamma = _delta(gamma);
+
+  let g_idx = 0;
+
+  let u = _clone(p);
+
+  yield u;
+  u = _add(u, d_alpha);
+  yield u;
+
+  for (g_idx=1; g_idx<g; g_idx++) {
+    u = _add(u, d_gamma);
+
+    yield u;
+
+    u = ( (g_idx%2) ? _add(u, _neg(d_alpha)) : _add(u, d_alpha) );
+    yield u;
+  }
+
+  u = _add(u, d_beta);
+  for ( ; g_idx > 1; g_idx--) {
+    yield u;
+
+    u = ( (g_idx%2) ? _add(u, _neg(d_alpha)) : _add(u, d_alpha) );
+    yield u;
+
+    u = _sub(u, d_gamma);
+  }
+
+  yield _add(p, d_beta);
+  yield _add(p, _add(d_alpha, d_beta));
+  return;
+}
+
+
 // We have to think about it but for right now, I
 // think the base case should handle all cuboids with
 // each length <= 6.
@@ -2762,6 +2815,22 @@ function *Peony3DAsync_base(p, alpha, beta, gamma) {
     [2,0,0], [2,0,1], [2,1,1], [2,1,0]
   ];
 
+  let sched3x2x3 = [
+    [0,0,0], [1,0,0], [2,0,0],
+    [2,0,1], [1,0,1], [0,0,1],
+    [0,0,2], [1,0,2], [2,0,2],
+
+    [2,1,2], [1,1,2], [0,1,2],
+    [0,1,1], [0,1,0], [1,1,0],
+    [1,1,1], [2,1,1], [2,1,0]
+  ];
+
+  let sched3x3x2 = [
+    [0,0,0], [0,0,1], [1,0,1], [1,0,0], [2,0,0], [2,0,1],
+    [2,1,1], [2,1,0], [1,1,0], [1,1,1], [0,1,1], [0,1,0],
+    [0,2,0], [0,2,1], [1,2,1], [1,2,0], [2,2,1], [2,2,0]
+  ];
+
   //ok
   let sched3x3x3 = [
     [0,0,0], [0,1,0], [0,2,0],
@@ -2784,6 +2853,13 @@ function *Peony3DAsync_base(p, alpha, beta, gamma) {
     [3,0,1], [3,0,0], [3,1,1], [3,1,0]
   ];
 
+  let sched4x2x3 = [
+    [0,0,0], [0,0,1], [0,1,1], [0,1,0],
+    [1,1,0], [1,0,0], [1,0,1], [1,1,1],
+    [2,1,1], [2,1,0], [2,0,0], [2,0,1],
+    [3,0,1], [3,0,0], [3,1,1], [3,1,0]
+  ];
+
   let a = _abs(alpha);
   let b = _abs(beta);
   let g = _abs(gamma);
@@ -2797,33 +2873,97 @@ function *Peony3DAsync_base(p, alpha, beta, gamma) {
     b = _abs(beta);
   }
 
-  if ( ((a == 4) && (b == 3) && (g == 2)) ||
-       ((a == 4) && (b == 3) && (g == 3)) ||
-       ((a == 4) && (b == 4) && (g == 3)) ||
-       ((a == 4) && (b == 4) && (g == 5)) ) {
-    //NOT FUNCTIONAL 
-    /*
-    yield* Guiseppe2DAsync(u, beta, gamma);
-    yield* Guiseppe2DAsync(u, -beta, -gamma)
-    yield* Peony3DAsync(u, alpha2, beta, gamma);
+  _vprint("#peony3dasync_base: alpha:", alpha, "beta:", beta, "gamma:", gamma, "(", a,b,g,")");
+
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+  let d_gamma = _delta(gamma);
+
+
+  if (0) {
+  }
+
+  /*
+  else if ((a == 2) && (b == 2) && (g == 2)) {
+    sched = sched2x2x2;
+  }
+  else if ((a == 2) && (b == 2) && (g == 3)) {
+    sched = sched2x2x3;
+  }
+  */
+
+  // g >= 4
+  //
+  else if ((a == 2) && (b == 2)) {
+
+    let g_idx = 0;
+
+    let u = _clone(p);
+
+    yield u;
+    u = _add(u, d_alpha);
+    yield u;
+
+    for (g_idx=1; g_idx<g; g_idx++) {
+      u = _add(u, d_gamma);
+
+      yield u;
+
+      u = ( (g_idx%2) ? _add(u, _neg(d_alpha)) : _add(u, d_alpha) );
+      yield u;
+    }
+
+    u = _add(u, d_beta);
+    for ( ; g_idx > 1; g_idx--) {
+      yield u;
+
+      u = ( (g_idx%2) ? _add(u, _neg(d_alpha)) : _add(u, d_alpha) );
+      yield u;
+
+      u = _sub(u, d_gamma);
+    }
+
+    yield _add(p, d_beta);
+    yield _add(p, _add(d_alpha, d_beta));
     return;
-    */
+  }
+
+  // wip
+  else if ( ((a == 4) && (b == 2) && (g == 3)) ||
+            ((a == 4) && (b == 2) && (g == 5)) ||
+            ((a == 4) && (b == 3) && (g == 2)) ||
+            ((a == 4) && (b == 3) && (g == 3)) ||
+            ((a == 4) && (b == 4) && (g == 3)) ||
+            ((a == 4) && (b == 4) && (g == 5)) ) {
+
+    let u = _clone(p);
+    yield* Guiseppe2DAsync(u, beta, gamma);
+
+    u = _add( p,
+              _add(
+                    _add( _sub(beta, d_beta),
+                          _sub(gamma, d_gamma)),
+                    d_alpha) );
+    yield* Guiseppe2DAsync(u, _neg(beta), _neg(gamma))
+
+    u = _add(p, _mul(2, d_alpha));
+    yield* Peony3DAsync(u, _div2(alpha), beta, gamma);
+
+    return;
   }
 
   else if ( ((a == 4) && (b == 4) && (g == 2)) ||
             ((a == 4) && (b == 4) && (g == 4)) ||
             ((a == 4) && (b == 4) && (g == 6)) ) {
+
     //NOT FUNCTIONAL
     /*
     yield* Guiseppe3DAsync(u, alpha2, beta, gamma);
     yield* Peony3DAsync(u, beta, alpha2, gamma);
     return;
     */
-  }
 
-  let d_alpha = _delta(alpha);
-  let d_beta  = _delta(beta);
-  let d_gamma = _delta(gamma);
+  }
 
   let sched = sched2x2x2;
 
@@ -2836,7 +2976,9 @@ function *Peony3DAsync_base(p, alpha, beta, gamma) {
   else if ( (a==2) && (b==2) && (g==3) ) { sched = sched2x2x3; }
 
   else if ( (a==3) && (b==2) && (g==2) ) { sched = sched3x2x2; }
+  else if ( (a==3) && (b==2) && (g==3) ) { sched = sched3x2x3; }
 
+  else if ( (a==3) && (b==3) && (g==2) ) { sched = sched3x3x2; }
   else if ( (a==3) && (b==3) && (g==3) ) { sched = sched3x3x3; }
 
   else if ( (a==4) && (b==2) && (g==2) ) { sched = sched4x2x2; }
@@ -2853,7 +2995,26 @@ function *Peony3DAsync_base(p, alpha, beta, gamma) {
   return;
 }
 
-function _test() {
+function Peony3D(width, height, depth) {
+  let p = [0,0,0],
+      alpha = [width,0,0],
+      beta = [0,height,0],
+      gamma = [0,0,depth];
+
+  let pnt = [];
+
+  let p3xyz = Peony3DAsync(p, alpha, beta, gamma);
+  for (let hv = p3xyz.next() ; !hv.done ; hv = p3xyz.next()) {
+    let v = hv.value;
+    pnt.push(v);
+  }
+
+  return pnt;
+}
+
+function _test_peony() {
+
+  VERBOSE = 1;
 
   let test_type = '3x3x3';
   test_type = '2x2x3';
@@ -2862,11 +3023,23 @@ function _test() {
   test_type = '2x3x2';
   test_type = '4x2x2';
 
+  test_type = '4x3x2';
+  test_type = '4x3x3';
+  test_type = '4x4x3';
+  test_type = '4x4x5';
+
   let p = [0,0,0],
       alpha = [2,0,0],
       beta = [0,2,0],
       gamma = [0,0,2];
 
+  let tok = test_type.split("x");
+  alpha[0] = parseInt(tok[0]);
+  beta[1] = parseInt(tok[1]);
+  gamma[2] = parseInt(tok[2]);
+
+
+  /*
   if (test_type == '2x2x2') {
     //...
   }
@@ -2894,6 +3067,7 @@ function _test() {
     beta = [0,2,0];
     gamma = [0,0,2];
   }
+  */
 
   let p3xyz = Peony3DAsync_base(p, alpha, beta, gamma);
   for (let hv = p3xyz.next() ; !hv.done ; hv = p3xyz.next()) {
@@ -2903,8 +3077,8 @@ function _test() {
   return;
 }
 
-_test();
-process.exit();
+//_test();
+//process.exit();
 
 
 // we assume point starts at p and ends at
@@ -2917,10 +3091,56 @@ function *Peony3DAsync(p, alpha, beta, gamma) {
 
   _vprint("#Peony3dasync: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma);
 
-  if (a == 1) { yield* Guiseppe2DAsync(p, beta, gamma); return; }
-  if (b == 1) { yield* Guiseppe2DAsync(p, alpha, gamma); return; }
+  //if (a == 1) { yield* Guiseppe2DAsync(p, beta, gamma); return; }
+  //if (b == 1) { yield* Guiseppe2DAsync(p, alpha, gamma); return; }
+  if (a == 1) { yield* Gilbert2DAsync(p, beta, gamma); return; }
+  if (b == 1) { yield* Gilbert2DAsync(p, alpha, gamma); return; }
   if (g == 1) { yield* Guiseppe2DAsync(p, alpha, beta); return; }
 
+  // make alpha largest of alpha, beta
+  //
+  if (a < b) { let u = alpha; alpha = beta; beta = u; }
+  a = _abs(alpha);
+  b = _abs(beta);
+  g = _abs(gamma);
+
+  _vprint("#  -->Peony3dasync: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma);
+
+  if (a < 3) {
+    yield* Peony3DAsync_2x2(p, alpha, beta, gamma);
+    return;
+  }
+
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+  let d_gamma = _delta(gamma);
+
+  let alpha3_1 = _divq(alpha, 3);
+  let alpha3_0 = _sub(alpha, alpha3_1);
+
+  let a3_1 = _abs(alpha3_1);
+  let a3_0 = _abs(alpha3_0);
+
+  if (a3_0%2) {
+    alpha3_1 = _add(alpha3_1, d_alpha);
+    alpha3_0 = _sub(alpha3_0, d_alpha);
+
+    a3_1 = _abs(alpha3_1);
+    a3_0 = _abs(alpha3_0);
+  }
+
+  let u = _clone(p);
+  yield* Gilbert3DAsync(u, alpha3_0, beta, gamma);
+
+  u = _add(p, alpha3_0);
+  yield* Peony3DAsync(u, alpha3_1, beta, gamma);
+
+
+  return;
+
+}
+
+function peony_cruft() {
   if ((a <= 5) &&
       (b <= 5) &&
       (g <= 5)) {
@@ -2928,16 +3148,24 @@ function *Peony3DAsync(p, alpha, beta, gamma) {
     return;
   }
 
-  // make alpha largest of alpha, beta
-  //
-  if (a < b) { let u = alpha; alpha = beta; beta = alpha; }
-  a = _abs(alpha);
-  b = _abs(beta);
-  g = _abs(gamma);
 
-  let d_alpha = _delta(alpha);
-  let d_beta  = _delta(beta);
-  let d_gamma = _delta(gamma);
+
+
+  // min(|beta|, |alpha|)  > (3/2) |gamma|
+  //
+  if ((3*b) > (2*g)) {
+    let alpha2 = _div2(alpha);
+    let gamma3 = _divq(gamma, 3);
+
+    let u = _clone(p);
+    yield* Guiseppe3DAsync( u, alpha2, beta, gamma3 );
+
+    u = _vadd(p, _sub(alpha2, d_alpha), _sub(beta, d_beta), d_gamma );
+    yield* Peony3DAsync( u, alpha, _neg(beta), _sub(gamma, gamma3) );
+
+    u = _vadd(p, alpha2, _sub(beta, d_beta), _sub(gamma3, d_gamma) );
+    yield* Guiseppe3DAsync( u, _neg(alpha2), _neg(beta), _neg(gamma3) );
+  }
 
   // special case handling where we get too close
   // to the base case and the remainder calculations don't
@@ -3050,7 +3278,10 @@ var OP_LIST = [
   "xy2da", "d2xya",
 
   "guiseppe2d",
-  "guiseppe3d"
+  "guiseppe3d",
+
+  "peony3d",
+  "peony_test"
 ];
 
 
@@ -3243,6 +3474,21 @@ function _main(argv) {
     else if (op == "guiseppe3d") {
 
       let p = Guiseppe3D(w,h,d);
+      for (let i=0; i<p.length; i++) {
+        console.log(p[i][0],p[i][1], p[i][2]);
+      }
+
+    }
+
+    else if (op == "peony_test") {
+
+      _test_peony();
+
+    }
+
+    else if (op == "peony3d") {
+
+      let p = Peony3D(w,h,d);
       for (let i=0; i<p.length; i++) {
         console.log(p[i][0],p[i][1], p[i][2]);
       }
