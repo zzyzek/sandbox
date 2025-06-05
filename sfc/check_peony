@@ -1,0 +1,20 @@
+#!/bin/bash
+
+
+N=8
+for z in `seq 2 $N` ; do
+  for y in `seq 2 $N` ; do
+    for x in `seq 2 $N` ; do
+
+      echo -n "### $x $y $z  "
+      node gilbert3dpp.js peony3d.v $x $y $z | \
+        ./gilbert-check-curve verbose notch-parity=diag_ab
+
+    done
+
+  done
+done
+
+
+
+
