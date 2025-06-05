@@ -268,9 +268,7 @@ function _sgn(v) {
 }
 
 function _neg(v) {
-  if (v.length==2) {
-    return [-v[0], -v[1]];
-  }
+  if (v.length==2) { return [-v[0], -v[1]]; }
   return [ -v[0], -v[1], -v[2] ];
 }
 
@@ -281,12 +279,16 @@ function _add(u,v) {
   return [ u[0]+v[0], u[1]+v[1], u[2]+v[2] ];
 }
 
-function _vadd() {
+function v_add() {
   if (arguments.length == 0) { return []; }
   let u = _clone(arguments[0]);
+
   for (let i=1; i<arguments.length; i++) {
-    u = _add(u, arguments[i]);
+    let v = arguments[i];
+    let m = Math.min( u.length, v.length );
+    for (let j=0; j<m; j++) { u[j] += v[j]; }
   }
+
   return u;
 }
 
@@ -2666,6 +2668,194 @@ function Guiseppe3D(width, height,depth) {
   return pnt;
 }
 
+//-------------------------------
+//  _    _ _    _                
+// | |_ (_) |__(_)___ __ _  _ ___
+// | ' \| | '_ \ (_-</ _| || (_-<
+// |_||_|_|_.__/_/__/\__|\_,_/__/
+//-------------------------------
+
+function *Hibiscus3DAsync(p, alpha, beta, gamma) {
+  let a = _abs(alpha);
+  let b = _abs(beta);
+  let g = _abs(gamma);
+
+  _vprint("#Hibiscus3dasync: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma);
+
+  if (a == 1) { yield* Gilbert2DAsync(p, beta, gamma); return; }
+  if (b == 1) { yield* Gilbert2DAsync(p, alpha, gamma); return; }
+  if (g == 1) { yield* Gilbert2DAsync(p, alpha, beta); return; }
+
+  let d_alpha = _delta(alpha);
+  let d_beta  = _delta(beta);
+  let d_gamma = _delta(gamma);
+
+  if ( (a==2) && (b==2) && (g==2) ) {
+    yield* Hilbert2x2x2Async(p, alpha, beta, gamma);
+    return;
+  }
+
+  let alpha2 = _div2(alpha);
+  let beta2 = _div2(beta);
+  let gamma2 = _div2(gamma);
+
+  let a2 = _abs(alpha2);
+  let b2 = _abs(beta2);
+  let g2 = _abs(gamma2);
+
+  let parity_alpha  = a%2;
+  let parity_beta   = b%2;
+  let parity_gamma  = g%2;
+
+  // eccentric cases
+  //
+
+  // S0
+  //
+  if ( ((3*a) > (5*b)) ||
+       ((3*a) > (5*g)) ) {
+
+    if ((a > 2) && ((a2 % 2) == 1)) {
+      alpha2 = _add(alpha2, d_alpha);
+      a2 = _abs(alpha2);
+    }
+
+    _vprint("#  Hibiscus3dasync.S0: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma, "alpha2:", alpha2);
+
+    let u = _clone(p);
+    yield* Hibiscus3DAsync( u, alpha2, beta, gamma );
+
+    u = v_add(p, alpha2);
+    yield* Hibiscus3DAsync( u, _sub(alpha, alpha2), beta, gamma );
+
+    return;
+  }
+
+  // S2
+  //
+  if ( ((2*b) >= (3*g)) ||
+       ((2*b) >= (3*a)) ) {
+
+    let beta3 = _divq(beta, 3);
+    let b3 = _abs(beta3);
+
+    if ((a > 2) && ((a2 % 2) == 1)) {
+      alpha2 = _add(alpha2, d_alpha);
+      a2 = _abs(alpha2);
+    }
+
+    _vprint("#  Hibiscus3dasync.S1: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma, "alpha2:", alpha2, "beta3:", beta3);
+
+    if ((b > 2) && ((b3 % 2) == 1)) {
+      beta3 = _add(beta3, d_beta);
+      b3 = _abs(beta3);
+    }
+
+    let u = _clone(p);
+    yield *Hibiscus3DAsync( u, beta3, gamma, alpha2 );
+
+    u = v_add(p, beta3);
+    yield *Hibiscus3DAsync( u, alpha, _sub(beta, beta3), gamma );
+
+    u = v_add( p, _sub(alpha, d_alpha), _sub(beta3, d_beta) );
+    yield *Hibiscus3DAsync( u, _neg(beta3), gamma, _sub(alpha2, alpha) );
+
+
+    return;
+  }
+
+  // S1
+  //
+  if ((2*g) >= (3*b)) {
+
+    let gamma3 = _divq(gamma, 3);
+    let g3 = _abs(gamma3);
+
+    if ((a > 2) && ((a2 % 2) == 1)) {
+      alpha2 = v_add(alpha2, d_alpha);
+      a2 = _abs(alpha2);
+    }
+
+    if ((g > 2) && ((g3 % 2) == 1)) {
+      gamma3 = v_add(gamma3, d_gamma);
+      g3 = _abs(gamma3);
+    }
+
+    _vprint("#  Hibiscus3dasync.S2: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma, "alpha2:", alpha2, "gamma3:", gamma3);
+
+    let u = _clone(p);
+    yield *Hibiscus3DAsync( u, gamma3, alpha2, beta );
+
+    u = v_add(p, gamma3);
+    yield *Hibiscus3DAsync( u, alpha, beta, _sub(gamma, gamma3) );
+
+    u = v_add( p, _sub(alpha, d_alpha), _sub(gamma3, d_gamma) );
+    yield *Hibiscus3DAsync( u, _neg(gamma3), _sub(alpha2, alpha), beta );
+
+    return;
+  }
+
+
+  if ( (b > 2) &&
+       ((b2%2) != parity_gamma) ) {
+    beta2 = _add(beta2, d_beta);
+    b2 = _abs(beta2);
+  }
+
+  if ( (g > 2) &&
+       ((g2%2) == parity_beta) ) {
+    gamma2 = _add(gamma2, d_gamma);
+    g2 = _abs(gamma2);
+  }
+
+  _vprint("#  Hibiscus3dasync: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma, "a2:", alpha2, "b2:", beta2, "g2:", gamma2);
+
+  _vprint("#    Hibiscus3dasync.A");
+
+  let u = _clone(p);
+  yield* Peony3DAsync(u, beta, gamma2, alpha2);
+
+  _vprint("#    Hibiscus3dasync.B");
+
+  u = v_add(p, _sub(beta, d_beta), gamma2);
+  yield* Peony3DAsync(u, _sub(gamma, gamma2), _sub(beta2, beta), alpha2);
+
+  _vprint("#    Hibiscus3dasync.C");
+
+  u = v_add(p, _sub(beta2, d_beta), _sub(gamma, d_gamma));
+  yield* Hibiscus3DAsync(u, alpha, _neg(beta2), _sub(gamma2, gamma));
+
+  _vprint("#    Hibiscus3dasync.D");
+
+  u = v_add(p, _sub(alpha, d_alpha), beta2, _sub(gamma, d_gamma));
+  yield* Peony3DAsync(u, _sub(beta, beta2), _sub(gamma2, gamma), _sub(alpha2, alpha));
+
+  _vprint("#    Hibiscus3dasync.E");
+
+  u = v_add(p, _sub(alpha, d_alpha), _sub(beta, d_beta), _sub(gamma2, d_gamma));
+  yield* Peony3DAsync(u, _neg(beta), _neg(gamma2), _sub(alpha2, alpha));
+
+  return;
+}
+
+function Hibiscus3D(width, height, depth) {
+  let p = [0,0,0],
+      alpha = [width,0,0],
+      beta = [0,height,0],
+      gamma = [0,0,depth];
+
+  let pnt = [];
+
+  let p3xyz = Hibiscus3DAsync(p, alpha, beta, gamma);
+  for (let hv = p3xyz.next() ; !hv.done ; hv = p3xyz.next()) {
+    let v = hv.value;
+    pnt.push(v);
+  }
+
+  return pnt;
+}
+
+
 
 //--------------------------//
 //  _ __  ___ ___ _ _ _  _  //
@@ -2673,11 +2863,6 @@ function Guiseppe3D(width, height,depth) {
 // | .__/\___\___/_||_\_, | //
 // |_|                |__/  //
 //--------------------------//
-
-// WIP!!!!!
-// WIP!!!!!
-// WIP!!!!!
-// WIP!!!!!
 
 /*
  * abg | |a|+|b|-1 | |a|+|b|+|g| | |a|.|b|.|g| | P | D |
@@ -2731,7 +2916,29 @@ function Guiseppe3D(width, height,depth) {
  *
  */
 
+/* UPDATE:
+ *
+ * Simplified to:
+ *
+ * -> ____________________
+ *   /            /      /|
+ *  /-------------------/ o
+ *  |    a_1     | a_0 | /
+ *  o------------@------/
+ *
+ *  using the Gilbert curve (alpha endpoints) for o-@ (a_1)
+ *  and recursive Peony for @-0 (a_0).
+ *
+ *  We force a_1 even and let a_0 soak the remainder.
+ *
+ *  alpha is swapped for beta if its intiially smaller.
+ *
+ *
+ */
 
+
+// base case for when |alpha| == 2 and |beta| == 2
+//
 function *Peony3DAsync_2x2(p, alpha, beta, gamma) {
 
   let a = _abs(alpha);
@@ -2775,226 +2982,6 @@ function *Peony3DAsync_2x2(p, alpha, beta, gamma) {
 }
 
 
-// We have to think about it but for right now, I
-// think the base case should handle all cuboids with
-// each length <= 6.
-// This might be too broad but everything above that
-// can be handled by the bulk recursion.
-// 
-
-// !2x2x2, !2x2x3
-// !4x2x2, 4x3x3
-// 4x4x2, 4x4x3 4x4x5, 4x4x6(?)
-//
-// !3x2x2, !3x3x3
-//
-function *Peony3DAsync_base(p, alpha, beta, gamma) {
-
-  //ok
-  let sched2x2x2 = [
-    [0,0,0], [1,0,0], [1,0,1], [0,0,1],
-    [0,1,1], [1,1,1],
-    [0,1,0], [1,1,0]
-  ];
-
-  //ok
-  let sched2x2x3 = [
-    [0,0,0], [1,0,0],
-    [1,0,1], [0,0,1],
-    [0,0,2], [1,0,2],
-
-    [1,1,2], [0,1,2],
-    [0,1,1], [1,1,1],
-    [0,1,0], [1,1,0]
-  ];
-
-  //ok
-  let sched3x2x2 = [
-    [0,0,0], [0,0,1], [0,1,1], [0,1,0],
-    [1,1,0], [1,1,1], [1,0,1], [1,0,0],
-    [2,0,0], [2,0,1], [2,1,1], [2,1,0]
-  ];
-
-  let sched3x2x3 = [
-    [0,0,0], [1,0,0], [2,0,0],
-    [2,0,1], [1,0,1], [0,0,1],
-    [0,0,2], [1,0,2], [2,0,2],
-
-    [2,1,2], [1,1,2], [0,1,2],
-    [0,1,1], [0,1,0], [1,1,0],
-    [1,1,1], [2,1,1], [2,1,0]
-  ];
-
-  let sched3x3x2 = [
-    [0,0,0], [0,0,1], [1,0,1], [1,0,0], [2,0,0], [2,0,1],
-    [2,1,1], [2,1,0], [1,1,0], [1,1,1], [0,1,1], [0,1,0],
-    [0,2,0], [0,2,1], [1,2,1], [1,2,0], [2,2,1], [2,2,0]
-  ];
-
-  //ok
-  let sched3x3x3 = [
-    [0,0,0], [0,1,0], [0,2,0],
-    [0,2,1], [0,1,1], [0,0,1],
-    [0,0,2], [0,1,2], [0,2,2],
-
-    [1,2,2], [1,2,1], [1,2,0],
-    [1,1,0], [1,1,1], [1,1,2],
-    [1,0,2], [1,0,1], [1,0,0],
-
-    [2,0,0], [2,0,1], [2,0,2],
-    [2,1,2], [2,2,2], [2,2,1],
-    [2,1,1], [2,1,0], [2,2,0]
-  ];
-
-  let sched4x2x2 = [
-    [0,0,0], [0,0,1], [0,1,1], [0,1,0],
-    [1,1,0], [1,0,0], [1,0,1], [1,1,1],
-    [2,1,1], [2,1,0], [2,0,0], [2,0,1],
-    [3,0,1], [3,0,0], [3,1,1], [3,1,0]
-  ];
-
-  let sched4x2x3 = [
-    [0,0,0], [0,0,1], [0,1,1], [0,1,0],
-    [1,1,0], [1,0,0], [1,0,1], [1,1,1],
-    [2,1,1], [2,1,0], [2,0,0], [2,0,1],
-    [3,0,1], [3,0,0], [3,1,1], [3,1,0]
-  ];
-
-  let a = _abs(alpha);
-  let b = _abs(beta);
-  let g = _abs(gamma);
-
-  if (a < b) {
-    let u = alpha;
-    alpha = beta;
-    beta = u;
-
-    a = _abs(alpha);
-    b = _abs(beta);
-  }
-
-  _vprint("#peony3dasync_base: alpha:", alpha, "beta:", beta, "gamma:", gamma, "(", a,b,g,")");
-
-  let d_alpha = _delta(alpha);
-  let d_beta  = _delta(beta);
-  let d_gamma = _delta(gamma);
-
-
-  if (0) {
-  }
-
-  /*
-  else if ((a == 2) && (b == 2) && (g == 2)) {
-    sched = sched2x2x2;
-  }
-  else if ((a == 2) && (b == 2) && (g == 3)) {
-    sched = sched2x2x3;
-  }
-  */
-
-  // g >= 4
-  //
-  else if ((a == 2) && (b == 2)) {
-
-    let g_idx = 0;
-
-    let u = _clone(p);
-
-    yield u;
-    u = _add(u, d_alpha);
-    yield u;
-
-    for (g_idx=1; g_idx<g; g_idx++) {
-      u = _add(u, d_gamma);
-
-      yield u;
-
-      u = ( (g_idx%2) ? _add(u, _neg(d_alpha)) : _add(u, d_alpha) );
-      yield u;
-    }
-
-    u = _add(u, d_beta);
-    for ( ; g_idx > 1; g_idx--) {
-      yield u;
-
-      u = ( (g_idx%2) ? _add(u, _neg(d_alpha)) : _add(u, d_alpha) );
-      yield u;
-
-      u = _sub(u, d_gamma);
-    }
-
-    yield _add(p, d_beta);
-    yield _add(p, _add(d_alpha, d_beta));
-    return;
-  }
-
-  // wip
-  else if ( ((a == 4) && (b == 2) && (g == 3)) ||
-            ((a == 4) && (b == 2) && (g == 5)) ||
-            ((a == 4) && (b == 3) && (g == 2)) ||
-            ((a == 4) && (b == 3) && (g == 3)) ||
-            ((a == 4) && (b == 4) && (g == 3)) ||
-            ((a == 4) && (b == 4) && (g == 5)) ) {
-
-    let u = _clone(p);
-    yield* Guiseppe2DAsync(u, beta, gamma);
-
-    u = _add( p,
-              _add(
-                    _add( _sub(beta, d_beta),
-                          _sub(gamma, d_gamma)),
-                    d_alpha) );
-    yield* Guiseppe2DAsync(u, _neg(beta), _neg(gamma))
-
-    u = _add(p, _mul(2, d_alpha));
-    yield* Peony3DAsync(u, _div2(alpha), beta, gamma);
-
-    return;
-  }
-
-  else if ( ((a == 4) && (b == 4) && (g == 2)) ||
-            ((a == 4) && (b == 4) && (g == 4)) ||
-            ((a == 4) && (b == 4) && (g == 6)) ) {
-
-    //NOT FUNCTIONAL
-    /*
-    yield* Guiseppe3DAsync(u, alpha2, beta, gamma);
-    yield* Peony3DAsync(u, beta, alpha2, gamma);
-    return;
-    */
-
-  }
-
-  let sched = sched2x2x2;
-
-  // 2x2x4 will be split along gamma and reduce to other base cases
-  // 2x3x2 reduces to 3x2x2 since we force alpha axis to be largest
-  // 2x4x2 reduces to 4x2x2 since we force alpha axis to be largest
-  //
-
-  if      ( (a==2) && (b==2) && (g==2) ) { sched = sched2x2x2; }
-  else if ( (a==2) && (b==2) && (g==3) ) { sched = sched2x2x3; }
-
-  else if ( (a==3) && (b==2) && (g==2) ) { sched = sched3x2x2; }
-  else if ( (a==3) && (b==2) && (g==3) ) { sched = sched3x2x3; }
-
-  else if ( (a==3) && (b==3) && (g==2) ) { sched = sched3x3x2; }
-  else if ( (a==3) && (b==3) && (g==3) ) { sched = sched3x3x3; }
-
-  else if ( (a==4) && (b==2) && (g==2) ) { sched = sched4x2x2; }
-
-
-  for (let i=0; i<sched.length; i++) {
-    let u = _add( p,
-                  _add( _mul(sched[i][0], d_alpha),
-                        _add( _mul(sched[i][1], d_beta),
-                              _mul(sched[i][2], d_gamma) ) ) );
-    yield u;
-  }
-
-  return;
-}
-
 function Peony3D(width, height, depth) {
   let p = [0,0,0],
       alpha = [width,0,0],
@@ -3011,74 +2998,6 @@ function Peony3D(width, height, depth) {
 
   return pnt;
 }
-
-function _test_peony() {
-
-  VERBOSE = 1;
-
-  let test_type = '3x3x3';
-  test_type = '2x2x3';
-  test_type = '2x2x2';
-  test_type = '3x2x2';
-  test_type = '2x3x2';
-  test_type = '4x2x2';
-
-  test_type = '4x3x2';
-  test_type = '4x3x3';
-  test_type = '4x4x3';
-  test_type = '4x4x5';
-
-  let p = [0,0,0],
-      alpha = [2,0,0],
-      beta = [0,2,0],
-      gamma = [0,0,2];
-
-  let tok = test_type.split("x");
-  alpha[0] = parseInt(tok[0]);
-  beta[1] = parseInt(tok[1]);
-  gamma[2] = parseInt(tok[2]);
-
-
-  /*
-  if (test_type == '2x2x2') {
-    //...
-  }
-
-  if (test_type == '2x2x3') {
-    gamma = [0,0,3];
-  }
-
-  else if (test_type == '3x2x2') {
-    alpha = [3,0,0];
-  }
-
-  else if (test_type == '2x3x2') {
-    beta = [0,3,0];
-  }
-
-  else if (test_type == '3x3x3') {
-    alpha = [3,0,0];
-    beta = [0,3,0];
-    gamma = [0,0,3];
-  }
-
-  else if (test_type == '4x2x2') {
-    alpha = [4,0,0];
-    beta = [0,2,0];
-    gamma = [0,0,2];
-  }
-  */
-
-  let p3xyz = Peony3DAsync_base(p, alpha, beta, gamma);
-  for (let hv = p3xyz.next() ; !hv.done ; hv = p3xyz.next()) {
-    let v = hv.value;
-    console.log(v[0], v[1], v[2]);
-  }
-  return;
-}
-
-//_test();
-//process.exit();
 
 
 // we assume point starts at p and ends at
@@ -3160,10 +3079,10 @@ function peony_cruft() {
     let u = _clone(p);
     yield* Guiseppe3DAsync( u, alpha2, beta, gamma3 );
 
-    u = _vadd(p, _sub(alpha2, d_alpha), _sub(beta, d_beta), d_gamma );
+    u = v_add(p, _sub(alpha2, d_alpha), _sub(beta, d_beta), d_gamma );
     yield* Peony3DAsync( u, alpha, _neg(beta), _sub(gamma, gamma3) );
 
-    u = _vadd(p, alpha2, _sub(beta, d_beta), _sub(gamma3, d_gamma) );
+    u = v_add(p, alpha2, _sub(beta, d_beta), _sub(gamma3, d_gamma) );
     yield* Guiseppe3DAsync( u, _neg(alpha2), _neg(beta), _neg(gamma3) );
   }
 
@@ -3281,7 +3200,9 @@ var OP_LIST = [
   "guiseppe3d",
 
   "peony3d",
-  "peony_test"
+  "peony_test",
+
+  "hibiscus3d"
 ];
 
 
@@ -3489,6 +3410,15 @@ function _main(argv) {
     else if (op == "peony3d") {
 
       let p = Peony3D(w,h,d);
+      for (let i=0; i<p.length; i++) {
+        console.log(p[i][0],p[i][1], p[i][2]);
+      }
+
+    }
+
+    else if (op == "hibiscus3d") {
+
+      let p = Hibiscus3D(w,h,d);
       for (let i=0; i<p.length; i++) {
         console.log(p[i][0],p[i][1], p[i][2]);
       }

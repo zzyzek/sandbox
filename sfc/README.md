@@ -94,3 +94,4 @@ References
 * [The Performance of Space-Filling Curves for Dimension Reduction](https://people.csail.mit.edu/jaffer/CNS/PSFCDR)
 * [coherence](https://www.sciencedirect.com/science/article/abs/pii/B9780080507545500189)
 * [3d Hilbert curve without double length edges (SO)](https://math.stackexchange.com/questions/2411867/3d-hilbert-curve-without-double-length-edges)
+* [Murray Polygon Code](https://info.cs.st-andrews.ac.uk/student-handbook/school/jack-cole/murray-polygon-code.html) ((mu)ltiple - (ra)dix [link](https://info.cs.st-andrews.ac.uk/student-handbook/school/jack-cole/murray-polygon.html))
