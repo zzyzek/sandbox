@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-N=8
+N=13
 for z in `seq 2 $N` ; do
   for y in `seq 2 $N` ; do
     for x in `seq 2 $N` ; do

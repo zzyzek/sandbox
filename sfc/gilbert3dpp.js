@@ -2615,10 +2615,11 @@ function *Guiseppe3DAsync(p, alpha, beta, gamma) {
   if ( a3_1 == 0 ) {
 
     let q = v_clone(p);
-    yield* Gilbert3DAsync( q,
-                           alpha3_0,
-                           beta,
-                           gamma );
+    //yield* Gilbert3DAsync( q,
+    yield* Hibiscus3DAsync( q,
+                            alpha3_0,
+                            beta,
+                            gamma );
 
     q = v_add( p, alpha3_0 );
     yield* Guiseppe3DAsync( q,
@@ -3067,116 +3068,14 @@ function *Peony3DAsync(p, alpha, beta, gamma) {
   }
 
   let u = v_clone(p);
-  yield* Gilbert3DAsync(u, alpha3_0, beta, gamma);
+  //yield* Gilbert3DAsync(u, alpha3_0, beta, gamma);
+  yield* Hibiscus3DAsync(u, alpha3_0, beta, gamma);
 
   u = v_add(p, alpha3_0);
   yield* Peony3DAsync(u, alpha3_1, beta, gamma);
 
 
   return;
-
-}
-
-function peony_cruft() {
-  if ((a <= 5) &&
-      (b <= 5) &&
-      (g <= 5)) {
-    yield *Peony3DAsync_base(p, alpha, beta, gamma);
-    return;
-  }
-
-
-
-
-  // min(|beta|, |alpha|)  > (3/2) |gamma|
-  //
-  if ((3*b) > (2*g)) {
-    let alpha2 = v_div2(alpha);
-    let gamma3 = v_divq(gamma, 3);
-
-    let u = v_clone(p);
-    yield* Guiseppe3DAsync( u, alpha2, beta, gamma3 );
-
-    u = v_add(p, v_sub(alpha2, d_alpha), v_sub(beta, d_beta), d_gamma );
-    yield* Peony3DAsync( u, alpha, v_neg(beta), v_sub(gamma, gamma3) );
-
-    u = v_add(p, alpha2, v_sub(beta, d_beta), v_sub(gamma3, d_gamma) );
-    yield* Guiseppe3DAsync( u, v_neg(alpha2), v_neg(beta), v_neg(gamma3) );
-  }
-
-  // special case handling where we get too close
-  // to the base case and the remainder calculations don't
-  // work, so we have to do 'by hand'.
-  //
-  // Some things to remember:
-  //
-  //   |alpha| = max(|alpha|, |beta|)
-  //
-  //   2 <= |beta| <= |alpha|
-  //
-  //   |gamma| > 1
-  //
-  if (a <= 4) {
-
-    // I think we can get away with hard coding only the following configurations:
-    //
-    // 2x2x2, 2x2x3
-    // 4x2x2, 4x3x3
-    // 4x4x2, 4x4x3 4x4x5, 4x4x6(?)
-    //
-    // 3x2x2, 3x3x3
-    //
-    if ((a == 2) || (a == 4)) {
-
-      let alpha2 = v_div2( alpha );
-      let gamma3 = v_divq( gamma, 3 );
-      let g3 = abs_sum_v(gamma3);
-
-      // force gamma3 (lower base 'height') odd
-      //
-      if ((g3%2) == 0) {
-        gamma3 = v_add(gamma3, d_gamma);
-        g3 = abs_sum_v(gamma3);
-      }
-
-      let u = v_clone(p);
-      yield* Peony3DAsync( u, beta, gamma3, alpha2 );
-
-      u = v_add(p, gamma3, v_sub(beta, d_beta) );
-      yield* Peony3DAsync( u, v_neg(alpha), beta, v_sub(gamma, gamma3) );
-
-      u = v_add(p, v_sub(gamma3, d_gamma), v_sub(alpha, d_alpha) );
-      yield* Peony3DAsync( u, beta, v_neg(gamma3), v_neg(alpha2) );
-
-      return;
-    }
-
-    else if (a == 3) {
-    }
-
-    return;
-  }
-
-  // alpha_0 on *right* end
-  //
-
-  let alpha3_0 = v_divq(alpha, 3);
-  let alpha3_1 = v_div2( v_sub( alpha, alpha3_0 ) );
-  let alpha3_2 = v_sub( alpha, v_add(alpha3_0, alpha3_1) );
-
-  let a3_0 = abs_sum_v(alpha3_0);
-  let a3_1 = abs_sum_v(alpha3_1);
-  let a3_2 = abs_sum_v(alpha3_2);
-
-  let path_parity0 = (a3_0 + b + 1) % 2;
-  let path_parity1 = (a3_1 + b + g) % 2;
-  let path_parity2 = (a3_2 + b + g) % 2;
-
-  let cuboid_parity0 = (a3_0 * b * g) % 2;
-  let cuboid_parity1 = (a3_1 * b * g) % 2;
-  let cuboid_parity2 = (a3_2 * b * g) % 2;
-
-
 
 }
 
@@ -3192,6 +3091,88 @@ function Peony3D(width, height, depth) {
   for (let hv = g2xyz.next() ; !hv.done ; hv = g2xyz.next()) {
     let v = hv.value;
     pnt.push( [v[0], v[1],v[2]] );
+  }
+
+  return pnt;
+}
+
+//-------------------------------------
+//  _        _ _     _                 
+// | |_  ___| | |___| |__  ___ _ _ ___ 
+// | ' \/ -_) | / -_) '_ \/ _ \ '_/ -_)
+// |_||_\___|_|_\___|_.__/\___/_| \___|
+//-------------------------------------
+
+
+// Generalized Moore curve (2d)
+//
+function *Hellebore2DAsync(p, alpha, beta) {
+
+  let a = abs_sum_v(alpha);
+  let b = abs_sum_v(beta);
+
+  let d_alpha = v_delta(alpha);
+  let d_beta = v_delta(beta);
+
+
+  let alpha2 = v_div2(alpha);
+  let beta2 = v_div2(beta);
+
+  let a2 = abs_sum_v(alpha2);
+  let b2 = abs_sum_v(beta2);
+
+  let a2_r = a - a2;
+  let b2_r = b - b2;
+
+  if ((a <= 2) && (b <= 2)) {
+    yield* Gilbert2DAsync( p, alpha, beta );
+
+    return;
+  }
+
+  if ( (a > 2) &&
+       ((a2_r % 2) == 0) ) {
+    alpha2 = v_add(alpha2, d_alpha);
+    a2++;
+    a2_r --;
+  }
+
+
+  if ( (b > 2) &&
+       ((b2_r % 2) == 0) ) {
+    beta2 = v_add(beta2, d_beta);
+    b2++;
+    b2_r--;
+  }
+
+  _vprint("#Hellebore2d: p:", p, "alpha:", alpha, "beta:", beta, "alpha2:", alpha2, "beta2:", beta2);
+
+  let u = v_add(p, v_sub(alpha2, d_alpha));
+  yield* Guiseppe2DAsync( u, v_neg(alpha2), beta2 );
+
+  u = v_add(p, beta2);
+  yield* Guiseppe2DAsync( u, alpha2, v_sub(beta, beta2) );
+
+  u = v_add(p, alpha2, v_sub(beta, d_beta));
+  yield* Guiseppe2DAsync( u, v_sub(alpha, alpha2), v_sub(beta2, beta) );
+
+  u = v_add(p, v_sub(alpha, d_alpha), v_sub(beta2, d_beta));
+  yield* Guiseppe2DAsync( u, v_sub(alpha2, alpha), v_neg(beta2) );
+
+  return;
+}
+
+function Hellebore2D(width, height) {
+  let p = [0,0,0],
+      alpha = [width,0,0],
+      beta = [0,height,0];
+
+  let pnt = [];
+
+  let g2xyz = Hellebore2DAsync(p, alpha, beta);
+  for (let hv = g2xyz.next() ; !hv.done ; hv = g2xyz.next()) {
+    let v = hv.value;
+    pnt.push( [v[0], v[1]] );
   }
 
   return pnt;
@@ -3220,7 +3201,11 @@ var OP_LIST = [
   "peony3d",
   "peony_test",
 
-  "hibiscus3d"
+  "hibiscus3d",
+
+  "hellebore2d",
+  "hellebore3d"
+
 ];
 
 
@@ -3439,6 +3424,15 @@ function _main(argv) {
       let p = Hibiscus3D(w,h,d);
       for (let i=0; i<p.length; i++) {
         console.log(p[i][0],p[i][1], p[i][2]);
+      }
+
+    }
+
+    else if (op == "hellebore2d") {
+
+      let p = Hellebore2D(w,h);
+      for (let i=0; i<p.length; i++) {
+        console.log(p[i][0],p[i][1]);
       }
 
     }
