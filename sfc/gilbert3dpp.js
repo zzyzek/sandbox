@@ -3103,6 +3103,94 @@ function Peony3D(width, height, depth) {
 // |_||_\___|_|_\___|_.__/\___/_| \___|
 //-------------------------------------
 
+// this subdivision method won't work
+//
+function *Hellebore3DAsync(p, alpha, beta, gamma) {
+  let a = abs_sum_v(alpha);
+  let b = abs_sum_v(beta);
+  let g = abs_sum_v(gamma);
+
+  let d_alpha = v_delta(alpha);
+  let d_beta = v_delta(beta);
+  let d_gamma = v_delta(gamma);
+
+
+  let alpha2 = v_div2(alpha);
+  let beta2 = v_div2(beta);
+  let gamma2 = v_div2(gamma);
+
+  let a2 = abs_sum_v(alpha2);
+  let b2 = abs_sum_v(beta2);
+  let g2 = abs_sum_v(gamma2);
+
+  let a2_r = a - a2;
+  let b2_r = b - b2;
+  let g2_r = g - g2;
+
+  if ((a <= 2) && (b <= 2) && (g <= 2)) {
+
+    _vprint("## H2x2x2: p:", p, "abg:", alpha, beta, gamma);
+
+    yield* Hibiscus3DAsync( p, alpha, beta, gamma );
+    return;
+  }
+
+  if ( (a > 2) &&
+       ((a2 % 2) == 0) ) {
+    alpha2 = v_add(alpha2, d_alpha);
+    a2++;
+  }
+
+  if ( (b > 2) &&
+       ((b2 % 2) == 0) ) {
+    beta2 = v_add(beta2, d_beta);
+    b2++;
+  }
+
+  if ( (g > 2) &&
+       ((g2 % 2) == 0) ) {
+    gamma2 = v_add(gamma2, d_gamma);
+    g2++;
+  }
+
+  let u = v_add( p, v_sub(alpha2, d_alpha), v_sub(beta2, d_beta) );
+  yield* Guiseppe3DAsync( u, v_neg(alpha2), v_neg(beta2), gamma2);
+
+  u = v_add( p, gamma2 );
+  yield* Guiseppe3DAsync( u, alpha2, beta2, v_sub(gamma, gamma2) );
+
+  u = v_add( p, v_sub(alpha2, d_alpha), beta2, v_sub(gamma, d_gamma) );
+  yield* Guiseppe3DAsync( u, v_neg(alpha2), v_sub(beta, beta2), v_sub(gamma2, gamma) );
+
+  u = v_add( p, v_sub(beta, d_beta), v_sub(gamma2, d_gamma) );
+  yield* Guiseppe3DAsync( u, alpha2, v_sub(beta2, beta), v_neg(gamma2) );
+
+  //---
+
+  yield [-1,-1,-1];
+
+  u = v_add( p, alpha2, beta2 );
+  yield* Guiseppe3DAsync( u, v_sub(alpha, alpha2), v_sub(beta, beta2), gamma2 );
+
+  yield [-1,-1,-1];
+
+  u = v_add( p, v_sub(alpha, d_alpha), v_sub(beta, d_beta), gamma2 );
+  yield* Guiseppe3DAsync( u, v_sub(alpha2, alpha), v_sub(beta2, beta), v_sub(gamma, gamma2) );
+
+  yield [-1,-1,-1];
+
+  u = v_add( p, alpha2, v_sub(beta2, d_beta), v_sub(gamma, d_gamma) );
+  yield* Guiseppe3DAsync( u, v_sub(gamma2, gamma), v_sub(alpha, alpha2), v_neg(beta2) );
+
+  u = v_add( p, v_sub(alpha, d_alpha), v_sub(gamma2, d_gamma) );
+  yield* Guiseppe3DAsync( u, v_sub(alpha2, alpha), beta2, v_neg(gamma2) );
+
+
+
+
+
+  return;
+}
 
 // Generalized Moore curve (2d)
 //
@@ -3121,28 +3209,21 @@ function *Hellebore2DAsync(p, alpha, beta) {
   let a2 = abs_sum_v(alpha2);
   let b2 = abs_sum_v(beta2);
 
-  let a2_r = a - a2;
-  let b2_r = b - b2;
-
   if ((a <= 2) && (b <= 2)) {
     yield* Gilbert2DAsync( p, alpha, beta );
-
     return;
   }
 
   if ( (a > 2) &&
-       ((a2_r % 2) == 0) ) {
+       ((a2 % 2) == 0) ) {
     alpha2 = v_add(alpha2, d_alpha);
     a2++;
-    a2_r --;
   }
 
-
   if ( (b > 2) &&
-       ((b2_r % 2) == 0) ) {
+       ((b2 % 2) == 0) ) {
     beta2 = v_add(beta2, d_beta);
     b2++;
-    b2_r--;
   }
 
   _vprint("#Hellebore2d: p:", p, "alpha:", alpha, "beta:", beta, "alpha2:", alpha2, "beta2:", beta2);
@@ -3173,6 +3254,23 @@ function Hellebore2D(width, height) {
   for (let hv = g2xyz.next() ; !hv.done ; hv = g2xyz.next()) {
     let v = hv.value;
     pnt.push( [v[0], v[1]] );
+  }
+
+  return pnt;
+}
+
+function Hellebore3D(width, height, depth) {
+  let p = [0,0,0],
+      alpha = [width,0,0],
+      beta = [0,height,0],
+      gamma = [0, 0, depth];
+
+  let pnt = [];
+
+  let g2xyz = Hellebore3DAsync(p, alpha, beta, gamma);
+  for (let hv = g2xyz.next() ; !hv.done ; hv = g2xyz.next()) {
+    let v = hv.value;
+    pnt.push( [v[0], v[1],v[2]] );
   }
 
   return pnt;
@@ -3433,6 +3531,18 @@ function _main(argv) {
       let p = Hellebore2D(w,h);
       for (let i=0; i<p.length; i++) {
         console.log(p[i][0],p[i][1]);
+      }
+
+    }
+
+    else if (op == "hellebore3d") {
+
+      let p = Hellebore3D(w,h,d);
+      for (let i=0; i<p.length; i++) {
+
+        if (p[i][0] < 0) { console.log("\n"); continue; }
+
+        console.log(p[i][0],p[i][1], p[i][2]);
       }
 
     }
