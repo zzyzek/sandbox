@@ -2615,7 +2615,6 @@ function *Guiseppe3DAsync(p, alpha, beta, gamma) {
   if ( a3_1 == 0 ) {
 
     let q = v_clone(p);
-    //yield* Gilbert3DAsync( q,
     yield* Hibiscus3DAsync( q,
                             alpha3_0,
                             beta,
@@ -2694,6 +2693,10 @@ function Guiseppe3D(width, height,depth) {
 // |_||_|_|_.__/_/__/\__|\_,_/__/
 //-------------------------------
 
+
+// start and end point are on alpha axis
+// ( p(0,0,0) -> q( |alpha|-1, 0, 0 )
+//
 function *Hibiscus3DAsync(p, alpha, beta, gamma) {
   let a = abs_sum_v(alpha);
   let b = abs_sum_v(beta);
@@ -3029,8 +3032,6 @@ function *Peony3DAsync(p, alpha, beta, gamma) {
 
   _vprint("#Peony3dasync: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma);
 
-  //if (a == 1) { yield* Guiseppe2DAsync(p, beta, gamma); return; }
-  //if (b == 1) { yield* Guiseppe2DAsync(p, alpha, gamma); return; }
   if (a == 1) { yield* Gilbert2DAsync(p, beta, gamma); return; }
   if (b == 1) { yield* Gilbert2DAsync(p, alpha, gamma); return; }
   if (g == 1) { yield* Guiseppe2DAsync(p, alpha, beta); return; }
@@ -3068,7 +3069,6 @@ function *Peony3DAsync(p, alpha, beta, gamma) {
   }
 
   let u = v_clone(p);
-  //yield* Gilbert3DAsync(u, alpha3_0, beta, gamma);
   yield* Hibiscus3DAsync(u, alpha3_0, beta, gamma);
 
   u = v_add(p, alpha3_0);
@@ -3096,12 +3096,301 @@ function Peony3D(width, height, depth) {
   return pnt;
 }
 
+//------------------------
+//        _ _  __     _ _ 
+//  _ __ (_) |/ _|___(_) |
+// | '  \| | |  _/ _ \ | |
+// |_|_|_|_|_|_| \___/_|_|
+//------------------------
+
+function *Milfoil2x2x2Async(p, alpha, beta, gamma) {
+  let xyz = v_clone(p);
+
+  let d_alpha = v_delta(alpha);
+  let d_beta  = v_delta(beta);
+  let d_gamma = v_delta(gamma);
+
+  yield [ xyz[0], xyz[1], xyz[2] ];
+
+  xyz = v_add(xyz, d_beta);
+  yield [ xyz[0], xyz[1], xyz[2] ];
+
+  xyz = v_add(xyz, d_gamma);
+  yield [ xyz[0], xyz[1], xyz[2] ];
+
+  xyz = v_add(xyz, v_neg(d_beta));
+  yield [ xyz[0], xyz[1], xyz[2] ];
+
+  xyz = v_add(xyz, d_alpha);
+  yield [ xyz[0], xyz[1], xyz[2] ];
+
+  xyz = v_add(xyz, v_neg(d_gamma));
+  yield [ xyz[0], xyz[1], xyz[2] ];
+
+  xyz = v_add(xyz, d_beta);
+  yield [ xyz[0], xyz[1], xyz[2] ];
+
+  xyz = v_add(xyz, d_gamma);
+  yield [ xyz[0], xyz[1], xyz[2] ];
+
+}
+
+// subdivision scheme:
+//
+// 2x1x1 (+z) 1x1x1 (-x) 1x2x1 (-z) 1x1x1 (+x) 1x1x2
+//
+//                ___o
+//               /  /|
+//            o_/__/ |
+//           /__|  | |
+//           |D | E|/
+//      ___   --o-- 
+//     /  /|
+//    / o/__
+//   /  /  /|
+//  /__o__/ o
+//  |C | B|/|
+//  |-----| |
+//  |  A  |/
+//  o-----
+//
+//
+// | a/b/g | A B C D E |  | a/b/g | A B C D E |
+// | ------------------|  |-------------------|
+// |   0   | 0 0 0 0 0 |  |   1   | 1 1 0 0 1 |
+// |   0   | 0 0 0 0 0 |  |   1   | 1 1 1 0 0 |
+// |   0   | 0 0 0 0 0 |  |   1   | 0 1 1 0 1 |
+// |       |           |  |                   |
+// |-------------------|  |-------------------|
+// |   0   | 0 1 1 1 1 |  |   1   | 1 1 0 0 1 |
+// |   0   | 1 1 0 1 1 |  |   1   | 0 0 1 1 1 |
+// |   1   | 0 1 1 0 1 |  |   0   | 1 1 1 1 0 |
+// | X     | x         |  |                   |
+// |-------------------|  |-------------------|
+// |   0   | 0 1 1 1 1 |  |   1   | 1 0 1 1 0 |
+// |   1   | 0 0 1 1 1 |  |   0   | 1 1 0 1 1 |
+// |   0   | 1 1 1 1 0 |  |   1   | 0 1 1 0 1 |
+// | X     | x         |  |                   |
+// |-------------------|  |-------------------|
+// |   1   | 1 1 0 0 1 |  |   0   | 0 1 1 1 1 |
+// |   0   | 1 1 0 1 1 |  |   1   | 1 1 1 0 0 |
+// |   0   | 1 1 1 1 0 |  |   1   | 1 0 0 1 1 |
+// | X     |     x     |  |                   |
+// |-------------------|  |-------------------|
+
+function *Milfoil3DAsync(p, alpha, beta, gamma) {
+
+  // 4*alpha + 2*beta + gamma
+  //
+  let parity_schedule = [
+    [0,0,0], [1,1,0], [1,0,1], [1,1,1],
+    [0,1,1], [1,1,0], [0,0,1], [0,1,0]
+  ]
+
+  let a = abs_sum_v(alpha);
+  let b = abs_sum_v(beta);
+  let g = abs_sum_v(gamma);
+
+  _vprint("#Milfoil3dasync: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma);
+
+  if (a == 1) { yield* Guiseppe2DAsync(p, beta, gamma); return; }
+  if (b == 1) { yield* Guiseppe2DAsync(p, alpha, gamma); return; }
+  if (g == 1) { yield* Guiseppe2DAsync(p, alpha, beta); return; }
+
+  let d_alpha = v_delta(alpha);
+  let d_beta  = v_delta(beta);
+  let d_gamma = v_delta(gamma);
+
+  if ( (a==2) && (b==2) && (g==2) ) {
+    yield* Milfoil2x2x2Async(p, alpha, beta, gamma);
+    return;
+  }
+
+  let alpha2 = v_div2(alpha);
+  let beta2  = v_div2(beta);
+  let gamma2 = v_div2(gamma);
+
+  let a2 = abs_sum_v(alpha2);
+  let b2 = abs_sum_v(beta2);
+  let g2 = abs_sum_v(gamma2);
+
+  let parity_alpha  = a%2;
+  let parity_beta   = b%2;
+  let parity_gamma  = g%2;
+
+  // S0.a
+  //
+  if ( ((3*a) > (5*b)) ||
+       ((3*a) > (5*g)) ) {
+
+    if ((a > 2) && ((a2 % 2) == 1)) {
+      alpha2 = v_add(alpha2, d_alpha);
+      a2 = abs_sum_v(alpha2);
+    }
+
+    _vprint("#  Milfoil3dasync.S0.a: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma, "alpha2:", alpha2);
+
+    let u = v_clone(p);
+    yield* Hibiscus3DAsync( u, alpha2, beta, gamma );
+
+    u = v_add(p, alpha2);
+    yield* Milfoil3DAsync( u, v_sub(alpha, alpha2), beta, gamma );
+
+    return;
+  }
+
+  // S0.b
+  //
+  if ( ((3*b) > (5*a)) ||
+       ((3*b) > (5*g)) ) {
+
+    if ((b > 2) && ((b2 % 2) == 1)) {
+      beta2 = v_add(beta2, d_beta);
+      b2 = abs_sum_v(beta2);
+    }
+
+    _vprint("#  Milfoil3dasync.S0.b: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma, "alpha2:", alpha2);
+
+    let u = v_clone(p);
+    yield* Hibiscus3DAsync( u, beta2, gamma, alpha);
+
+    u = v_add(p, beta2);
+    yield* Milfoil3DAsync( u, v_sub(beta, beta2), gamma, alpha);
+
+    return;
+  }
+
+  // S0.g
+  //
+  if ( ((3*g) > (5*b)) ||
+       ((3*g) > (5*a)) ) {
+
+    if ((g > 2) && ((g2 % 2) == 1)) {
+      gamma2 = v_add(gamma2, d_gamma);
+      g2 = abs_sum_v(gamma2);
+    }
+
+    _vprint("#  Milfoil3dasync.S0.g: p:", p, "alpha:", alpha, "beta:", beta, "gamma:", gamma, "alpha2:", alpha2);
+
+    let u = v_clone(p);
+    yield* Hibiscus3DAsync( u, gamma2, beta, alpha);
+
+    u = v_add(p, gamma2);
+    yield* Milfoil3DAsync( u, alpha, beta, v_sub(gamma, gamma2) );
+
+    return;
+  }
+
+
+  let psidx = (4*(a%2)) + (2*(b%2)) + (g%2);
+  let psched = parity_schedule[psidx];
+  if ((a2%2) != psched[0]) { alpha2 = v_add(alpha2, d_alpha); a2++; }
+  if ((b2%2) != psched[1]) { beta2  = v_add(beta2, d_beta);   b2++; }
+  if ((g2%2) != psched[2]) { gamma2 = v_add(gamma2, d_gamma); g2++; }
+
+  let u = v_clone(p);
+  yield* Milfoil3DAsync(u, alpha, beta2, gamma2);
+
+  u = v_add(p, v_sub(alpha, d_alpha), v_sub(beta2, d_beta), gamma2);
+  yield* Milfoil3DAsync(u, v_sub(alpha2, alpha), v_neg(beta2), v_sub(gamma, gamma2));
+
+  u = v_add(p, v_sub(alpha2, d_alpha), v_sub(gamma, d_gamma));
+  yield* Milfoil3DAsync(u, beta, v_neg(alpha2), v_sub(gamma2, gamma));
+
+  u = v_add(p, v_sub(beta, d_beta), v_sub(gamma2, d_gamma));
+  yield* Milfoil3DAsync(u, alpha2, v_sub(beta2, beta), v_neg(gamma2));
+
+  u = v_add(p, alpha2, beta2);
+  yield* Milfoil3DAsync(u, v_sub(alpha, alpha2), v_sub(beta, beta2), gamma);
+
+  return;
+}
+
+function Milfoil3D(width, height, depth) {
+  let p = [0,0,0],
+      alpha = [width,0,0],
+      beta = [0,height,0],
+      gamma = [0,0,depth] ;
+
+  let pnt = [];
+
+  let g2xyz = Milfoil3DAsync(p, alpha, beta, gamma);
+  for (let hv = g2xyz.next() ; !hv.done ; hv = g2xyz.next()) {
+    let v = hv.value;
+    pnt.push( [v[0], v[1],v[2]] );
+  }
+
+  return pnt;
+}
+
+
 //-------------------------------------
 //  _        _ _     _                 
 // | |_  ___| | |___| |__  ___ _ _ ___ 
 // | ' \/ -_) | / -_) '_ \/ _ \ '_/ -_)
 // |_||_\___|_|_\___|_.__/\___/_| \___|
 //-------------------------------------
+
+// attempts at a generalized Moore curve.
+//
+
+// all side lengths odd, notch is forced.
+// I don't know how to make it stable with the recursive
+// subdivision sttrategy for the non-notch case.
+// Instead, this is something that works.
+//
+// Attach two Peony curves together (diagonal endpoints in
+// plane), taking the maximum length to be the split point.
+// The subdivision will create an (even,odd,odd) and an
+// (odd,odd,odd) subdivision, where the (even,odd,odd)
+// Peony curve will have a notch in it.
+//
+function *Hellebore3DAsync_111(p, alpha, beta, gamma) {
+  let a = abs_sum_v(alpha);
+  let b = abs_sum_v(beta);
+  let g = abs_sum_v(gamma);
+
+  if ( ((a%2)==0) ||
+       ((b%2)==0) ||
+       ((g%2)==0) ) { return -1; }
+
+  if ((a >= b) && (a >= g)) {
+    ///
+  }
+  else if ((b >= a) && (b >= g)) {
+    let _alpha = beta;
+    let _beta = gamma;
+    let _gamma = alpha;
+    alpha = _alpha;
+    beta = _beta;
+    gamma = _gamma;
+  }
+  else if ((g >= a) && (g >= b)) {
+    let _alpha = gamma;
+    let _beta = beta;
+    let _gamma = alpha;
+    alpha = _alpha;
+    beta = _beta;
+    gamma = _gamma;
+  }
+
+  a = abs_sum_v(alpha);
+  b = abs_sum_v(beta);
+  g = abs_sum_v(gamma);
+
+  let d_alpha = v_delta(alpha);
+  let d_beta  = v_delta(beta);
+  let d_gamma = v_delta(gamma);
+
+  let alpha2 = v_div2(alpha);
+  let q = v_add(p, alpha2);
+  yield *Peony3DAsync(q, gamma, beta, v_neg(alpha2));
+
+  q = v_add(p, alpha2, d_alpha, v_sub(beta, d_beta), v_sub(gamma, d_gamma));
+  yield *Peony3DAsync(q, v_neg(beta), v_neg(gamma), v_sub(alpha, alpha2));
+
+  return;
+}
 
 // this subdivision method won't work
 //
@@ -3110,10 +3399,16 @@ function *Hellebore3DAsync(p, alpha, beta, gamma) {
   let b = abs_sum_v(beta);
   let g = abs_sum_v(gamma);
 
+  // notch case, fall through to simple Peony glue case.
+  //
+  if ((a%2) && (b%2) && (g%2)) {
+    yield *Hellebore3DAsync_111(p, alpha, beta, gamma);
+    return;
+  }
+
   let d_alpha = v_delta(alpha);
   let d_beta = v_delta(beta);
   let d_gamma = v_delta(gamma);
-
 
   let alpha2 = v_div2(alpha);
   let beta2 = v_div2(beta);
@@ -3126,6 +3421,16 @@ function *Hellebore3DAsync(p, alpha, beta, gamma) {
   let a2_r = a - a2;
   let b2_r = b - b2;
   let g2_r = g - g2;
+
+  let s = ((a%2) + (b%2) + (g%2));
+
+  // all even
+  //
+  if (s == 0) {
+
+  }
+
+  return;
 
   if ((a <= 2) && (b <= 2) && (g <= 2)) {
 
@@ -3295,6 +3600,8 @@ var OP_LIST = [
 
   "guiseppe2d",
   "guiseppe3d",
+
+  "milfoil3d",
 
   "peony3d",
   "peony_test",
@@ -3508,6 +3815,15 @@ function _main(argv) {
 
     }
 
+    else if (op == "milfoil3d") {
+
+      let p = Milfoil3D(w,h,d);
+      for (let i=0; i<p.length; i++) {
+        console.log(p[i][0],p[i][1], p[i][2]);
+      }
+
+    }
+
     else if (op == "peony3d") {
 
       let p = Peony3D(w,h,d);
@@ -3572,8 +3888,52 @@ if (typeof module !== "undefined") {
   module.exports["Guiseppe2DAsync"] = Guiseppe2DAsync;
   module.exports["Guiseppe2D"] = Guiseppe2D;
 
+  // cuboid diagonal start/edn
+  // p(0,0,0) -> q( |alpha|-1, |beta|-1, |gamma|-1 )
+  //
+  // * stable
+  //   - swap so that alpha is the longest axis
+  //   - bulk recursion: (1x3x3, 1x3x3, 1x3x3) Guiseppe3d x 3
+  //   - reduces to (hibiscus, guiseppe) when middle troche is 0
+  // * pushes notch to last troche by ensuring valid cuboid
+  //   dimensions for all but the last troche
+  // * base case is a bit complicated as it takes into account
+  //   all 3x3x3 and smaller cuboids
+  //
+  //
   module.exports["Guiseppe3DAsync"] = Guiseppe3DAsync;
   module.exports["Guiseppe3D"] = Guiseppe3D;
+
+  // generalized Hilbert curve
+  // p(0,0,0) -> q( |alpha|-1, 0, 0)
+  //
+  // That is, start and end point are on the |alpha| axis.
+  //
+  // * stable
+  //   - (1x2x1, 1x1x1, 2x1x1, 1x1x1, 1x2x1)
+  //   - (peony, peony, hibiscus, peony, peony)
+  // * reduces to Hilbert for 2x2x2
+  // * uses S_0, S_1 and S_2 harmony subdivision
+  //
+  module.exports["Hibiscus3DAsync"] = Hibiscus3DAsync;
+  module.exports["Hibiscus3D"] = Hibiscus3D;
+
+  // In plane diagonal
+  // p(0,0,0) -> q( |alpha|-1, |beta|-1, 0)
+  //
+  // * stable
+  // * this might be in a state of "just to get something working"
+  //   as it looks like it's a 1/3 Hibiscus split and 2/3 Peony remainder
+  //
+  module.exports["Peony3DAsync"] = Peony3DAsync;
+  module.exports["Peony3D"] = Peony3D;
+
+  // generalized Moore curve (wip)
+  //
+  // * I think I have a emthod for all but the all odd case
+  //
+  module.exports["Hellebore3DAsync"] = Hellebore3DAsync;
+  module.exports["Hellebore3D"] = Hellebore3D;
 
   module.exports["ADAPT_METHOD"] = GILBERT_ADAPT_METHOD;
 }
