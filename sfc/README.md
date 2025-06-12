@@ -1,6 +1,27 @@
 Space Filling Curves
 ===
 
+| Name | Description |
+|---|---|
+| Guiseppe (2d) | Peano like curve in 2d that starts and ends at the corners |
+| Hibiscus | Alpha major 3d sfc |
+| Peony | Alpha-Beta major 3d sfc |
+| Milfoil | Alpha-Beta-Gamma major 3d sfc |
+| Hellebore (2d) | sfc cycle in 2d (4 combined Guiseppe curves) |
+| Hellebore (3d) | sfc cycle in 3d (8 combined Milfoil curves) |
+
+There is a Guiseppe 3d but it has major problems in terms of stacking sfcs.
+
+I don't know how to degrade the Hellebore (3d) curve to include a notch, so in a notch condition (all side
+lengths odd), the Hellebore curve is reduced to two attached Peony curves.
+
+The Hellebore (3d) curve could be made from choosing the split access so the Peony curves work out
+but this destroys stability.
+The complication of combining 8 Milfoil curves is to preserve stability (in the non-notch case).
+
+
+
+
 Peano-like Curves
 ---
 

@@ -4055,7 +4055,7 @@ if (typeof module !== "undefined") {
   module.exports["Guiseppe2DAsync"] = Guiseppe2DAsync;
   module.exports["Guiseppe2D"] = Guiseppe2D;
 
-  // cuboid diagonal start/edn
+  // cuboid diagonal start/end
   // p(0,0,0) -> q( |alpha|-1, |beta|-1, |gamma|-1 )
   //
   // * stable
@@ -4066,6 +4066,7 @@ if (typeof module !== "undefined") {
   //   dimensions for all but the last troche
   // * base case is a bit complicated as it takes into account
   //   all 3x3x3 and smaller cuboids
+  // * has displeasing 'stacking' so probably shouldn't be used
   //
   //
   module.exports["Guiseppe3DAsync"] = Guiseppe3DAsync;
@@ -4095,9 +4096,20 @@ if (typeof module !== "undefined") {
   module.exports["Peony3DAsync"] = Peony3DAsync;
   module.exports["Peony3D"] = Peony3D;
 
+  // Cuboid diagonal
+  // p(0,0,0) -> q( |alpha|-1, |beta|-1, |gamma|-1)
+  //
+  // * stable
+  // * only uses S_0 subdivision sscheme
+  //
+  module.exports["Peony3DAsync"] = Peony3DAsync;
+  module.exports["Peony3D"] = Peony3D;
+
   // generalized Moore curve (wip)
   //
-  // * I think I have a emthod for all but the all odd case
+  // * stable for all non-notch cases
+  // * notch case reduces to two Peony curvse stacked
+  // * still needs some validation
   //
   module.exports["Hellebore3DAsync"] = Hellebore3DAsync;
   module.exports["Hellebore3D"] = Hellebore3D;
