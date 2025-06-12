@@ -3392,6 +3392,159 @@ function *Hellebore3DAsync_111(p, alpha, beta, gamma) {
   return;
 }
 
+function *Hellebore3DAsync_011(p, alpha, beta, gamma) {
+  let d_alpha = v_delta(alpha);
+  let d_beta = v_delta(beta);
+  let d_gamma = v_delta(gamma);
+
+  let alpha2 = v_div2(alpha);
+  let beta2 = v_div2(beta);
+  let gamma2 = v_div2(gamma);
+
+  let a2 = abs_sum_v(alpha2);
+  let b2 = abs_sum_v(beta2);
+  let g2 = abs_sum_v(gamma2);
+
+  let alpha2_odd = v_add(alpha2, d_alpha);;
+  if (a2%2) {
+    alpha2_odd = v_clone(alpha2);
+    alpha2 = v_add(alpha2, d_alpha);
+  }
+
+  if ((b2%2) == 1) { beta2 = v_add(beta2, d_beta); }
+  if ((g2%2) == 1) { gamma2 = v_add(gamma2, d_gamma); }
+
+  // A
+  //
+  let u = v_add(p, v_sub(alpha2, d_alpha), v_sub(beta2, d_beta));
+  yield* Milfoil3DAsync(u, v_neg(alpha2), v_neg(beta2), gamma2);
+
+  // B
+  //
+  u = v_add(p, gamma2);
+  yield* Milfoil3DAsync(u, alpha2_odd, beta2, v_sub(gamma, gamma2));
+
+  // C
+  //
+  u = v_add(p, v_sub(alpha2_odd, d_alpha), beta2, v_sub(gamma, d_gamma));
+  yield* Milfoil3DAsync(u, v_neg(alpha2_odd), v_sub(beta, beta2), v_sub(gamma2, gamma));
+
+  // D
+  //
+  u = v_add(p, v_sub(beta, d_beta), v_sub(gamma2, d_gamma));
+  yield* Milfoil3DAsync(u, alpha2_odd, v_sub(beta2, beta), v_neg(gamma2));
+
+  // E
+  //
+  u = v_add(p, alpha2_odd, beta2);
+  yield* Milfoil3DAsync(u, v_sub(alpha, alpha2_odd), v_sub(beta, beta2), gamma2);
+
+  // F
+  //
+  u = v_add(p, v_sub(alpha, d_alpha), v_sub(beta, d_beta), gamma2);
+  yield* Milfoil3DAsync(u, v_sub(alpha2_odd, alpha), v_sub(beta2, beta), v_sub(gamma, gamma2));
+
+  // G
+  //
+  u = v_add(p, alpha2_odd, v_sub(beta2, d_beta), v_sub(gamma, d_gamma));
+  yield* Milfoil3DAsync(u, v_sub(alpha, alpha2_odd), v_neg(beta2), v_sub(gamma2, gamma));
+
+  // H
+  //
+  u = v_add(p, v_sub(alpha, d_alpha), v_sub(gamma2, d_gamma));
+  yield* Milfoil3DAsync(u, v_sub(alpha2, alpha), beta2, v_neg(gamma2));
+
+  return;
+}
+
+function *Hellebore3DAsync_101(p, alpha, beta, gamma) {
+  let d_alpha = v_delta(alpha);
+  let d_beta = v_delta(beta);
+  let d_gamma = v_delta(gamma);
+
+  let alpha2 = v_div2(alpha);
+  let beta2 = v_div2(beta);
+  let gamma2 = v_div2(gamma);
+
+  let a2 = abs_sum_v(alpha2);
+  let b2 = abs_sum_v(beta2);
+  let g2 = abs_sum_v(gamma2);
+
+  let beta2_odd = v_add(beta2, d_beta);;
+  if (b2%2) {
+    beta2_odd = v_clone(beta2);
+    beta2 = v_add(beta2, d_beta);
+  }
+
+  if ((a2%2) == 1) { alpha2 = v_add(alpha2, d_alpha); }
+  if ((g2%2) == 0) { gamma2 = v_add(gamma2, d_gamma); }
+
+  // A
+  //
+  let u = v_add(p, v_sub(alpha2, d_alpha), v_sub(beta2_odd, d_beta));
+  yield* Milfoil3DAsync(u, v_neg(alpha2), v_neg(beta2_odd), gamma2);
+
+  // B
+  //
+  u = v_add(p, gamma2);
+  yield* Milfoil3DAsync(u, alpha2, beta2, v_sub(gamma, gamma2));
+
+  // C
+  //
+  u = v_add(p, v_sub(alpha2, d_alpha), beta2, v_sub(gamma, d_gamma));
+  yield* Milfoil3DAsync(u, v_neg(alpha2), v_sub(beta, beta2), v_sub(gamma2, gamma));
+
+  // D
+  //
+  u = v_add(p, v_sub(beta, d_beta), v_sub(gamma2, d_gamma));
+  yield* Milfoil3DAsync(u, alpha2, v_sub(beta2_odd, beta), v_neg(gamma2));
+
+  // E
+  //
+  u = v_add(p, alpha2, beta2_odd);
+  yield* Milfoil3DAsync(u, v_sub(alpha, alpha2), v_sub(beta, beta2_odd), gamma2);
+
+  // F
+  //
+  u = v_add(p, v_sub(alpha, d_alpha), v_sub(beta, d_beta), gamma2);
+  yield* Milfoil3DAsync(u, v_sub(alpha2, alpha), v_sub(beta2_odd, beta), v_sub(gamma, gamma2));
+
+  // G
+  //
+  u = v_add(p, alpha2, v_sub(beta2_odd, d_beta), v_sub(gamma, d_gamma));
+  yield* Milfoil3DAsync(u, v_sub(alpha, alpha2), v_neg(beta2_odd), v_sub(gamma2, gamma));
+
+  // H
+  //
+  u = v_add(p, v_sub(alpha, d_alpha), v_sub(gamma2, d_gamma));
+  yield* Milfoil3DAsync(u, v_sub(alpha2, alpha), beta2_odd, v_neg(gamma2));
+
+}
+
+function *Hellebore3DAsync_110(p, alpha, beta, gamma) {
+  let d_alpha = v_delta(alpha);
+  let d_beta = v_delta(beta);
+  let d_gamma = v_delta(gamma);
+
+  let alpha2 = v_div2(alpha);
+  let beta2 = v_div2(beta);
+  let gamma2 = v_div2(gamma);
+
+  let a2 = abs_sum_v(alpha2);
+  let b2 = abs_sum_v(beta2);
+  let g2 = abs_sum_v(gamma2);
+
+  let gamma2_odd = v_add(gamma2, d_gamma);;
+  if (g2%2) {
+    gamma2_odd = v_clone(gamma2);
+    gamma2 = v_add(gamma2, d_gamma);
+  }
+
+  if ((b2%2) == 0) { gamma2 = v_add(gamma2, d_gamma); }
+  if ((g2%2) == 0) { gamma2 = v_add(gamma2, d_gamma); }
+
+}
+
 // this subdivision method won't work
 //
 function *Hellebore3DAsync(p, alpha, beta, gamma) {
@@ -3433,6 +3586,14 @@ function *Hellebore3DAsync(p, alpha, beta, gamma) {
     if ((a2%2) == 0) { alpha2  = v_add(alpha2, d_alpha); }
     if ((b2%2) == 0) { beta2   = v_add(beta2, d_beta); }
     if ((g2%2) == 0) { gamma2  = v_add(gamma2, d_gamma); }
+  }
+  else if (s == 2) {
+
+    if      ((a%2) == 0) { yield* Hellebore3DAsync_011(p, alpha, beta, gamma); }
+    else if ((b%2) == 0) { yield* Hellebore3DAsync_101(p, alpha, beta, gamma); }
+    else if ((g%2) == 0) { yield* Hellebore3DAsync_110(p, alpha, beta, gamma); }
+
+    return;
   }
 
   a2 = abs_sum_v(alpha2);
