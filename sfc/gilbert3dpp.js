@@ -3540,8 +3540,48 @@ function *Hellebore3DAsync_110(p, alpha, beta, gamma) {
     gamma2 = v_add(gamma2, d_gamma);
   }
 
-  if ((b2%2) == 0) { gamma2 = v_add(gamma2, d_gamma); }
-  if ((g2%2) == 0) { gamma2 = v_add(gamma2, d_gamma); }
+  if ((a2%2) == 1) { alpha2 = v_add(alpha2, d_alpha); }
+  if ((b2%2) == 1) { beta2 = v_add(beta2, d_beta); }
+
+  // A
+  //
+  let u = v_add(p, v_sub(alpha2, d_alpha), v_sub(beta2, d_beta));
+  yield* Milfoil3DAsync(u, v_neg(alpha2), v_neg(beta2), gamma2);
+
+  // B
+  //
+  u = v_add(p, gamma2);
+  yield* Milfoil3DAsync(u, alpha2, beta2, v_sub(gamma, gamma2));
+
+  // C
+  //
+  u = v_add(p, v_sub(alpha2, d_alpha), beta2, v_sub(gamma, d_gamma));
+  yield* Milfoil3DAsync(u, v_neg(alpha2), v_sub(beta, beta2), v_sub(gamma2_odd, gamma));
+
+  // D
+  //
+  u = v_add(p, v_sub(beta, d_beta), v_sub(gamma2_odd, d_gamma));
+  yield* Milfoil3DAsync(u, alpha2, v_sub(beta2, beta), v_neg(gamma2_odd));
+
+  // E
+  //
+  u = v_add(p, alpha2, beta2);
+  yield* Milfoil3DAsync(u, v_sub(alpha, alpha2), v_sub(beta, beta2), gamma2_odd);
+
+  // F
+  //
+  u = v_add(p, v_sub(alpha, d_alpha), v_sub(beta, d_beta), gamma2_odd);
+  yield* Milfoil3DAsync(u, v_sub(alpha2, alpha), v_sub(beta2, beta), v_sub(gamma, gamma2_odd));
+
+  // G
+  //
+  u = v_add(p, alpha2, v_sub(beta2, d_beta), v_sub(gamma, d_gamma));
+  yield* Milfoil3DAsync(u, v_sub(alpha, alpha2), v_neg(beta2), v_sub(gamma2_odd, gamma));
+
+  // H
+  //
+  u = v_add(p, v_sub(alpha, d_alpha), v_sub(gamma2_odd, d_gamma));
+  yield* Milfoil3DAsync(u, v_sub(alpha2, alpha), beta2, v_neg(gamma2_odd));
 
 }
 
@@ -3571,11 +3611,14 @@ function *Hellebore3DAsync(p, alpha, beta, gamma) {
   let b2 = abs_sum_v(beta2);
   let g2 = abs_sum_v(gamma2);
 
-  //let a2_r = a - a2;
-  //let b2_r = b - b2;
-  //let g2_r = g - g2;
-
   let s = ((a%2) + (b%2) + (g%2));
+
+  if (s == 2) {
+    if      ((a%2) == 0) { yield* Hellebore3DAsync_011(p, alpha, beta, gamma); }
+    else if ((b%2) == 0) { yield* Hellebore3DAsync_101(p, alpha, beta, gamma); }
+    else if ((g%2) == 0) { yield* Hellebore3DAsync_110(p, alpha, beta, gamma); }
+    return;
+  }
 
   if (s == 0) {
     if (a2%2) { alpha2  = v_add(alpha2, d_alpha); }
@@ -3587,120 +3630,38 @@ function *Hellebore3DAsync(p, alpha, beta, gamma) {
     if ((b2%2) == 0) { beta2   = v_add(beta2, d_beta); }
     if ((g2%2) == 0) { gamma2  = v_add(gamma2, d_gamma); }
   }
-  else if (s == 2) {
-
-    if      ((a%2) == 0) { yield* Hellebore3DAsync_011(p, alpha, beta, gamma); }
-    else if ((b%2) == 0) { yield* Hellebore3DAsync_101(p, alpha, beta, gamma); }
-    else if ((g%2) == 0) { yield* Hellebore3DAsync_110(p, alpha, beta, gamma); }
-
-    return;
-  }
 
   a2 = abs_sum_v(alpha2);
   b2 = abs_sum_v(beta2);
   g2 = abs_sum_v(gamma2);
 
+  let u = v_add(p, v_sub(alpha2, d_alpha), v_sub(beta2, d_beta));
+  yield* Milfoil3DAsync(u, v_neg(alpha2), v_neg(beta2), gamma2);
 
-  // all even
-  //
-  if ( (s == 0) ||
-       (s == 1) ) {
-
-    let u = v_add(p, v_sub(alpha2, d_alpha), v_sub(beta2, d_beta));
-    yield* Milfoil3DAsync(u, v_neg(alpha2), v_neg(beta2), gamma2);
-
-    u = v_add(p, gamma2);
-    yield* Milfoil3DAsync(u, alpha2, beta2, v_sub(gamma, gamma2));
+  u = v_add(p, gamma2);
+  yield* Milfoil3DAsync(u, alpha2, beta2, v_sub(gamma, gamma2));
 
 
-    u = v_add(p, v_sub(alpha2, d_alpha), beta2, v_sub(gamma, d_gamma));
-    yield* Milfoil3DAsync(u, v_neg(alpha2), v_sub(beta, beta2), v_sub(gamma2, gamma));
+  u = v_add(p, v_sub(alpha2, d_alpha), beta2, v_sub(gamma, d_gamma));
+  yield* Milfoil3DAsync(u, v_neg(alpha2), v_sub(beta, beta2), v_sub(gamma2, gamma));
 
-    u = v_add(p, v_sub(beta, d_beta), v_sub(gamma2, d_gamma));
-    yield* Milfoil3DAsync(u, alpha2, v_sub(beta2, beta), v_neg(gamma2));
-
-
-    u = v_add(p, alpha2, beta2);
-    yield* Milfoil3DAsync(u, v_sub(alpha, alpha2), v_sub(beta, beta2), gamma2);
-
-    u = v_add(p, v_sub(alpha, d_alpha), v_sub(beta, d_beta), gamma2);
-    yield* Milfoil3DAsync(u, v_sub(alpha2, alpha), v_sub(beta2, beta), v_sub(gamma, gamma2));
+  u = v_add(p, v_sub(beta, d_beta), v_sub(gamma2, d_gamma));
+  yield* Milfoil3DAsync(u, alpha2, v_sub(beta2, beta), v_neg(gamma2));
 
 
-    u = v_add(p, alpha2, v_sub(beta2, d_beta), v_sub(gamma, d_gamma));
-    yield* Milfoil3DAsync(u, v_sub(alpha, alpha2), v_neg(beta2), v_sub(gamma2, gamma));
+  u = v_add(p, alpha2, beta2);
+  yield* Milfoil3DAsync(u, v_sub(alpha, alpha2), v_sub(beta, beta2), gamma2);
 
-    u = v_add(p, v_sub(alpha, d_alpha), v_sub(gamma2, d_gamma));
-    yield* Milfoil3DAsync(u, v_sub(alpha2, alpha), beta2, v_neg(gamma2));
-
-    return;
-  }
-
-  return;
-
-  if ((a <= 2) && (b <= 2) && (g <= 2)) {
-
-    _vprint("## H2x2x2: p:", p, "abg:", alpha, beta, gamma);
-
-    yield* Hibiscus3DAsync( p, alpha, beta, gamma );
-    return;
-  }
-
-  if ( (a > 2) &&
-       ((a2 % 2) == 0) ) {
-    alpha2 = v_add(alpha2, d_alpha);
-    a2++;
-  }
-
-  if ( (b > 2) &&
-       ((b2 % 2) == 0) ) {
-    beta2 = v_add(beta2, d_beta);
-    b2++;
-  }
-
-  if ( (g > 2) &&
-       ((g2 % 2) == 0) ) {
-    gamma2 = v_add(gamma2, d_gamma);
-    g2++;
-  }
-
-  let u = v_add( p, v_sub(alpha2, d_alpha), v_sub(beta2, d_beta) );
-  yield* Guiseppe3DAsync( u, v_neg(alpha2), v_neg(beta2), gamma2);
-
-  u = v_add( p, gamma2 );
-  yield* Guiseppe3DAsync( u, alpha2, beta2, v_sub(gamma, gamma2) );
-
-  u = v_add( p, v_sub(alpha2, d_alpha), beta2, v_sub(gamma, d_gamma) );
-  yield* Guiseppe3DAsync( u, v_neg(alpha2), v_sub(beta, beta2), v_sub(gamma2, gamma) );
-
-  u = v_add( p, v_sub(beta, d_beta), v_sub(gamma2, d_gamma) );
-  yield* Guiseppe3DAsync( u, alpha2, v_sub(beta2, beta), v_neg(gamma2) );
-
-  //---
-
-  yield [-1,-1,-1];
-
-  u = v_add( p, alpha2, beta2 );
-  yield* Guiseppe3DAsync( u, v_sub(alpha, alpha2), v_sub(beta, beta2), gamma2 );
-
-  yield [-1,-1,-1];
-
-  u = v_add( p, v_sub(alpha, d_alpha), v_sub(beta, d_beta), gamma2 );
-  yield* Guiseppe3DAsync( u, v_sub(alpha2, alpha), v_sub(beta2, beta), v_sub(gamma, gamma2) );
-
-  yield [-1,-1,-1];
-
-  u = v_add( p, alpha2, v_sub(beta2, d_beta), v_sub(gamma, d_gamma) );
-  yield* Guiseppe3DAsync( u, v_sub(gamma2, gamma), v_sub(alpha, alpha2), v_neg(beta2) );
-
-  u = v_add( p, v_sub(alpha, d_alpha), v_sub(gamma2, d_gamma) );
-  yield* Guiseppe3DAsync( u, v_sub(alpha2, alpha), beta2, v_neg(gamma2) );
+  u = v_add(p, v_sub(alpha, d_alpha), v_sub(beta, d_beta), gamma2);
+  yield* Milfoil3DAsync(u, v_sub(alpha2, alpha), v_sub(beta2, beta), v_sub(gamma, gamma2));
 
 
+  u = v_add(p, alpha2, v_sub(beta2, d_beta), v_sub(gamma, d_gamma));
+  yield* Milfoil3DAsync(u, v_sub(alpha, alpha2), v_neg(beta2), v_sub(gamma2, gamma));
 
+  u = v_add(p, v_sub(alpha, d_alpha), v_sub(gamma2, d_gamma));
+  yield* Milfoil3DAsync(u, v_sub(alpha2, alpha), beta2, v_neg(gamma2));
 
-
-  return;
 }
 
 // Generalized Moore curve (2d)
