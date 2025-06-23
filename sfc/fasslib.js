@@ -173,8 +173,6 @@ function _inBounds(q, p, a, b, g) {
       _b = [0,0,0],
       _g = [0,0,0];
 
-  //let default_g = [0,0,1];
-  //let _g = ((typeof g === "undefined") ? default_g : g);
   let _p = [0,0,0],
       _q = [0,0,0];
 
@@ -201,13 +199,11 @@ function _inBounds(q, p, a, b, g) {
   }
   else { _g = g; }
 
-
   let _d = [
     _a[0] + _b[0] + _g[0],
     _a[1] + _b[1] + _g[1],
     _a[2] + _b[2] + _g[2]
   ];
-
 
   for (let xyz=0; xyz<3; xyz++) {
     if ( _d[xyz] < 0 ) {
@@ -245,7 +241,7 @@ if (typeof module !== "undefined") {
     "v_delta": v_delta,
     "v_print": v_print,
     "v_clone": v_clone,
-    "_inBounds": inBounds
+    "inBounds": _inBounds
   };
 
   for (let key in func_name_map) {

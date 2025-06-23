@@ -45,10 +45,89 @@
 
 var fasslib = require("./fasslib.js");
 
+// pretty hacky and dangerous...
+//
+for (let key in fasslib) {
+  eval( "var " + key + " = fasslib['" + key + "'];" );
+}
 
-function *Aglaophotis2DAsync(p, q, alpha, beta) {
+// p      - base (lower left) start point of rectangle region
+// alpha  - width like vector
+// beta   - height like vector
+// info   - info
+//
+function *Aglaophotis2DAsync(p, alpha, beta, info) {
 
+  let a = abs_sum_v(alpha);
+  let b = abs_sum_v(beta);
+
+  let a0 = (a%2);
+  let b0 = (b%2);
+
+  let d_alpha = v_delta(alpha);
+  let d_beta  = v_delta(beta);
+
+  let alpha2  = v_div2(alpha);
+  let beta2   = v_div2(beta);
+
+  let a2 = abs_sum_v(alpha2);
+  let b2 = abs_sum_v(beta2);
+
+  let dst_a2_parity = 0;
+  let dst_b2_parity = 0;
+
+  // force odd
+  //
+  if ((a0 == 1) &&
+      (b0 == 1)) {
+    dst_a2_parity = 1;
+    dst_b2_parity = 1;
+  }
+
+  if ((a2%2) != dst_a2_parity) {
+    alpha2 = v_add(alpha2, d_alpha);
+    a2 = abs_sum_v(alpha2);
+  }
+
+  if ((b2%2) != dst_b2_parity) {
+    beta2 = v_add(beta2, d_beta);
+    b2 = abs_sum_v(beta2);
+  }
+
+
+
+
+  console.log(p, alpha, beta, alpha2, beta2, a2, b2);
 
 }
 
+function Aglaophotis2D(width, height) {
+  let p = [0,0,0],
+      alpha = [ width, 0, 0 ],
+      beta  = [ 0, height, 0 ];
+  let info = { };
 
+  let pnt = [];
+
+  let g2xy = Aglaophotis2DAsync(p, alpha, beta, info);
+  for (let hv = g2xy.next() ; !hv.done ; hv = g2xy.next()) {
+    let v= hv.value;
+    pnt.push( [v[0], v[1], v[2]] );
+  }
+
+  return pnt;
+}
+
+function main() {
+  let p = Aglaophotis2D(4,4);
+
+  //p = Aglaophotis2D(4,5);
+  //p = Aglaophotis2D(5,4);
+  //p = Aglaophotis2D(5,5);
+
+  for (let i=0; i<p.length; i++) {
+    console.log(p[i][0], p[i][1]);
+  }
+}
+
+main();
