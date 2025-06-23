@@ -46,9 +46,8 @@
 var fasslib = require("./fasslib.js");
 
 
-console.log( fasslib.abs_sum_v([-1,3,-5]) );
-
 function *Aglaophotis2DAsync(p, q, alpha, beta) {
+
 
 }
 

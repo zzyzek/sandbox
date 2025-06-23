@@ -244,7 +244,8 @@ if (typeof module !== "undefined") {
     "abs_sum_v": abs_sum_v,
     "v_delta": v_delta,
     "v_print": v_print,
-    "v_clone": v_clone
+    "v_clone": v_clone,
+    "_inBounds": inBounds
   };
 
   for (let key in func_name_map) {
