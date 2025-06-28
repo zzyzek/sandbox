@@ -220,6 +220,15 @@ function _inBounds(q, p, a, b, g) {
 
 }
 
+function cross3(p,q) {
+  let c0 = ((p[1]*q[2]) - (p[2]*q[1])),
+      c1 = ((p[2]*q[0]) - (p[0]*q[2])),
+      c2 = ((p[0]*q[1]) - (p[1]*q[0]));
+
+  return [c0,c1,c2];
+}
+
+
 if (typeof module !== "undefined") {
 
   let func_name_map = {
@@ -241,7 +250,8 @@ if (typeof module !== "undefined") {
     "v_delta": v_delta,
     "v_print": v_print,
     "v_clone": v_clone,
-    "inBounds": _inBounds
+    "inBounds": _inBounds,
+    "cross3": cross3
   };
 
   for (let key in func_name_map) {

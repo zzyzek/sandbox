@@ -1939,14 +1939,20 @@ function mkConn(xy,wh,u,v_idir, txt) {
 
     if (u.length > 1) {
 
+      fy = Math.floor( Math.abs(u[1]/2) ) + 1;
+
       dx = wh[0]/5;
       dy = (wh[1]/2) - fy*s;
 
+      _dx = wh[0] / (u.length+1);
+      _dy =  - fy*s;
+
+      //cxy = [xy[0] - (wh[0]/2) + 2*_dx, xy[1] + (wh[1]/2) + _dy, dy ];
       cxy = [xy[0] - (wh[0]/2) + 2*_dx, xy[1] + (wh[1]/2) + _dy, dy ];
 
 
-      let b = two.makeRectangle(xy[0] + dx,xy[1] + dy, s,s);
-      //let b = two.makeRectangle(cxy[0], cxy[1], s,s);
+      //let b = two.makeRectangle(xy[0] + dx,xy[1] + dy, s,s);
+      let b = two.makeRectangle(cxy[0], cxy[1], s,s);
 
       b.fill = co_light;
       b.stroke = co_dark;
@@ -2307,6 +2313,22 @@ function gilbert2d_aglaophotis() {
 
   //----
 
+  sxy = [1000, 100];
+
+  cur_xy = sxy;
+
+  cur_xy = njs.add(sxy, [120 + 3*sz1[0]/4,-sz1[1]]);
+  mkConn( cur_xy, [sz1[0]*2, sz1[1] ] , [3,2], [[],[],[],[[1,0],[0,1]]], ["0", ""]);
+
+  cur_xy = njs.add(sxy, [120,sz1[1]/2]);
+  mkConn( cur_xy, sz1, [], [[[0,1]], [], [[1,0]],[]], ["0", "0"]);
+
+  cur_xy = njs.add(sxy, [120+3*sz1[0]/2,sz1[1]/2]);
+  mkConn( cur_xy, sz1, [], [[], [[0,1]], [[0,1]], []], ["", "0"]);
+
+
+  //----
+
   // 01:
   //
 
@@ -2484,6 +2506,20 @@ function gilbert2d_aglaophotis() {
   mkConn( cur_xy, sz1, [], [[], [[1,0]], [[1,0]], []], ["", "0"]);
 
   //----
+
+  sxy = [850, 625];
+
+  cur_xy = sxy;
+
+  cur_xy = njs.add(sxy, [120 + 3*sz1[0]/4,-sz1[1]]);
+  mkConn( cur_xy, [sz1[0]*2, sz1[1] ] , [3,3], [[],[],[],[[1,0],[1,0]]], ["0", ""]);
+
+  cur_xy = njs.add(sxy, [120,sz1[1]/2]);
+  mkConn( cur_xy, sz1, [], [[[1,0]], [], [[1,0]],[]], ["1", "1"]);
+
+  cur_xy = njs.add(sxy, [120+3*sz1[0]/2,sz1[1]/2]);
+  mkConn( cur_xy, sz1, [], [[], [[1,0]], [[1,0]], []], ["", "0"]);
+
 
   /*
   sxy = [850, 625];
