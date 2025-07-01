@@ -1236,14 +1236,13 @@ function _test_split() {
 }
 
 
-_test_split();
-process.exit();
+//_test_split();
+//process.exit();
 
 
 //----
 
 function spotcheck() {
-
   let anchor = [0,0];
   let s = [0,0];
   let t = [1,0];
@@ -1254,12 +1253,27 @@ function spotcheck() {
   let res0 = acceptable_st_hampath(anchor, s, t, alpha, beta);
   let res1 = isPrime(anchor, s, t, alpha, beta);
   console.log(res0, res1);
-
 }
 
+//spotcheck();
+
 //----
 //----
 //----
+
+function realize_prime_sthampath(anchor, _s, _t, alpha, beta, prime_info) {
+  prime_info = ((typeof info === "undefined") ? {} : info);
+  prime_info["path"] = [];
+
+  let prime = prime_info["prime"];
+
+  for (let idx=0; idx<prime.path.length; idx++) {
+    prime_in
+  }
+
+
+
+}
 
 function sthampath(anchor, _s, _t, alpha, beta, info) {
   info = ((typeof info === "undefined") ? {} : info);
@@ -1285,16 +1299,61 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
 
   if (isPrime(anchor, _s, _t, alpha, beta, pr_info)) {
     let res = _realize_prime_sthampath(anchor, _s, _t, alpha, beta, pr_info);
-    info.region.push(res);
+
+    let pr_path = pr_info.prime.path;
+    let _path = [];
+    for (let idx=0; idx<pr_path.length; idx++) {
+      _path.push( v_add(anchor, pr_path[i]) );
+    }
+
+    info.region.push({
+      "anchor": v_clone(anchor),
+      "s": v_clone(_s),
+      "t": v_clone(_t),
+      "alpha": v_clone(alpha),
+      "beta": v_clone(beta),
+      "path": _path
+    });
+
     return true;
   }
 
   if (hasStrip(anchor, _s, _t, alpha, beta, strip_info)) {
-    //....
+
+    let S = strip_info.S;
+    let T = strip_info.T;
+
+    let infoS = {},
+        infoT = {};
+
+    let retS = sthampath( S.anchor, S.s, S.t, S.alpha, S.beta, infoS );
+    let retT = sthampath( T.anchor, T.s, T.t, T.alpha, T.beta, infoT );
+
+    if ((!retS) || (!retT)) {
+      info["comment"] = "ERROR: sanity, hasStrip but S or T invalid";
+      return false;
+    }
+
+    return true;
   }
 
   if (hasSplit(anchor, _s, _t, alpha, beta, split_info)) {
-    //....
+
+    let S = split_info.S;
+    let T = split_info.T;
+
+    let infoS = {},
+        infoT = {};
+
+    let retS = sthampath( S.anchor, S.s, S.t, S.alpha, S.beta, infoS );
+    let retT = sthampath( T.anchor, T.s, T.t, T.alpha, T.beta, infoT );
+
+    if ((!retS) || (!retT)) {
+      info["comment"] = "ERROR: sanity, hasSplit but S or T invalid";
+      return false;
+    }
+
+    return true;
   }
 
   // sanity, we shouldn't be able to get here.
@@ -1304,4 +1363,3 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
 
 }
 
-spotcheck();
