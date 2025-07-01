@@ -1329,10 +1329,15 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
     let retS = sthampath( S.anchor, S.s, S.t, S.alpha, S.beta, infoS );
     let retT = sthampath( T.anchor, T.s, T.t, T.alpha, T.beta, infoT );
 
+
     if ((!retS) || (!retT)) {
       info["comment"] = "ERROR: sanity, hasStrip but S or T invalid";
       return false;
     }
+
+    //let join_info = {};
+    //let retR = sthampath_join_region(S, T, join_info);
+
 
     return true;
   }
@@ -1352,6 +1357,9 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
       info["comment"] = "ERROR: sanity, hasSplit but S or T invalid";
       return false;
     }
+
+    //let join_info = {};
+    //let retR = sthampath_join_region(S, T, join_info);
 
     return true;
   }
