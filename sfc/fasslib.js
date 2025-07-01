@@ -228,6 +228,90 @@ function cross3(p,q) {
   return [c0,c1,c2];
 }
 
+// compare vectors a,b
+//
+// return:
+//
+//   -1 : a lex < b
+//    1 : a lex > b
+//    0 : a == b
+//
+function _cmp_v(a,b) {
+  let n = ( (a.length < b.length) ? b.length : a.length );
+  for (let i=0; i<n; i++) {
+    if (a[i] < b[i]) { return -1; }
+    if (a[i] > b[i]) { return  1; }
+  }
+  return 0;
+}
+
+// compare vectors a,b using direction axis d_alpha, d_beta, d_gamma
+//
+// lexigraphical ordering, ordered by the delta alpha, beta and gamma
+// vectors.
+//
+// -1 : a lex < b
+//  1 : a lex > b
+//  0 : a == b
+//
+function _cmp_v_d(u,v, d_alpha, d_beta, d_gamma) {
+  d_alpha = ((typeof d_alpha == "undefined") ? [1,0,0] : d_alpha);
+  d_beta  = ((typeof d_beta  == "undefined") ? [0,1,0] : d_beta);
+  d_gamma = ((typeof d_gamma == "undefined") ? [0,0,1] : d_gamma);
+  let n = ( (u.length < v.length) ? v.length : u.length );
+
+  let d_abg = [ d_alpha, d_beta, d_gamma ];
+
+  for (let i=0; i<n; i++) {
+    let u_val = dot_v(u, d_abg[i]);
+    let v_val = dot_v(v, d_abg[i]);
+
+    if (u_val < v_val) { return -1; }
+    if (u_val > v_val) { return  1; }
+  }
+
+  return 0;
+}
+
+function v_lift(v, dim) {
+  let u = v_clone(v);
+  if (u.length == dim) { return u; }
+  if (u.length > dim) { return u.slice(0,dim) }
+  for (let i=v.length; i<dim; i++) { u.push(0); }
+  return u;
+}
+
+function norm2_v(_v) {
+  let _eps = (1.0 / (1024.0*1024.));
+  let v = ((_v.length == 2) ? [_v[0], _v[1], 0] : _v );
+  let s = (v[0]*v[0]) + (v[1]*v[1]) + (v[2]*v[2]);
+  if (s < _eps) { return 0; }
+  return Math.sqrt(s);
+}
+
+
+// euler rotation or olinde rodrigues
+// https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+//
+// rotate point v0 around vector vr by radian theta
+//
+function rodrigues(_v0, _vr, theta) {
+  let c = Math.cos(theta);
+  let s = Math.sin(theta);
+
+  let v0 = v_lift(_v0, 3);
+  let v_r = v_mul( 1 / norm2_v(_vr), _vr );
+
+  return v_add(
+    v_mul(c, v0),
+    v_add(
+      v_mul( s, cross3(v_r,v0)),
+      v_mul( (1-c) * dot_v(v_r, v0), v_r )
+    )
+  );
+}
+
+
 
 if (typeof module !== "undefined") {
 
@@ -251,7 +335,12 @@ if (typeof module !== "undefined") {
     "v_print": v_print,
     "v_clone": v_clone,
     "inBounds": _inBounds,
-    "cross3": cross3
+    "cross3": cross3,
+    "cmp_v" : _cmp_v,
+    "cmp_v_d" : _cmp_v_d,
+    "v_lift" : v_lift,
+    "norm2_v" : norm2_v,
+		"rodrigues": rodrigues
   };
 
   for (let key in func_name_map) {

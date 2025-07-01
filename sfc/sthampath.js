@@ -28,7 +28,67 @@
 // https://github.com/whatsacomputertho/grid-solver/blob/main/doc/problem-specification.md
 //
 
-var VERBOSE = 0;
+// The major ideas are that there are a catalogue of different patterns, that
+// can be easily tested for, to determine if a st-path exists within the rectangular region.
+//
+// They can be broken down to:
+//
+//   * color compatibility - making sure start and end points have compatible parity
+//   * line test - Nx1 graphs need s,t to be at the endpoints for acceptability
+//   * partition tests - For Nx2 graphs, endpoints partitioning the graph will make it unacceptable
+//   * cul-de-sac tests - For Nx3 graphs, there are configurations that are color compatible but
+//      still don't have a Hamiltonian path (see paper, above post)
+//
+// If a region passes the above tests, it's considered acceptable and has a Hamiltonian path within it.
+//
+// To find the path, a small region can be extended to fill the desired grid by the following methods:
+//
+//   * Strip - If a rectangular subdivision, R = (S,R-S), can be done with s,t both in one rectangle, R-S say,
+//    and R-S is acceptable, then S is acceptable and can be joined at the corner with a pair of edges.
+//   * Split - A split can occur at edge (p,q) if s,t are close enough to opposite sides,
+//    there exists a partition of R = (R_p, R_q), points p,q such that s,p \in R_p , q,t \in R_q, and R_p, R_q accetable
+//    The single edge *splits* the graph. That is, (p,q) splits (R,s,t)
+//   * Stripping and splitting sometimes aren't possible. When they aren't, the remaining subproblem must be
+//    one of a finite number of *prime Hamiltonian path problems* which are of the form of a (4,5) rectangle or
+//    a rectangle with (n,m), n,m <= 3.
+//
+// So, the general strategy is whittle down a rectangle by stripping and splitting, ensuring acceptability for
+// each shave, until a prime region is encountered. The prime region is the base case and a path is built up
+// and connected to the stripped and split subdivision.
+//
+// When considering a large rectangle to shave down, there are essentially three cases:
+//
+//   * s-t are close enough together near one side of the rectangle
+//   * s-t lie far enough apart and are on far sides of the rectangle
+//   * the rectangle is prime
+//
+// If s-t fall close enough together and the rectangle is large enough, then a strip can be done,
+//   connecting both regions with a double edge (a circuit gadget since s-t fall within the same sub-region)
+// If s-t are fare enough apart and the rectangle is large enough, a split can be done, connecting
+//   both regions with a single edge.
+// If a strip or a split can't be done, then the region must be small enough and be prime, reaching our base
+//   case that we can then use to bootstrap into the larger solution.
+//
+// So, the high level algorithm is as follows:
+//
+// sthampath(s,t, width, height):
+//   if s,t are not color compatible: fail
+//   if ! isAcceptible(s,t,width,height): fail
+//   if isPrime(s,t,width,height): return sthampath_prime_path(s,t,width,height)
+//   if hasStrip(s,t,width,height):
+//     find strip S, with endpoints v', w', (R-S region with corresponding points v'', w'')
+//     P_S = sthampath(v',w', width(S), height(S))
+//     P_{R-S} = sthampath(s,t, width - width(S), height)
+//     return joined P_S to P_{R-S}, joining v', v'' and w', w''
+//   if hasSplit(s,t,width,height):
+//     find split edge p,q and region S
+//     P_p = sthampath(s,p,width(S), height(S))
+//     P_q = sthampath(q,t,width - width(S), height)
+//     return joined P_p to P_q at p,q
+//   (else sanity fail)
+//
+
+var VERBOSE = 1;
 
 var fasslib = require("./fasslib.js");
 
@@ -37,6 +97,9 @@ var fasslib = require("./fasslib.js");
 for (let key in fasslib) {
   eval( "var " + key + " = fasslib['" + key + "'];" );
 }
+
+var _cmp_v = cmp_v;
+var _cmp_v_d = cmp_v_d;
 
 //----
 
@@ -64,6 +127,30 @@ var PRIME_HAMILTONIAN_PATH_TEMPLATE = [
 
 ];
 
+var PRIME_HAMILTONIAN_PATH = enum_prime_hamiltonian_template(PRIME_HAMILTONIAN_PATH_TEMPLATE);
+
+
+//----
+//----
+//----
+
+// we're still settling on data representation, but one thing that's coming up repeatedly is this representation:.
+// s,t are in absolute (world) coordinates, anchor is there to provide the corner of the rectangle (in world coordinates).
+// alpha/beta are the oriented, axis-aligned size dimension vectors
+//
+var REGION_TEMPLATE = {
+  "anchor": [0,0],
+  "s": [0,0],
+  "t": [3,3],
+  "alpha": [3,0],
+  "beta": [0,3]
+};
+
+//----
+//----
+//----
+
+
 
 function path_cmp( path_a, path_b ) {
   if (path_a.length < path_b.length) { return -1; }
@@ -78,43 +165,6 @@ function path_cmp( path_a, path_b ) {
   }
 
   return 0;
-}
-
-function v_lift(v, dim) {
-  let u = v_clone(v);
-  if (u.length == dim) { return u; }
-  if (u.length > dim) { return u.slice(0,dim) }
-  for (let i=v.length; i<dim; i++) { u.push(0); }
-  return u;
-}
-
-function norm2_v(_v) {
-  let _eps = (1.0 / (1024.0*1024.));
-  let v = ((_v.length == 2) ? [_v[0], _v[1], 0] : _v );
-  let s = (v[0]*v[0]) + (v[1]*v[1]) + (v[2]*v[2]);
-  if (s < _eps) { return 0; }
-  return Math.sqrt(s);
-}
-
-// euler rotation or olinde rodrigues
-// https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
-//
-// rotate point v0 around vector vr by radian theta
-//
-function rodrigues(_v0, _vr, theta) {
-  let c = Math.cos(theta);
-  let s = Math.sin(theta);
-
-  let v0 = v_lift(_v0, 3);
-  let v_r = v_mul( 1 / norm2_v(_vr), _vr );
-
-  return v_add(
-    v_mul(c, v0),
-    v_add(
-      v_mul( s, cross3(v_r,v0)),
-      v_mul( (1-c) * dot_v(v_r, v0), v_r )
-    )
-  );
 }
 
 function getBounds(path) {
@@ -260,9 +310,6 @@ function enum_prime_hamiltonian_template(template) {
 }
 
 
-let P = PRIME_HAMILTONIAN_PATH_TEMPLATE;
-let prime_hamlib = enum_prime_hamiltonian_template(P);
-
 function gnuplot_print(prime_hamlib) {
 
   let st_gadget = true;
@@ -330,7 +377,7 @@ function isColorCompatible(anchor, u,v, alpha, beta) {
 
   let anchor_parity = abs_sum_v(anchor)%2;
 
-  if (VERBOSE > 0) {
+  if (VERBOSE > 1) {
     console.log("# alpha:", a,"beta:", b,"u_l1:", u_l1,"v_l1:", v_l1, "a0:", a0,"b0:", b0,"u0:", u0,"v0:", v0);
   }
 
@@ -366,34 +413,6 @@ function spotcheck_colorcompat() {
 //---
 //
 
-function _cmp_v(a,b) {
-  let n = ( (a.length < b.length) ? b.length : a.length );
-  for (let i=0; i<n; i++) {
-    if (a[i] < b[i]) { return -1; }
-    if (a[i] > b[i]) { return  1; }
-  }
-  return 0;
-}
-
-function _cmp_v_d(a,b,d_alpha, d_beta, d_gamma) {
-  d_alpha = ((typeof d_alpha == "undefined") ? [1,0,0] : d_alpha);
-  d_beta = ((typeof d_beta == "undefined") ? [0,1,0] : d_beta);
-  d_gamma = ((typeof d_gamma == "undefined") ? [0,0,1] : d_gamma);
-  let n = ( (a.length < b.length) ? b.length : a.length );
-
-  let d_abg = [ d_alpha, d_beta, d_gamma ];
-
-  for (let i=0; i<n; i++) {
-    let a_val = dot_v(a, d_abg[i]);
-    let b_val = dot_v(b, d_abg[i]);
-
-    if (a_val < b_val) { return -1; }
-    if (a_val > b_val) { return  1; }
-  }
-
-  return 0;
-}
-
 // Test for an acceptable 2d Hamiltonian path:
 //
 // input:
@@ -405,21 +424,34 @@ function _cmp_v_d(a,b,d_alpha, d_beta, d_gamma) {
 //
 // return:
 //
-//  true  - rectangle is admissilbe (has a Hamiltonian path)
+//  true  - rectangle is acceptable (has a Hamiltonian path)
 //  false - otherwise
 //
 // The idea is that alpha and beta can flip and point in other axis
 // aligned directions.
+// One could potentially normalize to transoform the working s,t to
+// always assume axis x is the wider, y is the shorter and then
+// transform after computations have been done.
+// I've chosen to transform _s,_t to start at (0,0) but otherwise
+// keep directions as they're specified from _alpha,_beta.
 //
-function acceptable_st_hampath(anchor, _u,_v, _alpha, _beta, info) {
+function acceptable_st_hampath(anchor, _s,_t, _alpha, _beta, info) {
   info = ((typeof info === "undefined") ? {} : info);
-
   info["message"] = "";
 
-  if (!isColorCompatible(anchor, _u, _v, _alpha, _beta)) {
+  if (cmp_v(_s,_t) == 0) {
+    info["message"] = "unacceptable: s,t same point";
+    return false;
+  }
 
-    info["message"] = "inacceptable: color incompatible";
+  if ( (!inBounds(_s, anchor, _alpha, _beta)) ||
+       (!inBounds(_t, anchor, _alpha, _beta)) ) {
+    info["message"] = "unacceptable: s,t out of bounds";
+    return false;
+  }
 
+  if (!isColorCompatible(anchor, _s, _t, _alpha, _beta)) {
+    info["message"] = "unacceptable: color incompatible";
     return false;
   }
 
@@ -428,11 +460,16 @@ function acceptable_st_hampath(anchor, _u,_v, _alpha, _beta, info) {
   let alpha = _alpha;
   let beta = _beta;
 
-  let u = _u;
-  let v = _v;
+  let s = v_sub(_s, anchor)
+  let t = v_sub(_t, anchor);
 
   let a = abs_sum_v(alpha);
   let b = abs_sum_v(beta);
+
+  if ((a==0) || (b==0)) {
+    info["message"] = "unacceptable: zero area";
+    return false;
+  }
 
   // make alpha longer axis
   //
@@ -440,45 +477,41 @@ function acceptable_st_hampath(anchor, _u,_v, _alpha, _beta, info) {
     alpha = _beta;
     beta = _alpha;
 
-    let t = b;
+    let tmp = b;
     b = a;
-    a = t;
+    a = tmp;
   }
 
   let d_alpha = v_delta(alpha);
   let d_beta = v_delta(beta);
 
-
-
   // force u to be lex smaller than v
   //
-  if (_cmp_v_d(u,v, d_alpha, d_beta) > 0) {
-    u = _v;
-    v = _u;
+  if (_cmp_v_d(s,t, d_alpha, d_beta) > 0) {
+    s = v_sub(_t, anchor);
+    t = v_sub(_s, anchor);
   }
 
-  let u_l1 = abs_sum_v(u);
-  let v_l1 = abs_sum_v(v);
+  let s_l1 = abs_sum_v(s);
+  let t_l1 = abs_sum_v(t);
 
   let a0 = a%2;
   let b0 = b%2;
 
-  let u0 = u_l1%2;
-  let v0 = v_l1%2;
+  let s0 = s_l1%2;
+  let t0 = t_l1%2;
 
-  if (VERBOSE > 0) {
-    console.log("#acceptable_st_hampath:", "alpha:", alpha, "(", d_alpha, ")", "beta:", beta, "(", d_beta, ")", "u:", u, "v:", v);
+  if (VERBOSE > 1) {
+    console.log("#acceptable_st_hampath:", "alpha:", alpha, "(", d_alpha, ")", "beta:", beta, "(", d_beta, ")", "s:", s, "t:", t);
   }
 
   // line:
   // only valid possibility is if start and endpoints
   // are at either end
   //
-  if (a == 1) {
-    if ((u_l1 == 0) && (v_l1 == (a-1))) { return true; }
-
-    info["message"] = "inacceptable: line with u,v not on endpoints";
-
+  if (b == 1) {
+    if ((s_l1 == 0) && (t_l1 == (a-1))) { return true; }
+    info["message"] = "unacceptable: line with s,t not on endpoints";
     return false;
   }
 
@@ -490,53 +523,41 @@ function acceptable_st_hampath(anchor, _u,_v, _alpha, _beta, info) {
   // so a path is possible.
   //
   if (b == 2) {
+    if (_cmp_v(t, v_add(s, d_beta)) != 0) { return true; }
 
-    let tv = v_add(u, d_beta);
+    let s_alpha = dot_v( s, d_alpha );
+    if ((s_alpha == 0) || (s_alpha == (a-1))) { return true; }
 
-    if (_cmp_v(tv, v) != 0) { return true; }
-
-    let u_alpha = dot_v( v_sub(u, anchor), d_alpha );
-
-
-    //if ((u[0] == 0) || (u[0] == (a-1))) { return true; }
-    if ((u_alpha == 0) || (u_alpha == (a-1))) { return true; }
-
-    info["message"] = "inacceptable: Nx2, u,v edge partitions graph";
-
+    info["message"] = "unacceptable: Nx2, u,v edge partitions graph";
     return false;
   }
 
   // cul-de-sac
   // if:
-  //   * a = 3
+  //   * b = 3
   //   * a*b even
-  //   * u,v different colors and u different color than lower left corner
-  //     (upper left corner color the same since a=3)
+  //   * s,t different colors and s different color than lower left corner
+  //     (upper left corner color the same since b=3)
   //   * (u.x < (v.x-1)) or ((u.y==1) && (u.x < v.x))
-  // -> inacceptable
+  // -> unacceptable
   //
   if (b == 3) {
-
     if ((a0*b0) == 1) { return true; }
-    if (u0 == v0) { return true; }
-    if (u0 == 0) { return true; }
+    if (s0 == t0) { return true; }
+    if (s0 == 0) { return true; }
 
-    let u_a = dot_v(u, d_alpha);
-    let u_b = dot_v(u, d_beta);
 
-    let v_a = dot_v(v, d_alpha);
-    let v_b = dot_v(v, d_beta);
+    let s_a = dot_v(s, d_alpha);
+    let s_b = dot_v(s, d_beta);
 
-    if ( (u_a < (v_a-1)) || ((Math.abs(u_b) == 1) && (u_a < v_a)) ) {
+    let t_a = dot_v(t, d_alpha);
+    let t_b = dot_v(t, d_beta);
 
-      info["message"] = "inacceptable: Nx3, u,v endpoints create cul-de-sac";
-
+    if ( (s_a < (t_a-1)) || ((Math.abs(s_b) == 1) && (s_a < t_a)) ) {
+      info["message"] = "unacceptable: Nx3, s,t endpoints create cul-de-sac";
       return false;
     }
-
-    return true;
   }
-
 
   return true;
 }
@@ -595,9 +616,23 @@ function verifyHampath(path) {
 
 function _test_acceptable() {
   let examples = [
+    // Nx1
+    //
+    { "expect": true,   "info": { "size": [5, 1], "s": [0,0], "t": [4,0], "path": [] } },
+    { "expect": true,   "info": { "size": [1, 5], "s": [0,0], "t": [0,4], "path": [] } },
+    { "expect": true,   "info": { "size": [5, 1], "s": [4,0], "t": [0,0], "path": [] } },
+    { "expect": true,   "info": { "size": [1, 5], "s": [0,4], "t": [0,0], "path": [] } },
+
+    { "expect": false,  "info": { "size": [5, 1], "s": [1,0], "t": [4,0], "path": [] } },
+    { "expect": false,  "info": { "size": [5, 1], "s": [0,0], "t": [3,0], "path": [] } },
+    { "expect": false,  "info": { "size": [5, 1], "s": [0,0], "t": [1,0], "path": [] } },
+
+    { "expect": false,  "info": { "size": [1,5], "s": [0,1], "t": [0,4], "path": [] } },
+    { "expect": false,  "info": { "size": [1,5], "s": [0,0], "t": [0,3], "path": [] } },
+    { "expect": false,  "info": { "size": [1,5], "s": [0,0], "t": [0,1], "path": [] } },
 
     // Nx2
-
+    //
     { "expect": true,   "info": { "size": [5, 2], "s": [0,0], "t": [0,1], "path": [] } },
     { "expect": false,  "info": { "size": [5, 2], "s": [1,0], "t": [1,1], "path": [] } },
     { "expect": false,  "info": { "size": [5, 2], "s": [2,0], "t": [2,1], "path": [] } },
@@ -628,7 +663,6 @@ function _test_acceptable() {
 
     // Nx3
     //
-
     { "expect": true,   "info": { "size": [4, 3], "s": [0,0], "t": [3,2], "path": [] } },
     { "expect": false,  "info": { "size": [4, 3], "s": [0,1], "t": [3,1], "path": [] } },
     { "expect": false,  "info": { "size": [4, 3], "s": [0,1], "t": [1,1], "path": [] } },
@@ -652,21 +686,622 @@ function _test_acceptable() {
 
     let err_info = {};
 
-    let ret = acceptable_st_hampath([0,0], info.s, info.t, alpha, beta, err_info);
+    let anchor = [ Math.floor(Math.random()*20) - 10, Math.floor(Math.random()*20) - 10 ];
+
+
+    //let ret = acceptable_st_hampath([0,0], info.s, info.t, alpha, beta, err_info);
+    let ret = acceptable_st_hampath(  anchor, v_add(anchor, info.s), v_add(anchor, info.t), alpha, beta, err_info);
 
     if (ret != expect) {
       console.log("[", idx, "]: ERROR:", err_info.message, "expected:", expect, "got:", ret, ":", JSON.stringify(info), );
     }
     else {
-      console.log("[" , idx, "]: pass");
+      let sfx = "";
+      if (VERBOSE > 0) { sfx = " (anchor: [" + anchor[0].toString() + "," + anchor[1].toString() + "])"; }
+      console.log("[" , idx, "]: pass" + sfx);
     }
 
     //console.log("\n");
   }
 }
 
-_test_acceptable();
+//_test_acceptable();
 
-//for (let i=0; i<prime_hamlib.length; i++) {
-//  console.log(i, verifyHampath(prime_hamlib[i].path) );
-//}
+
+
+//----
+
+// WIP - NEEDS TESTING
+//
+// still not sure about this
+// the multidirectionality of alpha and beta mean things
+// get a little confusing.
+//
+// anchor : corner point of rectangle
+// _s     : start point (world coordinates)
+// _t     : end point (world coordinates)
+// alpha  : width like vector
+// beta   : height like vector
+// info   : holds return information (info.prime element if found)
+//
+// return:
+//
+//   true : is a prime hamiltonian path rectanglar region
+//   false: is not a prime hamitlonian path rectangular region
+//
+function isPrime(anchor, _s,_t, alpha, beta, info) {
+  info = ((typeof info === "undefined") ? {} : info);
+
+  let primelib = PRIME_HAMILTONIAN_PATH;
+
+  let s = v_sub(_s,anchor);
+  let t = v_sub(_t,anchor);
+
+  let a = abs_sum_v(alpha);
+  let b = abs_sum_v(beta);
+
+  let d_alpha = v_delta(alpha);
+  let d_beta = v_delta(beta);
+
+  let sz = v_add(alpha, beta);
+  for (i=0; i<sz.length; i++) { sz[i] = Math.abs(sz[i]); }
+
+  //console.log(s,t,a,b,d_alpha,d_beta, sz);
+
+  for (let i=0; i<primelib.length; i++) {
+    let pr = primelib[i];
+
+    let pr_s = [ dot_v( d_alpha, pr.s ), dot_v( d_beta, pr.s ) ];
+    let pr_t = [ dot_v( d_alpha, pr.t ), dot_v( d_beta, pr.t ) ];
+
+    //console.log(i, "pr.s:", pr.s, "pr.t:", pr.t, "pr.size:", pr.size, "--> pr_st{", pr_s, pr_t, "}");
+    //console.log("  ", _cmp_v(sz,pr.size), _cmp_v_d(s,pr_s,d_alpha,d_beta), _cmp_v_d(t,pr_t,d_alpha,d_beta));
+
+    if ( (_cmp_v(sz, pr.size) == 0) &&
+         (_cmp_v_d(s, pr_s, d_alpha, d_beta) == 0) &&
+         (_cmp_v_d(t, pr_t, d_alpha, d_beta) == 0) ) {
+
+      info["prime"] = pr;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// WIP
+//
+// We do a lazy evaluation by trying to find the first Nx2 or 2xN strip
+// that will work.
+//
+// For each rectangular region outer edge, E:
+//
+//  * take u = closest(_s,_t,E)
+//  * take dividing 2 vertices away from E towards u
+//    creating S and R-S (with R-S containing _s, _t)
+//  * check if R-S acceptable, if so, return with lower left
+//    with q on adjacent edge and p directly above it
+//
+// If all edges checked without an acceptable strip, return false
+//
+// Input:
+//
+//   anchor - corner of rectangular region
+//   _s     - start point of Hamiltonian path
+//   _t     - end point of Hamiltonian path
+//   alpha  - width like dimension vector
+//   beta   - height like dimension vector
+//   info   - (optional) structure to hold additional information
+//
+// Return:
+//
+//   true  - has strip
+//   false - otherwise
+//
+// If it has a strip, info will hold the region "S" and "T"
+// that have the anchor point, s start point, t endpoint, alpha and
+// beta dimension vectors.
+//
+function hasStrip(anchor, _s, _t, alpha, beta, info) {
+  info = ((typeof info === "undefined") ? {} : info);
+
+  let s = v_sub(_s,anchor);
+  let t = v_sub(_t,anchor);
+
+  let a = abs_sum_v(alpha);
+  let b = abs_sum_v(beta);
+
+  let d_alpha = v_delta(alpha);
+  let d_beta = v_delta(beta);
+
+  let s_a = dot_v(s, d_alpha);
+  let s_b = dot_v(s, d_beta);
+
+  let t_a = dot_v(t, d_alpha);
+  let t_b = dot_v(t, d_beta);
+
+  let d_2alpha = v_mul(2, d_alpha);
+  let d_2beta = v_mul(2, d_beta);
+
+  let res = false;
+
+  // strip on 'left'
+  //
+  if (Math.min(s_a,t_a) > 1) {
+
+    res = acceptable_st_hampath( v_add(anchor, d_2alpha), _s, _t, v_sub(alpha, d_2alpha), beta );
+    if (res) {
+      info["comment"] = "strip.a";
+      info["S"] = {
+        "anchor": v_clone(anchor),
+        "s": v_add(anchor, d_alpha),
+        "t": v_add(anchor, d_alpha, d_beta),
+        "alpha": v_clone(d_2alpha),
+        "beta": v_clone(beta)
+      };
+
+      info["T"] = {
+        "anchor": v_add(anchor, d_2alpha),
+        "s": v_clone(_s),
+        "t": v_clone(_t),
+        "alpha": v_sub(alpha, d_2alpha),
+        "beta": v_clone(beta)
+      };
+      return true;
+    }
+
+  }
+
+  // strip on 'right'
+  //
+  if (Math.max(s_a,t_a) < (a-1)) {
+
+    res = acceptable_st_hampath( anchor, _s, _t, v_sub(alpha, d_2alpha), beta );
+    if (res) {
+      info["comment"] = "strip.A";
+
+      info["S"] = {
+        "anchor": v_clone(anchor),
+        "s": v_clone(_s),
+        "t": v_clone(_t),
+        "alpha": v_sub(alpha, d_2alpha),
+        "beta": v_clone(beta)
+      };
+
+      let t_anch = v_add(anchor, v_sub(alpha, d_2alpha));
+
+      info["T"] = {
+        "anchor": t_anch,
+        "s": v_clone(t_anch),
+        "t": v_add(t_anch, d_beta),
+        "alpha": v_clone(d_2alpha),
+        "beta": v_clone(beta)
+      };
+
+      return true;
+    }
+
+  }
+
+  // strip on 'top'
+  //
+  if (Math.max(s_b,t_b) < (b-1)) {
+
+    res = acceptable_st_hampath( anchor, _s, _t, alpha, v_sub(beta, d_2beta) );
+    if (res) {
+      info["comment"] = "strip.B";
+
+
+      info["S"] = {
+        "anchor": v_clone(anchor),
+        "s": v_clone(_s),
+        "t": v_clone(_t),
+        "alpha": v_clone(alpha),
+        "beta": v_sub(beta, d_2beta)
+      };
+
+      let t_anch = v_add(anchor, v_sub(beta, d_2beta));
+
+      info["T"] = {
+        "anchor": t_anch,
+        "s": v_clone(t_anch),
+        "t": v_add(t_anch, d_alpha),
+        "alpha": v_clone(alpha),
+        "beta": v_clone(d_2beta)
+      };
+
+      return true;
+    }
+
+  }
+
+  // strip on 'bottom'
+  //
+  if (Math.min(s_b,t_b) > 1) {
+
+    res = acceptable_st_hampath( v_add(anchor, d_2beta), _s, _t, alpha, v_sub(beta, d_2beta) );
+    if (res) {
+      info["comment"] = "strip.b";
+
+      info["S"] = {
+        "anchor": v_clone(anchor),
+        "s": v_add(anchor, d_beta),
+        "t": v_add(anchor, d_alpha, d_beta),
+        "alpha": v_clone(alpha),
+        "beta": v_clone(d_2beta)
+      };
+
+      let t_anch = v_add(anchor, d_2beta);
+
+      info["T"] = {
+        "anchor": t_anch,
+        "s": v_clone(_s),
+        "t": v_clone(_t),
+        "alpha": v_clone(alpha),
+        "beta": v_sub(beta, d_2beta)
+      };
+
+      return true;
+    }
+
+  }
+
+  return false;
+}
+
+function _test_strip() {
+  let examples = [
+    { "expect": true,  "info": { "size": [5,4], "s":[2,0], "t":[4,3], "path": [] } },
+    { "expect": true,  "info": { "size": [5,4], "s":[0,0], "t":[2,3], "path": [] } },
+
+    { "expect": true,  "info": { "size": [4,5], "s":[0,4], "t":[3,2], "path": [] } },
+    { "expect": true,  "info": { "size": [4,5], "s":[0,2], "t":[3,0], "path": [] } },
+
+    { "expect": false,  "info": { "size": [4,4], "s":[1,0], "t":[3,3], "path": [] } },
+  ];
+
+  for (let i=0; i<examples.length; i++) {
+    let example = examples[i];
+    let expect = example.expect;
+    let info = example.info;
+
+    let anchor = [0,0];
+
+    let alpha = [ info.size[0], 0 ];
+    let beta = [ 0, info.size[1] ];
+
+    let strip_info = {};
+    let res = hasStrip( anchor, v_add(anchor, info.s), v_add(anchor, info.t), alpha, beta, strip_info);
+
+    console.log("got:", res, "expect:", expect, "...", strip_info);
+  }
+
+}
+
+
+//_test_strip();
+//process.exit();
+
+//----
+//----
+//----
+
+// still needs testing
+//
+// input:
+//
+//   anchor - corner point of rectangle
+//   _s     - start point (world coordinates)
+//   _t     - end point (world coordinates)
+//   alpha  - width like vector
+//   beta   - height like vector
+//   info   - structure for results
+//
+// output:
+//
+//   true  - has split
+//   false - otherwise
+//
+// If a split is found, the region information will be available in
+// the info stcuture under the 'S','T' keys. Region information holds:
+//
+// <region>
+// {
+//   "anchor": [ ... ],
+//   "s": [ ... ],
+//   "t": [ ... ],
+//   "alpha": [ ... ],
+//   "beta" : [ ... ]
+// }
+//
+function hasSplit(anchor, _s, _t, alpha, beta, info) {
+  info = ((typeof info === "undefined") ? {} : info);
+
+  let s = v_sub(_s,anchor);
+  let t = v_sub(_t,anchor);
+
+  let a = abs_sum_v(alpha);
+  let b = abs_sum_v(beta);
+
+  let d_alpha = v_delta(alpha);
+  let d_beta = v_delta(beta);
+
+  let s_a = dot_v(s, d_alpha);
+  let s_b = dot_v(s, d_beta);
+
+  let t_a = dot_v(t, d_alpha);
+  let t_b = dot_v(t, d_beta);
+
+  let d_2alpha = v_mul(2, d_alpha);
+  let d_2beta = v_mul(2, d_beta);
+
+  let res = false;
+
+  let a_dir = sgn(t_a - s_a);
+  let b_dir = sgn(t_b - s_b);
+
+  if (a_dir != 0) {
+
+    // u,v local s,t for simplicity
+
+    let flip_st = false;
+
+    let u = v_clone(s);
+    let v = v_clone(t);
+    if (a_dir < 0) {
+      u = v_clone(t);
+      v = v_clone(s);
+      flip_st = true;
+    }
+
+    let u_a = dot_v(u, d_alpha);
+    let v_a = dot_v(v, d_alpha);
+
+    for (let idx_a = u_a; idx_a < v_a; idx_a++) {
+      for (let idx_b = 0; idx_b < b; idx_b++) {
+
+        let p = v_add( v_mul( idx_a, d_alpha ), v_mul( idx_b, d_beta ) );
+        let q = v_add( p, d_alpha);
+
+        let da = v_mul(idx_a+1, d_alpha);
+
+        let p_info = {};
+        let q_info = {};
+
+        let validP = acceptable_st_hampath( anchor, u, p, da, beta, p_info);
+        let validQ = acceptable_st_hampath( v_add(anchor, da), q, v, v_sub(alpha, da), beta, q_info);
+
+        //console.log("##a.idx_ab:", idx_a, idx_b, "p:", p, "q:", q, "validPQ:", validP, validQ, p_info.message, q_info.message);
+
+        if (validP && validQ) {
+          info["comment"] = "split.a";
+
+          if (flip_st) {
+
+            info["T"] = {
+              "anchor": v_clone(anchor),
+              "s": p,
+              "t": u,
+              "alpha": v_clone(da),
+              "beta": v_clone(beta)
+            };
+
+            info["S"] = {
+              "anchor": v_add(anchor, da),
+              "s": v,
+              "t": q,
+              "alpha": v_sub(alpha, da),
+              "beta": v_clone(beta)
+            };
+
+          }
+          else {
+
+            info["S"] = {
+              "anchor": v_clone(anchor),
+              "s": u,
+              "t": p,
+              "alpha": v_clone(da),
+              "beta": v_clone(beta)
+            };
+
+            info["T"] = {
+              "anchor": v_add(anchor, da),
+              "s": q,
+              "t": v,
+              "alpha": v_sub(alpha, da),
+              "beta": v_clone(beta)
+            };
+
+          }
+
+          return true;
+        }
+
+      }
+
+    }
+
+  }
+
+  if (b_dir != 0) {
+
+    // u,v local s,t for simplicity
+
+    let flip_st = false;
+
+    let u = v_clone(s);
+    let v = v_clone(t);
+    if (b_dir < 0) {
+      u = v_clone(t);
+      v = v_clone(s);
+      flip_st = true;
+    }
+
+    let u_b = dot_v(u, d_beta);
+    let v_b = dot_v(v, d_beta);
+
+    for (let idx_b = u_b; idx_b < v_b; idx_b++) {
+      for (let idx_a = 0; idx_a < a; idx_a++) {
+
+        let p = v_add( v_mul( idx_a, d_alpha ), v_mul( idx_b, d_beta ) );
+        let q = v_add( p, d_beta);
+
+        //!!!!
+
+        let db = v_mul(idx_b+1, d_beta);
+
+        let validP = acceptable_st_hampath( anchor, u, p, alpha, db);
+        let validQ = acceptable_st_hampath( v_add(anchor, db), q, v, alpha, v_sub(beta, db));
+
+        //console.log("##b.idx_ab:", idx_a, idx_b, "p:", p, "q:", q, "validPQ:", validP, validQ);
+
+        if (validP && validQ) {
+          info["comment"] = "split.b";
+
+          if (flip_st) {
+
+            info["T"] = {
+              "anchor": v_clone(anchor),
+              "s": p,
+              "t": u,
+              "alpha": v_clone(alpha),
+              "beta": v_clone(db)
+            };
+
+            info["S"] = {
+              "anchor": v_add(anchor, db),
+              "s": v,
+              "t": q,
+              "alpha": v_clone(alpha),
+              "beta": v_sub(beta, db)
+            };
+
+          }
+          else {
+
+            info["S"] = {
+              "anchor": v_clone(anchor),
+              "s": u,
+              "t": p,
+              "alpha": v_clone(alpha),
+              "beta": v_clone(db)
+            };
+
+            info["T"] = {
+              "anchor": v_add(anchor, db),
+              "s": q,
+              "t": v,
+              "alpha": v_clone(alpha),
+              "beta": v_sub(beta, db)
+            };
+
+          }
+
+          return true;
+        }
+
+      }
+
+    }
+
+
+  }
+
+  return res;
+}
+
+function _test_split() {
+  let examples = [
+    { "expect": true,  "info": { "size": [5,4], "s":[0,0], "t":[4,3], "path": [] } },
+    { "expect": true,  "info": { "size": [2,5], "s":[0,0], "t":[1,4], "path": [] } },
+  ];
+
+  for (let i=0; i<examples.length; i++) {
+    let example = examples[i];
+    let expect = example.expect;
+    let info = example.info;
+
+    let anchor = [0,0];
+
+    let alpha = [ info.size[0], 0 ];
+    let beta = [ 0, info.size[1] ];
+
+    let strip_info = {};
+    let res = hasSplit( anchor, v_add(anchor, info.s), v_add(anchor, info.t), alpha, beta, strip_info);
+
+    console.log("got:", res, "expect:", expect, "...", strip_info);
+  }
+
+}
+
+
+_test_split();
+process.exit();
+
+
+//----
+
+function spotcheck() {
+
+  let anchor = [0,0];
+  let s = [0,0];
+  let t = [1,0];
+
+  let alpha = [2,0];
+  let beta = [0,2];
+
+  let res0 = acceptable_st_hampath(anchor, s, t, alpha, beta);
+  let res1 = isPrime(anchor, s, t, alpha, beta);
+  console.log(res0, res1);
+
+}
+
+//----
+//----
+//----
+
+function sthampath(anchor, _s, _t, alpha, beta, info) {
+  info = ((typeof info === "undefined") ? {} : info);
+  if (!("region" in info)) { info["region"] = []; }
+
+  let s = v_sub(_s,anchor);
+  let t = v_sub(_t,anchor);
+
+  let a = abs_sum_v(alpha);
+  let b = abs_sum_v(beta);
+
+  let d_alpha = v_delta(alpha);
+  let d_beta = v_delta(beta);
+
+  if (!acceptable_st_hampath(anchor, _s, _t, alpha, beta)) {
+    info["comment"] = "ERROR: unacceptable path";
+    return false;
+  }
+
+  let pr_info = {},
+      strip_info = {},
+      split_info = {};
+
+  if (isPrime(anchor, _s, _t, alpha, beta, pr_info)) {
+    let res = _realize_prime_sthampath(anchor, _s, _t, alpha, beta, pr_info);
+    info.region.push(res);
+    return true;
+  }
+
+  if (hasStrip(anchor, _s, _t, alpha, beta, strip_info)) {
+    //....
+  }
+
+  if (hasSplit(anchor, _s, _t, alpha, beta, split_info)) {
+    //....
+  }
+
+  // sanity, we shouldn't be able to get here.
+  //
+  info["comment"] = "ERROR: sanity error";
+  return false;
+
+}
+
+spotcheck();
