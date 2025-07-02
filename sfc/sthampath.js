@@ -88,6 +88,8 @@
 //   (else sanity fail)
 //
 
+var STHAMPATH_VERSION = "0.1.0";
+
 var VERBOSE = 1;
 
 var fasslib = require("./fasslib.js");
@@ -151,6 +153,7 @@ var REGION_TEMPLATE = {
 //----
 
 
+function guuid() { return crypto.randomUUID(); }
 
 function path_cmp( path_a, path_b ) {
   if (path_a.length < path_b.length) { return -1; }
@@ -309,8 +312,14 @@ function enum_prime_hamiltonian_template(template) {
   return prime_hamiltonian_path_library;
 }
 
+function gnuplot_print_path(path) {
+  for (let idx=0; idx<path.length; idx++) {
+    console.log(path[idx][0], path[idx][1]);
+  }
+  console.log("\n");
+}
 
-function gnuplot_print(prime_hamlib) {
+function gnuplot_print_hamlib(prime_hamlib) {
 
   let st_gadget = true;
 
@@ -860,7 +869,7 @@ function hasStrip(anchor, _s, _t, alpha, beta, info) {
     if (res) {
       info["comment"] = "strip.A";
 
-      info["S"] = {
+      info["T"] = {
         "anchor": v_clone(anchor),
         "s": v_clone(_s),
         "t": v_clone(_t),
@@ -870,7 +879,7 @@ function hasStrip(anchor, _s, _t, alpha, beta, info) {
 
       let t_anch = v_add(anchor, v_sub(alpha, d_2alpha));
 
-      info["T"] = {
+      info["S"] = {
         "anchor": t_anch,
         "s": v_clone(t_anch),
         "t": v_add(t_anch, d_beta),
@@ -892,7 +901,7 @@ function hasStrip(anchor, _s, _t, alpha, beta, info) {
       info["comment"] = "strip.B";
 
 
-      info["S"] = {
+      info["T"] = {
         "anchor": v_clone(anchor),
         "s": v_clone(_s),
         "t": v_clone(_t),
@@ -902,7 +911,7 @@ function hasStrip(anchor, _s, _t, alpha, beta, info) {
 
       let t_anch = v_add(anchor, v_sub(beta, d_2beta));
 
-      info["T"] = {
+      info["S"] = {
         "anchor": t_anch,
         "s": v_clone(t_anch),
         "t": v_add(t_anch, d_alpha),
@@ -923,10 +932,21 @@ function hasStrip(anchor, _s, _t, alpha, beta, info) {
     if (res) {
       info["comment"] = "strip.b";
 
+      let p = v_add(anchor, d_beta);
+      let q = v_add(anchor, d_alpha, d_beta);
+
+      if ( abs_sum_v( v_sub(p,_s) ) != 1 ) {
+        let _tmp = p;
+        p = q;
+        q = _tmp;
+      }
+
       info["S"] = {
         "anchor": v_clone(anchor),
-        "s": v_add(anchor, d_beta),
-        "t": v_add(anchor, d_alpha, d_beta),
+        //"s": v_add(anchor, d_beta),
+        //"t": v_add(anchor, d_alpha, d_beta),
+        "s": p,
+        "t": q,
         "alpha": v_clone(alpha),
         "beta": v_clone(d_2beta)
       };
@@ -1261,23 +1281,42 @@ function spotcheck() {
 //----
 //----
 
+// return region
+//
 function realize_prime_sthampath(anchor, _s, _t, alpha, beta, prime_info) {
   prime_info = ((typeof info === "undefined") ? {} : info);
   prime_info["path"] = [];
 
   let prime = prime_info["prime"];
 
+  let region = {
+    "anchor": v_clone(anchor),
+    "s": v_clone(_s),
+    "t": v_clone(_t),
+    "path": []
+  };
+
   for (let idx=0; idx<prime.path.length; idx++) {
-    prime_in
+    region.path.push( v_add(anchor, prime.path[idx]) );
   }
 
 
-
+  return region;
 }
 
+// to join paths:
+//
+// * we assume a region is returned, with a valid path internal to the region
+// * if s and t are in different regions, start at s and go until you reach p,
+//   then switch to q-t
+// * if s and t are in the same region, start at s, go to p, switch to p' in the other
+//   region and go to q', then switch from q' to q and follow to t.
+//
 function sthampath(anchor, _s, _t, alpha, beta, info) {
   info = ((typeof info === "undefined") ? {} : info);
   if (!("region" in info)) { info["region"] = []; }
+
+  let verbose_level = -1;
 
   let s = v_sub(_s,anchor);
   let t = v_sub(_t,anchor);
@@ -1288,40 +1327,87 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
   let d_alpha = v_delta(alpha);
   let d_beta = v_delta(beta);
 
+  let _uid = guuid();
+
   if (!acceptable_st_hampath(anchor, _s, _t, alpha, beta)) {
     info["comment"] = "ERROR: unacceptable path";
     return false;
+  }
+
+  if (VERBOSE > verbose_level) {
+    console.log("#", _uid, "s:", _s, "t:", _t, "anchor:", anchor, "alpha:", alpha, "beta:", beta );
   }
 
   let pr_info = {},
       strip_info = {},
       split_info = {};
 
-  if (isPrime(anchor, _s, _t, alpha, beta, pr_info)) {
-    let res = _realize_prime_sthampath(anchor, _s, _t, alpha, beta, pr_info);
+  if ((a == 1) || (b == 1)) {
 
-    let pr_path = pr_info.prime.path;
-    let _path = [];
-    for (let idx=0; idx<pr_path.length; idx++) {
-      _path.push( v_add(anchor, pr_path[i]) );
+    if (VERBOSE > verbose_level) {
+      console.log("#", _uid, " lin");
     }
 
-    info.region.push({
+    let v_ts = v_sub(_t, _s);
+    let dv = v_delta( v_ts );
+    let n = abs_sum_v( v_ts ) + 1;
+    let _path = [];
+    for (let idx=0; idx<n; idx++) {
+      _path.push( v_add(_s, v_mul(idx, dv)) );
+    }
+
+    info.region = {
       "anchor": v_clone(anchor),
       "s": v_clone(_s),
       "t": v_clone(_t),
       "alpha": v_clone(alpha),
       "beta": v_clone(beta),
       "path": _path
-    });
+    };
+
+    if (VERBOSE > verbose_level) {
+      console.log("#", _uid,"   ab==1 (", a, b, ") s:", _s, "t:", _t, "dv:", dv, "path:", _path);
+    }
+
+    return true;
+  }
+
+
+  if (isPrime(anchor, _s, _t, alpha, beta, pr_info)) {
+
+    if (VERBOSE > verbose_level) {
+      console.log("#", _uid," prime");
+    }
+
+    let pr_path = pr_info.prime.path;
+    let _path = [];
+    for (let idx=0; idx<pr_path.length; idx++) {
+      _path.push( v_add(anchor, pr_path[idx]) );
+    }
+
+    info.region = {
+      "anchor": v_clone(anchor),
+      "s": v_clone(_s),
+      "t": v_clone(_t),
+      "alpha": v_clone(alpha),
+      "beta": v_clone(beta),
+      "path": _path
+    };
+
+    console.log("##", _uid," primepath:", _path);
 
     return true;
   }
 
   if (hasStrip(anchor, _s, _t, alpha, beta, strip_info)) {
 
+
     let S = strip_info.S;
     let T = strip_info.T;
+
+    if (VERBOSE > verbose_level) {
+      console.log("#", _uid, " strip", strip_info.comment, "S.st:", S.s, S.t, "T.st:", T.s, T.t);
+    }
 
     let infoS = {},
         infoT = {};
@@ -1335,9 +1421,34 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
       return false;
     }
 
-    //let join_info = {};
-    //let retR = sthampath_join_region(S, T, join_info);
 
+    let spath = infoS.region.path;
+    let tpath = infoT.region.path;
+
+    //console.log("##", _uid, strip_info.comment, "spath:", spath, "tpath:", tpath);
+
+    let _path = [];
+    for (let t_idx=0; t_idx<tpath.length; t_idx++) {
+
+      let pnt = [ tpath[t_idx][0], tpath[t_idx][1] ];
+      _path.push( pnt );
+
+      if ( abs_sum_v( v_sub( pnt, spath[0] ) ) == 1 ) {
+        for (let s_idx=0; s_idx<spath.length; s_idx++) {
+          _path.push( [ spath[s_idx][0], spath[s_idx][1] ] );
+        }
+      }
+
+    }
+
+    info.region = {
+      "anchor": v_clone(anchor),
+      "s": v_clone(_s),
+      "t": v_clone(_t),
+      "alpha": v_clone(alpha),
+      "beta": v_clone(beta),
+      "path": _path
+    };
 
     return true;
   }
@@ -1347,6 +1458,10 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
     let S = split_info.S;
     let T = split_info.T;
 
+    if (VERBOSE > verbose_level) {
+      console.log("#", _uid, " split S.st:", S.s, S.t, "T.st:", T.s, T.t);
+    }
+
     let infoS = {},
         infoT = {};
 
@@ -1355,11 +1470,34 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
 
     if ((!retS) || (!retT)) {
       info["comment"] = "ERROR: sanity, hasSplit but S or T invalid";
+      info.comment += " (S:" + infoS.comment + ")";
+      info.comment += " (T:" + infoT.comment + ")";
       return false;
     }
 
-    //let join_info = {};
-    //let retR = sthampath_join_region(S, T, join_info);
+    //DEBUG
+    //console.log("### split.infoS:", infoS);
+    //console.log("### split.infoT:", infoT);
+
+    let spath = infoS.region.path;
+    let tpath = infoT.region.path;
+
+    let _path = [];
+    for (let idx=0; idx<spath.length; idx++) {
+      _path.push( [ spath[idx][0], spath[idx][1] ] );
+    }
+    for (let idx=0; idx<tpath.length; idx++) {
+      _path.push( [ tpath[idx][0], tpath[idx][1] ] );
+    }
+
+    info.region = {
+      "anchor": v_clone(anchor),
+      "s": v_clone(_s),
+      "t": v_clone(_t),
+      "alpha": v_clone(alpha),
+      "beta": v_clone(beta),
+      "path": _path
+    };
 
     return true;
   }
@@ -1369,5 +1507,135 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
   info["comment"] = "ERROR: sanity error";
   return false;
 
+}
+
+
+
+if (typeof module !== "undefined") {
+
+  let func_name_map = {
+    "sthampath": sthampath,
+    "acceptable_st_hampath": acceptable_st_hampath,
+    "isColorCompatible": isColorCompatible,
+  };
+
+  for (let key in func_name_map) {
+    module.exports[key] = func_name_map[key];
+  }
+
+}
+
+//----
+//----
+//----
+
+function _show_version(fp) {
+  fp = ((typeof fp === "undefined") ? process.stderr : fp);
+  fp.write("version: " + STHAMPATH_VERSION + "\n");
+}
+
+function _show_help(fp, msg, hide_version) {
+  fp = ((typeof fp === "undefined") ? process.stderr : fp);
+  msg = ((typeof msg === "undefined") ? "" : msg);
+  hide_version = ((typeof hide_version === "undefined") ? false : hide_version);
+
+  if (msg.length > 0) {
+    fp.write("\n");
+    fp.write(msg + "\n");
+  }
+
+  fp.write("\n");
+  fp.write("Create a Hamiltonian path on a rectangular 2D grid graph with endpoints s and t.\n");
+
+  if (!hide_version) {
+    fp.write("\n");
+    _show_version(fp);
+  }
+
+  fp.write("\n");
+  fp.write("usage:\n");
+  fp.write("\n");
+  fp.write("  node sthampath.js ...\n");
+  fp.write("\n");
+  fp.write("  ...\n");
+  fp.write("\n");
+  fp.write("example:\n");
+  fp.write("\n");
+  fp.write("  node sthampath.js x y z \n");
+  fp.write("\n");
+}
+
+
+function _main(argv) {
+
+  if (argv.length <= 1) {
+    _show_help(process.stderr);
+    return -1;
+  }
+
+  let op = "";
+
+  if (argv.length > 1) {
+    op = argv[1];
+  }
+
+  if (op == "help") {
+    _show_help(process.stdout);
+    return 0;
+  }
+
+  else if (op == "version") {
+    _show_version(process.stdout);
+    return 0;
+  }
+
+  else if (op == "test_strip") {
+    _test_strip();
+  }
+
+  else if (op == "test_split") {
+    _test_split();
+  }
+
+  else if (op == "test_acceptable") {
+    _test_acceptable();
+  }
+
+  else if (op == "st") {
+
+    if (argv.length < 6) {
+      _show_help(process.stderr, "provide s (<int>,<int>), t (<int>,<int>) width, height");
+      return -1;
+    }
+
+    let s = argv[2].split(",").map( (_) => parseInt(_) );
+    let t = argv[3].split(",").map( (_) => parseInt(_) );
+    let width = parseInt(argv[4]);
+    let height = parseInt(argv[5]);
+
+    let alpha = [ width, 0 ];
+    let beta = [ 0, height ];
+
+    let info = {};
+
+    let ret = sthampath([0,0], s, t, alpha, beta, info);
+
+    console.log("##", ret, (!ret) ? info.comment : "" );
+
+    if (ret) {
+      gnuplot_print_path(info.region.path);
+    }
+
+    //console.log("#", ret, info);
+  }
+
+  return 0;
+}
+
+if ((typeof require !== "undefined")  &&
+    (require.main === module)) {
+  let ret = _main(process.argv.slice(1));
+
+  process.exitCode = ret;
 }
 
