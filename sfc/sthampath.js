@@ -1313,7 +1313,7 @@ function realize_prime_sthampath(anchor, _s, _t, alpha, beta, prime_info) {
 //   region and go to q', then switch from q' to q and follow to t.
 //
 function sthampath(anchor, _s, _t, alpha, beta, info) {
-  info = ((typeof info === "undefined") ? {} : info);
+  info = ((typeof info === "undefined") ? { "parent": "0" } : info);
   if (!("region" in info)) { info["region"] = []; }
 
   let verbose_level = -1;
@@ -1335,7 +1335,7 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
   }
 
   if (VERBOSE > verbose_level) {
-    console.log("#", _uid, "s:", _s, "t:", _t, "anchor:", anchor, "alpha:", alpha, "beta:", beta );
+    console.log("#", _uid, "(par:", info.parent, ")", "s:", _s, "t:", _t, "anchor:", anchor, "alpha:", alpha, "beta:", beta );
   }
 
   let pr_info = {},
@@ -1417,7 +1417,9 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
 
 
     if ((!retS) || (!retT)) {
-      info["comment"] = "ERROR: sanity, hasStrip but S or T invalid";
+      info["comment"] = "ERROR: " + _uid + " sanity, hasStrip but S or T invalid";
+      info.comment += " (S:" + infoS.comment + ")";
+      info.comment += " (T:" + infoT.comment + ")";
       return false;
     }
 
@@ -1462,14 +1464,14 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
       console.log("#", _uid, " split S.st:", S.s, S.t, "T.st:", T.s, T.t);
     }
 
-    let infoS = {},
-        infoT = {};
+    let infoS = { "parent": _uid },
+        infoT = { "parent": _uid };
 
     let retS = sthampath( S.anchor, S.s, S.t, S.alpha, S.beta, infoS );
     let retT = sthampath( T.anchor, T.s, T.t, T.alpha, T.beta, infoT );
 
     if ((!retS) || (!retT)) {
-      info["comment"] = "ERROR: sanity, hasSplit but S or T invalid";
+      info["comment"] = "ERROR: " + _uid + " sanity, hasSplit but S or T invalid (" + retS.toString() + " " + retT.toString() + ")";
       info.comment += " (S:" + infoS.comment + ")";
       info.comment += " (T:" + infoT.comment + ")";
       return false;
@@ -1504,7 +1506,10 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
 
   // sanity, we shouldn't be able to get here.
   //
-  info["comment"] = "ERROR: sanity error";
+
+  let debug_info = " (fin: s:" + _s.toString() + " t:" + _t.toString() + " anchor:" + anchor.toString();
+  debug_info += " alpha:" + alpha.toString() + " beta:" + beta.toString() + ")";
+  info["comment"] = "ERROR: sanity error" + debug_info;
   return false;
 
 }
