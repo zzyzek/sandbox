@@ -312,9 +312,11 @@ function enum_prime_hamiltonian_template(template) {
   return prime_hamiltonian_path_library;
 }
 
-function gnuplot_print_path(path) {
+function gnuplot_print_path(path, anchor) {
+  anchor = ((typeof anchor === "undefined") ? [0,0] : anchor);
+
   for (let idx=0; idx<path.length; idx++) {
-    console.log(path[idx][0], path[idx][1]);
+    console.log(path[idx][0] + anchor[0], path[idx][1] + anchor[1]);
   }
   console.log("\n");
 }
@@ -935,11 +937,18 @@ function hasStrip(anchor, _s, _t, alpha, beta, info) {
       let p = v_add(anchor, d_beta);
       let q = v_add(anchor, d_alpha, d_beta);
 
+      /*
+      let is_swap = false;
       if ( abs_sum_v( v_sub(p,_s) ) != 1 ) {
         let _tmp = p;
         p = q;
         q = _tmp;
+
+        is_swap = true;
       }
+      */
+
+      //console.log("## hasStrip: strip.b, p:", p, "q:", q, "(", is_swap, "), _s:", _s, "_t:", _t);
 
       info["S"] = {
         "anchor": v_clone(anchor),
@@ -1034,11 +1043,13 @@ function _test_strip() {
 //   "beta" : [ ... ]
 // }
 //
-function hasSplit(anchor, _s, _t, alpha, beta, info) {
+function hasSplit(_anchor, _s, _t, alpha, beta, info) {
   info = ((typeof info === "undefined") ? {} : info);
 
-  let s = v_sub(_s,anchor);
-  let t = v_sub(_t,anchor);
+  let anchor = [0,0];
+
+  let s = v_sub(_s,_anchor);
+  let t = v_sub(_t,_anchor);
 
   let a = abs_sum_v(alpha);
   let b = abs_sum_v(beta);
@@ -1099,17 +1110,17 @@ function hasSplit(anchor, _s, _t, alpha, beta, info) {
           if (flip_st) {
 
             info["T"] = {
-              "anchor": v_clone(anchor),
-              "s": p,
-              "t": u,
+              "anchor": v_clone(_anchor),
+              "s": v_add(_anchor, p),
+              "t": v_add(_anchor, u),
               "alpha": v_clone(da),
               "beta": v_clone(beta)
             };
 
             info["S"] = {
-              "anchor": v_add(anchor, da),
-              "s": v,
-              "t": q,
+              "anchor": v_add(_anchor, da),
+              "s": v_add(_anchor, v),
+              "t": v_add(_anchor, q),
               "alpha": v_sub(alpha, da),
               "beta": v_clone(beta)
             };
@@ -1118,17 +1129,17 @@ function hasSplit(anchor, _s, _t, alpha, beta, info) {
           else {
 
             info["S"] = {
-              "anchor": v_clone(anchor),
-              "s": u,
-              "t": p,
+              "anchor": v_clone(_anchor),
+              "s": v_add(_anchor, u),
+              "t": v_add(_anchor, p),
               "alpha": v_clone(da),
               "beta": v_clone(beta)
             };
 
             info["T"] = {
-              "anchor": v_add(anchor, da),
-              "s": q,
-              "t": v,
+              "anchor": v_add(_anchor, da),
+              "s": v_add(_anchor, q),
+              "t": v_add(_anchor, v),
               "alpha": v_sub(alpha, da),
               "beta": v_clone(beta)
             };
@@ -1182,17 +1193,17 @@ function hasSplit(anchor, _s, _t, alpha, beta, info) {
           if (flip_st) {
 
             info["T"] = {
-              "anchor": v_clone(anchor),
-              "s": p,
-              "t": u,
+              "anchor": v_clone(_anchor),
+              "s": v_add(_anchor, p),
+              "t": v_add(_anchor, u),
               "alpha": v_clone(alpha),
               "beta": v_clone(db)
             };
 
             info["S"] = {
-              "anchor": v_add(anchor, db),
-              "s": v,
-              "t": q,
+              "anchor": v_add(_anchor, db),
+              "s": v_add(_anchor, v),
+              "t": v_add(_anchor, q),
               "alpha": v_clone(alpha),
               "beta": v_sub(beta, db)
             };
@@ -1201,17 +1212,17 @@ function hasSplit(anchor, _s, _t, alpha, beta, info) {
           else {
 
             info["S"] = {
-              "anchor": v_clone(anchor),
-              "s": u,
-              "t": p,
+              "anchor": v_clone(_anchor),
+              "s": v_add(_anchor, u),
+              "t": v_add(_anchor, p),
               "alpha": v_clone(alpha),
               "beta": v_clone(db)
             };
 
             info["T"] = {
-              "anchor": v_add(anchor, db),
-              "s": q,
-              "t": v,
+              "anchor": v_add(_anchor, db),
+              "s": v_add(_anchor, q),
+              "t": v_add(_anchor, v),
               "alpha": v_clone(alpha),
               "beta": v_sub(beta, db)
             };
@@ -1409,8 +1420,8 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
       console.log("#", _uid, " strip", strip_info.comment, "S.st:", S.s, S.t, "T.st:", T.s, T.t);
     }
 
-    let infoS = {},
-        infoT = {};
+    let infoS = { "parent": _uid },
+        infoT = { "parent": _uid };
 
     let retS = sthampath( S.anchor, S.s, S.t, S.alpha, S.beta, infoS );
     let retT = sthampath( T.anchor, T.s, T.t, T.alpha, T.beta, infoT );
@@ -1427,7 +1438,10 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
     let spath = infoS.region.path;
     let tpath = infoT.region.path;
 
+
     //console.log("##", _uid, strip_info.comment, "spath:", spath, "tpath:", tpath);
+
+    let require_splice = true;
 
     let _path = [];
     for (let t_idx=0; t_idx<tpath.length; t_idx++) {
@@ -1435,10 +1449,22 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
       let pnt = [ tpath[t_idx][0], tpath[t_idx][1] ];
       _path.push( pnt );
 
-      if ( abs_sum_v( v_sub( pnt, spath[0] ) ) == 1 ) {
-        for (let s_idx=0; s_idx<spath.length; s_idx++) {
-          _path.push( [ spath[s_idx][0], spath[s_idx][1] ] );
+      if (require_splice) {
+
+        if ( abs_sum_v( v_sub( pnt, spath[0] ) ) == 1 ) {
+          for (let s_idx=0; s_idx<spath.length; s_idx++) {
+            _path.push( [ spath[s_idx][0], spath[s_idx][1] ] );
+          }
+          require_splice = false;
         }
+
+        else if ( abs_sum_v( v_sub(pnt, spath[spath.length-1] ) ) == 1 ) {
+          for (let s_idx=(spath.length-1); s_idx>=0; s_idx--) {
+            _path.push( [ spath[s_idx][0], spath[s_idx][1] ] );
+          }
+          require_splice = false;
+        }
+
       }
 
     }
@@ -1514,6 +1540,89 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
 
 }
 
+//
+// increment v with carry, subject to v_base
+//
+// return:
+//
+//   false  : v all zero
+//   true   : otherwise
+//
+function _vec_incr( v, v_base ) {
+  let nz = false;
+  let idx = v.length-1;
+  let carry = true;
+  while (carry && (idx >= 0)) {
+    carry = false;
+    v[idx]++;
+    if (v[idx] >= v_base[idx]) {
+      v[idx] %= v_base[idx];
+      carry = true;
+    }
+    if (v[idx] != 0) { nz = true; }
+    idx--;
+  }
+  return nz;
+}
+
+function test_suite( w_range, h_range ) {
+  let st = [0,0,0,0];
+
+  let Fx = 7,
+      Fy = 7;
+
+  let dx = 0,
+      dy = 0;
+
+  let wmod = (w_range[1]*(w_range[1]-1)/2) - ((w_range[0]+1)*w_range[0]/2);
+  let hmod = (h_range[1]*(h_range[1]-1)/2) - ((h_range[0]+1)*h_range[0]/2);
+
+  wmod = w_range[1]*w_range[1]*w_range[1];
+  hmod = h_range[1]*h_range[1]*h_range[1];
+
+  let dxy = [0,0];
+
+  for (let w = w_range[0]; w < w_range[1]; w++) {
+
+    for (let h = h_range[0]; h < h_range[1]; h++) {
+
+
+      let st = [0,0,0,0];
+      let stb = [w,h,w,h];
+
+      do {
+
+        let s = [st[0], st[1]];
+        let t = [st[2], st[3]];
+
+        let alpha = [w, 0];
+        let beta  = [0, h];
+
+        let info = {};
+
+        let expect = acceptable_st_hampath([0,0], s, t, alpha, beta, info);
+        let ret = sthampath([0,0], s, t, alpha, beta, info);
+
+        console.log("## w:", w, "h:", h, "s:", s, "t:", t, "got:", ret, "expect:", expect);
+
+        if (expect != ret) {
+          console.log("FAIL!!!");
+        }
+
+        if (ret) {
+          gnuplot_print_path(info.region.path, [ Fx*dxy[0], Fy*dxy[1] ] );
+        }
+
+        _vec_incr(dxy, [wmod, hmod]);
+      } while (_vec_incr(st, stb));
+
+    }
+
+  }
+
+  return true;
+}
+
 
 
 if (typeof module !== "undefined") {
@@ -1571,6 +1680,9 @@ function _show_help(fp, msg, hide_version) {
 }
 
 
+// assumes argv is 'unix style', with first argument
+// as program (source) file (not, for example 'node').
+//
 function _main(argv) {
 
   if (argv.length <= 1) {
@@ -1632,6 +1744,59 @@ function _main(argv) {
     }
 
     //console.log("#", ret, info);
+  }
+
+  else if (op == "split") {
+
+    if (argv.length < 6) {
+      _show_help(process.stderr, "provide s (#,#), t (#,#) anchor (#,#) alpha (#,#) beta (#,#)");
+      return -1;
+    }
+
+    let s = argv[2].split(",").map( (_) => parseInt(_) );
+    let t = argv[3].split(",").map( (_) => parseInt(_) );
+    let anchor = argv[4].split(",").map( (_) => parseInt(_) );
+    let alpha = argv[5].split(",").map( (_) => parseInt(_) );
+    let beta = argv[6].split(",").map( (_) => parseInt(_) );
+
+    let split_info = {};
+
+    let ret = hasSplit(anchor, s, t, alpha, beta, split_info);
+
+    console.log("##", ret, (!ret) ? split_info.comment : "" );
+    console.log( JSON.stringify(split_info, undefined, 2) );
+
+  }
+
+  else if (op == "test_suite") {
+
+    if (argv.length < 4) {
+      _show_help(process.stderr, "provide Wrange (#,#), Hrange (#,#)");
+      return -1;
+    }
+
+    let wrange = argv[2].split(",").map( (_) => parseInt(_) );
+    let hrange = argv[3].split(",").map( (_) => parseInt(_) );
+
+    if ((wrange.length == 0) ||
+        (hrange.length == 0)) {
+      _show_help(process.stderr, "invalid W,H range");
+      return -1;
+    }
+
+    if (wrange.length == 1) { wrange.push(wrange[0]+1); }
+    if (hrange.length == 1) { hrange.push(hrange[0]+1); }
+
+    if (isNaN(wrange[0]) || (wrange[0] == 0) || (wrange[1] <= wrange[0]) ||
+        isNaN(hrange[0]) || (hrange[0] == 0) || (hrange[1] <= hrange[0])) {
+      _show_help(process.stderr, "invalid W,H range");
+      return -1;
+    }
+
+    let ret = test_suite(wrange, hrange);
+
+    console.log("got:", ret);
+
   }
 
   return 0;
