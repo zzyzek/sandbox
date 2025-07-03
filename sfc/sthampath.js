@@ -191,6 +191,22 @@ function getBounds(path) {
   return b;
 }
 
+function _mk_path_region(size, path) {
+  let n = path.length;
+  let info = {
+    "size": [size[0], size[1]],
+    "s": [ path[0][0], path[0][1] ],
+    "t": [ path[n-1][0], path[n-1][1] ],
+    "path": path
+  };
+  return info;
+}
+
+function _mk_pathkey(path) {
+  _key = path.map( (_t) => "(" + _t[0].toString() + "," + _t[1].toString() + ")" ).join("");
+  return _key;
+}
+
 function enum_prime_hamiltonian_template(template) {
   let _eps = (1.0 / (1024.0*1024.));
 
@@ -212,19 +228,16 @@ function enum_prime_hamiltonian_template(template) {
       let dst_path = [];
       for (let i=0; i<info.path.length; i++) {
         let src_pnt = info.path[i];
-
-
         let dst_pnt = v_add( dst_mid, rodrigues( v_sub( src_pnt, src_mid ), [0,0,1], Math.PI*rot_idx/2 ) );
-
         let ipnt = [ Math.floor(dst_pnt[0]+_eps), Math.floor(dst_pnt[1]+_eps) ];
-        //console.log("# [", idx, "][", i, "]: src_pnt:", src_pnt, "src_mid:", src_mid, "dst_mid:", dst_mid, "==>", dst_pnt, ipnt);
-
         dst_path.push( ipnt );
       }
 
-      let _key = dst_path.map( (_t) => "(" + _t[0].toString() + "," + _t[1].toString() + ")" ).join("");
+      //let _key = dst_path.map( (_t) => "(" + _t[0].toString() + "," + _t[1].toString() + ")" ).join("");
+      let _key = _mk_pathkey(dst_path);
       if (!(_key in seen_keys)) {
 
+        /*
         let n = dst_path.length;
         let info_rot = {
           "size": [size[0], size[1]],
@@ -233,15 +246,24 @@ function enum_prime_hamiltonian_template(template) {
           "path": dst_path
         };
         prime_hamiltonian_path_library.push(info_rot);
+        */
+        prime_hamiltonian_path_library.push( _mk_path_region(size, dst_path) );
 
         seen_keys[_key] = 1;
-
-        //let _b = getBounds(dst_path);
-        //console.log("# adding rot, size:", size, "b:", _b, "rot:", rot_idx, "key:", _key);
       }
 
+      // reverse path (from rotation)
+      //
+      let rev_rot_path = [];
+      for (let i=0; i<dst_path.length; i++) {
+        rev_rot_path.push( dst_path[ dst_path.length-1-i ] );
+      }
 
-
+      _key = _mk_pathkey(rev_rot_path);
+      if (!(_key in seen_keys)) {
+        prime_hamiltonian_path_library.push( _mk_path_region(size, rev_rot_path) );
+        seen_keys[_key] = 1;
+      }
 
       // flip
       // Since we're rotating, we only need to flip in one dimension
@@ -250,7 +272,6 @@ function enum_prime_hamiltonian_template(template) {
       let flipx_path = [];
       for (let i=0; i<dst_path.length; i++) {
         let src_pnt = dst_path[i];
-
         let flip_pnt = [ size[0] - src_pnt[0] - 1, src_pnt[1] ];
         flipx_path.push( flip_pnt );
       }
@@ -268,11 +289,24 @@ function enum_prime_hamiltonian_template(template) {
         prime_hamiltonian_path_library.push(info_flip);
 
         seen_keys[_key] = 1;
-
-        //let _b = getBounds(dst_path);
-        //console.log("# adding flipx key:", size, _b, _key);
       }
 
+      // reverse path (from flipx)
+      //
+      let rev_flipx_path = [];
+      for (let i=0; i<flipx_path.length; i++) {
+        rev_flipx_path.push( flipx_path[ flipx_path.length-1-i ] );
+      }
+
+      _key = _mk_pathkey(rev_flipx_path);
+      if (!(_key in seen_keys)) {
+        prime_hamiltonian_path_library.push( _mk_path_region(size, rev_flipx_path) );
+        seen_keys[_key] = 1;
+      }
+
+
+      // flip y
+      //
       let flipy_path = [];
       for (let i=0; i<dst_path.length; i++) {
         let src_pnt = dst_path[i];
@@ -294,10 +328,21 @@ function enum_prime_hamiltonian_template(template) {
         prime_hamiltonian_path_library.push(info_flip);
 
         seen_keys[_key] = 1;
-
-        //let _b = getBounds(dst_path);
-        //console.log("# adding flipy key:", size, _b, _key);
       }
+
+      // reverse path (from flipy)
+      //
+      let rev_flipy_path = [];
+      for (let i=0; i<flipy_path.length; i++) {
+        rev_flipy_path.push( flipy_path[ flipy_path.length-1-i ] );
+      }
+
+      _key = _mk_pathkey(rev_flipy_path);
+      if (!(_key in seen_keys)) {
+        prime_hamiltonian_path_library.push( _mk_path_region(size, rev_flipy_path) );
+        seen_keys[_key] = 1;
+      }
+
 
       // rotate size components
       //
@@ -1746,6 +1791,41 @@ function _main(argv) {
     _test_acceptable();
   }
 
+  else if (op == "test_suite") {
+
+    if (argv.length < 4) {
+      _show_help(process.stderr, "provide Wrange (#,#), Hrange (#,#)");
+      return -1;
+    }
+
+    let wrange = argv[2].split(",").map( (_) => parseInt(_) );
+    let hrange = argv[3].split(",").map( (_) => parseInt(_) );
+
+    if ((wrange.length == 0) ||
+        (hrange.length == 0)) {
+      _show_help(process.stderr, "invalid W,H range");
+      return -1;
+    }
+
+    if (wrange.length == 1) { wrange.push(wrange[0]+1); }
+    if (hrange.length == 1) { hrange.push(hrange[0]+1); }
+
+    if (isNaN(wrange[0]) || (wrange[0] == 0) || (wrange[1] <= wrange[0]) ||
+        isNaN(hrange[0]) || (hrange[0] == 0) || (hrange[1] <= hrange[0])) {
+      _show_help(process.stderr, "invalid W,H range");
+      return -1;
+    }
+
+    let ret = test_suite(wrange, hrange);
+
+    console.log("got:", ret);
+
+  }
+
+  else if (op == "print_prime") {
+    gnuplot_print_hamlib(PRIME_HAMILTONIAN_PATH);
+  }
+
   else if (op == "st") {
 
     if (argv.length < 6) {
@@ -1796,35 +1876,9 @@ function _main(argv) {
 
   }
 
-  else if (op == "test_suite") {
-
-    if (argv.length < 4) {
-      _show_help(process.stderr, "provide Wrange (#,#), Hrange (#,#)");
-      return -1;
-    }
-
-    let wrange = argv[2].split(",").map( (_) => parseInt(_) );
-    let hrange = argv[3].split(",").map( (_) => parseInt(_) );
-
-    if ((wrange.length == 0) ||
-        (hrange.length == 0)) {
-      _show_help(process.stderr, "invalid W,H range");
-      return -1;
-    }
-
-    if (wrange.length == 1) { wrange.push(wrange[0]+1); }
-    if (hrange.length == 1) { hrange.push(hrange[0]+1); }
-
-    if (isNaN(wrange[0]) || (wrange[0] == 0) || (wrange[1] <= wrange[0]) ||
-        isNaN(hrange[0]) || (hrange[0] == 0) || (hrange[1] <= hrange[0])) {
-      _show_help(process.stderr, "invalid W,H range");
-      return -1;
-    }
-
-    let ret = test_suite(wrange, hrange);
-
-    console.log("got:", ret);
-
+  else {
+    _show_help(process.stderr, "invalid op")
+    return -1;
   }
 
   return 0;
