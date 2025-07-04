@@ -90,7 +90,7 @@
 
 var STHAMPATH_VERSION = "0.1.0";
 
-var VERBOSE = 1;
+var VERBOSE = 0;
 
 var fasslib = require("./fasslib.js");
 
@@ -825,8 +825,6 @@ function isPrime(anchor, _s,_t, alpha, beta, info) {
   return false;
 }
 
-// WIP
-//
 // We do a lazy evaluation by trying to find the first Nx2 or 2xN strip
 // that will work.
 //
@@ -1060,7 +1058,6 @@ function _test_strip() {
 //----
 //----
 
-// still needs testing
 //
 // input:
 //
@@ -1372,7 +1369,7 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
   info = ((typeof info === "undefined") ? { "parent": "0" } : info);
   if (!("region" in info)) { info["region"] = []; }
 
-  let verbose_level = -1;
+  let verbose_level = 0;
 
   let s = v_sub(_s,anchor);
   let t = v_sub(_t,anchor);
@@ -1450,8 +1447,6 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
       "path": _path
     };
 
-    console.log("##", _uid," primepath:", _path);
-
     return true;
   }
 
@@ -1512,15 +1507,15 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
              ( Math.abs( del_ab ) == 1 ) ) {
              //( Math.abs( dot_v( v_sub( S.s, tpath[t_idx] ), d_ab ) ) == 1 ) ) {
 
-          console.log("## FOUND pq edge, t_idx:{", t_idx-1, t_idx, "}: tpath:", tpath[t_idx-1], tpath[t_idx],
-                      "del(tpath[", t_idx, t_idx-1,"]:", v_sub(tpath[t_idx], tpath[t_idx-1]),
-                      "d_pq:", d_pq, "d_ab:", d_ab, "del_ab:", del_ab, "S(orig).st:", S.s, S.t); 
+          //console.log("## FOUND pq edge, t_idx:{", t_idx-1, t_idx, "}: tpath:", tpath[t_idx-1], tpath[t_idx],
+          //            "del(tpath[", t_idx, t_idx-1,"]:", v_sub(tpath[t_idx], tpath[t_idx-1]),
+          //            "d_pq:", d_pq, "d_ab:", d_ab, "del_ab:", del_ab, "S(orig).st:", S.s, S.t); 
 
           let d_del = v_mul( del_ab, d_ab );
           let S_s = v_add( tpath[t_idx-1], d_del );
           let S_t = v_add( tpath[t_idx],   d_del );
 
-          console.log("###   d_del:", d_del, "S_s:", S_s, "S_t:", S_t);
+          //console.log("###   d_del:", d_del, "S_s:", S_s, "S_t:", S_t);
 
           let retS = sthampath( S.anchor, S_s, S_t, S.alpha, S.beta, infoS );
           if (!retS) {
@@ -1676,9 +1671,15 @@ function test_suite( w_range, h_range ) {
         let expect = acceptable_st_hampath([0,0], s, t, alpha, beta, info);
         let ret = sthampath([0,0], s, t, alpha, beta, info);
 
-        console.log("## w:", w, "h:", h, "s:", s, "t:", t, "got:", ret, "expect:", expect);
+        let valid_hampath = true;
 
-        if (expect != ret) {
+        if (ret) {
+          valid_hampath = verifyHampath( info.region.path );
+        }
+
+        console.log("## w:", w, "h:", h, "s:", s, "t:", t, "got:", ret, "expect:", expect, "valid_hampath:", valid_hampath);
+
+        if ((expect != ret) || (!valid_hampath)) {
           console.log("FAIL!!!");
         }
 
@@ -1742,14 +1743,29 @@ function _show_help(fp, msg, hide_version) {
   fp.write("\n");
   fp.write("usage:\n");
   fp.write("\n");
-  fp.write("  node sthampath.js ...\n");
+  fp.write("  node sthampath.js <op> ...\n");
   fp.write("\n");
   fp.write("  ...\n");
   fp.write("\n");
+  fp.write("op:\n");
+  fp.write("\n");
+  fp.write("  st <sx>,<sy> <tx>,<ty> <width> <height>         construct st hamiltonian path (if possible)\n");
+  fp.write("  split <sx>,<sy> <tx>,<ty> <ax>,<ay> <bx>,<by>   execute split for given s, t, alpha, beta\n");
+  fp.write("  print_prime                                     print prime graphs (reflection, rotations, s-t swap counted as unique)\n");
+  fp.write("  test_suite <Ws>,<We> <Hs>,<He>                  test suite\n");
+  fp.write("  test_acceptable                                 test acceptable function\n");
+  fp.write("  test_strip                                      test hasStrip function\n");
+  fp.write("  test_split                                      test hasSplit function\n");
+  fp.write("  version                                         print version\n");
+  fp.write("  help                                            print help (this screen)\n");
+  fp.write("\n");
+
   fp.write("example:\n");
   fp.write("\n");
-  fp.write("  node sthampath.js x y z \n");
+  fp.write("  node sthampath.js st 1,0 1,1 5 4\n");
   fp.write("\n");
+
+
 }
 
 
@@ -1845,13 +1861,37 @@ function _main(argv) {
 
     let ret = sthampath([0,0], s, t, alpha, beta, info);
 
-    console.log("##", ret, (!ret) ? info.comment : "" );
+    //console.log("##", ret, (!ret) ? info.comment : "" );
 
     if (ret) {
       gnuplot_print_path(info.region.path);
     }
+    else {
+      console.log("##", ret, info.comment);
+    }
 
-    //console.log("#", ret, info);
+  }
+
+  else if (op == "strip") {
+
+    if (argv.length < 6) {
+      _show_help(process.stderr, "provide s (#,#), t (#,#) anchor (#,#) alpha (#,#) beta (#,#)");
+      return -1;
+    }
+
+    let s = argv[2].split(",").map( (_) => parseInt(_) );
+    let t = argv[3].split(",").map( (_) => parseInt(_) );
+    let anchor = argv[4].split(",").map( (_) => parseInt(_) );
+    let alpha = argv[5].split(",").map( (_) => parseInt(_) );
+    let beta = argv[6].split(",").map( (_) => parseInt(_) );
+
+    let strip_info = {};
+
+    let ret = hasStrip(anchor, s, t, alpha, beta, strip_info);
+
+    console.log("##", ret, (!ret) ? strip_info.comment : "" );
+    console.log( JSON.stringify(strip_info, undefined, 2) );
+
   }
 
   else if (op == "split") {
