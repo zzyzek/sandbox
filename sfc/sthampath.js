@@ -440,23 +440,21 @@ function isColorCompatible(anchor, u,v, alpha, beta) {
   if ( (a0*b0) == 0 ) {
 
     // |V_0| == |V_1|
-
+    //
     if (u0 != v0) { return true; }
+
   }
   else {
 
     // |V_0| == |V_1| + 1
     // u,v belong to majority color
     //
-    //if ((u0 == v0) && (u0 == 0)) { return true; }
     if ((u0 == v0) && (u0 == anchor_parity)) { return true; }
 
   }
 
   return false;
 }
-
-//function isColorCompatible_anchor(anchor,u,v, alpha, beta) { return isColorCompatible( v_sub(u,anchor), v_sub(v,anchor), alpha, beta ); }
 
 function spotcheck_colorcompat() {
   let anchor = [0,0];
@@ -589,12 +587,17 @@ function acceptable_st_hampath(anchor, _s,_t, _alpha, _beta, info) {
   }
 
   // cul-de-sac
+  //
   // if:
+  //
   //   * b = 3
   //   * a*b even
   //   * s,t different colors and s different color than lower left corner
   //     (upper left corner color the same since b=3)
-  //   * (u.x < (v.x-1)) or ((u.y==1) && (u.x < v.x))
+  //   * (u.x < (v.x-1)) or
+  //     ( (u.y==1) &&
+  //       (u.x < v.x) )
+  //
   // -> unacceptable
   //
   if (b == 3) {
