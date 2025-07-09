@@ -37,7 +37,7 @@ A perfect matching on these widgets in $G ^ { * }$ force each vertex to have deg
 
 This graphic might be helpful:
 
-![uman 2-factor widget](viz/uman-2factor_widget.png)
+![uman 2-factor widget](viz/uman_2factor_widget.png)
 
 Where the circle on the left represents the original vertex ($u _ k$) and the widget on the right represents the transformation,
 with the circle going the newly created $v _ k$, the squares being the $v _ { u _ k, u _ j}$ and the triangle being the extra $w _ k$ vertex.
