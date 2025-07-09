@@ -1,6 +1,67 @@
 s-t Hamiltonian Path Notes
 ===
 
+###### 2025-07-09
+
+Finding Hamiltonian cycles in solid grid graphs (and quad-quad graphs) is polynomial time solvable [10.1109/SFCS.1997.646138](https://ieeexplore.ieee.org/document/646138).
+
+I'm still working through the algorithm but the idea is to start from a list of disjoint cycles in the solid grid graph (called a 2-factor),
+then progressively merge until a full cycle is created or no more progress can be made.
+
+The Umans and Lenhart paper glosses over the details of finding the initial 2-factor.
+Umans bachelors thesis goes into more detail and here are some notes on that process.
+
+Umans provides two ways to find an initial 2-factor.
+The first is to create a linear programming problem with each edge assigned to a variable, $x _ i \in E(G)$ ($n = |E(G)|$)  with $0 \le x _ i \le 1$ for all $0 \le i < n$.
+The objective function attempts to maximize the number of edges subject to the degree requirement, for each $x _ i$, $\sum _ {x _ i \in E(G)} x _ i \le 2$.
+
+The maximum value of this LP problem happens to be integral and I guess Bridgeman's bachelors thesis provides more detail on proof of correctness.
+
+Uman goes on to create a perfect edge matching construction to find the 2-factor.
+
+An edge matching on a graph $G$ is an edge partition such that every vertex is included exactly once for one of the edge partitions.
+A perfect edge matching is an edge matching that contains the largets possilbe $|E(G)|/2$ edges (which is only possible for even number of vertices).
+
+
+Uman's construction essentially adds a widget that forces degree two at each vertex and then uses standard methods (Ford Fulkerson, etc.) to find
+a perfect matching.
+
+Call the original (solid, grid) graph $G$ and the induced graph $G ^ { * }$.
+For all $u _ k \in G$, create a new vertex  $v _ k \in G ^ { * }$  create two new vertices per edge, $v _ { u _ k , u _ j}, v _ { u _ j, u _ k } \in G ^ { * }$
+for all $(u _ k, u _ j) \in G$.
+Create edges $(v _ k, v _ { u _ k, u _ j })$, $(v _ j, v _ {u _ j, u _ k})$ and $( v _ { u _ k, u _ j }, v _ {u _ j, u _ k} )$.
+
+Introduce one more vertex per $w _ k$ and connect $w _ k$ to all neighbors of $v _ k$ (so each $w _ k$ will have maximum degree 4).
+
+A perfect matching on these widgets in $G ^ { * }$ force each vertex to have degree 2 in the original graph $G$.
+
+This graphic might be helpful:
+
+![uman 2-factor widget](viz/uman-2factor_widget.png)
+
+Where the circle on the left represents the original vertex ($u _ k$) and the widget on the right represents the transformation,
+with the circle going the newly created $v _ k$, the squares being the $v _ { u _ k, u _ j}$ and the triangle being the extra $w _ k$ vertex.
+
+A moments reflection will show that any perfect edge matching forces exactly two of the $v _ { u _ k, u _ j }$ to have edges that connect
+to a vertex induced from the original neighbor graph, with $w _ k$ absorbing the perfect matching edges for the other two induced edges
+not used.
+It's complicated to describe but the idea is that the perfect edge matching induces a 2-factor encoded in the induced graph edge matching
+and that's easily recoverable into the original desired 2-factor.
+
+To find a perfect edge matching, as mentioned above, LP can be used. Another option is to do max-flow-min-cut (Ford Fulkerson)
+since the induced graph ($G ^ { * }$ is bipartite.
+Quickly, put weights $1$ on each edge, push one partition of the bipartite to the left, the other to the right and connect a source node
+to all left nodes and a sink node to all right nodes with each new edge weighted $1$ then use max-flow min-cut to find the flow.
+All interior edges that have a flow imply an edge between the vertices.
+
+FF does an augmenting path in $O(E)$ and makes at least $1$ unit of progress.
+There are $O(V)$ vertices, so $O(V)$ maximum flow, yielding $O(V E)$.
+
+---
+
+
+
+
 ###### 2025-07-04
 
 Bug has been fixed.
@@ -63,40 +124,6 @@ or just when merging two strips together, keep in mind which one is the cycle an
 when we know we have a parallel $(p,q)$ edge.
 
 ---
-
-Finding Hamiltonian cycles in solid grid graphs (and quad-quad graphs) is polynomial time solvable [10.1109/SFCS.1997.646138](https://ieeexplore.ieee.org/document/646138).
-
-I'm still working through the algorithm but the idea is to start from a list of disjoint cycles in the solid grid graph (called a 2-factor),
-then progressively merge until a full cycle is created or no more progress can be made.
-
-The Umans and Lenhart paper glosses over the details of finding the initial 2-factor.
-Umans bachelors thesis goes into more detail and here are some notes on that process.
-
-Umans provides two ways to find an initial 2-factor.
-The first is to create a linear programming problem with each edge assigned to a variable, $x _ i \in E(G)$ ($n = |E(G)|$)  with $0 \le x _ i \le 1$ for all $0 \le i < n$.
-The objective function attempts to maximize the number of edges subject to the degree requirement, for each $x _ i$, $\sum _ {x _ i \in E(G)} x _ i \le 2$.
-
-The maximum value of this LP problem happens to be integral and I guess Bridgeman's bachelors thesis provides more detail on proof of correctness.
-
-Uman goes on to create a perfect edge matching construction to find the 2-factor.
-
-An edge matching on a graph $G$ is an edge partition such that every vertex is included exactly once for one of the edge partitions.
-A perfect edge matching is an edge matching that contains the largets possilbe $|E(G)|/2$ edges (which is only possible for even number of vertices).
-
-
-Uman's construction essentially adds a widget that forces degree two at each vertex and then uses standard methods (Ford Fulkerson, etc.) to find
-a perfect matching.
-
-Call the original (solid, grid) graph $G$ and the induced graph $G ^ { * }$.
-For all $u _ k \in G$, create a new vertex  $v _ k \in G ^ { * }$  create two new vertices per edge, $v _ { u _ k , u _ j}, v _ { u _ j, u _ k } \in G ^ { * }$
-for all $(u _ k, u _ j) \in G$.
-Create edges $(v _ k, v _ { u _ k, u _ j })$, $(v _ j, v _ {u _ j, u _ k})$ and $( v _ { u _ k, u _ j }, v _ {u _ j, u _ k} )$.
-
-Introduce one more vertex per $w _ k$ and connect $w _ k$ to all neighbors of $v _ k$ (so each $w _ k$ will have maximum degree 4).
-
-A perfect matching on these widgets in $G ^ { * }$ force each vertex to have degree 2 in the original graph $G$.
-
-This graphic might be helpful:
 
 
 
