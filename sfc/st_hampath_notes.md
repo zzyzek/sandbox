@@ -240,6 +240,11 @@ Their Theorem 5:
 > If $G$ is Hamiltonian with $F$ a 2-factor of $G$, then $F$ contains an alternating strip sequence
 
 
+It looks like their strategy is to show that the meta-graph of 2-factors is connected, allowing
+for transitions from one 2-factor representation to another.
+
+They introduce a dependency graph to help facilitate the proof.
+
 
 
 
