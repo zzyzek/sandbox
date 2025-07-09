@@ -59,6 +59,188 @@ There are $O(V)$ vertices, so $O(V)$ maximum flow, yielding $O(V E)$.
 
 ---
 
+Once an initial 2-factor is found, Uman's algorithm proceeds to merge paths.
+
+Some preliminaries:
+
+Consider a 2-factor (Fig. 2):
+
+```
+     *---*---*---*---* . *---*---*
+     |   '   '   '   |III*   '   |
+     *---* . *---*---* . *---* . *
+     ' II|   | II.III.IV '   |   |
+ *---* . *---* . *---* . *---* . *
+ |   | II. I ' II|   |III|   '   |
+ * . *---* . *---* . * . *---*---*
+ |   '   |   |   '   |
+ *---* . *---* . *---*
+     |   '   '   |
+     *---*---*---*
+
+```
+
+All cells labelled `I`, `II`, `III` and `IV` are called *boundary cells*.
+I think the idea is that the 2-factor separates 'interior' and 'exterior'
+and boundary cells lay on the 'outside' of the enclosed cycle regions.
+
+With this construction, there can be paths within paths that aren't technically
+on the 'outside', so I'm not sure if boundary cells are defined in terms of inside/outside
+parity or whether they really are supposed to be inside/outside.
+
+Section 2 offers some clarity:
+
+* $F$ is a (given, fixed) 2-factor of $G$
+  with an implied graph, where the concept of a 2-factor and the graph from it
+  are used pretty much interchangeably in the paper ($F \subseteq G$),
+* a *cell* is a unit square in $G$ (four vertices, four edges) (note that $G$ is the full
+  grid graph, so $G$ is the 'background' (subset of) the integral lattice)
+* a *border* is a [cut](https://en.wikipedia.org/wiki/Cut_(graph_theory)) into $(S, V(G) - S)$
+  - $S$ is connected (if $u,v \in G, S, (u,v) \in E(G) \to (u,v) \in E(S)$) ($S$ [node-induced subgraph](https://en.wikipedia.org/wiki/Induced_subgraph))
+  - $V(G)-S$ is connected
+  - no edge of $F$ crosses the cut
+* a *boundary cell* is a cell that has an edge that crosses a *border*
+* For graph $F$ and graph $C$, $F \oplus C$ is the `xor` of the two,
+  adding an edge if it exists in exactly one of $F$ or $C$ and removing it otherwise.
+  - Also called *flipping*
+* an *alternating cycle* is a cycle/loop through $G$ that alternates being in $F$ and not in $F$
+  (not necessarily vertex distinct?)
+* an *alternating strip* is a row or column of cells in $G$ that have an alternating odd or even
+  alternating strip pattern in $F$
+
+
+The odd and even alternating strip patterns look like:
+
+```
+
+  * . *                                  * . *---*
+  |   |                                  |   '   '
+  * . *                                  * . *---*
+
+  * . *---* . *                          * . *---* . *---*
+  |   '   |   |                          |   '   |   '   '
+  * . *---* . *                          * . *---* . *---*
+
+  * . *---* . *---* . *                  * . *---* . *---* . *---*
+  |   '   |   '   |   |                  |   '   |   '   |   '   '
+  * . *---* . *---* . *                  * . *---* . *---* . *---*
+
+```
+
+Where the pattern can be inferred from the above to continue indefinitely.
+
+
+I'm still working through this but it looks like it looks for odd and even $1 \times k$ cells (called "odd/even alternating strips")
+whose outer boundary edges can be 'flipped'.
+The flipping either merges cycles or puts the resulting flipped graph into a state where a next flip can
+merge cycles.
+
+Observation 1:
+
+> Flipping a type `III` boundary cell reduces the number of $F$ components by 1
+
+If the cell is of type `III`, the opposite edges lay on two distinct cycle paths.
+Flipping the edges in a type `III` opens the sides of the two paths and joins them,
+reducing the number of cycles by 1.
+
+Lemma 2:
+
+> Flipping the last two cells of an odd alternating strip of length at least three leaves the
+> number of components in the 2-factor unchanged.
+
+If the two paths are distinct, the rightmost flip joins them, the next flip separates them.
+If the two paths are the same, the rightmost flip separates them, the next flip joins them.
+
+Lemma 3:
+
+> Let $s$ be an alternating strip that begins on a boundary cell.
+> If $s$ is odd, the number of 2-factor components is reduced by one.
+> If $s$ is even and does not end on a boundary cell, the number of 2-factor
+> components remains the same.
+
+For the odd case, by Lemma 2 and induction, cells flipped from the end to the beginning
+leave the count unchanged.
+The first cell is now a type `III` and, by construction, on the border, reducing the 2-factor
+component count by 1.
+
+For the even case, the rightmost flip increases the 2-factor component count by 1 since,
+by construction, it's not on the border (note: the cut could weave horizontially through
+the last cell).
+The remainder of the strip is now odd, reducing the 2-factor component count by 1, leaving
+the total component count unchanged.
+
+---
+
+It looks like the general strategy is:
+
+* If $G$ is Hamiltonian, it must contain an alternating strip
+* The strip might be even, in which case flipping it will not improve
+  the 2-factor component count
+* *but* after flipping an even alternating strip, an odd alternating strip
+  might appear, which we can then use to make progress
+
+The tactic will be to try and choose a sequence of even alternating strip choices
+that remains polynomial time bounded until we can make progress or we prove
+we can't make any more progress.
+
+This also answers a question I had in that the "stable" state is when there's a
+full Hamiltonian tour where, presumably, we only have a choice of even alternating
+strips to choose from.
+(note to self: see if even alternating strip flips give an MCMC to sample Hamiltonian
+cycles in solid grid graphs).
+
+To that end, they define:
+
+* An *alternating strip sequence* is either:
+  - An odd alternating strip
+  - A sequence of alternating strip sequences $(s, a _ 0, a _ 1, \dots, a _ {n-1})$, where:
+    + $G$ contain no type `III` boundary cells
+    + $s$ is an even alternating strip sequence in $G$
+    + $a _ 0$ begins on a boundary cell from $F \oplus s$
+
+That is, an alternating strip sequence is a odd alternating strip preceeded by all even alternating strips,
+where the alternating strip element works on the graph after the alternating strip has been applied to it
+and all but the last alternating strip sequence element work on a graph without a type `III` boundary cell.
+
+It's a clunky way of saying apply even alternating strip flips until you can get to an odd alternatip strip flip.
+
+When said this way, Lemma 4 is probably obvious:
+
+> Applying an alternating strip sequence reduces the 2-factor component count by one
+
+Flipping even alternating strips does nothing for the 2-factor component count and
+the last odd alternating strip reduces it by one.
+
+This case of even alternating strip ending on a boundary cell
+is precluded since that would mean the existence of a type `III`
+which, by construction, doesn't exist.
+
+---
+
+Here's a quick recap of where we are and where we're going:
+
+* We can find an initial 2-factor of the solid grid graph $G$ by using max-flow min-cut on the transformed
+  graph $G ^ { * }$
+* From the 2-factor, we progressively find alternating strip sequences to make progress in merging
+  cycles in the 2-factor to try and get to a single giant cycle (try to keep reducing the 2-factor component count)
+  - Look for type `III` boundary cells and, if found, flip them (reducing the component count)
+  - If no type `III` boundary cells exist, look for a sequence of even alternating strip sequences to land
+    into an odd alternating strip sequence
+
+What's still needed:
+
+* Prove that, if $G$ is Hamiltonian, an alternating strip sequence always exists (implying we can make progress)
+* Prove that we can always find an alternating strip sequence in polynomial time
+* Prove that we can detect if $G$ is not Hamiltonian in polynomial time
+
+---
+
+Their Theorem 5:
+
+> If $G$ is Hamiltonian with $F$ a 2-factor of $G$, then $F$ contains an alternating strip sequence
+
+
+
 
 
 
@@ -81,8 +263,8 @@ always being made.
 
 My strip function is wrong. Consider the following examples:
 
-```
 
+```
  . . . . .      s t
 
  s . . . t      . .
