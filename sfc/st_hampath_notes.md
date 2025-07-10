@@ -1,6 +1,133 @@
 s-t Hamiltonian Path Notes
 ===
 
+###### 2025-07-10
+
+Continuing on with finding Hamiltonian cycles in solid grid graphs (UL97).
+
+To recap:
+
+* Add widgets and do perfect edge matching to get initial 2-factor
+* Have shown alternating strips either make progress (odd) or leave
+  number of 2-factor components unchanged (even)
+* Have shown that creating alternating strip sequences, if it can be done,
+  always makes progress (strip sequences are runs of even that end in odd)
+* Need to show that:
+  - alternating strip sequences can always be found (if they exist)
+  - can be found in polynomial time
+
+The main theorem is Theorem 5:
+
+> There exists an alternating strip sequence in a Hamiltonian $G$
+> with a 2-factor with more than one component.
+
+Where the alternating strip sequence is relative to the 2-factor, $F$, in $G$
+($G$ a solid grid grid graph in 2d).
+
+From section 3:
+
+> Our strategy ... show that any 2-factor $F$ can be transfomred into any other
+> by flipping a set of cycle in $G$ that alternate with respect to $F$.
+
+From the overview:
+
+* will show set of cycles that transform (flip?) $F$  must cross boundary
+* at least one cycle must cross boundary
+* cycle will walk along some portion of the boundary to land at the beginning
+  of an alternating strip (that begins at the boundary point)
+* flipping this alternatings strip will bring $F$ closer to the Hamiltonian
+  cycle $H$
+
+The dependency graph is needed for the cell-to-cell walk and distance measure ($F$ to $H$).
+
+---
+
+Define:
+
+* Cycles are *nested* if they are edge-disjoint (but not necessarily vertex disjoint?)
+  and all interior faces of one are interior faces of the other.
+* Cycles *cross* if they are edge-disjoint (but not necessarily vertex disjoint?)
+  if they aren't nested but share an interior face
+* The *area* is the number of faces (cells) it encloses
+
+
+Example of a *nested* cycle:
+
+```
+  *---*---*---*         *---*---*
+  |   '   '   |         |   '   |
+  * . *---* . *         * . *~~~*---*
+  |   |   |   |         |   (   )   |
+  * . *---* . *         * . *~~~*---*
+  |   '   '   |         |   '   |
+  *---*---*---*         *---*---*
+  
+```
+
+Where the interior nested cycle is the one with `~` and `(`, `)`.
+The left outer area is 9, with the left inner nested cycle area of 1.
+The right outer area is 7 with the right inner nested cycle area of 1.
+
+Example of *crossed* cycles:
+
+```
+  *---*---*
+  |   '   |
+  * . *~~~*~~~*
+  |   (   |   )
+  * . *~~~*~~~*
+  |   '   |
+  *---*---*
+  
+```
+
+Where one of the cycles is the one with the `~`, `(` and `)`.
+The bigger cycle area is 6 with the smaller cycle area of 2.
+
+Lemma 6:
+
+> $F _ 0$ and $F _ 1$ be 2-factors of $G$ with $S = F _ 0 \oplus F _ 1$.
+> $S$ can be partitioned into edge-disjoint non-crossing cycles that alternate with respet to $F _ 0$
+
+I guess we're ignoring when $F _ 0$ and $F _ 1$ completely overlap?
+The above seems completely false if $F _ 0 = F _ 1$ and the following statement is just plain false:
+
+> Figure 6 shows the possible edge configurations around each vertex in $S$
+
+nope. It doesn't show the vertex configuration when the edge line up completely.
+
+Enumerating permutations as listed in the paper:
+
+```
+      *               *               *
+      |               (               '
+  *---* . *   +   * . *~~~*  =>   *---*~~~*
+      '               '               '
+      *               *               *
+
+
+      *               *               *
+      |               '               |
+  *---* . *   +   * . *~~~*  =>   *---*~~~*
+      '               )               )
+      *               *               *
+
+      *               *               *
+      '               (               (
+  *---*---*   +   * . * . *  =>   *---*~~~*
+      '               )               )
+      *               *               *
+
+```
+
+The point being that each vertex in the resulting graph has even degree,
+though they seem to discount the 0 degree case for some reason.
+
+For all non-zero degree vertices in $S$, we have a choice....
+
+bah!
+
+
 ###### 2025-07-09
 
 Finding Hamiltonian cycles in solid grid graphs (and quad-quad graphs) is polynomial time solvable [10.1109/SFCS.1997.646138](https://ieeexplore.ieee.org/document/646138).
@@ -104,7 +231,7 @@ Section 2 offers some clarity:
   adding an edge if it exists in exactly one of $F$ or $C$ and removing it otherwise.
   - Also called *flipping*
 * an *alternating cycle* is a cycle/loop through $G$ that alternates being in $F$ and not in $F$
-  (not necessarily vertex distinct?)
+  (not necessarily vertex distinct?). That is, edges alternate parity with respect to $F$ (inclusion).
 * an *alternating strip* is a row or column of cells in $G$ that have an alternating odd or even
   alternating strip pattern in $F$
 
@@ -285,9 +412,6 @@ For other cases it looks similar to the even/odd alternating strip, at least to 
 
 The $s-t$ path can staircase and so it might be difficult to find where to merge other loops into the path, so who
 know.s
-
----
-
 
 
 
