@@ -245,6 +245,49 @@ for transitions from one 2-factor representation to another.
 
 They introduce a dependency graph to help facilitate the proof.
 
+### Aside, setting up initial path and loops
+
+We'd like to extend the solid grid graph Hamiltonian cycle algorithm to Hamiltonian paths on solid grid
+graphs, if possible.
+
+Considering this has been open for 30+ years (more if you count the timer starting from IPS82), this might be
+difficult but there might be ways of making headway, if even partial.
+
+The problem setup is, given a solid grid graph with pre-specified start, $s$, and end, $t$, point, find
+a Hamiltonian path from $s$ to $t$.
+
+One tactic is to try and find an initial non-Hamiltonian but self avoiding path through the solid grid graph,
+with loops everywhere else.
+If a Hamiltonian path exists, then such a construction must exist (with 0 loops), so if such a construction
+can't be made, we know a Hamiltonian path must not exist.
+
+To set up the initial path with loops, I think the following will work:
+
+* Add the widgets as in Umans and Lenhart, for all verticies that aren't $s$ and $t$
+* For $s$ and $t$, add the following widgets:
+
+![path 2-factor widget](viz/path_2factor_widget.png)
+
+If an edge is chosen going out for $v'$, that means the $(v',s'), (v',s''), (v',s''')$ all will be precluded.
+Choose $(s',v'')$, precluding $(s'',v''), (s''',v'')$. $s''$ and $s'''$ only have choices of $v'''$ and $v''''$.
+Like the Uman widget, the internal nodes (purple triangles above) "soak up" the egdes, forcing a particular
+edge count.
+
+Note that the construction is also bipartite, allowing us to use the same algorithms to find a perfect edge matching.
+
+(side note: a single internal node would force the degree count to be 3)
+
+This might give us a starting point.
+
+Note that "type III" border cells, with one edge on the $s-t$ path will splice the loop into it.
+
+For other cases it looks similar to the even/odd alternating strip, at least to my shoot-from-the-hip initial look.
+
+The $s-t$ path can staircase and so it might be difficult to find where to merge other loops into the path, so who
+know.s
+
+---
+
 
 
 
