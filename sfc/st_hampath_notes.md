@@ -86,11 +86,11 @@ The bigger cycle area is 6 with the smaller cycle area of 2.
 
 Lemma 6:
 
-> $F _ 0$ and $F _ 1$ be 2-factors of $G$ with $S = F _ 0 \oplus F _ 1$.
-> $S$ can be partitioned into edge-disjoint non-crossing cycles that alternate with respet to $F _ 0$
+> $F _ 1$ and $F _ 2$ be 2-factors of $G$ with $S = F _ 1 \oplus F _ 2$.
+> $S$ can be partitioned into edge-disjoint non-crossing cycles that alternate with respet to $F _ 1$
 
-I guess we're ignoring when $F _ 0$ and $F _ 1$ completely overlap?
-The above seems completely false if $F _ 0 = F _ 1$ and the following statement is just plain false:
+I guess we're ignoring when $F _ 1$ and $F _ 2$ completely overlap?
+The above seems completely false if $F _ 1 = F _ 2$ and the following statement is just plain false:
 
 > Figure 6 shows the possible edge configurations around each vertex in $S$
 
@@ -126,34 +126,125 @@ though they seem to discount the 0 degree case for some reason.
 OK, so upon further reflection (and some helpful coaching by Copilot)
 I understand this a bit more.
 
-Yes, there are 0 degrees when $F _ 0$ and $F _ 1$ line up but
+Yes, there are 0 degrees when $F _ 1$ and $F _ 2$ line up but
 this is a degenerate case and makes Lemma 6 vacuously true.
 
-The more interesting case is when $F _ 0 \ne F _ 1$. In this case,
+The more interesting case is when $F _ 1 \ne F _ 2$. In this case,
 the enumeration of states is as listed above.
 All vertices are of even degree, so as soon as you have one vertex
 joined with another, it must have an escape.
 That is, an edge goes in, we either have 1 or 3 choices out (1 or
 2 if we're trying to alternate parity).
 
-Further, if the edge comes from $F _ 0$ then there must be an
-$F _ 1$ escape out of it.
+Further, if the edge comes from $F _ 1$ then there must be an
+$F _ 2$ escape out of it.
 This means we can always choose an alternating sequence.
 If choose a new vertex to go to, we continue on without traversing
 an edge we've already seen.
 If we come back to a vertex we've already visited, we tie it off and create a
 cycle.
 Since, again, all degrees are even, and we're traversing in alternating
-choices of edges (in $S$) that come from $F _ 0$ and $F _ 1$, we've chosen
+choices of edges (in $S$) that come from $F _ 1$ and $F _ 1$, we've chosen
 an alternating cycle.
 
 This argument doesn't preclude crossing.
 To see that we can choose non-crossing cycles, we take a look at
-the last two cases of degree 4 with two edges from $F _ 0$ and two
-edges in $F _ 1$.
+the last two cases of degree 4 with two edges from $F _ 1$ and two
+edges in $F _ 2$.
+
+---
+
+*aside* a quick thought I had was that one of the reasons why these proofs might
+work for solid grid graphs, as opposed to arbitrary grid graphs, is that they
+rely on the region under consideration having no holes.
+Whenever an alternating strip, or a contour, or whatever else, needs to be chosen,
+they need to know it can be shrunk, that there's no other path, etc.
+These assumptions, whether they're explicit or implicit, may rely on some connectivity,
+simple connectivity and, maybe, some type of Green's or Jordan curve theorem (or analogy
+thereof).
+
+It'd be interesting to see under what conditions these lemmas fail to hold with
+holes.
+
+---
+
+To show $S$ can be partitioned into edge disjoint non-crossing cycles, I'll paraphrase
+Uman and Lenhart:
+
+* Proof by contradiction.
+* Assume $S$ of minimal area.
+* Take a cycle, $C \in S$, with a crossing.
+* If there's an internal path $p'$, in $C$, it must happen at two degree 4 vertices, $u$, $v$,
+  one to enter, one to leave (path $p'$ is internal to $C$ and connects to boundaries)
+* The path $p'$ can be chosen alternating (w.r.t. $F _ 1$) and we know that $u$, $v$
+  have an alternating edge choice to connect the path.
+* But now path $p'$ can be chosen as the boundary edge for $C$, making the area strictly smaller,
+  contradicting our claim of minimal area
+
+This concludes the proof of Lemma 6.
+
+---
+
+### Dependency Graph
+
+I'm still working through this but here's my current understanding of what's going on:
+
+* The dependency graph (DG) is essentially a dual lattice graph overlaid on the underlying solid grid graph
+* The dependency graph is directed, so the edges between nodes in the DG have direction (nodes in DG are faces in
+  the original solid grid graph)
+* Parity is still an issue so the DG is constructed with with edges that depend on the parity of the DG's vertices
+* Following the edges in $G$, the original solid grid graph, or some derived cycle/path therein, choosing direction in $G$ along
+  the DG along a 'countour line', where the directed edges have the same direction, gives information about
+  what kind of alternating cycles we can find/construct (this is to be proved, I don't understand why this is the case yet)
+  - That is, we can follow a $S$, say, keeping the DG directional edges to one side
+  - In some sense, the DG is like a gradient vector field that we can create appropriate contours
+
+Section 3.2 defines $E _ V(F)$ and $E _ H(F)$:
+
+* $E _ H$ - horizontal edge sets
+* $E _ V$ - vertical edge sets
+* $F$ - (some) 2-factor of $G$
+
+$$
+\begin{array}{ll}
+E _ 0 (F) & = \{ e | e \in E _ H \cap e \in F \} \cup  \{ e | e \in E _ V \cap e \notin F \} \\
+E _ 1 (F) & = \{ e | e \in E _ V \cap e \in F \} \cup  \{ e | e \in E _ H \cap e \notin F \} \\
+\end{array}
+$$
+
+In words:
+
+$E _ 0$ are all edges that appear horizontally in $F$ and *don't* appear vertically in $F$.
+$E _ 1$ are all edges that apper vertically in $F$ and *don't* appear horizontally in $F$.
+
+* $G ^ { * }$ be the dual of the graph $G$ (a new vertex for every face, new verticies have edges
+if faces in $G$ Manhattan adjacent).
+* $G ^ { + }$ be $G ^ { * }$ with the addition of a single vertex border (aka "dilation").
+* $V _ 0 \cup V _ 1 = V ( G ^ { + } )$, $V _ 0 \cap V _ 1 = \emptyset$ ($V _ 0$, $V _ 1$, a bi-partition or coloring)
+
+Definition 3:
+
+> G ^ { + } _ {F} is the *dependency graph* for $G$ with respect to $F$,
+> such that $(u,v) \in E( G ^ { + } _ {F})$ iff $u \in V _ k$ and
+> $(u,v)$ crosses some $e \in E _ k (F)$ for $k \in \{1,2\}$
+
+$V _ 0$, $V _ 1$ partition the vertices of $G ^ { + }$ and $E _ 0(F)$, $E _ 1(F)$ partition the edge set
+of $G$, so there will always be a unique edge between $u,v \in G ^{ + } _ F$
+
+Lemma 7:
+
+> A cycle $C$ in $G$ alternates w.r.t. $F$ iff every edge in $G ^ { + } _ { F }$ that
+> crosses $C$ is directed to the interior of $C$.
+
+A moments reflection on traversing $C$ will reveal this to be true (enumeration of cases).
+
+Note that this doesn't really say how to choose $C$, only that once $C$ is chosen, this is a property of it.
+One can start to try to construct a $C$ and get into a dead end.
 
 
-...
+
+
+
 
 
 ###### 2025-07-09
@@ -181,14 +272,14 @@ A perfect edge matching is an edge matching that contains the largets possilbe $
 Uman's construction essentially adds a widget that forces degree two at each vertex and then uses standard methods (Ford Fulkerson, etc.) to find
 a perfect matching.
 
-Call the original (solid, grid) graph $G$ and the induced graph $G ^ { * }$.
-For all $u _ k \in G$, create a new vertex  $v _ k \in G ^ { * }$  create two new vertices per edge, $v _ { u _ k , u _ j}, v _ { u _ j, u _ k } \in G ^ { * }$
+Call the original (solid, grid) graph $G$ and the induced graph $G _ { w }$.
+For all $u _ k \in G$, create a new vertex  $v _ k \in G _ { w }$  create two new vertices per edge, $v _ { u _ k , u _ j}, v _ { u _ j, u _ k } \in G _ { w }$
 for all $(u _ k, u _ j) \in G$.
 Create edges $(v _ k, v _ { u _ k, u _ j })$, $(v _ j, v _ {u _ j, u _ k})$ and $( v _ { u _ k, u _ j }, v _ {u _ j, u _ k} )$.
 
 Introduce one more vertex per $w _ k$ and connect $w _ k$ to all neighbors of $v _ k$ (so each $w _ k$ will have maximum degree 4).
 
-A perfect matching on these widgets in $G ^ { * }$ force each vertex to have degree 2 in the original graph $G$.
+A perfect matching on these widgets in $G _ { w }$ force each vertex to have degree 2 in the original graph $G$.
 
 This graphic might be helpful:
 
@@ -204,7 +295,7 @@ It's complicated to describe but the idea is that the perfect edge matching indu
 and that's easily recoverable into the original desired 2-factor.
 
 To find a perfect edge matching, as mentioned above, LP can be used. Another option is to do max-flow-min-cut (Ford Fulkerson)
-since the induced graph ($G ^ { * }$ is bipartite.
+since the induced graph ($G _ { w }$ is bipartite.
 Quickly, put weights $1$ on each edge, push one partition of the bipartite to the left, the other to the right and connect a source node
 to all left nodes and a sink node to all right nodes with each new edge weighted $1$ then use max-flow min-cut to find the flow.
 All interior edges that have a flow imply an edge between the vertices.
@@ -375,7 +466,7 @@ which, by construction, doesn't exist.
 Here's a quick recap of where we are and where we're going:
 
 * We can find an initial 2-factor of the solid grid graph $G$ by using max-flow min-cut on the transformed
-  graph $G ^ { * }$
+  graph $G _ { w }$
 * From the 2-factor, we progressively find alternating strip sequences to make progress in merging
   cycles in the 2-factor to try and get to a single giant cycle (try to keep reducing the 2-factor component count)
   - Look for type `III` boundary cells and, if found, flip them (reducing the component count)
