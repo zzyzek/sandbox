@@ -123,9 +123,37 @@ Enumerating permutations as listed in the paper:
 The point being that each vertex in the resulting graph has even degree,
 though they seem to discount the 0 degree case for some reason.
 
-For all non-zero degree vertices in $S$, we have a choice....
+OK, so upon further reflection (and some helpful coaching by Copilot)
+I understand this a bit more.
 
-bah!
+Yes, there are 0 degrees when $F _ 0$ and $F _ 1$ line up but
+this is a degenerate case and makes Lemma 6 vacuously true.
+
+The more interesting case is when $F _ 0 \ne F _ 1$. In this case,
+the enumeration of states is as listed above.
+All vertices are of even degree, so as soon as you have one vertex
+joined with another, it must have an escape.
+That is, an edge goes in, we either have 1 or 3 choices out (1 or
+2 if we're trying to alternate parity).
+
+Further, if the edge comes from $F _ 0$ then there must be an
+$F _ 1$ escape out of it.
+This means we can always choose an alternating sequence.
+If choose a new vertex to go to, we continue on without traversing
+an edge we've already seen.
+If we come back to a vertex we've already visited, we tie it off and create a
+cycle.
+Since, again, all degrees are even, and we're traversing in alternating
+choices of edges (in $S$) that come from $F _ 0$ and $F _ 1$, we've chosen
+an alternating cycle.
+
+This argument doesn't preclude crossing.
+To see that we can choose non-crossing cycles, we take a look at
+the last two cases of degree 4 with two edges from $F _ 0$ and two
+edges in $F _ 1$.
+
+
+...
 
 
 ###### 2025-07-09
