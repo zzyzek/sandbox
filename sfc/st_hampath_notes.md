@@ -1,6 +1,77 @@
 s-t Hamiltonian Path Notes
 ===
 
+
+###### 2025-07-13
+
+Lemma 8 from the paper, Lemma 7.1 from the thesis. In words:
+
+$G$ has no type `III` boundary cells, $s$ an even alternating strip,
+$G ^ { - } _ { F }$ the dual graph without $F$ crossing edges,
+$x,y \in G ^ { - } _ { F }$ not in corresponding cells derived from $s$ (call it $s'$.
+
+If there's a path, $p$, from $x$ to $y$ in $G ^ { - } _ { F }$, then there's
+a path, $p'$, from $x$ to $y$ in $G ^ { - } _ { F \oplus s }$ (graph after alternating
+strip $s$ applied). And vice versa.
+
+Further, if $v \in p$ that isn't in $s'$ then $v \in p'$.
+
+In other words, there's some notion of connectivity that remains unaltered when we
+start flipping even alternating strips.
+
+Uman's thesis (Lemma 7.1) has a proof.
+I'm going to punt on this till later, but it looks like it's looking at the start of the
+even alternating strip, $s$, and seeing what happens to it's connectivity.
+The proof claims $s$ starts on a type `I` boundary cell, which may be obvious but
+I'm not seeing why it has to be a boundary cell.
+
+Since type `III` is precluded, flipping edges, forces some configuration which can be
+deduced as connected still.
+Again, I'm not going into it, just placing a guidepost for future reference.
+
+---
+
+
+
+
+###### 2025-07-12
+
+
+I'm going skip ahead to section 4 to try and get an overview of the algorithm
+to motivate some of the earlier Lemmas instead of working through the Lemmas, unmotivated,
+to section 4.
+
+Section 4 starts by describing *static alternating strips*.
+The first paragraph in this section might understate the problem a bit but,
+without being able to find a static alternating structure, there might be
+an exponential blowup in search cost moving through non-static alternating
+strip choices (Uman's thesis, pg. 48: 'An efficient algorithm that identifies
+alternating strip sequences must be able to identify the entire sequence in
+the graph "statitcally"; otherwise, a search of candidate seuquences might quickly become exponential.").
+
+> A *static alternating strip sequence*, $A = (a _ 0, a _ 1, a _ 2 , \dots , a _ {n-1})$,
+> has each $a _ i$ area disjoint, with the only shared edge allowed between two
+> strips $a _ i$, $a _ {i+1}$ is the last edge side edge in $a _ i$ and the first
+> side edge in $a _ {i+1}$.
+
+Here is a graphic:
+
+```
+              a_i
+ 
+ * . *---* . *---*      . *---* . *---*
+ |   '   |   '   |  ooo   '   |   ' e '
+ * . *---* . *---*      . *---* . *---*---* . *---* .
+                                  |   '   |   '   |   ooo
+                                  * . *---* . *---* .
+
+                                          a_{i+1}
+```
+
+As a reminder, as soon as we see an odd strip, we can make progress, so
+these sequence of strips start out with even strips.
+
+
 ###### 2025-07-10
 
 Continuing on with finding Hamiltonian cycles in solid grid graphs (UL97).
