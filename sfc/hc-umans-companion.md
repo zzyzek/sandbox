@@ -28,5 +28,29 @@ I'm trying to work through Umans (and Lenhart's) HC thesis and paper.
 | **Alternating Strip Sequence** | An array of alternating strips | |
 | **Static Alternating Strip Sequence** | An alternating strip sequence but with extra criteria that makes finding them polynomial | See below |
 
+Proof of correctness is complicated, as is the main algorithm itself, but I hope giving the algorithm first will motivate the proofs of correctness.
+
+As far as I can tell, the algorithm is as follows:
+
+* start from a 2-factor
+* do:
+  - find all simple alternating strips and record length
+  - find all chained alternating strips and record length
+  - for all simple and chained alternating strips, $a$, of even length:
+    + find the shortest path, $p$, through $G ^ { - } _ F$ between side cells at the end of the strip $a$
+    + record any beginning cells that $p$ passes through (linking step)
+    + simple and alternating strips are connected via the linking step in a (potentially implicit) graph
+      by which paths, $p$, pass through the beginning of other alternating strips
+  - find the shortest path through the connection graph, weighting transitions by the length of the strip
+* while (there's an odd alternating strip somewhere)
+
+The shortest path gives an alternating strip sequence, where each element in the sequence is an alternating strip.
+The alternating strip sequence is then used to flip the appropriate cells/edges to make progress.
+
+Proof of correctness that an odd alternating strip must exist iff there's a Hamiltonian cycle (and we can stop
+when all we have left are even alternating strips), that progressively choosing and flipping alternating strip
+sequences makes progress, etc. all need proof.
+
+
 
 
