@@ -80,12 +80,16 @@
 //
 
 
+var fasslib = require("./fasslib.js");
+
 var g_info = {
   "size" : [0,0],
   "grid": [],
   "Gm": [],
   "Gp": []
 };
+
+var v_add = fasslib.v_add;
 
 function printGrid(grid_info) {
   let size = grid_info.size;
@@ -136,16 +140,16 @@ function raise_island(grid_info, p) {
 
   flood_g[idx] = -1;
 
-  let queue = [
+  let stack = [
     [ p[0] + 1, p[1] ],
     [ p[0] - 1, p[1] ],
     [ p[0], p[1] + 1 ],
     [ p[0], p[1] - 1 ]
   ];
 
-  while (queue.length > 0) {
+  while (stack.length > 0) {
 
-    let cur_p = queue.pop();
+    let cur_p = stack.pop();
     if (!inBounds( cur_p, bounds )) { continue; }
 
     let idx = xy2idx(cur_p, size);
@@ -153,10 +157,10 @@ function raise_island(grid_info, p) {
 
     flood_g[idx] = -1;
     
-    queue.push( [ cur_p[0] + 1, cur_p[1] ] );
-    queue.push( [ cur_p[0] - 1, cur_p[1] ] );
-    queue.push( [ cur_p[0], cur_p[1] + 1 ] );
-    queue.push( [ cur_p[0], cur_p[1] - 1 ] );
+    stack.push( [ cur_p[0] + 1, cur_p[1] ] );
+    stack.push( [ cur_p[0] - 1, cur_p[1] ] );
+    stack.push( [ cur_p[0], cur_p[1] + 1 ] );
+    stack.push( [ cur_p[0], cur_p[1] - 1 ] );
   }
 
   for (let i=0; i<n; i++) {
@@ -165,31 +169,50 @@ function raise_island(grid_info, p) {
 
 }
 
+// dilate each point with a 3x3 window
+//
 function cleanup_heuristic(grid_info) {
   let grid = grid_info.grid;
   let size = grid_info.size;
 
-  let queue = [];
+  let B = [[0,0], [size[0], size[1]]];
+
+  let stack = [];
 
   let idir_dxy = [
     [ 1, 0 ], [ -1,  0 ],
     [ 0, 1 ], [  0, -1 ]
   ];
 
+  let win_dxy = [
+    [-1, -1], [0, -1], [1,-1],
+    [-1, 0], [0, 0], [1, 0],
+    [-1, 1], [0, 1], [1, 1]
+  ];
+
   for (let y=0; y<size[1]; y++) {
     for (let x=0; x<size[0]; x++) {
-      let idx = xy2idx( [x,y] );
-      if (grid[idx] != 0) { queue.push([x,y]); }
+      let idx = xy2idx( [x,y], size );
+      if (grid[idx] != 0) { stack.push([x,y]); }
     }
   }
 
-  //WIP!!!
-  for (let i=0; i<queue.length; i++) {
-    //
+  for (let i=0; i<stack.length; i++) {
+    for (let idir=0; idir<win_dxy.length; idir++) {
+      let nei_p = v_add( stack[i], win_dxy[idir] );
+      if (!inBounds(nei_p, B)) { continue; }
+
+      let idx = xy2idx(nei_p, size);
+      grid[idx] = 2;
+    }
+
   }
 
 }
 
+// add in points randomely with probability p_t
+// restricted to bounding box B
+//
 function random_grid(sz, p_t, B) {
   p_t = ((typeof p_t === "undefined") ? 0.5 : p_t );
   B = ((typeof B === "undefined") ? [[0,0], [sz[0], sz[1]]] : B );
@@ -207,8 +230,8 @@ function random_grid(sz, p_t, B) {
       continue;
     }
 
-    if (p < p_t) { g.push(0); }
-    else { g.push(1); }
+    if (p < p_t) { g.push(1); }
+    else { g.push(0); }
   }
 
   return g;
@@ -225,11 +248,11 @@ function random_dilated_solid_grid_graph(sz) {
 
 g_info.size = [24,24];
 
-g_info.grid = random_grid(g_info.size, 0.4, [[4,4],[20,20]]);
+g_info.grid = random_grid(g_info.size, 0.25, [[4,4],[20,20]]);
 
 cleanup_heuristic(g_info);
-
 
 raise_island(g_info, [0,0]);
 
 printGrid( g_info );
+
