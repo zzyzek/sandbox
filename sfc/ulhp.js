@@ -371,8 +371,27 @@ g_info.grid = [ 1, 1, 1, 1, 1, 1 ];
 
 let gadget_info = two_factor_gadget(g_info);
 
+let n = gadget_info.E.length;
+
+
+let ffE = [];
+for (let i=0; i<n; i++) {
+  ffE.push([]);
+  for (let j=0; j<n; j++) {
+    ffE[i].push(0);
+  }
+}
+
+for (let i=0; i<gadget_info.E.length; i++) {
+  for (let j=0; j<gadget_info.E[i].length; j++) {
+    ffE[i][ gadget_info.E[i][j] ] = 1;
+    ffE[ gadget_info.E[i][j] ][i] = 1;
+  }
+}
+
+
 //console.log(gadget_info);
-gadget2dot(gadget_info);
+//gadget2dot(gadget_info);
 
 
 function _main() {
