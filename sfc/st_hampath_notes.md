@@ -604,6 +604,11 @@ The $s-t$ path can staircase and so it might be difficult to find where to merge
 know.s
 
 
+*ADDENDUM*: I think I got part of the construction wrong.
+The *internal* matching edges indicate which edges in the source graph to use, not
+the outgoing matching edges.
+This means that degree one might not need 3 internal vertices (as the gadget above indicates)
+and only 1.
 
 
 ###### 2025-07-04
