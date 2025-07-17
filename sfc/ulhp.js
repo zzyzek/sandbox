@@ -247,13 +247,146 @@ function random_dilated_solid_grid_graph(sz) {
 
 }
 
-g_info.size = [24,24];
+function two_factor_gadget(grid_info) {
+  let grid = grid_info.grid;
+  let size = grid_info.size;
 
-g_info.grid = random_grid(g_info.size, 0.25, [[4,4],[20,20]]);
+  let B = [[0,0], [size[0], size[1]]];
 
-cleanup_heuristic(g_info);
+  let idir_dxy = [
+    [1,0], [-1,0],
+    [0,1], [0,-1]
+  ];
 
-raise_island(g_info, [0,0]);
+  let oppo_idir = [ 1,0, 3,2 ];
 
-printGrid( g_info );
+  let vtx_map = {};
+  let E = [];
+
+  let v_idx = 0;
+
+  for (let y=0; y<size[1]; y++) {
+    for (let x=0; x<size[0]; x++) {
+
+      let p = [x,y];
+
+      let local_v = [];
+
+      for (let idir=0; idir<idir_dxy.length; idir++) {
+
+        let nei_p = v_add(p, idir_dxy[idir]);
+        if (!inBounds(nei_p, B)) { continue; }
+
+        let nei_idx = xy2idx(nei_p, size);
+        if (grid[nei_idx] != 0) {
+          local_v.push( x.toString() + "_" + y.toString() + "." + idir.toString() );
+        }
+
+      }
+
+      let base_v_idx = v_idx;
+
+      for (let i=0; i < local_v.length; i++) {
+        E.push([]);
+        vtx_map[ local_v[i] ] = v_idx;
+        v_idx++;
+      }
+
+
+      let vtx_a_name = x.toString() + "_" + y.toString() + ".a";
+      let vtx_b_name = x.toString() + "_" + y.toString() + ".b";
+
+
+      E.push([]);
+      let vtx_a_idx = v_idx; v_idx++;
+
+      E.push([]);
+      let vtx_b_idx = v_idx; v_idx++;
+
+      vtx_map[vtx_a_name] = vtx_a_idx;
+      vtx_map[vtx_b_name] = vtx_b_idx;
+
+      for (let i=0; i < local_v.length; i++) {
+        let t_idx = base_v_idx + i;
+        E[vtx_a_idx].push(t_idx);
+        E[vtx_b_idx].push(t_idx);
+        E[t_idx].push(vtx_a_idx);
+        E[t_idx].push(vtx_b_idx);
+      }
+
+    }
+  }
+
+  for (let y=0; y<size[1]; y++) {
+    for (let x=0; x<size[0]; x++) {
+
+      let p = [x,y];
+
+      for (let idir=0; idir<idir_dxy.length; idir++) {
+        let nei_p = v_add(p, idir_dxy[idir]);
+        if (!inBounds(nei_p, B)) { continue; }
+
+        let nei_idx = xy2idx(nei_p, size);
+        if (grid[nei_idx] != 0) {
+
+          let rdir = oppo_idir[idir];
+
+          let src_key = x.toString() + "_" + y.toString() + "." + idir.toString();
+          let dst_key = nei_p[0].toString() + "_" + nei_p[1].toString() + "." + rdir.toString();
+
+          let src_v_idx = vtx_map[src_key];
+          let dst_v_idx = vtx_map[dst_key];
+
+          E[src_v_idx].push(dst_v_idx);
+        }
+      }
+
+    }
+  }
+
+  return { "G": vtx_map, "E": E };
+}
+
+function gadget2dot(gadget_info) {
+  let G = gadget_info.G;
+  let E = gadget_info.E;
+
+  let v_name_map = {};
+  for (let key in G) {
+    v_name_map[ G[key] ] = key;
+  }
+
+  console.log("digraph G {");
+  for (let i=0; i<E.length; i++) {
+    for (let j=0; j<E[i].length; j++) {
+      console.log( "  ", '"' + v_name_map[i] + '"', "->", '"' + v_name_map[ E[i][j] ] + '"', ";");
+    }
+  }
+  
+  console.log("}");
+}
+
+g_info.size = [2,3];
+g_info.grid = [ 1, 1, 1, 1, 1, 1 ];
+
+let gadget_info = two_factor_gadget(g_info);
+
+//console.log(gadget_info);
+gadget2dot(gadget_info);
+
+
+function _main() {
+
+  g_info.size = [24,24];
+
+  g_info.grid = random_grid(g_info.size, 0.25, [[4,4],[20,20]]);
+
+  cleanup_heuristic(g_info);
+
+  raise_island(g_info, [0,0]);
+
+  printGrid( g_info );
+
+}
+
 
