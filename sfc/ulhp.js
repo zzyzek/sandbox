@@ -265,8 +265,13 @@ function two_factor_gadget(grid_info) {
 
   let v_idx = 0;
 
+  let source_v = [],
+      sink_v = [];
+
   for (let y=0; y<size[1]; y++) {
     for (let x=0; x<size[0]; x++) {
+
+      let grid_parity = (x + y) % 2;
 
       let p = [x,y];
 
@@ -289,6 +294,10 @@ function two_factor_gadget(grid_info) {
       for (let i=0; i < local_v.length; i++) {
         E.push([]);
         vtx_map[ local_v[i] ] = v_idx;
+
+        if (grid_parity)  { source_v.push( v_idx ); }
+        else              { sink_v.push( v_idx ); }
+
         v_idx++;
       }
 
@@ -302,6 +311,15 @@ function two_factor_gadget(grid_info) {
 
       E.push([]);
       let vtx_b_idx = v_idx; v_idx++;
+
+      if (grid_parity)  {
+        sink_v.push( vtx_a_idx );
+        sink_v.push( vtx_b_idx );
+      }
+      else {
+        source_v.push( vtx_a_idx );
+        source_v.push( vtx_b_idx );
+      }
 
       vtx_map[vtx_a_name] = vtx_a_idx;
       vtx_map[vtx_b_name] = vtx_b_idx;
@@ -338,13 +356,38 @@ function two_factor_gadget(grid_info) {
           let dst_v_idx = vtx_map[dst_key];
 
           E[src_v_idx].push(dst_v_idx);
+          E[dst_v_idx].push(src_v_idx);
         }
       }
 
     }
   }
 
-  return { "G": vtx_map, "E": E };
+  let src_v_idx = v_idx; v_idx++;
+  let snk_v_idx = v_idx; v_idx++;
+
+  vtx_map["source"] = src_v_idx;
+  vtx_map["sink"]   = snk_v_idx;
+
+  E.push([]);
+  E.push([]);
+  for (let i=0; i<source_v.length; i++) {
+    E[src_v_idx].push( source_v[i] );
+  }
+
+  for (let i=0; i<sink_v.length; i++) {
+    //E[snk_v_idx].push( sink_v[i] );
+    E[ sink_v[i] ].push( snk_v_idx );
+  }
+
+  let V = [];
+  for (let v=0; v<v_idx; v++) { V.push( "" ); }
+  for (let key in vtx_map) {
+    let v = vtx_map[key];
+    V[v] = key;
+  }
+
+  return { "G": vtx_map, "E": E, "V": V };
 }
 
 function gadget2dot(gadget_info) {
@@ -366,13 +409,24 @@ function gadget2dot(gadget_info) {
   console.log("}");
 }
 
-g_info.size = [2,3];
-g_info.grid = [ 1, 1, 1, 1, 1, 1 ];
+g_info.size = [3,3];
+g_info.grid = [
+  1, 1, 1,
+  1, 1, 1,
+  1, 1, 1
+];
+
+g_info.size = [4,4];
+g_info.grid = [
+  1, 1, 1, 1,
+  1, 1, 1, 1,
+  1, 1, 1, 1,
+  1, 1, 1, 1
+];
 
 let gadget_info = two_factor_gadget(g_info);
 
 let n = gadget_info.E.length;
-
 
 let ffE = [];
 for (let i=0; i<n; i++) {
@@ -382,16 +436,38 @@ for (let i=0; i<n; i++) {
   }
 }
 
+// there's 2 flow in the residual graph.
+// Either I'm not understanding the residual graph
+// right or I'm setting the problem up incorrectly.
+//
+// WIP!!
+//
 for (let i=0; i<gadget_info.E.length; i++) {
   for (let j=0; j<gadget_info.E[i].length; j++) {
     ffE[i][ gadget_info.E[i][j] ] = 1;
-    ffE[ gadget_info.E[i][j] ][i] = 1;
+    //ffE[ gadget_info.E[i][j] ][i] = 1;
   }
 }
 
 
 //console.log(gadget_info);
 //gadget2dot(gadget_info);
+
+let resG = [];
+let flow = FF(ffE, ffE.length-2, ffE.length-1, resG);
+
+console.log(flow);
+
+console.log(resG);
+
+
+let gi = gadget_info;
+
+for (let i=0; i<resG.length; i++) {
+  for (let j=0; j<resG[i].length; j++) {
+    if (resG[i][j] > 0) { console.log( gi.V[i], "-(", resG[i][j], ")-", gi.V[j] ); }
+  }
+}
 
 
 function _main() {
