@@ -52,7 +52,7 @@ function bfs(rGraph, s, t, parent) {
   return (visited[t] == true);
 }
 
-module.exports = function fordFulkerson(graph, s, t, resGraph) {
+module.exports = function fordFulkerson(graph, s, t, resGraph, flowGraph) {
   if (typeof resGraph === "undefined") { resGraph = []; }
   resGraph.length = 0;
 
@@ -101,6 +101,21 @@ module.exports = function fordFulkerson(graph, s, t, resGraph) {
 
 
     maxFlow += pathFlow;
+  }
+
+  if (typeof flowGraph !== "undefined") {
+    flowGraph.length = 0;
+
+    for (let i=0; i<graph.length; i++) {
+      flowGraph.push([]);
+      for (let j=0; j<graph.length; j++) {
+        let eflow = 0;
+        if (graph[i][j] > 0) {
+          eflow = graph[i][j] - resGraph[i][j];
+        }
+        flowGraph[i].push(eflow);
+      }
+    }
   }
 
   // Return the overall flow

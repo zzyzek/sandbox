@@ -508,12 +508,9 @@ for (let i=0; i<n; i++) {
   }
 }
 
-// wip
-//
 for (let i=0; i<gadget_info.E.length; i++) {
   for (let j=0; j<gadget_info.E[i].length; j++) {
     ffE[i][ gadget_info.E[i][j] ] = 1;
-    //ffE[ gadget_info.E[i][j] ][i] = 1;
   }
 }
 
@@ -522,8 +519,10 @@ for (let i=0; i<gadget_info.E.length; i++) {
 //gadget2dot(gadget_info);
 //process.exit();
 
-let resG = [];
-let flow = FF(ffE, ffE.length-2, ffE.length-1, resG);
+let resG = [], flowG = [];
+let flow = FF(ffE, ffE.length-2, ffE.length-1, resG, flowG);
+
+
 
 //console.log(flow);
 //console.log(resG);
@@ -531,9 +530,95 @@ let flow = FF(ffE, ffE.length-2, ffE.length-1, resG);
 
 let gi = gadget_info;
 
+let idir_dxy = [
+  [1,0], [-1,0],
+  [0,1], [0,-1]
+];
+
+for (let i=0; i<flowG.length; i++) {
+  for (let j=0; j<flowG[i].length; j++) {
+
+    if (flowG[i][j] > 0) {
+
+      let u_name = gi.V[i];
+      let v_name = gi.V[j];
+
+      if ((u_name == "source") || (u_name == "sink") ||
+          (v_name == "source") || (v_name == "sink")) { continue; }
+
+      let u_op = u_name.split(".")[1];
+      let v_op = v_name.split(".")[1];
+
+      let u_x = parseInt( u_name.split(".")[0].split("_")[0] );
+      let u_y = parseInt( u_name.split(".")[0].split("_")[1] );
+
+      let v_x = parseInt( v_name.split(".")[0].split("_")[0] );
+      let v_y = parseInt( v_name.split(".")[0].split("_")[1] );
+
+      if ((u_op == 'a') || (u_op == 'b')) {
+        let idir = parseInt(v_op);
+        console.log(u_x, u_y);
+        console.log(u_x + idir_dxy[idir][0], u_y + idir_dxy[idir][1]);
+        console.log("");
+      }
+
+      else if ((v_op == 'a') || (v_op == 'b')) {
+        let idir = parseInt(u_op);
+        console.log(v_x, v_y);
+        console.log(v_x + idir_dxy[idir][0], v_y + idir_dxy[idir][1]);
+        console.log("");
+      }
+
+    }
+
+  }
+}
+
+process.exit();
+
 for (let i=0; i<resG.length; i++) {
   for (let j=0; j<resG[i].length; j++) {
-    if (resG[i][j] > 0) { console.log( gi.V[i], "-(", resG[i][j], ")->", gi.V[j] ); }
+
+    //if (resG[i][j] > 0) { console.log( gi.V[i], "-(", resG[i][j], ")->", gi.V[j] ); }
+
+    if (ffE[i][j] > 0)  {
+      let flow_edge = ffE[i][j] - resG[i][j];
+      if (flow_edge > 0) {
+        //console.log(gi.V[i], "-(", flow_edge, ")->", gi.V[j]);
+
+        let u_name = gi.V[i];
+        let v_name = gi.V[j];
+
+        if ((u_name == "source") || (u_name == "sink") ||
+            (v_name == "source") || (v_name == "sink")) { continue; }
+
+        let u_op = u_name.split(".")[1];
+        let v_op = v_name.split(".")[1];
+
+        let u_x = parseInt( u_name.split(".")[0].split("_")[0] );
+        let u_y = parseInt( u_name.split(".")[0].split("_")[1] );
+
+        let v_x = parseInt( v_name.split(".")[0].split("_")[0] );
+        let v_y = parseInt( v_name.split(".")[0].split("_")[1] );
+
+        if ((u_op == 'a') || (u_op == 'b')) {
+          let idir = parseInt(v_op);
+          console.log(u_x, u_y);
+          console.log(u_x + idir_dxy[idir][0], u_y + idir_dxy[idir][1]);
+          console.log("");
+        }
+
+        else if ((v_op == 'a') || (v_op == 'b')) {
+          let idir = parseInt(u_op);
+          console.log(v_x, v_y);
+          console.log(v_x + idir_dxy[idir][0], v_y + idir_dxy[idir][1]);
+          console.log("");
+        }
+
+      }
+
+    }
+
   }
 }
 
