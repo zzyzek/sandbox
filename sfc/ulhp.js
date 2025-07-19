@@ -268,6 +268,19 @@ function two_factor_gadget(grid_info) {
   let source_v = [],
       sink_v = [];
 
+  let vtx_L = {},
+      vtx_R = {};
+
+
+  // The flow network goes from left (source) to right (sink).
+  // The implied graph is bipartite.
+  // Convention is that grid parity ( (x+y)%2 ):
+  //
+  // 0 - internal gadget vertices connect to source (L)
+  //     external gadget vertices connect to sink (R)
+  // 1 - internal gadget vertices connect to sink (R)
+  //     external gadget vertices connect to source (L)
+  //
   for (let y=0; y<size[1]; y++) {
     for (let x=0; x<size[0]; x++) {
 
@@ -291,20 +304,28 @@ function two_factor_gadget(grid_info) {
 
       let base_v_idx = v_idx;
 
+      // what I'm calling external gadget vertices
+      //
       for (let i=0; i < local_v.length; i++) {
         E.push([]);
         vtx_map[ local_v[i] ] = v_idx;
 
-        if (grid_parity)  { source_v.push( v_idx ); }
-        else              { sink_v.push( v_idx ); }
+        if (grid_parity)  {
+          source_v.push( v_idx );
+          vtx_L[ local_v[i] ] = v_idx;
+        }
+        else {
+          sink_v.push( v_idx );
+          vtx_R[ local_v[i] ] = v_idx;
+        }
 
         v_idx++;
       }
 
-
+      // what I'm calling internal gadget vertices
+      //
       let vtx_a_name = x.toString() + "_" + y.toString() + ".a";
       let vtx_b_name = x.toString() + "_" + y.toString() + ".b";
-
 
       E.push([]);
       let vtx_a_idx = v_idx; v_idx++;
@@ -312,31 +333,56 @@ function two_factor_gadget(grid_info) {
       E.push([]);
       let vtx_b_idx = v_idx; v_idx++;
 
-      if (grid_parity)  {
-        sink_v.push( vtx_a_idx );
-        sink_v.push( vtx_b_idx );
-      }
-      else {
+      if (grid_parity == 0)  {
         source_v.push( vtx_a_idx );
         source_v.push( vtx_b_idx );
+        vtx_L[ vtx_a_name ] = vtx_a_idx;
+        vtx_L[ vtx_b_name ] = vtx_b_idx;
+      }
+      else {
+        sink_v.push( vtx_a_idx );
+        sink_v.push( vtx_b_idx );
+        vtx_R[ vtx_a_name ] = vtx_a_idx;
+        vtx_R[ vtx_b_name ] = vtx_b_idx;
       }
 
       vtx_map[vtx_a_name] = vtx_a_idx;
       vtx_map[vtx_b_name] = vtx_b_idx;
 
+      // connect internal to external
+      // grid parity:
+      //
+      // 0 : internal -> external
+      // 1 : external -> internal
+      //
       for (let i=0; i < local_v.length; i++) {
         let t_idx = base_v_idx + i;
-        E[vtx_a_idx].push(t_idx);
-        E[vtx_b_idx].push(t_idx);
-        E[t_idx].push(vtx_a_idx);
-        E[t_idx].push(vtx_b_idx);
+
+        if (grid_parity) {
+          E[t_idx].push(vtx_a_idx);
+          E[t_idx].push(vtx_b_idx);
+        }
+        else {
+          E[vtx_a_idx].push(t_idx);
+          E[vtx_b_idx].push(t_idx);
+        }
+
       }
 
     }
   }
 
+  // connect external vertices to each other
+  //
   for (let y=0; y<size[1]; y++) {
     for (let x=0; x<size[0]; x++) {
+
+      let src_grid_parity = (x+y)%2;
+
+      // who choose exge direction on parity
+      // so we only consider half of the external vertices
+      //
+      if (src_grid_parity) { continue; }
 
       let p = [x,y];
 
@@ -355,29 +401,38 @@ function two_factor_gadget(grid_info) {
           let src_v_idx = vtx_map[src_key];
           let dst_v_idx = vtx_map[dst_key];
 
-          E[src_v_idx].push(dst_v_idx);
-          E[dst_v_idx].push(src_v_idx);
+          if (src_grid_parity) {
+            E[src_v_idx].push(dst_v_idx);
+          }
+          else {
+            E[dst_v_idx].push(src_v_idx);
+          }
         }
       }
 
     }
   }
 
-  let src_v_idx = v_idx; v_idx++;
-  let snk_v_idx = v_idx; v_idx++;
+  let connect_source_sink = 1;
 
-  vtx_map["source"] = src_v_idx;
-  vtx_map["sink"]   = snk_v_idx;
+  if (connect_source_sink) {
 
-  E.push([]);
-  E.push([]);
-  for (let i=0; i<source_v.length; i++) {
-    E[src_v_idx].push( source_v[i] );
-  }
+    let src_v_idx = v_idx; v_idx++;
+    let snk_v_idx = v_idx; v_idx++;
 
-  for (let i=0; i<sink_v.length; i++) {
-    //E[snk_v_idx].push( sink_v[i] );
-    E[ sink_v[i] ].push( snk_v_idx );
+    vtx_map["source"] = src_v_idx;
+    vtx_map["sink"]   = snk_v_idx;
+
+    E.push([]);
+    E.push([]);
+    for (let i=0; i<source_v.length; i++) {
+      E[src_v_idx].push( source_v[i] );
+    }
+
+    for (let i=0; i<sink_v.length; i++) {
+      E[ sink_v[i] ].push( snk_v_idx );
+    }
+
   }
 
   let V = [];
@@ -409,6 +464,23 @@ function gadget2dot(gadget_info) {
   console.log("}");
 }
 
+function gadget_print(gadget_info) {
+  let G = gadget_info.G;
+  let E = gadget_info.E;
+
+  let v_name_map = {};
+  for (let key in G) {
+    v_name_map[ G[key] ] = key;
+  }
+
+  for (let i=0; i<E.length; i++) {
+    for (let j=0; j<E[i].length; j++) {
+      let v = E[i][j];
+      console.log("[", i, "->", v, "]:", v_name_map[i], "->", v_name_map[ v ]);
+    }
+  }
+}
+
 g_info.size = [3,3];
 g_info.grid = [
   1, 1, 1,
@@ -436,11 +508,7 @@ for (let i=0; i<n; i++) {
   }
 }
 
-// there's 2 flow in the residual graph.
-// Either I'm not understanding the residual graph
-// right or I'm setting the problem up incorrectly.
-//
-// WIP!!
+// wip
 //
 for (let i=0; i<gadget_info.E.length; i++) {
   for (let j=0; j<gadget_info.E[i].length; j++) {
@@ -452,20 +520,20 @@ for (let i=0; i<gadget_info.E.length; i++) {
 
 //console.log(gadget_info);
 //gadget2dot(gadget_info);
+//process.exit();
 
 let resG = [];
 let flow = FF(ffE, ffE.length-2, ffE.length-1, resG);
 
-console.log(flow);
-
-console.log(resG);
+//console.log(flow);
+//console.log(resG);
 
 
 let gi = gadget_info;
 
 for (let i=0; i<resG.length; i++) {
   for (let j=0; j<resG[i].length; j++) {
-    if (resG[i][j] > 0) { console.log( gi.V[i], "-(", resG[i][j], ")-", gi.V[j] ); }
+    if (resG[i][j] > 0) { console.log( gi.V[i], "-(", resG[i][j], ")->", gi.V[j] ); }
   }
 }
 
