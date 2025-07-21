@@ -52,5 +52,122 @@ when all we have left are even alternating strips), that progressively choosing 
 sequences makes progress, etc. all need proof.
 
 
+---
+
+## Building the 2-factor graph
+
+### Introduction
+
+The initial state of the Umans-Lenhart Hamililtonian cycle finding algorithm on solid grid graphs (ULHC:SGG)
+is start from a 2-factor.
+This section discusses algorithms to efficiently create the initial 2-factor.
+
+As a reminder, the 2-factor is an edge placement connecting all vertices in the solid grid graph such that
+all vertices have exactly degree 2.
+If a 2-factor doesn't exist, a Hamiltonian cycle can't exist.
+The existence of a 2-factor does not necessarily imply the existence of a Hamiltonian cycle.
+
+A valid 2-factor can be thought of as a set of disjoint cycles covering the entire solid grid graph.
+
+### Construction
+
+Umans discusses various strategies, including a linear programming lemthod suggested by Bridgeman, but
+Uman settles on a graph construction combined with a perfect edge matching, to find the initial 2-factor.
+
+Each vertex in the solid grid graph is replaced by a widget.
+Each vertex's widget construction has one vertex for each neighbor and each of these 'external' widget
+verticies are connected to
+two 'internal' verticies.
+
+The construction is bipartite.
+The internal widget verticies that have an edge match with an external widget vertex correspond to
+one side of an edge in a valid 2-factor of the original solid grid graph.
+
+A valid 2-factor exists iff a perfect edge matching exists.
+
+### Algorithm
+
+There is a standard reduction of the perfect edge matching to a maximum-flow, minimum-cut
+problem.
+In the widget graph, vertices are bipartite, so can separated into disjoint but covering $L$ and $R$ sets.
+A source is added connecting a directed edge from the source to each of the vertices in $L$.
+Each of the $L$ vertices have an edge that got to their neighboring $R$ vertices.
+Each of the $R$ vertices has an edge going to a sink vertex.
+
+All edge weights are given weight 1 and Ford-Fulkerson (FF), say, is run to find a maximum flow.
+
+A maximum flow of  $2 |V|$ corresponds to the existence of a perfect edge matching.
+
+The Ford-Fulkerson can be used but I think Hopcroft-Karp can be used to speed things up.
+Here, aside from the source and sink, the widget graph is degree bound, so the number of edges
+is a constant factor of the number of vertices.
+FF runs in someedges like $O(|E| \cdot f)$, where the maximum flow $f$ is on the order of the number of
+vertices, so roughly $O(|V|^2)$.
+Hopcroft-Karp looks to run in something like $O(|E| \sqrt{|V|} \sim O(|V|^{3/2})$.
+
+It looks like for sparse (random) graphs, Hopcroft-Karp gets closer to $O(|E| \log(|V|))$, so we
+might expect it to be even better.
+
+
+## ULHP:SGG Algorithm Overview
+
+I think the algorithm itself is pretty easy to state:
+
+The algorithm starts by finding an initial 2-factor.
+If no such 2-factor exists, no Hamiltonian cycle can exist.
+
+From the initial 2-factor, it scans the graph to find some patterns of *cells*.
+These patterns, described shortly, are linear chains of cells.
+
+A set of linear chains is collected and the edges on the perimeter
+are then *flipped*.
+
+The flipping of edges reduces the component count of the 2-factor.
+
+If no more patterns can be found, the algorithm terminates with either
+a giant cycle which is the Hamiltonian cycle on the solid grid graph or
+a collection of disjoint cycles and a proof that no Hamiltonian cycle
+exists.
+
+---
+
+The core of the algorithm is finding the patterns of cells to flip.
+
+The basic pattern is one of two linear string of cells, either in
+the vertical or horizontal direction, called *even alternating strip*
+or *odd alternating strip*.
+
+Using the alternating strip, either odd or even, the perimeter of edges is flipped.
+An odd alternating strip always reduces the 
+
+It is a fact of solid grid graphs that there must exist an even
+alternatinve strip.
+If a Hamiltonian cycle in a solid grid graph exists with a multi-component 2-factor,
+without an odd alternating strip present, there exists a series of flips
+of an even alternating strip to produce an odd alternating strip, which
+can then be used to reduce the 2-factor component count.
+
+One of the main difficulties in the ULHP algorithm is finding an efficient
+schedule of even alternating strips to flip.
+
+
+
+## Implementation details
+
+I'm still working through this, so this is going to be a scratch space for my thoughts.
+
+
+We need:
+
+* a structure to hold each original grid cell and potential edges
+* a structure to hold the current list of cycles (the 2-factor)
+* a structure to hold the dual of the graph, along with which regions
+  each cell belongs to
+  - the structure should include the region information or should allow its calculation
+  - we want to calculate the distance between points in the same region as well
+    as pairwise distance
+  - if two points lie on the same minimum path?
+
+
 
 
