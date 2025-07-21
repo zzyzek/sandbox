@@ -82,6 +82,7 @@
 
 var fasslib = require("./fasslib.js");
 var FF = require("./ff_prabod.js");
+var fs = require("fs");
 
 var g_info = {
   "size" : [0,0],
@@ -284,12 +285,13 @@ function two_factor_gadget(grid_info) {
   for (let y=0; y<size[1]; y++) {
     for (let x=0; x<size[0]; x++) {
 
-      let grid_parity = (x + y) % 2;
-
       let p = [x,y];
 
-      let local_v = [];
+      let cur_idx = xy2idx(p, size);
+      if (grid[cur_idx] == 0) { continue; }
 
+      let grid_parity = (x + y) % 2;
+      let local_v = [];
       for (let idir=0; idir<idir_dxy.length; idir++) {
 
         let nei_p = v_add(p, idir_dxy[idir]);
@@ -377,14 +379,17 @@ function two_factor_gadget(grid_info) {
   for (let y=0; y<size[1]; y++) {
     for (let x=0; x<size[0]; x++) {
 
-      let src_grid_parity = (x+y)%2;
-
-      // who choose exge direction on parity
-      // so we only consider half of the external vertices
-      //
-      if (src_grid_parity) { continue; }
 
       let p = [x,y];
+      let cur_idx = xy2idx(p, size);
+      if (grid[cur_idx] == 0) { continue; }
+
+      // who choose direction on parity
+      // so we only consider half of the external vertices
+      //
+      let src_grid_parity = (x+y)%2;
+      if (src_grid_parity) { continue; }
+
 
       for (let idir=0; idir<idir_dxy.length; idir++) {
         let nei_p = v_add(p, idir_dxy[idir]);
@@ -481,110 +486,66 @@ function gadget_print(gadget_info) {
   }
 }
 
-g_info.size = [3,3];
-g_info.grid = [
-  1, 1, 1,
-  1, 1, 1,
-  1, 1, 1
-];
 
-g_info.size = [4,4];
-g_info.grid = [
-  1, 1, 1, 1,
-  1, 1, 1, 1,
-  1, 1, 1, 1,
-  1, 1, 1, 1
-];
+function _t0() {
+  g_info.size = [3,3];
+  g_info.grid = [
+    1, 1, 1,
+    1, 1, 1,
+    1, 1, 1
+  ];
 
-let gadget_info = two_factor_gadget(g_info);
+  g_info.size = [4,4];
+  g_info.grid = [
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1
+  ];
 
-let n = gadget_info.E.length;
+  let gadget_info = two_factor_gadget(g_info);
 
-let ffE = [];
-for (let i=0; i<n; i++) {
-  ffE.push([]);
-  for (let j=0; j<n; j++) {
-    ffE[i].push(0);
-  }
-}
+  let n = gadget_info.E.length;
 
-for (let i=0; i<gadget_info.E.length; i++) {
-  for (let j=0; j<gadget_info.E[i].length; j++) {
-    ffE[i][ gadget_info.E[i][j] ] = 1;
-  }
-}
-
-
-//console.log(gadget_info);
-//gadget2dot(gadget_info);
-//process.exit();
-
-let resG = [], flowG = [];
-let flow = FF(ffE, ffE.length-2, ffE.length-1, resG, flowG);
-
-
-
-//console.log(flow);
-//console.log(resG);
-
-
-let gi = gadget_info;
-
-let idir_dxy = [
-  [1,0], [-1,0],
-  [0,1], [0,-1]
-];
-
-for (let i=0; i<flowG.length; i++) {
-  for (let j=0; j<flowG[i].length; j++) {
-
-    if (flowG[i][j] > 0) {
-
-      let u_name = gi.V[i];
-      let v_name = gi.V[j];
-
-      if ((u_name == "source") || (u_name == "sink") ||
-          (v_name == "source") || (v_name == "sink")) { continue; }
-
-      let u_op = u_name.split(".")[1];
-      let v_op = v_name.split(".")[1];
-
-      let u_x = parseInt( u_name.split(".")[0].split("_")[0] );
-      let u_y = parseInt( u_name.split(".")[0].split("_")[1] );
-
-      let v_x = parseInt( v_name.split(".")[0].split("_")[0] );
-      let v_y = parseInt( v_name.split(".")[0].split("_")[1] );
-
-      if ((u_op == 'a') || (u_op == 'b')) {
-        let idir = parseInt(v_op);
-        console.log(u_x, u_y);
-        console.log(u_x + idir_dxy[idir][0], u_y + idir_dxy[idir][1]);
-        console.log("");
-      }
-
-      else if ((v_op == 'a') || (v_op == 'b')) {
-        let idir = parseInt(u_op);
-        console.log(v_x, v_y);
-        console.log(v_x + idir_dxy[idir][0], v_y + idir_dxy[idir][1]);
-        console.log("");
-      }
-
+  let ffE = [];
+  for (let i=0; i<n; i++) {
+    ffE.push([]);
+    for (let j=0; j<n; j++) {
+      ffE[i].push(0);
     }
-
   }
-}
 
-process.exit();
+  for (let i=0; i<gadget_info.E.length; i++) {
+    for (let j=0; j<gadget_info.E[i].length; j++) {
+      ffE[i][ gadget_info.E[i][j] ] = 1;
+    }
+  }
 
-for (let i=0; i<resG.length; i++) {
-  for (let j=0; j<resG[i].length; j++) {
 
-    //if (resG[i][j] > 0) { console.log( gi.V[i], "-(", resG[i][j], ")->", gi.V[j] ); }
+  //console.log(gadget_info);
+  //gadget2dot(gadget_info);
+  //process.exit();
 
-    if (ffE[i][j] > 0)  {
-      let flow_edge = ffE[i][j] - resG[i][j];
-      if (flow_edge > 0) {
-        //console.log(gi.V[i], "-(", flow_edge, ")->", gi.V[j]);
+  let resG = [], flowG = [];
+  let flow = FF(ffE, ffE.length-2, ffE.length-1, resG, flowG);
+
+
+
+  //console.log(flow);
+  //console.log(resG);
+
+
+  let gi = gadget_info;
+
+  let idir_dxy = [
+    [1,0], [-1,0],
+    [0,1], [0,-1]
+  ];
+
+  for (let i=0; i<flowG.length; i++) {
+    for (let j=0; j<flowG[i].length; j++) {
+
+      if (flowG[i][j] > 0) {
 
         let u_name = gi.V[i];
         let v_name = gi.V[j];
@@ -618,23 +579,195 @@ for (let i=0; i<resG.length; i++) {
       }
 
     }
-
   }
+
+  process.exit();
+
+  for (let i=0; i<resG.length; i++) {
+    for (let j=0; j<resG[i].length; j++) {
+
+      //if (resG[i][j] > 0) { console.log( gi.V[i], "-(", resG[i][j], ")->", gi.V[j] ); }
+
+      if (ffE[i][j] > 0)  {
+        let flow_edge = ffE[i][j] - resG[i][j];
+        if (flow_edge > 0) {
+          //console.log(gi.V[i], "-(", flow_edge, ")->", gi.V[j]);
+
+          let u_name = gi.V[i];
+          let v_name = gi.V[j];
+
+          if ((u_name == "source") || (u_name == "sink") ||
+              (v_name == "source") || (v_name == "sink")) { continue; }
+
+          let u_op = u_name.split(".")[1];
+          let v_op = v_name.split(".")[1];
+
+          let u_x = parseInt( u_name.split(".")[0].split("_")[0] );
+          let u_y = parseInt( u_name.split(".")[0].split("_")[1] );
+
+          let v_x = parseInt( v_name.split(".")[0].split("_")[0] );
+          let v_y = parseInt( v_name.split(".")[0].split("_")[1] );
+
+          if ((u_op == 'a') || (u_op == 'b')) {
+            let idir = parseInt(v_op);
+            console.log(u_x, u_y);
+            console.log(u_x + idir_dxy[idir][0], u_y + idir_dxy[idir][1]);
+            console.log("");
+          }
+
+          else if ((v_op == 'a') || (v_op == 'b')) {
+            let idir = parseInt(u_op);
+            console.log(v_x, v_y);
+            console.log(v_x + idir_dxy[idir][0], v_y + idir_dxy[idir][1]);
+            console.log("");
+          }
+
+        }
+
+      }
+
+    }
+  }
+
 }
 
+function export_grid(fn, grid_info) {
+  fs.writeFileSync(fn, JSON.stringify(grid_info, undefined, 2));
+}
+
+function import_grid(fn) {
+  return JSON.parse( fs.readFileSync(fn) );
+}
 
 function _main() {
 
-  g_info.size = [24,24];
+  let export_import = 'import';
 
-  g_info.grid = random_grid(g_info.size, 0.25, [[4,4],[20,20]]);
+  if (export_import == 'import') {
+    g_info = import_grid("./test_grid0.json");
+  }
 
-  cleanup_heuristic(g_info);
+  else if (export_import == 'test') {
 
-  raise_island(g_info, [0,0]);
+    g_info.size = [3,3];
+    g_info.grid = [ 1,1,1, 1,1,1, 1,1,1 ];
 
-  printGrid( g_info );
+  }
+
+  else {
+
+    g_info.size = [24,24];
+    g_info.grid = random_grid(g_info.size, 0.25, [[4,4],[20,20]]);
+    cleanup_heuristic(g_info);
+    raise_island(g_info, [0,0]);
+    export_grid("grid_info.json", g_info)
+  }
+
+
+  let nv = 0;
+  for (let i=0; i<g_info.grid.length; i++) {
+    if (g_info.grid[i] > 0) { nv++; }
+  }
+  console.log("# num1:", nv);
+
+  let gadget_info = two_factor_gadget(g_info);
+
+  let n = gadget_info.E.length;
+
+  let ffE = [];
+  for (let i=0; i<n; i++) {
+    ffE.push([]);
+    for (let j=0; j<n; j++) {
+      ffE[i].push(0);
+    }
+  }
+
+  for (let i=0; i<gadget_info.E.length; i++) {
+    for (let j=0; j<gadget_info.E[i].length; j++) {
+      ffE[i][ gadget_info.E[i][j] ] = 1;
+    }
+  }
+
+  // Ford-Fulkerson is pretty bad run-time (and memory)
+  // I think Hopcroft-Karp is going to do much better,
+  // at either $O(|E| \sqrt{V})$ or $O(|E| \log(V))$ since
+  // it's sparse (?).
+  // For now, I'm leavingt this in, because the actual
+  // algorithm is the priority but this is already way too
+  // slow and we need to get to it in the future.
+  //
+  let resG = [], flowG = [];
+  let flow = FF(ffE, ffE.length-2, ffE.length-1, resG, flowG);
+
+  let gi = gadget_info;
+
+  let idir_dxy = [
+    [1,0], [-1,0],
+    [0,1], [0,-1]
+  ];
+
+  if (export_import == 'test') {
+    for (let i=0; i<flowG.length; i++) {
+      for (let j=0; j<flowG[i].length; j++) {
+
+        if (flowG[i][j] > 0) {
+
+          let u_name = gi.V[i];
+          let v_name = gi.V[j];
+
+          console.log(u_name, "-(", flowG[i][j], ")->", v_name);
+
+        }
+
+      }
+    }
+
+    return;
+  }
+
+
+  for (let i=0; i<flowG.length; i++) {
+    for (let j=0; j<flowG[i].length; j++) {
+
+      if (flowG[i][j] > 0) {
+
+        let u_name = gi.V[i];
+        let v_name = gi.V[j];
+
+        if ((u_name == "source") || (u_name == "sink") ||
+            (v_name == "source") || (v_name == "sink")) { continue; }
+
+        let u_op = u_name.split(".")[1];
+        let v_op = v_name.split(".")[1];
+
+        let u_x = parseInt( u_name.split(".")[0].split("_")[0] );
+        let u_y = parseInt( u_name.split(".")[0].split("_")[1] );
+
+        let v_x = parseInt( v_name.split(".")[0].split("_")[0] );
+        let v_y = parseInt( v_name.split(".")[0].split("_")[1] );
+
+        if ((u_op == 'a') || (u_op == 'b')) {
+          let idir = parseInt(v_op);
+          console.log(u_x, u_y);
+          console.log(u_x + idir_dxy[idir][0], u_y + idir_dxy[idir][1]);
+          console.log("");
+        }
+
+        else if ((v_op == 'a') || (v_op == 'b')) {
+          let idir = parseInt(u_op);
+          console.log(v_x, v_y);
+          console.log(v_x + idir_dxy[idir][0], v_y + idir_dxy[idir][1]);
+          console.log("");
+        }
+
+      }
+
+    }
+  }
+
+
+  //printGrid( g_info );
 
 }
 
-
+_main();
