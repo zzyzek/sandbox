@@ -169,6 +169,27 @@ We need:
   - if two points lie on the same minimum path?
 
 
+## Notes
+
+The "type" of a cell in the dual graph (e.g. type `III`) is often modified by whether it's "boundary" or not,
+where boundary means the four vertices of the dual cell belong to different 2-factor components.
+
+For the bulk algorithm:
+
+* If there's a type `III` boundary cell, we can just choose it and make progress as this
+  will join disparite components in the 2-factor
+* For the more complicated case where only raw even alternating strip sequences are present,
+  or there are type `III` cells that aren't boundary, we then go through and identify the even
+  alternating strips, the odd alternating strips and chain even and odd alternating strips
+  - raw alternating strips are labelled `BEGIN`
+  - `CHAIN` alternating strips begin from the ending of a previous alternating strip (`BEGIN` or `CHAIN`,
+    so this process has to be iterated until no more strips are identified)
+  - we then find paths from the orthogonal neighboring cells of the ending cell in a strip. The path
+    from the neighboring end cells will inform whether the odd alternating strip can/will join
+    2-factor components and terminate the alternating strip sequence
+
+
+
 ## ERRATA
 
 pg. 58 of Uman's thesis:
