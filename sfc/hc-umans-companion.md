@@ -169,5 +169,15 @@ We need:
   - if two points lie on the same minimum path?
 
 
+## ERRATA
+
+pg. 58 of Uman's thesis:
+
+> Let $c'$ be the ~first~ **last**  cell in this search that is alternating.
+
+pg. 59:
+
+> The directed edges are required to ensure that multiple conseqcuitve link edges ~are~ cannot
+> appear in a path in $H$.
 
 
