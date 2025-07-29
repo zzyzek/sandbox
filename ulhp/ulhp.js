@@ -805,7 +805,7 @@ function ulhp_initTwoFactor(grid_info) {
 }
 
 function ulhp_dual(grid_info) {
-  let debug = false;
+  let debug = true;
 
   //let two_deg_grid = grid_info.two_deg_grid;
   let two_deg_grid = grid_info.grid_deg2;
@@ -860,6 +860,15 @@ function ulhp_dual(grid_info) {
         edge_idir[0] = 0;
       }
     }
+
+    if ((edge_idir[0] < 0) ||
+        (edge_idir[1] < 0) ||
+        (edge_idir[2] < 0) ||
+        (edge_idir[3] < 0)) {
+      dualG_grid[dual_idx] = dualCode(edge_idir);
+      continue;
+    }
+
 
     if (grid_idx_pp >= 0) {
       if (two_deg_grid[grid_idx_pp] & (1 << 1)) { edge_idir[2] = 1; }
