@@ -179,15 +179,33 @@ function drawDualCell( grid_info, disp_opt ) {
     "c": "#aaa", "p": "#aaa", "n": "#aaa", "u": "#aaa"
   };
 
+  let bg_point_size = 3;
+
   for (let y = (size[1]-1); y >= 0; y--) {
     for (let x = 0; x< size[0]; x++) {
       let idx = xy2idx( [x,y], size );
       let screen_iy = size[1] - 1 - y;
 
-      let d = two.makeCircle( xy_origin[0] + (scale*x) + dx,
-                              xy_origin[1] + (scale*screen_iy) + dy,
-                              0.25 );
-      d.fill = "#000";
+      let cell_parity = (x+y)%2;
+
+      // tiny dual cell points
+      //
+      if (cell_parity == 0) {
+        let d = two.makeCircle( xy_origin[0] + (scale*x) + dx,
+                                xy_origin[1] + (scale*screen_iy) + dy,
+                                bg_point_size/2 );
+        d.fill = "#b70";
+        d.alpha = 0.6;
+        d.noStroke();
+      }
+      else {
+        let d = two.makeRectangle( xy_origin[0] + (scale*x) + dx,
+                                   xy_origin[1] + (scale*screen_iy) + dy,
+                                   bg_point_size, bg_point_size );
+        d.fill = "#00a";
+        d.alpha = 0.6;
+        d.noStroke();
+      }
 
       if (grid_code[idx] == '.') { continue; }
 
@@ -299,7 +317,9 @@ function redrawCustom() {
     "scale": scale
   };
 
-  drawGridHook( grid_hook, disp_opt );
+  if (g_ui.option.grid) {
+    drawGridHook( grid_hook, disp_opt );
+  }
 
   //---
 
@@ -311,9 +331,10 @@ function redrawCustom() {
 
   ulhp.dual( ulhp.grid_info );
 
-  console.log( ulhp.grid_info.dualG );
 
-  drawDualCell( ulhp.grid_info.dualG, dual_disp_opt );
+  if (g_ui.option.dual) {
+    drawDualCell( ulhp.grid_info.dualG, dual_disp_opt );
+  }
 
   //---
 
@@ -323,8 +344,9 @@ function redrawCustom() {
     "cell_s": (3*scale/4)
   };
 
-
-  drawDep( ulhp.grid_info.depG, dep_disp_opt );
+  if (g_ui.option.dep) {
+    drawDep( ulhp.grid_info.depG, dep_disp_opt );
+  }
 
 }
 
@@ -341,8 +363,21 @@ function ui_input(ui_id) {
   let ele = document.getElementById(ui_id);
   if (ele.checked) { g_ui.option[opt_val] = true; }
   else if (!ele.checked) { g_ui.option[opt_val] = false; }
+
+  g_ui.two.clear();
+  redrawCustom();
+}
+
+function init_ui() {
+  ui_input("ui_cb_grid");
+  ui_input("ui_cb_dual");
+  ui_input("ui_cb_dep");
 }
 
 function webinit() {
+
+  init_ui();
+
+  g_ui.two.clear();
   redrawCustom();
 }
