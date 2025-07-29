@@ -804,8 +804,117 @@ function ulhp_initTwoFactor(grid_info) {
   return;
 }
 
+function ulhp_dependency(grid_info) {
+  let two_deg_grid = grid_info.grid_deg2;
+
+  let depG_size = [ grid_info.size[0]+1, grid_info.size[1]+1 ];
+  let depG_grid  = [];
+  let depG_n = depG_size[0] * depG_size[1];
+  for (let i=0; i<depG_n; i++) { depG_grid.push( 0 ); }
+
+  for (let dep_idx=0; dep_idx < depG_n; dep_idx++) {
+    let dep_xy = idx2xy( dep_idx, depG_size );
+
+    let vtx_parity = (dep_xy[0] + dep_xy[1]) % 2;
+    let vtx_hook = 0;
+
+    let dep_type = 0;
+
+    let grid_idx_pp = xy2idx( dep_xy, grid_info.size );
+    let grid_idx_mp = xy2idx( [ dep_xy[0]-1, dep_xy[1] ], grid_info.size );
+    let grid_idx_mm = xy2idx( [ dep_xy[0]-1, dep_xy[1]-1 ], grid_info.size );
+    let grid_idx_pm = xy2idx( [ dep_xy[0], dep_xy[1]-1 ], grid_info.size );
+
+    let edge_idir = [-1,-1,-1,-1];
+
+    if ((grid_idx_pp >= 0) && (grid_idx_mp >= 0)) {
+      if (grid_info.grid[grid_idx_pp] && grid_info.grid[grid_idx_mp]) {
+        edge_idir[2] = 0;
+      }
+    }
+
+    if ((grid_idx_mp >= 0) && (grid_idx_mm >= 0)) {
+      if (grid_info.grid[grid_idx_mp] && grid_info.grid[grid_idx_mm]) {
+        edge_idir[1] = 0;
+      }
+    }
+
+    if ((grid_idx_mm >= 0) && (grid_idx_pm >= 0)) {
+      if (grid_info.grid[grid_idx_mm] && grid_info.grid[grid_idx_pm]) {
+        edge_idir[3] = 0;
+      }
+    }
+
+    if ((grid_idx_pm >= 0) && (grid_idx_pp >= 0)) {
+      if (grid_info.grid[grid_idx_pm] && grid_info.grid[grid_idx_pp]) {
+        edge_idir[0] = 0;
+      }
+    }
+
+    if (grid_idx_pp >= 0) {
+      if (two_deg_grid[grid_idx_pp] & (1 << 1)) { edge_idir[2] = ((edge_idir[2] == -1) ? -1 : 1); }
+      if (two_deg_grid[grid_idx_pp] & (1 << 3)) { edge_idir[0] = ((edge_idir[0] == -1) ? -1 : 1); }
+    }
+
+    if (grid_idx_mp >= 0) {
+      if (two_deg_grid[grid_idx_mp] & (1 << 0)) { edge_idir[2] = ((edge_idir[2] == -1) ? -1 : 1); }
+      if (two_deg_grid[grid_idx_mp] & (1 << 3)) { edge_idir[1] = ((edge_idir[1] == -1) ? -1 : 1); }
+    }
+
+    if (grid_idx_mm >= 0) {
+      if (two_deg_grid[grid_idx_mm] & (1 << 0)) { edge_idir[3] = ((edge_idir[3] == -1) ? -1 : 1); }
+      if (two_deg_grid[grid_idx_mm] & (1 << 2)) { edge_idir[1] = ((edge_idir[1] == -1) ? -1 : 1); }
+    }
+
+    if (grid_idx_pm >= 0) {
+      if (two_deg_grid[grid_idx_pm] & (1 << 1)) { edge_idir[3] = ((edge_idir[3] == -1) ? -1 : 1); }
+      if (two_deg_grid[grid_idx_pm] & (1 << 2)) { edge_idir[0] = ((edge_idir[0] == -1) ? -1 : 1); }
+    }
+
+
+    if (vtx_parity == 0) {
+      if (edge_idir[0] == 0) { vtx_hook = (vtx_hook | (1 << 0)); }
+      if (edge_idir[1] == 0) { vtx_hook = (vtx_hook | (1 << 1)); }
+
+      if (edge_idir[2] == 1) { vtx_hook = (vtx_hook | (1 << 2)); }
+      if (edge_idir[3] == 1) { vtx_hook = (vtx_hook | (1 << 3)); }
+    }
+    if (vtx_parity == 1) {
+      if (edge_idir[0] == 1) { vtx_hook = (vtx_hook | (1 << 0)); }
+      if (edge_idir[1] == 1) { vtx_hook = (vtx_hook | (1 << 1)); }
+
+      if (edge_idir[2] == 0) { vtx_hook = (vtx_hook | (1 << 2)); }
+      if (edge_idir[3] == 0) { vtx_hook = (vtx_hook | (1 << 3)); }
+    }
+
+    /*
+    if ((edge_idir[0] == 0) && (vtx_parity == 0)) { vtx_hook = (vtx_hook | (1 << 0)); }
+    if ((edge_idir[0] == 1) && (vtx_parity == 1)) { vtx_hook = (vtx_hook | (1 << 0)); }
+
+    if ((edge_idir[1] == 0) && (vtx_parity == 0)) { vtx_hook = (vtx_hook | (1 << 1)); }
+    if ((edge_idir[1] == 1) && (vtx_parity == 1)) { vtx_hook = (vtx_hook | (1 << 1)); }
+
+    if ((edge_idir[2] == 0) && (vtx_parity == 1)) { vtx_hook = (vtx_hook | (1 << 2)); }
+    if ((edge_idir[2] == 1) && (vtx_parity == 0)) { vtx_hook = (vtx_hook | (1 << 2)); }
+
+    if ((edge_idir[3] == 0) && (vtx_parity == 1)) { vtx_hook = (vtx_hook | (1 << 3)); }
+    if ((edge_idir[3] == 1) && (vtx_parity == 0)) { vtx_hook = (vtx_hook | (1 << 3)); }
+    */
+
+    depG_grid[dep_idx] = vtx_hook;
+
+  }
+
+  grid_info.depG = {
+    "size" : depG_size,
+    "grid_hook" : depG_grid
+  };
+
+  return grid_info;
+}
+
 function ulhp_dual(grid_info) {
-  let debug = true;
+  let debug = false;
 
   //let two_deg_grid = grid_info.two_deg_grid;
   let two_deg_grid = grid_info.grid_deg2;
@@ -820,7 +929,8 @@ function ulhp_dual(grid_info) {
     }
   }
 
-  let dualG_size = [ grid_info.size[0]+2, grid_info.size[1]+2 ];
+  //let dualG_size = [ grid_info.size[0]+2, grid_info.size[1]+2 ];
+  let dualG_size = [ grid_info.size[0]+1, grid_info.size[1]+1 ];
   let dualG_grid  = [];
   let dualG_n = dualG_size[0] * dualG_size[1];
   for (let i=0; i<dualG_n; i++) { dualG_grid.push( 0 ); }
@@ -1100,7 +1210,7 @@ function twofactor_code_print(grid_code, sz) {
 
 function load_custom7_1(grid_info) {
 
-  let debug = true;
+  let debug = false;
 
   grid_info.size = [ 7, 15 ];
   grid_info.grid = [
@@ -1192,13 +1302,15 @@ function load_custom7_1(grid_info) {
   grid_info["grid_deg2"] = two_deg_grid;
 
   ulhp_dual(grid_info);
+  ulhp_dependency(g_info);
 
-  console.log("#######################");
-  console.log("#######################");
-  console.log("#######################");
+  if (debug) {
+    console.log("#######################");
+    console.log("#######################");
+    console.log("#######################");
 
-  console.log(grid_info);
-
+    console.log(grid_info);
+  }
 
   return grid_info;
 }
@@ -1322,6 +1434,8 @@ function _main() {
     g_info["grid_hook"] = two_deg_grid;
 
     ulhp_dual(g_info);
+
+    ulhp_dependency(g_info);
 
     console.log("#######################");
     console.log("#######################");
