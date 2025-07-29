@@ -1,7 +1,14 @@
 
 var g_ui = {
   "ulhp": ulhp,
-  "two": new Two({"fitted":true})
+  "two": new Two({"fitted":true}),
+  
+  "option": {
+    "grid": true,
+    "dual": true,
+    "dep": true
+
+  }
 };
 
 function _Line(x0,y0, x1,y1, lco, lw, alpha) {
@@ -272,8 +279,10 @@ function drawGridHook( grid_info, disp_opt ) {
   return;
 }
 
-function webinit() {
+function redrawCustom() {
   let two = g_ui.two;
+
+  let scale = 30;
 
   var ele = document.getElementById("ui_canvas");
   two.appendTo(ele);
@@ -287,7 +296,7 @@ function webinit() {
 
   let disp_opt = {
     "origin" : [50,50],
-    "scale": 20
+    "scale": scale
   };
 
   drawGridHook( grid_hook, disp_opt );
@@ -295,9 +304,9 @@ function webinit() {
   //---
 
   let dual_disp_opt = {
-    "scale": 20,
-    "origin" : [50-20, 50-20],
-    "cell_s": 15
+    "scale": scale,
+    "origin" : [50-scale, 50-scale],
+    "cell_s": (3*scale/4)
   };
 
   ulhp.dual( ulhp.grid_info );
@@ -309,12 +318,31 @@ function webinit() {
   //---
 
   let dep_disp_opt = {
-    "scale": 20,
-    "origin" : [50-20, 50-20],
-    "cell_s": 15
+    "scale": scale,
+    "origin" : [50-scale, 50-scale],
+    "cell_s": (3*scale/4)
   };
 
 
   drawDep( ulhp.grid_info.depG, dep_disp_opt );
 
+}
+
+function ui_input(ui_id) {
+
+  let opt_val = "";
+
+  if (ui_id == "ui_cb_grid") { opt_val = "grid"; }
+  if (ui_id == "ui_cb_dual") { opt_val = "dual"; }
+  if (ui_id == "ui_cb_dep") { opt_val = "dep"; }
+
+  if (opt_val == "") { return; }
+
+  let ele = document.getElementById(ui_id);
+  if (ele.checked) { g_ui.option[opt_val] = true; }
+  else if (!ele.checked) { g_ui.option[opt_val] = false; }
+}
+
+function webinit() {
+  redrawCustom();
 }
