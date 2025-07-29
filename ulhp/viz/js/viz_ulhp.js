@@ -1,0 +1,4 @@
+
+function webinit() {
+  console.log("...");
+}
