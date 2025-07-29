@@ -799,12 +799,13 @@ function ulhp_initTwoFactor(grid_info) {
 
   //grid_info["two_deg_grid"] = two_deg_grid;
   grid_info["grid_deg2"] = two_deg_grid;
+  grid_info["grid_hook"] = two_deg_grid;
 
   return;
 }
 
 function ulhp_dual(grid_info) {
-  let debug = true;
+  let debug = false;
 
   //let two_deg_grid = grid_info.two_deg_grid;
   let two_deg_grid = grid_info.grid_deg2;
@@ -1309,6 +1310,7 @@ function _main() {
 
     //g_info["two_deg_grid"] = two_deg_grid;
     g_info["grid_deg2"] = two_deg_grid;
+    g_info["grid_hook"] = two_deg_grid;
 
     ulhp_dual(g_info);
 
@@ -1414,6 +1416,7 @@ function _main() {
 
     //g_info["two_deg_grid"] = two_deg_grid;
     g_info["grid_deg2"] = two_deg_grid;
+    g_info["grid_hook"] = two_deg_grid;
 
     ulhp_dual(g_info);
 
