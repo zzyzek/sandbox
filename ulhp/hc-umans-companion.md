@@ -285,6 +285,39 @@ The cycles themselves effectively have a parity that can be captures by
 the 'flux' of the dependency graph.
 
 
+---
+
+Section 3.4, proof of theorem 5.
+
+If $G$ contains a type `III` boundary cell, then holds trivially.
+
+The presence of a type `IV` boundary cell implies the presense of a type `III` boundary cell,
+so only concerned with $G$ when it contains type `I` and type `II` boundary cells.
+
+See:
+
+```
+    |  |
+  --*  *--
+     IV
+  --*  *--
+    |  |
+```
+
+`IV` is connected to the boundary, so one of the four paths out must contain a type `III`.
+
+Continuing on:
+
+$H$ is a Hamiltonian cycle with a two-factor $F$ that is multi-component.
+$S = F \oplus H$.
+
+$F$ must cross the outer boundary.
+If $F$ didn't, $F$ would leave the boundary unchanged
+but $F \oplus (F \oplus H) = H$, meaing $H$ is multi-component, contradiction its Hamiltonicity.
+
+
+
+
 
 
 ## ERRATA
