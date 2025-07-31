@@ -189,6 +189,103 @@ For the bulk algorithm:
     2-factor components and terminate the alternating strip sequence
 
 
+---
+
+If you take an alternating path through $G _ F$ ($G _ F$ has extra labels for parity but is otherwise
+the full grid graph, I guess), flipping these edges can be thought of as a kind of "Jacobs Ladder", where
+the edges are knocked into the new position.
+
+If you start with a $G _ F$ that has each vertex as degree 2, then this procedure will keep all degrees
+the same but allows you to shuffle the edges around.
+
+I don't have a good idea of why it's so, but the dependency graph and following a cycle along same oriented
+vectors, is, I believe, this idea, formalized.
+The dependecy graph maybe helps with proofs but, as far as I can tell, is a (complicated?) way of tracing
+out an alternating path or cycle in $G _ F$.
+
+---
+
+Looking at section 3.3 "Distance Between 2-Factors".
+
+> Let $F _ 1$ and $F _ 2$ be 2-factors of $G$ with $S$ a partition of $F _ 1 \oplus F _ 2$
+> into edge-disjoint non-crossing cycles that alternate w.r.t. $F _ 1$.
+> Label each outermost cycle 1 and each nested cycle 1 or -1 if the direction of the dependency
+> graph is aligned or opposite, respectively.
+> Remove all labelled cycles and repeat.
+
+Since it's an alternating cycle, the dependency graph directions on the border (flux?) has to be the same, either pointing
+outward on the boundary or inward.
+In some sense, this feels like a winding with dependency graph directions pointing inward or outward that are analagous
+to whether its clockwise or counterclockwise.
+
+The procedure only does the outermost and directly embedded cycles, then peels them off and repeats.
+
+$\ell( C, S)$ is the $\{-1,1\}$ label, then they define a distance function:
+
+$$
+d( F _ 1, F _ 2 ) = \min _ S \sum _ {C \in S} \ell(C, S) \cdot area(C)
+$$
+
+---
+
+The workhorse of the algorithm is Theorem 5:
+
+> If $G$ is Hamiltonian with a multi-component 2-factor, $F$,
+> then $F$ contains an alternating strip sequence.
+
+If $S$ is the set of cycles with each edge of any cycle in $S$ alternating
+w.r.t. $F$ and $H$ a  Hamiltonian cycle, they claim:
+
+* At least one cycle must cross a boundary
+* A cell-to-cell walk along the boundary continuing on to an alternating strip
+* Flipping this walk will result in a new 2-factor that is closer to $H$
+
+---
+
+So now, Lemma 6:
+
+> $F _ 1, F _ 2$ be 2-factors of $G$ with $S = F _ 1 \oplus F _ 2$.
+> $S$ can be partitioned into edge-disjoint non-crossing cycles that alternate
+> w.r.t. $F _ 1$.
+
+By doing an enumeration of cases around a single vertex, it can be seen that
+the resulting 'on' edges $S$ can only have even degree $\{0,2,4\}$.
+
+If we label the resulting edges in $S$ depending on whether then came from $F _ 1$
+or $F _ 2$ (from both means the edges in $S$ cancel out),
+then each vertex in $S$ has either exactly one edge from each of $F _ 1$ and $F _ 2$
+(2 in total) or exactly two edges from $F _ 1$ and from $F _ 2$ (4 in total).
+
+This means there is always a choice when walking on $S$ to choose a path that
+alternates.
+
+The proof they give on partitioning into disjoint cycles is a proof by contradiction
+assuming a cycle of minimum area.
+I think there's a simpler proof that just lets you partition any crossing path
+into two disjoint cycles maybe with a 'dead region' in the middle, but their
+proof is obviously sufficient.
+
+```
+    *===*---*
+    :       |
+*---*---*===*===*
+:   :       |   |
+*   *---*===*   *
+|               :
+*===*---*===*---*
+```
+
+The above can be split into 2 cycles with a third, "middle", cycle discarded.
+
+---
+
+The dependency graph is used to assign the $\pm 1$ label to alternating cycles.
+
+The cycles themselves effectively have a parity that can be captures by
+the 'flux' of the dependency graph.
+
+
+
 
 ## ERRATA
 

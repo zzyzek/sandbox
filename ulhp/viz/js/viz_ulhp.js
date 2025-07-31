@@ -227,7 +227,8 @@ function drawGridHook( grid_info, disp_opt ) {
 
   let xy_origin = (("origin" in disp_opt) ? disp_opt.origin : [0,0]);
   let scale = (("scale" in disp_opt) ? disp_opt.scale : 20 );
-  let vertex_diam = (("vertex_diam" in disp_opt) ? disp_opt.vertex_diam: 5 );
+  let vertex_diam = (("vertex_diam" in disp_opt) ? disp_opt.vertex_diam : Math.floor(scale/4) );
+  let lw = (("linewidth" in disp_opt) ? disp_opt.linewidth : Math.floor(2*scale/30));
 
   let two = g_ui.two;
 
@@ -266,7 +267,7 @@ function drawGridHook( grid_info, disp_opt ) {
           _Line( xy_origin[0] + (scale*x), xy_origin[1] + (scale*screen_iy),
                  xy_origin[0] + (scale*nei_xy_screen[0]) + fudge_idir[idir][0],
                  xy_origin[1] + (scale*nei_xy_screen[1]) + fudge_idir[idir][1],
-                 "#111", 1 );
+                 "#111", lw );
         }
       }
 
