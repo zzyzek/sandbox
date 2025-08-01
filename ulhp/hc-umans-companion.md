@@ -14,12 +14,12 @@ I'm trying to work through Umans (and Lenhart's) HC thesis and paper.
 | $G _ F$ | $F$ is a 2-factor of $G$ with edge parities assigned to whether the edge appears in $F$ or not | Graph version of $F$ with edge parities matching $F$  in $G$ |
 | $G _ a \oplus G _ b$ | Symmetric difference ($\oplus$). Edge if exactly one edge in $G _ a$ or $G _ b$ | Also called "flipping" (esp. w.r.t. a cycle or path). Essentially the `xor` operation on graph edges. |
 | **Alternating cycle** | A cycle in $G _ F$ whose edges alternate parity | Flipping alternating cycles keeps 2-factor property |
-| **Cell** | A four egdge cycle in $G _ F$ | |
+| **Cell** | A four edge cycle in $G _ F$ | |
 | **Alternating Cell** | If the cell cycle is an alternating cycle, it's called an alternating cell | |
 | **Area** | of cycle $C$ is the number of interior cells of $C$ | |
 | **Nested** | Two edge-disjoint cycles are nested if one is entirely in the other | |
-| **Intersect** | Two edge-disjoint cycles intersect if they share at least one interior cell | They must share vertices but do not share egdges |
-| $G ^ { * }$ | The dual of $G$ (a vertex in $G ^ { * }$ per cell in $G$, an edge in $G ^ { * }$ for adjecent cells in $G$) | |
+| **Intersect** | Two edge-disjoint cycles intersect if they share at least one interior cell | They must share vertices but do not share edges |
+| $G ^ { * }$ | The dual of $G$ (a vertex in $G ^ { * }$ per cell in $G$, an edge in $G ^ { * }$ for adjacent cells in $G$) | |
 | $G ^ { + } _ F$ | The dependency graph | Add a border of vertices, see below |
 | $G ^ { - } _ F$ | Dual of $G$ with no edge present in $G ^ { - } _ F$ if neighboring cells have an edge in $F$ | $G ^ { * }$ with edges removed that cross $F$ |
 | **Border cell** | w.r.t. to $G _ F$. A cell bordering different components (of $F$) | Type `I`, `II`, `III`, `IV`, see below |
@@ -58,7 +58,7 @@ sequences makes progress, etc. all need proof.
 
 ### Introduction
 
-The initial state of the Umans-Lenhart Hamililtonian cycle finding algorithm on solid grid graphs (ULHC:SGG)
+The initial state of the Umans-Lenhart Hamiltonian cycle finding algorithm on solid grid graphs (ULHC:SGG)
 is start from a 2-factor.
 This section discusses algorithms to efficiently create the initial 2-factor.
 
@@ -71,16 +71,16 @@ A valid 2-factor can be thought of as a set of disjoint cycles covering the enti
 
 ### Construction
 
-Umans discusses various strategies, including a linear programming lemthod suggested by Bridgeman, but
+Umans discusses various strategies, including a linear programming method suggested by Bridgeman, but
 Uman settles on a graph construction combined with a perfect edge matching, to find the initial 2-factor.
 
 Each vertex in the solid grid graph is replaced by a widget.
 Each vertex's widget construction has one vertex for each neighbor and each of these 'external' widget
-verticies are connected to
-two 'internal' verticies.
+vertices are connected to
+two 'internal' vertices.
 
 The construction is bipartite.
-The internal widget verticies that have an edge match with an external widget vertex correspond to
+The internal widget vertices that have an edge match with an external widget vertex correspond to
 one side of an edge in a valid 2-factor of the original solid grid graph.
 
 A valid 2-factor exists iff a perfect edge matching exists.
@@ -101,8 +101,8 @@ A maximum flow of  $2 |V|$ corresponds to the existence of a perfect edge matchi
 The Ford-Fulkerson can be used but I think Hopcroft-Karp can be used to speed things up.
 Here, aside from the source and sink, the widget graph is degree bound, so the number of edges
 is a constant factor of the number of vertices.
-FF runs in someedges like $O(|E| \cdot f)$, where the maximum flow $f$ is on the order of the number of
-vertices, so roughly $O(|V|^2)$.
+FF runs in something like $O(|E| \cdot f)$, where the maximum flow $f$ is on the order of the number of
+vertices, so roughly $O(|V|^2)$ (vertices are degree bound, so $|V| \sim |E|$).
 Hopcroft-Karp looks to run in something like $O(|E| \sqrt{|V|} \sim O(|V|^{3/2})$.
 
 It looks like for sparse (random) graphs, Hopcroft-Karp gets closer to $O(|E| \log(|V|))$, so we
@@ -141,7 +141,7 @@ Using the alternating strip, either odd or even, the perimeter of edges is flipp
 An odd alternating strip always reduces the 
 
 It is a fact of solid grid graphs that there must exist an even
-alternatinve strip.
+alternative strip.
 If a Hamiltonian cycle in a solid grid graph exists with a multi-component 2-factor,
 without an odd alternating strip present, there exists a series of flips
 of an even alternating strip to produce an odd alternating strip, which
@@ -177,11 +177,11 @@ where boundary means the four vertices of the dual cell belong to different 2-fa
 For the bulk algorithm:
 
 * If there's a type `III` boundary cell, we can just choose it and make progress as this
-  will join disparite components in the 2-factor
+  will join disparate components in the 2-factor
 * For the more complicated case where only raw even alternating strip sequences are present,
   or there are type `III` cells that aren't boundary, we then go through and identify the even
   alternating strips, the odd alternating strips and chain even and odd alternating strips
-  - raw alternating strips are labelled `BEGIN`
+  - raw alternating strips are labeled `BEGIN`
   - `CHAIN` alternating strips begin from the ending of a previous alternating strip (`BEGIN` or `CHAIN`,
     so this process has to be iterated until no more strips are identified)
   - we then find paths from the orthogonal neighboring cells of the ending cell in a strip. The path
@@ -200,7 +200,7 @@ the same but allows you to shuffle the edges around.
 
 I don't have a good idea of why it's so, but the dependency graph and following a cycle along same oriented
 vectors, is, I believe, this idea, formalized.
-The dependecy graph maybe helps with proofs but, as far as I can tell, is a (complicated?) way of tracing
+The dependency graph maybe helps with proofs but, as far as I can tell, is a (complicated?) way of tracing
 out an alternating path or cycle in $G _ F$.
 
 ---
@@ -211,11 +211,11 @@ Looking at section 3.3 "Distance Between 2-Factors".
 > into edge-disjoint non-crossing cycles that alternate w.r.t. $F _ 1$.
 > Label each outermost cycle 1 and each nested cycle 1 or -1 if the direction of the dependency
 > graph is aligned or opposite, respectively.
-> Remove all labelled cycles and repeat.
+> Remove all labeled cycles and repeat.
 
 Since it's an alternating cycle, the dependency graph directions on the border (flux?) has to be the same, either pointing
 outward on the boundary or inward.
-In some sense, this feels like a winding with dependency graph directions pointing inward or outward that are analagous
+In some sense, this feels like a winding with dependency graph directions pointing inward or outward that are analogous
 to whether its clockwise or counterclockwise.
 
 The procedure only does the outermost and directly embedded cycles, then peels them off and repeats.
@@ -291,7 +291,7 @@ Section 3.4, proof of theorem 5.
 
 If $G$ contains a type `III` boundary cell, then holds trivially.
 
-The presence of a type `IV` boundary cell implies the presense of a type `III` boundary cell,
+The presence of a type `IV` boundary cell implies the presence of a type `III` boundary cell,
 so only concerned with $G$ when it contains type `I` and type `II` boundary cells.
 
 See:
@@ -313,7 +313,9 @@ $S = F \oplus H$.
 
 $F$ must cross the outer boundary.
 If $F$ didn't, $F$ would leave the boundary unchanged
-but $F \oplus (F \oplus H) = H$, meaing $H$ is multi-component, contradiction its Hamiltonicity.
+but $F \oplus (F \oplus H) = H$, meaning $H$ is multi-component, contradicting its Hamiltonicity.
+
+---
 
 
 
@@ -328,7 +330,7 @@ pg. 58 of Uman's thesis:
 
 pg. 59:
 
-> The directed edges are required to ensure that multiple conseqcuitve link edges ~are~ cannot
+> The directed edges are required to ensure that multiple consecutive link edges ~are~ cannot
 > appear in a path in $H$.
 
 
