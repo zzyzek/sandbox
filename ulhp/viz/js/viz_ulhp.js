@@ -307,6 +307,8 @@ function redrawCustom() {
   two.appendTo(ele);
 
   ulhp.custom( ulhp.grid_info );
+  //ulhp.custom_C0( ulhp.grid_info );
+  //ulhp.custom_C1( ulhp.grid_info );
 
   let grid_hook = {
     "grid" : ulhp.grid_info.grid_deg2,

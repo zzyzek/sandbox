@@ -6,6 +6,10 @@ algorithm on 2d solid grid graphs.
 
 ---
 
+Misc
+---
+
+* [JOSS](https://joss.theoj.org/papers/tagged/Algorithm) ([about](https://joss.theoj.org/about), [submitting](https://joss.readthedocs.io/en/latest/submitting.html))
 
 
 References

@@ -95,6 +95,25 @@ var v_add = fasslib.v_add;
 var v_sub = fasslib.v_sub;
 var abs_sum_v = fasslib.abs_sum_v;
 
+function debugPrint(grid_info) {
+  let size = grid_info.size;
+  let grid = grid_info.grid;
+
+  let line = [];
+
+  console.log("#grid (bitmask)");
+  for (let y=(size[1]-1); y>=0; y--) {
+    line = [];
+    for (let x=0; x<size[0]; x++) {
+      let idx = xy2idx( [x,y], size );
+      line.push( (grid[idx] == 0) ? ' ' : '.' );
+    }
+    console.log(line.join(""));
+  }
+
+  console.log("");
+}
+
 function printGrid(grid_info) {
   let size = grid_info.size;
   let grid = grid_info.grid;
@@ -887,20 +906,6 @@ function ulhp_dependency(grid_info) {
       if (edge_idir[3] == 0) { vtx_hook = (vtx_hook | (1 << 3)); }
     }
 
-    /*
-    if ((edge_idir[0] == 0) && (vtx_parity == 0)) { vtx_hook = (vtx_hook | (1 << 0)); }
-    if ((edge_idir[0] == 1) && (vtx_parity == 1)) { vtx_hook = (vtx_hook | (1 << 0)); }
-
-    if ((edge_idir[1] == 0) && (vtx_parity == 0)) { vtx_hook = (vtx_hook | (1 << 1)); }
-    if ((edge_idir[1] == 1) && (vtx_parity == 1)) { vtx_hook = (vtx_hook | (1 << 1)); }
-
-    if ((edge_idir[2] == 0) && (vtx_parity == 1)) { vtx_hook = (vtx_hook | (1 << 2)); }
-    if ((edge_idir[2] == 1) && (vtx_parity == 0)) { vtx_hook = (vtx_hook | (1 << 2)); }
-
-    if ((edge_idir[3] == 0) && (vtx_parity == 1)) { vtx_hook = (vtx_hook | (1 << 3)); }
-    if ((edge_idir[3] == 1) && (vtx_parity == 0)) { vtx_hook = (vtx_hook | (1 << 3)); }
-    */
-
     depG_grid[dep_idx] = vtx_hook;
 
   }
@@ -1207,6 +1212,176 @@ function twofactor_code_print(grid_code, sz) {
 //-------
 //-------
 //-------
+function load_custom_C1(grid_info) {
+  let debug = true;
+
+  grid_info.size = [ 4, 5 ];
+  grid_info.grid = [
+    0, 1, 1, 1,
+    0, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+  ];
+
+  // for ease, y downwards, we'll reverse y after
+  //
+  let grid_code_rev = [
+    'F', '-', '-', '7',
+    '|', 'F', '-', 'J',
+    'L', 'J', 'F', '7',
+    ' ', 'F', 'J', '|',
+    ' ', 'L', '-', 'J'
+  ];
+
+  let grid_code = [];
+
+  // reverse
+  //
+  for (let y=0; y<grid_info.size[1]; y++) {
+    let yr = grid_info.size[1] - y - 1;
+    for (let x=0; x<grid_info.size[0]; x++) {
+      let src_idx = xy2idx( [x, yr], grid_info.size );
+      grid_code.push( grid_code_rev[src_idx] );
+    }
+  }
+
+  if (debug) {
+    // print debug
+    //
+    for (let y=0; y<grid_info.size[1]; y++) {
+      let pa = [];
+      for (let x=0; x<grid_info.size[0]; x++) {
+        pa.push( grid_code[ xy2idx( [x,grid_info.size[1] - y - 1], grid_info.size ) ] );
+      }
+      console.log(pa.join(""));
+    }
+    twofactor_code_print(grid_code, grid_info.size);
+  }
+
+
+
+  // convert to two_deg_grid
+  //
+  let _c2i = {
+    " " : -1,
+
+    "-" : (1 << 0) | (1 << 1),
+    "|" : (1 << 2) | (1 << 3),
+
+    "F" : (1 << 0) | (1 << 3),
+    "L" : (1 << 0) | (1 << 2),
+    "J" : (1 << 1) | (1 << 2),
+    "7" : (1 << 1) | (1 << 3)
+  };
+
+  let two_deg_grid = [];
+  for (let idx=0; idx<grid_code.length; idx++) {
+    two_deg_grid.push( _c2i[ grid_code[idx] ] );
+  }
+
+  //grid_info["two_deg_grid"] = two_deg_grid;
+  grid_info["grid_deg2"] = two_deg_grid;
+
+  ulhp_dual(grid_info);
+  ulhp_dependency(g_info);
+
+  if (debug) {
+    console.log("#######################");
+    console.log("#######################");
+    console.log("#######################");
+
+    console.log(grid_info);
+  }
+
+  return grid_info;
+}
+
+
+function load_custom_C0(grid_info) {
+  let debug = true;
+
+  grid_info.size = [ 4, 5 ];
+  grid_info.grid = [
+    0, 1, 1, 1,
+    0, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 0,
+    1, 1, 1, 0,
+  ];
+
+  // for ease, y downwards, we'll reverse y after
+  //
+  let grid_code_rev = [
+    'F', '-', '7', ' ',
+    '|', 'F', 'J', ' ',
+    'L', 'J', 'F', '7',
+    ' ', 'F', 'J', '|',
+    ' ', 'L', '-', 'J'
+  ];
+
+  let grid_code = [];
+
+  // reverse
+  //
+  for (let y=0; y<grid_info.size[1]; y++) {
+    let yr = grid_info.size[1] - y - 1;
+    for (let x=0; x<grid_info.size[0]; x++) {
+      let src_idx = xy2idx( [x, yr], grid_info.size );
+      grid_code.push( grid_code_rev[src_idx] );
+    }
+  }
+
+  if (debug) {
+    // print debug
+    //
+    for (let y=0; y<grid_info.size[1]; y++) {
+      let pa = [];
+      for (let x=0; x<grid_info.size[0]; x++) {
+        pa.push( grid_code[ xy2idx( [x,grid_info.size[1] - y - 1], grid_info.size ) ] );
+      }
+      console.log(pa.join(""));
+    }
+    twofactor_code_print(grid_code, grid_info.size);
+  }
+
+
+
+  // convert to two_deg_grid
+  //
+  let _c2i = {
+    " " : -1,
+
+    "-" : (1 << 0) | (1 << 1),
+    "|" : (1 << 2) | (1 << 3),
+
+    "F" : (1 << 0) | (1 << 3),
+    "L" : (1 << 0) | (1 << 2),
+    "J" : (1 << 1) | (1 << 2),
+    "7" : (1 << 1) | (1 << 3)
+  };
+
+  let two_deg_grid = [];
+  for (let idx=0; idx<grid_code.length; idx++) {
+    two_deg_grid.push( _c2i[ grid_code[idx] ] );
+  }
+
+  //grid_info["two_deg_grid"] = two_deg_grid;
+  grid_info["grid_deg2"] = two_deg_grid;
+
+  ulhp_dual(grid_info);
+  ulhp_dependency(g_info);
+
+  if (debug) {
+    console.log("#######################");
+    console.log("#######################");
+    console.log("#######################");
+
+    console.log(grid_info);
+  }
+
+  return grid_info;
+}
 
 function load_custom7_1(grid_info) {
 
@@ -1315,7 +1490,7 @@ function load_custom7_1(grid_info) {
   return grid_info;
 }
 
-function _main() {
+function _main(argv) {
   let debug = true;
 
   let export_import = 'import';
@@ -1324,6 +1499,14 @@ function _main() {
   export_import = "example7.1_two-factor";
 
   export_import = "custom7.1";
+
+  if (argv.length > 1)  {
+    export_import = argv[1];
+  }
+
+  //----
+  //----
+
 
   if (export_import == 'import') {
     g_info = import_grid("./test_grid0.json");
@@ -1336,113 +1519,29 @@ function _main() {
 
   }
 
+  // No ham cycle possible
+  //
+  else if (export_import == "custom_C0") {
+
+    load_custom_C0( g_info );
+
+    debugPrint(g_info);
+    return;
+  }
+
+  // No ham cycle possible
+  //
+  else if (export_import == "custom_C1") {
+    load_custom_C1( g_info );
+
+    debugPrint(g_info);
+    return;
+  }
+
   // Custom 7.1
   //
   else if (export_import == "custom7.1") {
-
     load_custom7_1( g_info );
-    return;
-
-    g_info.size = [ 7, 15 ];
-    g_info.grid = [
-      0, 0, 1, 1, 1, 1, 1,
-      0, 0, 1, 1, 1, 1, 1,
-      0, 1, 1, 1, 1, 1, 1,
-      0, 1, 1, 1, 1, 1, 0,
-      0, 1, 1, 1, 1, 1, 0,
-      1, 1, 1, 1, 1, 1, 0,
-      1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1,
-      0, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 0,
-      1, 1, 1, 1, 1, 1, 0,
-      1, 1, 1, 1, 1, 1, 0,
-      0, 1, 1, 1, 1, 0, 0,
-      1, 1, 1, 1, 0, 0, 0,
-      1, 1, 1, 1, 0, 0, 0
-    ];
-
-    // for ease, y downwards, we'll reverse y after
-    //
-    let grid_code_rev = [
-      'F', '-', '-', '7', ' ', ' ', ' ',
-      'L', '7', 'F', 'J', ' ', ' ', ' ',
-      ' ', 'L', 'J', 'F', '7', ' ', ' ',
-      'F', '7', 'F', 'J', 'L', '7', ' ',
-      '|', 'L', 'J', 'F', '7', '|', ' ',
-      'L', '7', 'F', 'J', '|', '|', ' ',
-      ' ', 'L', 'J', 'F', 'J', 'L', '7',
-      'F', '7', 'F', 'J', 'F', '7', '|',
-      '|', 'L', 'J', 'F', 'J', 'L', 'J',
-      'L', '7', 'F', 'J', 'F', '7', ' ',
-      ' ', '|', '|', 'F', 'J', '|', ' ',
-      ' ', '|', 'L', 'J', 'F', 'J', ' ',
-      ' ', 'L', '7', 'F', 'J', 'F', '7',
-      ' ', ' ', '|', 'L', '-', 'J', '|',
-      ' ', ' ', 'L', '-', '-', '-', 'J'
-
-    ];
-
-    let grid_code = [];
-
-    // reverse
-    //
-    for (let y=0; y<g_info.size[1]; y++) {
-      let yr = g_info.size[1] - y - 1;
-      for (let x=0; x<g_info.size[0]; x++) {
-        let src_idx = xy2idx( [x, yr], g_info.size );
-        grid_code.push( grid_code_rev[src_idx] );
-      }
-    }
-
-    if (debug) {
-      // print debug
-      //
-      for (let y=0; y<g_info.size[1]; y++) {
-        let pa = [];
-        for (let x=0; x<g_info.size[0]; x++) {
-          pa.push( grid_code[ xy2idx( [x,g_info.size[1] - y - 1], g_info.size ) ] );
-        }
-        console.log(pa.join(""));
-      }
-      twofactor_code_print(grid_code, g_info.size);
-    }
-
-
-
-    // convert to two_deg_grid
-    //
-    let _c2i = {
-      " " : -1,
-
-      "-" : (1 << 0) | (1 << 1),
-      "|" : (1 << 2) | (1 << 3),
-
-      "F" : (1 << 0) | (1 << 3),
-      "L" : (1 << 0) | (1 << 2),
-      "J" : (1 << 1) | (1 << 2),
-      "7" : (1 << 1) | (1 << 3)
-    };
-
-    let two_deg_grid = [];
-    for (let idx=0; idx<grid_code.length; idx++) {
-      two_deg_grid.push( _c2i[ grid_code[idx] ] );
-    }
-
-    //g_info["two_deg_grid"] = two_deg_grid;
-    g_info["grid_deg2"] = two_deg_grid;
-    g_info["grid_hook"] = two_deg_grid;
-
-    ulhp_dual(g_info);
-
-    ulhp_dependency(g_info);
-
-    console.log("#######################");
-    console.log("#######################");
-    console.log("#######################");
-
-    console.log(g_info);
-
     return;
   }
 
@@ -1738,6 +1837,8 @@ if (typeof module !== "undefined") {
   module.exports["dual"] = ulhp_dual;
 
   module.exports["custom"] = load_custom7_1;
+  module.exports["custom_C0"] = load_custom_C0;
+  module.exports["custom_C1"] = load_custom_C1;
 
 }
 

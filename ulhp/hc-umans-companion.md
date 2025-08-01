@@ -289,10 +289,54 @@ the 'flux' of the dependency graph.
 
 Section 3.4, proof of theorem 5.
 
-If $G$ contains a type `III` boundary cell, then holds trivially.
+Here's my attempt at an overview:
 
-The presence of a type `IV` boundary cell implies the presence of a type `III` boundary cell,
-so only concerned with $G$ when it contains type `I` and type `II` boundary cells.
+* $F$ 2-factor, $H$ Hamiltonian cycle (we're trying to find), $S = F \oplus H$
+* If there's a type `III` boundary cell, then theorem 5 trivially true, so non-trivial case is when
+  only type `II` and type `I` boundary cells are present (no type `III` boundary -> no type `IV` boundary)
+* $F \oplus H$ must cross a boundary
+* From a crossing boundary edge, walk along the boundary *cells* until you hit a type `I` boundary cell
+* From the type `I` boundary cell, shoot out in an axis-aligned direction to find an alterating strip
+  (which must exist)
+* Show that this alternating strip reduces the distance metric
+
+A bit more detail:
+
+* if $F \oplus H$ doesn't cross a boundary, this means boundary region untouched, but another application of $F$,
+  $F \oplus F \oplus H = H$, implying $H$ is multi-component -> contradictoin
+* a type `I` boundary cell must exist in the walk because .... (? working on it)
+  - note that this is a *cell* walk, walking on cells, potentially crossing different circuits in $S$
+  - looks like some argument about crossing.
+  - if not, must only encounter type `II` boundary cells
+  - If $\ell(C,S) = 1$ then it exits $C$, contradicting Lemma 7 (regurgitating, I don't see this)
+  - If $\ell(C,S) = -1$ then $C$ is nested in some other $C'$, with the walk not able to cross
+    $C'$, so must get back to beginning edge $e$ -> contradiction (again, regurgitating, I don't quite see this)
+* once a type `I` boundary cell is chosen, it's probably easy to see that an alternating strip exists
+  - I think it's just a matter of looking at the first forced cell, then following your nose until you get to
+    a terminating odd or even cell in the alternating strip
+* as far as I can tell, showing that flipping the alternating strip reduces the distance metric is a case
+  analysis of the dependency graph edges on each of the cells being flipped
+
+This proof relies on two phases:
+
+* Find an edge of some cycle, $e \in C, C \in S$, that's on the boundary
+* Phase I
+  - walk cells from $e$, inward if $\ell(C,S) = 1$ and outward if $\ell(C,S) = -1$
+    + here *inward* means opposite of the edge of the dependency graph and *outward* means in the same direction
+      as the dependency graph edge
+  - stop when an type `I` boundary cell, $c _ I$, is encountered
+* Phase II
+  - from $c _ I$, shoot out (away from the dark edge) in an axis-aligned direction until
+    a type `III` cell is encountered
+    + depending on the orientation of the type `III` cell, the strip will be even or odd
+
+---
+
+### We only need to consider type `II` and `I` boundary cells
+
+If $G$ contains a type `III` boundary cell, then Theorem 5 holds trivially.
+
+The presence of a type `IV` boundary cell implies the presence of a type `III` boundary cell:
 
 See:
 
@@ -306,7 +350,7 @@ See:
 
 `IV` is connected to the boundary, so one of the four paths out must contain a type `III`.
 
-Continuing on:
+So we're only concerned with $G$ when it contains type `I` and type `II` boundary cells.
 
 $H$ is a Hamiltonian cycle with a two-factor $F$ that is multi-component.
 $S = F \oplus H$.
@@ -317,8 +361,178 @@ but $F \oplus (F \oplus H) = H$, meaning $H$ is multi-component, contradicting i
 
 ---
 
+### We must encounter a type `I` boundary cell during our cell walk in Phase I
+
+Call $e$ our starting edge on $C$ and we proceed along cells, in the opposite of the dependency
+graph direction if $\ell(C,S) = 1$ and in the same direction as the dependency graph edge if $\ell(C,S) = -1$.
+
+We've chosen the edge $e$ to be a bridge between *two different components* in the 2-factor,
+so it can't encounter a cul-de-sac (dead-end) as the boundary edges that run between these two components
+must separate them, thus making a gorge between them.
+From our setup, the only possibility now is type `I`, type `II` and type `V` boundary cells, but
+a type `V` boundary cell will never appear without a type `I` cell above it.
+
+So now, if we don't encounter a type `I` cell, these must be a series of 'stacked' type `II` cells.
+Running off the edge with different types of outer boundary cells is not possible as will be shown below.
+
+Since these are stacked type `II` cells, and so long as we're running along type `II` cells,
+the dependency graph direction as we walk these type `II` cells has the same direction.
+
+In the case $\ell(C,S) = 1$, we're moving "away" from the egress to the outer boundary.
+We can't get to an egress on the other end, purely moving with type `II` boundary cells, as
+we'd end up at an egress mouth that must have a dependecy graph direction in the opposite
+direction as the dependency graph direction implied by the boundary of $C$ (contradiction) (Lemma 7).
+
+In the case of $\ell(C,S) = -1$, the cycle $C$ must exist in a cycle of $C'$ with $\ell(C',S) = 1$.
+$C'$ has a dependency graph direction along its skin opposite to that of $C$.
+We're moving in a diagonal direction following type `II` boundary cells, all with the same dependency graph
+direction, which will eventually lead to the outer boundary border.
+But once we get to the outer border, we must have crossed $C'$ with a dependency graph direction along its skin
+in the opposite direction (contradiction).
+
+The existence of $C$ puts constraints on what type of cells can appear.
+
+---
+
+### Phase II produces an alternating strip
+
+Once we find a type `I` boundary cell from Phase I, we then trace out a cell path opposite to
+the dark edge of $c _ I$ until we hit a type `III` cell in either orientation.
+
+$c _ I$ is a type `I` boundary cell, and so has a type `V` cell directly underneath it.
+
+The type `V` cell forces light edges for the third cell edges.
+This, in turn, forces either:
+
+* a wall, resulting in a type `III` cell
+* a type `III` cell in the opposite orientation, or
+* a type `V` cell
+
+If there's a type `V` cell, then by induction we eventually get to a type `III` cell.
+
+A janky enumeration of cases:
+
+```
+
+    *---*             *---*
+     c_I               c_I
+ ---*   *---   =>  ---*   *---
+    |   |             |   |
+    *---*             *---*
+                       iii
+ ???*???*???         ?*---*?
+    ?   ?             ?   ?
 
 
+                      *---*
+                       c_I
+               =>  ---*   *---
+                      |   |
+                      *---*
+                       
+                   ---*   *---
+                      |iii|
+                     ?*   *?
+                      ?   ?
+  
+
+                      *---*
+                       c_I
+               =>  ---*   *---
+                      |   |
+                      *---*
+                       
+                   ---*   *---
+                      |   |
+                      *---*
+                          
+                       ...
+  
+```
+
+---
+
+### Flipping the Phase II alternating strip reduces distance
+
+In [UL97] this is claim 3:
+
+$$
+d( F \oplus s, H) < d(F, H)
+$$
+
+Let $s = ( c _ I, c _ 1, c _ 2, \dots, c _ {III} ) = ( s _ 0, s _ 1, s _ 2, \dots, s _ {m-1} )$
+( $c _ I$ the type `I` boundary cell chosen from Phase I, $c _ {III}$ the ending ceall of the
+alternating strip of Phase II).
+
+
+(need to validate) The dependency graph direction from $s _ 0$ to $s _ {m-1}$ ($c _ I$ to $c _ {III}$)
+is the same, implying (?) that $c _ I$ is on the immediate interior of a cycle $C$ with $\ell(C,S) = 1$.
+
+$c _ {III}$ is itself an alternating strip.
+
+(need to validate) An enumeration of cases when flipping the single end cell, $c _ {III}$,
+shares edges with no cycles in $S$ or $C$, shares edge(s) with just $S$, with just $C$ and with $S$ and $C$.
+In each case, the distance is reduced by one and inductively produces another type `III` cell as it
+eats away at the end of the strip on the way to $c _ I$.
+
+(need to validate) The distance metric assumes minimum $S$ which might not be maintained throughout the strip
+flip but the claim is that the minimum $S'$ can only be smaller, so we're able to ignore the case when this happens.
+
+---
+
+There's some discussion on whether a type `III` boundary cell appears after this process and an omission
+of a proof, but I'm confused as to the requirement of this, since we're guaranteed that the distance
+is strictly decreasing and is integral, so it must eventually terminate at $d(F, H) = 0$.
+
+### Comments
+
+While choosing an alternating strip from the above procedure will guarantee a distance reduction,
+the distance reduction is integral and the distance has an upper bound of the area of the region,
+identifying which edge, $e$, to choose that sits on a boundary of a cycle might be difficult.
+
+Choosing alternating strips to flip without care might lead to an increase in distance.
+
+---
+
+Lemma 8:
+
+> Let $G$ be type `III` boundary cell free and $s$ be an (even) alternating strip in $G$.
+> Let $x$ and $y$ be two vertices in $G ^ - _ F$ not on $s$.
+> If there's a path, $p$, from $x$ to $y$ that does not cross the end cell of $s$,
+> then there will still be a path $p'$ from $x$ to $y$ in $G ^ - _ {F \oplus s}$ .
+> For a point, $v$, on path $p$ not on $s$, $v$ will also be present in $p'$ in $G ^ - _ {F \oplus s}$ .
+
+In other words, for $G$ without type `III` boundary cells, paths independent of an alternating strip $s$
+stay independent after the flip.
+
+As a reminder, $G ^ - _ F$ is the dual graph of $G$ with edges that cross $F$ removed.
+So islands formed by the $F$ boundary.
+
+The intuition is that even alternating strip flips don't merge cycles, so paths outside of the alternating
+strip flip remain unaffected.
+If there were a type `III` bounary cell, cycles might get merged and have long ranging effects on connectivity
+and other paths.
+
+---
+
+Lemma 9:
+
+I don't really understand what this is saying.
+
+It's saying fixing a boundary cell type uniquely determines the rest of the boundary? Surely that's not true.
+
+---
+
+Theorem 10:
+
+> Let $G$ be type `III` boundary cell free and $A = (a _ 0, a _ 1, \dots, a _ {k-1})$ be
+> an alternating strip sequence that begins on the boundary, then there exists
+> a static alternating strip sequence, $A'$ that is equal to or less than the
+> area of $A$
+
+In other words, any alternating strip sequence on the boundary of $G$ (type `III` boundary cell free)
+is either a static alternating strip sequence to begin with or can be whittled down to a static
+alternating strip sequence (maybe with a different start point but still on the boundary?).
 
 
 
