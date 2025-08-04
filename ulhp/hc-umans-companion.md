@@ -3,6 +3,12 @@ Umans Hamiltonian Cycle in Solid Grid Graphs Companion
 
 I'm trying to work through Umans (and Lenhart's) HC thesis and paper.
 
+### current todo
+
+* go through case enumeration for claim 3 ( $d(F \oplus s, H) < d(f,H)$ ) of Theorem 5
+  (dependency graph local enumeration of cell)
+* go through inductive case analysis of theorem 10
+
 ### Glossary
 
 
@@ -51,6 +57,12 @@ Proof of correctness that an odd alternating strip must exist iff there's a Hami
 when all we have left are even alternating strips), that progressively choosing and flipping alternating strip
 sequences makes progress, etc. all need proof.
 
+
+candidates:
+
+* static alternating strip sequence, SASS
+* mondo/muddled alternating strip sequence, MASS
+  - disordered alternating strip sequence DASS
 
 ---
 
@@ -517,9 +529,14 @@ and other paths.
 
 Lemma 9:
 
+> If $G$ contains no type `III` boundary cells then a boundary $B$
+> is uniquely determined by any boundary cell in $B$
+
 I don't really understand what this is saying.
 
 It's saying fixing a boundary cell type uniquely determines the rest of the boundary? Surely that's not true.
+
+
 
 ---
 
@@ -530,9 +547,30 @@ Theorem 10:
 > a static alternating strip sequence, $A'$ that is equal to or less than the
 > area of $A$
 
-In other words, any alternating strip sequence on the boundary of $G$ (type `III` boundary cell free)
-is either a static alternating strip sequence to begin with or can be whittled down to a static
-alternating strip sequence (maybe with a different start point but still on the boundary?).
+In other words, for any alternating strip sequence that begins on a boundary of a type `III` boundary cell
+free $G$, a static alternating strip sequence exists that starts somewhere on the same boundary that is
+no bigger in area.
+
+This is Lemma 7.3 in the thesis by Umans.
+
+I still don't know what Lemma 9 is saying, which is used in [UL97], so I'm going to try and go
+through the proof using both [UL97] and [U96].
+
+Proof by induction.
+Here's an overview:
+
+* Assume an alternating strip sequence $A = (a _ 0, a _ 1, \dots, a _ {k-1})$ that begins on a boundary
+* Proof by induction on the existence of $S = (s _ 0, s _ 1, \dots, s _ {n-1})$ (that also begins on a boundary)
+* (Base case) If a type `III` border cell is present in $a _ 0$, or in adjacent cell, $c$, after any application of
+  $a _ 0$, then trivially true by taking $S = (a _ 0)$ or $S = (a _ 0, c)$ respectively
+  - subsequently can assume no type `III` cell in $a _ 0$ or after an application of $a _ 0$
+* Find the largets $i$ s.t. $s _ i$ shares area or an edge with $A$
+  - if no such $i$ exists, $(a _ 0, s _ 0, s _ 1, \dots, s _ {n-1})$ is the static alternating strip sequence with area no bigger by inductive step
+* case analysis for when a $s _ i$ is separate, edge-adjacent but non-overlapping (side, top) or area overlapping 
+
+
+
+
 
 
 
@@ -547,4 +585,13 @@ pg. 59:
 > The directed edges are required to ensure that multiple consecutive link edges ~are~ cannot
 > appear in a path in $H$.
 
+pg. 52:
 
+> The bottommost and topmost vertical dark edges *are* ~not~ implied by the degree constraint - ...
+
+
+References
+---
+
+* [UL97] "Hamiltonian Cycles in Solid Grid Graphs (Extended Abstract)" by C. Umans, W. Lenhart, 1997 ([ref](https://ieeexplore.ieee.org/document/646138))
+* [U96]  "An Algorithm for Finding Hamiltonian Cycles in Grid Graphs Without Holes" by C. M. Umans, Bachelor thesis, 1996 ([ref](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=bcc9203a455e521dc9f592805f36346ed336f3f0))
