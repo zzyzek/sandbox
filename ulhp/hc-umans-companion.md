@@ -569,7 +569,123 @@ Here's an overview:
 * case analysis for when a $s _ i$ is separate, edge-adjacent but non-overlapping (side, top) or area overlapping 
 
 
+---
 
+I'm having trouble understanding what the paper is saying, so I'm going to the thesis.
+
+In [U96], Lemma 7.1:
+
+> Let $G _ F$ be type `III` boundary cell free, let $s$ be and alternating strip in $G _ F$,
+> let $x$, $y$ be two vertices in $G ^ * _ F$ not on $s$.
+> If a path, $p$, exists between $x$ and $y$, and $p$ misses the end of strip $s$ ($|s| = m, s _ {m-1} \not\in p$),
+> with $p'$ a path betwee $x$ and $y$ in $G ^ * _ { ( F \oplus s ) }$, then:
+> 
+> $v \in p, v \in s \to v \in p', v \text{altnerating cell} (G _ {(F \oplus s)})$
+>
+> $v \in p' \& \text{alternating cell} (G _ {(F \oplus s)}) \to v \in p, v \in s$
+>
+> $v \in p, v \not\in s \to v \in p'$
+
+Basically, strip flipping doesn't alter connectivity outside of the strip.
+
+Proof is simply flipping an even alternating strip and looking at the valid immediate boundary
+covered by the pre-conditions of the Lemma.
+
+
+```
+
+     '''''''              '''''''
+    '       '            '       '
+   '         '          '         '
+   '         '          '         '
+    ' *---* '            ' * ' * '
+    '''''''''            ' | ' | '
+   ---* ' *---          ---* ' *---
+    ' | ' | '            '''''''''
+    ' *---* '            ' *---* '
+    '''''''''            ' | ' | '
+   ---* ' *---          ---* ' *---
+    ' | ' | '            '''''''''
+    ' *---* '            ' *---* '
+    '''''''''            ' | ' | '
+  ----* ' *----         ---* ' *---
+      | ' |              '''''''''
+      * ' *              ' *---* '
+        '
+```
+
+The only cells that would be affected by the flip still have
+the same connectivity after the flip, except for the last cell in the
+flip, which is excluded from the lemma in the first place.
+
+---
+
+Lemma 7.2:
+
+> Let $G _ F$ be type `III` border cell free, $A = (a _ 1, a _ 2, \dots, a _ n)$ be
+> an alternating strip sequence, $1 \le k < i < n$, $x$, $y$ cells in $G _ {( F \oplus A _ {1,k} )}$,
+> where $x$ and $y$ are either side of $a _ {k,0}$.
+> If $x$ and $y$ aren't on any strips $a _ {k+1}, a _ {k+2}, \dots, a _ {i}$, then $a _ {k,0}$ in
+> $G _ {(F \oplus A _ {1,i})}$ is not on the outer boundary after $a _ i$ has been applied/flipped.
+
+
+In other words, if subsequent flips ($a _ {k+1}, a _ {k+1}, \dots, a _ i$) aren't near the beginning
+of $a _ k$, then the beginning of $a _ k$ doesn't lie on the outer border.
+
+"If strips are separate enough, $a _ {k,0}$ doesn't like on the boundary."
+
+The only time regions get merged is if there's a type `III` border cell.
+By construction, this isn't present, so all we're doing is shifting things around.
+
+This shifting is limited, by Lemma 7.1, so we know $x$ and $y$ at the beginning of $a _ k$,
+if connected and are on the outer border, stay connected and on the outer border after flipping
+$a _ k$.
+
+The first cell of $a _ k$ now has an outlet depositing the connectivity to the center of the
+border loop created by $x,y$.
+The other end of that $a _ k$ connectivity goes down, away from the outlet into the border loop
+pool (created by $x,y$).
+
+I almost see this but I'm not quite there.
+
+The region connected by the cell $a _ {k,0}$ must feed into the $x,y$ region, forcing
+a pinched vertex in the 2-factor to be degree 1 (contradiction).
+The dual region can have degree 1 and 3 but these conditions are restrictive, so I
+don't quite see why this would imply a degree 1 in the 2-factor outright.
+
+---
+
+Lemma 7.3 is the engine of the algorithm:
+
+> Let $G _ F$ be type `III` border cell free.
+> If there is an alternating strip sequence $A = (a _ 1, a _ 2, \dots, a _ k)$ that begins on
+> the outer boundary, then there exists a static alternating strip sequence $A'$ that also
+> begins on the outer boundary with area no greater than that of $A$.
+
+The proof is by induction.
+Assume a static alternating strip sequence $S = (s _ 1, s _ 2, \dots, s _ n)$ that begins on the
+boundary of $G _ {(F \oplus a _ 1)}$ with area no greater than $A _ {2,n}$, with
+$s _ i$ being the last strip sequence that shares edges or an area with $a _ 1$.
+
+To be explicit, for $s _ t$, $t < i$, these don't touch $a _ 1$ so can be added without worry.
+
+If $i$ doesn't exist, then $A' = (a _ 1, s _ 1, s _ 2, \dots, s _ n)$.
+If $a _ 1$ is odd, then $A$ is a static alternating strip sequence to begin with.
+If there's a type `III` border cell as a result of applying $a _ 1$, then $A' = (a _ 1, c)$.
+Going forward, we can assume these degenerate cases don't exist.
+
+The inductive step assumes $S$ is of less area than $A _ {2,n}$,
+so it becomes a case analysis on how to adjoin $S$ to $a _ 1$.
+
+* Case 1: $S$ shares a side edge with $a _ 1$
+* Case 2: $S$ starts at the end of $a _ 1$ and goes back up into it
+* Case 3: $S$ starts at the end of $a _ 1$ and goes away from it
+* Case 4: ???
+
+Having a path go perpendicular into, out of or across the middle of $a _ 1$ is precluded
+by Case 1, as other cells above and below would need to be included, making it not a strip.
+
+Case 3 handles strips that go in different directions (perpendicular to $a _ 1$).
 
 
 
