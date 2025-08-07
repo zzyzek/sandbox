@@ -1,4 +1,212 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ulhp = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+'use strict';
+
+/******************************************************************************
+ * Created 2008-08-19.
+ *
+ * Dijkstra path-finding functions. Adapted from the Dijkstar Python project.
+ *
+ * Copyright (C) 2008
+ *   Wyatt Baldwin <self@wyattbaldwin.com>
+ *   All rights reserved
+ *
+ * Licensed under the MIT license.
+ *
+ *   http://www.opensource.org/licenses/mit-license.php
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *****************************************************************************/
+
+// ---
+//
+// modified to return data that information in it, instead of throwing an error.
+//
+// example usage:
+//
+//   var graph = {
+//     a: {b: 10, d: 1},
+//     b: {a: 1, c: 1, e: 1},
+//     c: {b: 1, f: 1},
+//     d: {a: 1, e: 1, g: 1},
+//     e: {b: 1, d: 1, f: 1, h: 1},
+//     f: {c: 1, e: 1, i: 1},
+//     g: {d: 1, h: 1},
+//     h: {e: 1, g: 1, i: 1},
+//     i: {f: 1, h: 1}
+//   };
+//
+//   var path_ai = dijkstra.find_path( graph, 'a', 'i');
+//   var path_az = dijkstra.find_path( graph, 'a', 'z');
+//
+// ---
+//
+// Return:
+//
+//   "return"       : 0 on success, not 0 on error
+//   "msg"          : holds message (e.g. error message)
+//   "predecessors" : internal use
+//   "path"         : array of path
+//   "cost"         : cost value of path
+//
+// ---
+
+var dijkstra = {
+  single_source_shortest_paths: function(graph, s, d) {
+    // Predecessor map for each node that has been encountered.
+    // node ID => predecessor node ID
+    var predecessors = {};
+
+    // Costs of shortest paths from s to all nodes encountered.
+    // node ID => cost
+    var costs = {};
+    costs[s] = 0;
+
+    // Costs of shortest paths from s to all nodes encountered; differs from
+    // `costs` in that it provides easy access to the node that currently has
+    // the known shortest path from s.
+    // XXX: Do we actually need both `costs` and `open`?
+    var open = dijkstra.PriorityQueue.make();
+    open.push(s, 0);
+
+    var closest,
+        u, v,
+        cost_of_s_to_u,
+        adjacent_nodes,
+        cost_of_e,
+        cost_of_s_to_u_plus_cost_of_e,
+        cost_of_s_to_v,
+        first_visit;
+    while (!open.empty()) {
+      // In the nodes remaining in graph that have a known cost from s,
+      // find the node, u, that currently has the shortest path from s.
+      closest = open.pop();
+      u = closest.value;
+      cost_of_s_to_u = closest.cost;
+
+      // Get nodes adjacent to u...
+      adjacent_nodes = graph[u] || {};
+
+      // ...and explore the edges that connect u to those nodes, updating
+      // the cost of the shortest paths to any or all of those nodes as
+      // necessary. v is the node across the current edge from u.
+      for (v in adjacent_nodes) {
+        if (adjacent_nodes.hasOwnProperty(v)) {
+          // Get the cost of the edge running from u to v.
+          cost_of_e = adjacent_nodes[v];
+
+          // Cost of s to u plus the cost of u to v across e--this is *a*
+          // cost from s to v that may or may not be less than the current
+          // known cost to v.
+          cost_of_s_to_u_plus_cost_of_e = cost_of_s_to_u + cost_of_e;
+
+          // If we haven't visited v yet OR if the current known cost from s to
+          // v is greater than the new cost we just found (cost of s to u plus
+          // cost of u to v across e), update v's cost in the cost list and
+          // update v's predecessor in the predecessor list (it's now u).
+          cost_of_s_to_v = costs[v];
+          first_visit = (typeof costs[v] === 'undefined');
+          if (first_visit || cost_of_s_to_v > cost_of_s_to_u_plus_cost_of_e) {
+            costs[v] = cost_of_s_to_u_plus_cost_of_e;
+            open.push(v, cost_of_s_to_u_plus_cost_of_e);
+            predecessors[v] = u;
+          }
+        }
+      }
+    }
+
+    if (typeof d !== 'undefined' && typeof costs[d] === 'undefined') {
+      var msg = ['Could not find a path from ', s, ' to ', d, '.'].join('');
+      //throw new Error(msg);
+      return { "return" : -1, "msg": msg, "predecessors": [], "path":[], "cost":0 };
+    }
+
+    return { "return": 0, "msg":"", "predecessors": predecessors, "path":[], "cost":0 };
+  },
+
+  extract_shortest_path_from_predecessor_list: function(predecessors, d) {
+    var nodes = [];
+    var u = d;
+    while (u) {
+      nodes.push(u);
+      u = predecessors[u];
+    }
+    nodes.reverse();
+    return { "return": 0, "msg":"", "path": nodes, "cost": 0 };
+  },
+
+  find_path: function(graph, s, d) {
+    //var predecessors = dijkstra.single_source_shortest_paths(graph, s, d);
+    let info = dijkstra.single_source_shortest_paths(graph, s, d);
+    if (info.return != 0) { return info; }
+    let predecessors = info.predecessors;
+    let path_info = dijkstra.extract_shortest_path_from_predecessor_list(predecessors, d);
+
+    let path = path_info.path;
+    for (let i=1; i<path.length; i++) {
+      path_info.cost += graph[path[i-1]][path[i]];
+    }
+    return path_info;
+  },
+
+  /**
+   * A very naive priority queue implementation.
+   */
+  PriorityQueue: {
+    make: function (opts) {
+      var T = dijkstra.PriorityQueue,
+          t = {},
+          key;
+      opts = opts || {};
+      for (key in T) {
+        if (T.hasOwnProperty(key)) {
+          t[key] = T[key];
+        }
+      }
+      t.queue = [];
+      t.sorter = opts.sorter || T.default_sorter;
+      return t;
+    },
+
+    default_sorter: function (a, b) {
+      return a.cost - b.cost;
+    },
+
+    /**
+     * Add a new item to the queue and ensure the highest priority element
+     * is at the front of the queue.
+     */
+    push: function (value, cost) {
+      var item = {value: value, cost: cost};
+      this.queue.push(item);
+      this.queue.sort(this.sorter);
+    },
+
+    /**
+     * Return the highest priority element in the queue.
+     */
+    pop: function () {
+      return this.queue.shift();
+    },
+
+    empty: function () {
+      return this.queue.length === 0;
+    }
+  }
+};
+
+
+// node.js module exports
+if (typeof module !== 'undefined') {
+  module.exports = dijkstra;
+}
+
+},{}],2:[function(require,module,exports){
 // To the extent possible under law, the person who associated CC0 with
 // this project has waived all copyright and related or neighboring rights
 // to this project.
@@ -350,7 +558,7 @@ if (typeof module !== "undefined") {
 }
 
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 /*
  *
  * The MIT License (MIT)
@@ -475,7 +683,7 @@ module.exports = function fordFulkerson(graph, s, t, resGraph, flowGraph) {
   return maxFlow;
 }
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 (function (process){(function (){
 // To the extent possible under law, the person who associated CC0 with
 // this project has waived all copyright and related or neighboring rights
@@ -562,6 +770,7 @@ module.exports = function fordFulkerson(graph, s, t, resGraph, flowGraph) {
 var fasslib = require("./fasslib.js");
 var FF = require("./ff_prabod.js");
 var fs = require("fs");
+var D = require("./dijkstra.js");
 
 var g_info = {
   "size" : [0,0],
@@ -2119,6 +2328,19 @@ function _main(argv) {
 
     ulhp_dual(g_info);
 
+    if (debug) {
+      console.log("#dualG", g_info.dualG.size);
+      for (let y=0; y<g_info.dualG.size[1]; y++) {
+        let ca = [];
+        let yr = g_info.dualG.size[1]-1-y;
+        for (let x=0; x<g_info.dualG.size[0]; x++) {
+          let idx = xy2idx([x,yr], g_info.dualG.size);
+          ca.push(g_info.dualG.grid_code[idx]);
+        }
+        console.log(ca.join(""));
+      }
+    }
+
     console.log("#######################");
     console.log("#######################");
     console.log("#######################");
@@ -2326,9 +2548,9 @@ if ((typeof require !== "undefined") &&
 }
 
 }).call(this)}).call(this,require('_process'))
-},{"./fasslib.js":1,"./ff_prabod.js":2,"_process":5,"fs":4}],4:[function(require,module,exports){
+},{"./dijkstra.js":1,"./fasslib.js":2,"./ff_prabod.js":3,"_process":6,"fs":5}],5:[function(require,module,exports){
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -2514,5 +2736,5 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[3])(3)
+},{}]},{},[4])(4)
 });
