@@ -58,6 +58,8 @@ var g_ui = {
 // empty:     . ' ' (space)
 //
 //
+
+/*
 function ulhp_catalogueAlternatingStrip(grid_info) {
 
   let dualG = grid_info.dualG;
@@ -281,6 +283,20 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
 
 
   return strip_seq;
+
+}
+*/
+
+// we're in the process of development.
+// We're going to assume the two-factor is given,
+// the dual is created but we need to construct
+// the strip sequence etc.
+//
+function ulhp_hp(grid_info) {
+
+  let path_info = ulhp.catalogueAlternatingStrip(grid_info);
+
+  console.log(path_info);
 
 }
 

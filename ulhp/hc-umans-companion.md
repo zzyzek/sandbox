@@ -721,6 +721,20 @@ To turn a type `II` into a type `I` that would then continue on the alternating 
 to the neighboring type `III` edge would need to be flipped and the strip would continue onward, pushing off against
 the remaining active edge in the (now altered and turned into a type `I`) type `II` cell.
 
+---
+
+So here's what I think is going on:
+
+* an odd alternating strip (e.g. a type `III` cell) will change the component
+  count, decreasing it if the starts on the bridge between different boundaries
+* an even alternating strip "pushes" the bridge down to where the strip ends
+* starting from a bridge between two different boundaries, a chain of even
+  alternating strips that end in an odd one will keep pushing the bridge
+  outward until we get to the odd alternating strip, which will connect them
+
+The complexity comes from proving that such alternating strips always exist
+when a Hamiltonian cycle is present and that we can find a static, and thus
+"efficient", sequence of strips to flip to consistently make quick progress.
 
 
 ## ERRATA

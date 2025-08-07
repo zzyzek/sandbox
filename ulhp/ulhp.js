@@ -675,6 +675,271 @@ function _t0() {
 //----
 //----
 
+
+// Following the papers, the cells are labelled:
+//
+// type I:   *---*       type II:  *---*
+//                                 |
+//           *   *                 *   *
+//
+// type III: *---*
+//
+//           *---*
+//
+// with rotations allowed
+//
+// I've added a type IV cell for convenience:
+//
+// type IV:  *---*
+//           |
+//           *---*
+//
+// type doesn't change due to rotations.
+//
+// The code is, starting with the above representation
+// and rotating counter clockwise:
+//
+// type I:    ^ < v >
+// type II:   F L J 7
+// type III:  - |
+// type IV:   c u p n
+//
+// empty:     . ' ' (space)
+//
+//
+function ulhp_catalogueAlternatingStrip(grid_info) {
+  let dualG = grid_info.dualG;
+
+  let grid_code = dualG.grid_code;
+  let grid_size = dualG.size;
+
+  let typeI_start = [],
+      typeII_start = [],
+      typeIII_start = [],
+      typeIV_start = [];
+
+  for (let y=0; y<grid_size[1]; y++) {
+    for (let x=0; x<grid_size[0]; x++) {
+      let idx = x + (y*grid_size[0]);
+
+      if ((grid_code[idx] == '^') ||
+          (grid_code[idx] == 'v') ||
+          (grid_code[idx] == '>') ||
+          (grid_code[idx] == '<')) {
+        typeI_start.push( {"x":x, "y":y, "code": grid_code[idx] } );
+      }
+
+      if ((grid_code[idx] == 'F') ||
+          (grid_code[idx] == '7') ||
+          (grid_code[idx] == 'J') ||
+          (grid_code[idx] == 'L')) {
+        typeII_start.push( {"x":x, "y":y, "code": grid_code[idx] } );
+      }
+
+      if ((grid_code[idx] == '-') ||
+          (grid_code[idx] == '|')) {
+        typeIII_start.push( {"x":x, "y":y, "code": grid_code[idx] } );
+      }
+
+
+      if ((grid_code[idx] == 'c') ||
+          (grid_code[idx] == 'n') ||
+          (grid_code[idx] == 'p') ||
+          (grid_code[idx] == 'u')) {
+        typeIV_start.push( {"x":x, "y":y, "code": grid_code[idx] } );
+      }
+
+    }
+  }
+
+  // direction we want to find strip goes
+  // in opposite direction of dark edge
+  //
+  let strip_start_code_idir = {
+    ">" : [-1, 0], "<": [ 1, 0],
+    "v" : [ 0, 1], "^": [ 0,-1]
+  };
+
+  // direction of strip,
+  // need to check other direction in opposite
+  // direction to see if there's a strip next to it
+  //
+  let typeii_start_code_dxy = {
+    "F": [ [ 1, 0], [ 0,-1] ],
+    "7": [ [ 0,-1], [-1, 0] ],
+    "J": [ [-1, 0], [ 0, 1] ],
+    "L": [ [ 0, 1], [ 1, 0] ]
+  }
+
+  let typeii_start_code_idir = {
+    "F": [ 0, 3 ],
+    "7": [ 3, 1 ],
+    "J": [ 1, 2 ],
+    "L": [ 2, 0 ]
+  }
+
+  let typeiv_candidate_idir = {
+    'c': 1, 'p': 0,
+    'n': 2, 'u': 3
+  };
+
+  let oppo = [1,0, 3,2, 5,4];
+
+  let idir_dxy  = [ [ 1, 0], [-1, 0], [ 0, 1], [ 0,-1] ];
+  let oppo_dxy  = [ [-1, 0], [ 1, 0], [ 0,-1], [ 0, 1] ];
+
+  let strip_seq = [];
+
+  for (let i=0; i<typeI_start.length; i++) {
+    let sx = typeI_start[i].x,
+        sy = typeI_start[i].y,
+        code = typeI_start[i].code;
+
+    let dxy = strip_start_code_idir[code];
+    let cur_x = sx,
+        cur_y = sy,
+        cur_n = 1;
+
+    while ( (cur_x >= 0) && (cur_x < grid_size[0]) &&
+            (cur_y >= 0) && (cur_y < grid_size[1]) ) {
+
+      let cur_idx = cur_x + (cur_y*grid_size[0]);
+      let cur_code = grid_code[cur_idx];
+
+      if ( (cur_code == '|') || (cur_code == '-') ) {
+        strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "n": cur_n, "type": "begin.i" } );
+        break;
+      }
+
+      cur_x += dxy[0];
+      cur_y += dxy[1];
+      cur_n ++;
+    }
+
+  }
+
+
+  for (let i=0; i<typeIII_start.length; i++) {
+    let sx = typeIII_start[i].x,
+        sy = typeIII_start[i].y,
+        code = typeIII_start[i].code;
+
+    strip_seq.push( {"s": [sx,sy], "dxy" : [0,0], "n": 1, "type": "begin.iii" } );
+
+  }
+
+  // idir_pair holds direction to look for the
+  // strip,
+  // so we need to do contortions to get the neighboring
+  // cell in the *opposite* direction of the probe
+  // to see if it's a type III neighbor
+  //
+  // This one is the most complex because we need to do
+  // neighbor checking to make sure the shared edge cell
+  // is of type III.
+  //
+  for (let i=0; i<typeII_start.length; i++) {
+    let sx = typeII_start[i].x,
+        sy = typeII_start[i].y,
+        code = typeII_start[i].code;
+
+    let idir_pair = typeii_start_code_idir[code];
+
+    for (let idir_pair_idx=0; idir_pair_idx < 2; idir_pair_idx++) {
+      let idir_cur    = idir_pair[idir_pair_idx];
+      let idir_ortho  = idir_pair[(idir_pair_idx+1)%2];
+
+      let dxy       = idir_dxy[idir_cur];
+      let ortho_dxy = idir_dxy[idir_ortho];
+
+      let oppo_ortho_dxy = oppo_dxy[idir_ortho];
+
+      let ortho_nei_x = sx + oppo_ortho_dxy[0];
+      let ortho_nei_y = sy + oppo_ortho_dxy[1];
+
+      let idir_ortho_oppo = oppo[idir_ortho];
+
+      if ((ortho_nei_x < 0) || (ortho_nei_x >= grid_size[0]) ||
+          (ortho_nei_y < 0) || (ortho_nei_y >= grid_size[1])) {
+        continue;
+      }
+
+      let nei_idx = ortho_nei_x + (ortho_nei_y*grid_size[0]);
+      let nei_code = grid_code[nei_idx];
+
+      let valid_start_chain = false;
+
+      if      ( ((idir_ortho_oppo == 0) || (idir_ortho_oppo == 1)) &&
+                (nei_code == '|') ) {
+        valid_start_chain = true;
+      }
+
+      else if ( ((idir_ortho_oppo == 2) || (idir_ortho_oppo == 3)) &&
+                (nei_code == '-') ) {
+        valid_start_chain = true;
+      }
+
+      if (!valid_start_chain) { continue; }
+
+      let cur_x = sx;
+      let cur_y = sy;
+
+      let cur_n = 1;
+
+      while ( (cur_x >= 0) && (cur_x < grid_size[0]) &&
+              (cur_y >= 0) && (cur_y < grid_size[1]) ) {
+        let cur_idx = cur_x + (cur_y*grid_size[0]);
+        let cur_code = grid_code[cur_idx];
+        if ( (cur_code == '|') || (cur_code == '-') ) {
+          strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "n": cur_n, "type": "chain.ii" } );
+          break;
+        }
+
+        cur_x += dxy[0];
+        cur_y += dxy[1];
+        cur_n ++;
+      }
+
+    }
+
+  }
+
+  for (let i=0; i<typeIV_start.length; i++) {
+    let sx = typeIV_start[i].x,
+        sy = typeIV_start[i].y,
+        code = typeIV_start[i].code;
+
+    let idir = typeiv_candidate_idir[code];
+    let dxy = idir_dxy[idir];
+
+    let nei_x = sx + dxy[0];
+    let nei_y = sy + dxy[1];
+
+    if ((nei_x < 0) || (nei_x >= grid_size[0]) ||
+        (nei_y < 0) || (nei_y >= grid_size[1])) {
+      continue;
+    }
+
+    let nei_idx = nei_x + (nei_y*grid_size[0]);
+    let nei_code = grid_code[nei_idx];
+
+    if ((nei_code == '-') || (nei_code == '|')) {
+      strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "n": 1, "type": "chain.iv" } );
+    }
+
+  }
+
+
+  return strip_seq;
+
+}
+
+
+
+//----
+//----
+//----
+
 function ulhp_initTwoFactor(grid_info) {
 
   let gadget_info = two_factor_gadget(grid_info);
@@ -1848,6 +2113,7 @@ if (typeof module !== "undefined") {
 
   module.exports["dual"] = ulhp_dual;
   module.exports["dependency"] = ulhp_dependency;
+  module.exports["catalogueAlternatingStrip"] = ulhp_catalogueAlternatingStrip;
 
   module.exports["custom"] = load_custom7_1;
   module.exports["custom_C0"] = load_custom_C0;
