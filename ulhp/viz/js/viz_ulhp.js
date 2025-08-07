@@ -804,7 +804,8 @@ function ui_input(ui_id) {
   else if (!ele.checked) { g_ui.option[opt_val] = false; }
 
   g_ui.two.clear();
-  redrawCustom();
+  //redrawCustom();
+  redrawGridInfo(g_ui.data.grid_info);
 }
 
 function init_ui() {
@@ -815,6 +816,7 @@ function init_ui() {
 
 function webinit() {
 
+  redrawCustom();
   init_ui();
 
   g_ui.two.clear();
