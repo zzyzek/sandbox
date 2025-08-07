@@ -451,6 +451,7 @@ function drawHighlightCell( cell_info, grid_info, disp_opt ) {
   let opacity = 0.35;
 
   let fill_lookup = {
+    ".": "#fff", " ": "#fff",
     "-": "#b33", "|": "#b33",
     ">": "#11b", "<": "#11b", "^": "#11b", "v": "#11b",
     "F": "#1b1", "J": "#1b1", "7": "#1b1", "L": "#1b1",
@@ -493,10 +494,19 @@ function drawDualCell( grid_info, disp_opt ) {
   let opacity = 0.25;
 
   let fill_lookup = {
+    ".": "#fff", " ": "#fff",
     "-": "#b33", "|": "#b33",
     ">": "#11b", "<": "#11b", "^": "#11b", "v": "#11b",
     "F": "#1b1", "J": "#1b1", "7": "#1b1", "L": "#1b1",
     "c": "#aaa", "p": "#aaa", "n": "#aaa", "u": "#aaa"
+  };
+
+  let type_lookup = {
+    ".": " ", " ": " ",
+    "-": "III", "|": "III",
+    ">": "I", "<": "I", "^": "I", "v": "I",
+    "F": "II", "J": "II", "7": "II", "L": "II",
+    "c": "IV", "p": "IV", "n": "IV", "u": "IV"
   };
 
   let bg_point_size = 3;
@@ -529,13 +539,19 @@ function drawDualCell( grid_info, disp_opt ) {
 
       if (grid_code[idx] == '.') { continue; }
 
-      let c = two.makeRectangle( xy_origin[0] + (scale*x) + dx,
-                                 xy_origin[1] + (scale*screen_iy) + dy,
-                                 cell_s, cell_s );
+      let _x = xy_origin[0] + (scale*x) + dx;
+      let _y = xy_origin[1] + (scale*screen_iy) + dy;
+
+      let c = two.makeRectangle( _x, _y, cell_s, cell_s );
       c.fill = fill_lookup[ grid_code[idx] ];
       c.opacity = opacity;
       c.linewidth = 0;
 
+      let txt_style = {
+        "family": "Libertine",
+        "size": 8
+      };
+      let _t = two.makeText( type_lookup[ grid_code[idx] ], _x + (scale/4), _y + (scale/4), txt_style );
     }
   }
 
@@ -625,7 +641,7 @@ function redrawGridInfo(grid_info, persist) {
 
   if (!persist) { two.clear(); }
 
-  let scale = 30;
+  let scale = 40;
 
   var ele = document.getElementById("ui_canvas");
   two.appendTo(ele);
