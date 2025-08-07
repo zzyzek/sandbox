@@ -755,9 +755,14 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
   // direction we want to find strip goes
   // in opposite direction of dark edge
   //
-  let strip_start_code_idir = {
+  let strip_start_code_dxy = {
     ">" : [-1, 0], "<": [ 1, 0],
     "v" : [ 0, 1], "^": [ 0,-1]
+  };
+
+  let strip_start_code_idir = {
+    ">" : 1, "<": 0,
+    "v" : 2, "^": 3
   };
 
   // direction of strip,
@@ -795,7 +800,9 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
         sy = typeI_start[i].y,
         code = typeI_start[i].code;
 
-    let dxy = strip_start_code_idir[code];
+    let idir = strip_start_code_idir[code];
+
+    let dxy = strip_start_code_dxy[code];
     let cur_x = sx,
         cur_y = sy,
         cur_n = 1;
@@ -807,7 +814,7 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
       let cur_code = grid_code[cur_idx];
 
       if ( (cur_code == '|') || (cur_code == '-') ) {
-        strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "n": cur_n, "type": "begin.i" } );
+        strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir, "n": cur_n, "type": "begin.i" } );
         break;
       }
 
@@ -819,13 +826,14 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
   }
 
 
+  // These type III cells don't really have an idir, so the 0 is mostly a placeholder.
+  //
   for (let i=0; i<typeIII_start.length; i++) {
     let sx = typeIII_start[i].x,
         sy = typeIII_start[i].y,
         code = typeIII_start[i].code;
 
-    strip_seq.push( {"s": [sx,sy], "dxy" : [0,0], "n": 1, "type": "begin.iii" } );
-
+    strip_seq.push( {"s": [sx,sy], "dxy" : [0,0], "idir": 0, "n": 1, "type": "begin.iii" } );
   }
 
   // idir_pair holds direction to look for the
@@ -891,7 +899,7 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
         let cur_idx = cur_x + (cur_y*grid_size[0]);
         let cur_code = grid_code[cur_idx];
         if ( (cur_code == '|') || (cur_code == '-') ) {
-          strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "n": cur_n, "type": "chain.ii" } );
+          strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir_cur, "n": cur_n, "type": "chain.ii" } );
           break;
         }
 
@@ -924,7 +932,7 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
     let nei_code = grid_code[nei_idx];
 
     if ((nei_code == '-') || (nei_code == '|')) {
-      strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "n": 1, "type": "chain.iv" } );
+      strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir, "n": 1, "type": "chain.iv" } );
     }
 
   }

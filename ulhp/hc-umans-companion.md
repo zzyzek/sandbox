@@ -737,6 +737,49 @@ when a Hamiltonian cycle is present and that we can find a static, and thus
 "efficient", sequence of strips to flip to consistently make quick progress.
 
 
+---
+
+A note on the alternating strip sequence graph:
+
+* the labels are necessary:
+  - chain nodes can only be connected to adjacent begin/chain strips that end
+    right next to them
+  - begin nodes can be connected if they're in the same region as the ending
+    of an alternating strip
+
+Figure 8.1 shows a begin strip of 10, call it `begin.10`,from the top that ends next to a chain.
+We can follow that chain, but only because we've chosen that `begin.10` strip.
+
+The `begin.10` can then continue from the begin 4 strip (upwards) but notably *not*
+the chain in the lower left hand corner, even though that chain is on the outer boundary.
+
+Finally, we don't want to loop back and connect to the `begin.8` and `begin.6` in the spine
+of the `begin.10` strip, though I'm not sure this actually matters.
+
+...
+
+So this is a bit wrong.
+
+The linking procedure is:
+
+* If it's a `begin` node and on the *shortest* path
+  between the two neighboring end cells
+* If it's a `chain` node that begins on either of
+  the two neighboring end cells and the neighboring end
+  cells are connected
+
+All this is ensuring that the flip is identifying a bridge cell and pushing
+it around for eventualy 2-factor component connection.
+
+Since the chain needs to have it's neighboring alternating strip activated,
+in addition to keeping the bridge cell, it can only be linked from
+the parent alternating strip.
+
+I just wonder if the shortest path is an actual requirement.
+It won't matter because there must be a begin cell somewhere in the
+line of fire for some connection.
+
+
 ## ERRATA
 
 pg. 58 of Uman's thesis:

@@ -292,11 +292,54 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
 // the dual is created but we need to construct
 // the strip sequence etc.
 //
+// WIP!!
 function ulhp_hp(grid_info) {
 
-  let path_info = ulhp.catalogueAlternatingStrip(grid_info);
+  let idir_ortho_dxy = [
+    [ [ 0,-1], [ 0, 1] ],
+    [ [ 0, 1], [ 0,-1] ],
+    [ [ 1, 0], [-1, 0] ],
+    [ [-1, 0], [ 1, 0] ]
+  ];
 
-  console.log(path_info);
+  let strip_info = ulhp.catalogueAlternatingStrip(grid_info);
+
+  let cell_strip_map = {};
+
+  for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
+    let strip = strip_info[strip_idx];
+    let cell_key = strip.s[0].toString() + ":" + strip.s[1].toString();
+
+    if (!(cell_key in cell_strip_map)) { cell_strip_map[cell_key] = []; }
+    cell_strip_map[cell_key].push( strip );
+  }
+
+
+  for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
+    let strip = strip_info[strip_idx];
+    let strip_idir = strip.idir;
+
+    let conn_cell = [];
+    for (let ortho_idx=0; ortho_idx < idir_ortho_dxy[strip_idir].length; ortho_idx++) {
+      let Tdxy = idir_ortho_dxy[strip_idir][ortho_idx]
+
+      let conn_cell = [
+        strip.s[0] + strip.dxy[0]*(strip.n-1) + Tdxy[0],
+        strip.s[1] + strip.dxy[1]*(strip.n-1) + Tdxy[1]
+      ];
+
+      let conn_cell_key = conn_cell[0].toString() + ":" + conn_cell[1].toString();
+
+      if (!(conn_cell_key in cell_strip_map)) { continue; }
+
+
+
+    }
+
+  }
+
+
+  console.log(strip_info);
 
 }
 
