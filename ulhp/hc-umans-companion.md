@@ -34,6 +34,8 @@ I'm trying to work through Umans (and Lenhart's) HC thesis and paper.
 | **Alternating Strip Sequence** | An array of alternating strips | |
 | **Static Alternating Strip Sequence** | An alternating strip sequence but with extra criteria that makes finding them polynomial | See below |
 
+note: enabled/engaged/active for edges
+
 Proof of correctness is complicated, as is the main algorithm itself, but I hope giving the algorithm first will motivate the proofs of correctness.
 
 As far as I can tell, the algorithm is as follows:
@@ -687,6 +689,37 @@ by Case 1, as other cells above and below would need to be included, making it n
 
 Case 3 handles strips that go in different directions (perpendicular to $a _ 1$).
 
+
+---
+
+[U96] Chapter 8 (pg. 58-59).
+
+Under the "Candidate Chain Strips" section, the wording is confusing on how to label
+chain strips.
+
+The procedure is as follows:
+
+* For every type `II` cell (parity configuration of an "L", however rotated), $c$
+* That has an alternating cell beside it that shares an edge (that is, type `III`
+  whose rotation makes it share a dark edge), $c''$
+* Choose the *other* dark edge in $c$ and walk away from that edge until you hit
+  an alternating cell (type `III`)
+
+In other words, for a type `II` cell, $c _ {II}$, that has, as it's neighbor, a type `III` cell, $c _ {III}$,
+pretend to flip the shared edge between $c _ {II}$ and $c _ {III}$, making $c _ {II}$ into a type `I` cell, then
+walk down the dual graph, away from the remaining 'on' edge in $c _ {II}$ until you hit a type `III` cell.
+
+If none exists, don't do anything.
+If a type `III` does exist, add a **chain** node with the appropriate **odd** or **evene** node and length of strip weight.
+
+This is done for *both* directions, if applicable, for every type `II` cell encountered.
+That is, a type `II` cell might have two type `III` cell neighbors on both of its active edges, in which
+case both directions should be tested.
+
+Only type `II` cells with a type `III` neighbor can ever be considered in the static alternating strip sequence.
+To turn a type `II` into a type `I` that would then continue on the alternating strip sequence, the neighboring edge
+to the neighboring type `III` edge would need to be flipped and the strip would continue onward, pushing off against
+the remaining active edge in the (now altered and turned into a type `I`) type `II` cell.
 
 
 

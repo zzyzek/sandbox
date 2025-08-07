@@ -817,14 +817,13 @@ function ulhp_initTwoFactor(grid_info) {
   }
 
   //grid_info["two_deg_grid"] = two_deg_grid;
-  grid_info["grid_deg2"] = two_deg_grid;
   grid_info["grid_hook"] = two_deg_grid;
 
   return;
 }
 
 function ulhp_dependency(grid_info) {
-  let two_deg_grid = grid_info.grid_deg2;
+  let two_deg_grid = grid_info.grid_hook;
 
   let depG_size = [ grid_info.size[0]+1, grid_info.size[1]+1 ];
   let depG_grid  = [];
@@ -922,7 +921,7 @@ function ulhp_dual(grid_info) {
   let debug = false;
 
   //let two_deg_grid = grid_info.two_deg_grid;
-  let two_deg_grid = grid_info.grid_deg2;
+  let two_deg_grid = grid_info.grid_hook;
 
   if (debug) {
     for (let y= (grid_info.size[1]-1); y>=0; y--) {
@@ -1281,7 +1280,7 @@ function load_custom_C1(grid_info) {
   }
 
   //grid_info["two_deg_grid"] = two_deg_grid;
-  grid_info["grid_deg2"] = two_deg_grid;
+  grid_info["grid_hook"] = two_deg_grid;
 
   ulhp_dual(grid_info);
   ulhp_dependency(g_info);
@@ -1367,7 +1366,7 @@ function load_custom_C0(grid_info) {
   }
 
   //grid_info["two_deg_grid"] = two_deg_grid;
-  grid_info["grid_deg2"] = two_deg_grid;
+  grid_info["grid_hook"] = two_deg_grid;
 
   ulhp_dual(grid_info);
   ulhp_dependency(g_info);
@@ -1474,7 +1473,7 @@ function load_custom7_1(grid_info) {
   }
 
   //grid_info["two_deg_grid"] = two_deg_grid;
-  grid_info["grid_deg2"] = two_deg_grid;
+  grid_info["grid_hook"] = two_deg_grid;
 
   ulhp_dual(grid_info);
   ulhp_dependency(g_info);
@@ -1637,10 +1636,22 @@ function _main(argv) {
     }
 
     //g_info["two_deg_grid"] = two_deg_grid;
-    g_info["grid_deg2"] = two_deg_grid;
     g_info["grid_hook"] = two_deg_grid;
 
     ulhp_dual(g_info);
+
+    if (debug) {
+      console.log("#dualG", g_info.dualG.size);
+      for (let y=0; y<g_info.dualG.size[1]; y++) {
+        let ca = [];
+        let yr = g_info.dualG.size[1]-1-y;
+        for (let x=0; x<g_info.dualG.size[0]; x++) {
+          let idx = xy2idx([x,yr], g_info.dualG.size);
+          ca.push(g_info.dualG.grid_code[idx]);
+        }
+        console.log(ca.join(""));
+      }
+    }
 
     console.log("#######################");
     console.log("#######################");
@@ -1835,6 +1846,7 @@ if (typeof module !== "undefined") {
   module.exports["grid_info"] = g_info;
 
   module.exports["dual"] = ulhp_dual;
+  module.exports["dependency"] = ulhp_dependency;
 
   module.exports["custom"] = load_custom7_1;
   module.exports["custom_C0"] = load_custom_C0;

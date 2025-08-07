@@ -1,7 +1,18 @@
+// To the extent possible under law, the person who associated CC0 with
+// this project has waived all copyright and related or neighboring rights
+// to this project.
+// 
+// You should have received a copy of the CC0 legalcode along with this
+// work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+//
 
 var g_ui = {
   "ulhp": ulhp,
   "two": new Two({"fitted":true}),
+
+  "data": {
+    "grid_info": {}
+  },
   
   "option": {
     "grid": true,
@@ -10,6 +21,272 @@ var g_ui = {
 
   }
 };
+
+
+//------
+//------
+//------
+
+// Following the papers, the cells are labelled:
+//
+// type I:   *---*       type II:  *---*
+//                                 |
+//           *   *                 *   *
+//
+// type III: *---*
+//
+//           *---*
+//
+// with rotations allowed
+//
+// I've added a type IV cell for convenience:
+//
+// type IV:  *---*
+//           |
+//           *---*
+//
+// type doesn't change due to rotations.
+//
+// The code is, starting with the above representation
+// and rotating counter clockwise:
+//
+// type I:    ^ < v >
+// type II:   F L J 7
+// type III:  - |
+// type IV:   c u p n
+//
+// empty:     . ' ' (space)
+//
+//
+function ulhp_catalogueAlternatingStrip(grid_info) {
+
+  let dualG = grid_info.dualG;
+
+  let grid_code = dualG.grid_code;
+  let grid_size = dualG.size;
+
+  let typeI_start = [],
+      typeII_start = [],
+      typeIII_start = [],
+      typeIV_start = [];
+
+  for (let y=0; y<grid_size[1]; y++) {
+    for (let x=0; x<grid_size[0]; x++) {
+      let idx = x + (y*grid_size[0]);
+
+      if ((grid_code[idx] == '^') ||
+          (grid_code[idx] == 'v') ||
+          (grid_code[idx] == '>') ||
+          (grid_code[idx] == '<')) {
+        typeI_start.push( {"x":x, "y":y, "code": grid_code[idx] } );
+      }
+
+      if ((grid_code[idx] == 'F') ||
+          (grid_code[idx] == '7') ||
+          (grid_code[idx] == 'J') ||
+          (grid_code[idx] == 'L')) {
+        typeII_start.push( {"x":x, "y":y, "code": grid_code[idx] } );
+      }
+
+      if ((grid_code[idx] == '-') ||
+          (grid_code[idx] == '|')) {
+        typeIII_start.push( {"x":x, "y":y, "code": grid_code[idx] } );
+      }
+
+      if ((grid_code[idx] == 'c') ||
+          (grid_code[idx] == 'n') ||
+          (grid_code[idx] == 'p') ||
+          (grid_code[idx] == 'u')) {
+        typeIV_start.push( {"x":x, "y":y, "code": grid_code[idx] } );
+      }
+
+    }
+  }
+
+  // direction we want to find strip goes
+  // in opposite direction of dark edge
+  //
+  let strip_start_code_idir = {
+    ">" : [-1, 0], "<": [ 1, 0],
+    "v" : [ 0, 1], "^": [ 0,-1]
+  };
+
+  // direction of strip,
+  // need to check other direction in opposite
+  // direction to see if there's a strip next to it
+  //
+  let typeii_start_code_dxy = {
+    "F": [ [ 1, 0], [ 0,-1] ],
+    "7": [ [ 0,-1], [-1, 0] ],
+    "J": [ [-1, 0], [ 0, 1] ],
+    "L": [ [ 0, 1], [ 1, 0] ]
+  }
+
+  let typeii_start_code_idir = {
+    "F": [ 0, 3 ],
+    "7": [ 3, 1 ],
+    "J": [ 1, 2 ],
+    "L": [ 2, 0 ]
+  }
+
+  let typeiv_candidate_idir = {
+    'c': 1, 'p': 0,
+    'n': 2, 'u': 3
+  };
+
+  let oppo = [1,0, 3,2, 5,4];
+
+  let idir_dxy  = [ [ 1, 0], [-1, 0], [ 0, 1], [ 0,-1] ];
+  let oppo_dxy  = [ [-1, 0], [ 1, 0], [ 0,-1], [ 0, 1] ];
+
+  let strip_seq = [];
+
+  for (let i=0; i<typeI_start.length; i++) {
+    let sx = typeI_start[i].x,
+        sy = typeI_start[i].y,
+        code = typeI_start[i].code;
+
+    let dxy = strip_start_code_idir[code];
+    let cur_x = sx,
+        cur_y = sy,
+        cur_n = 1;
+
+    while ( (cur_x >= 0) && (cur_x < grid_size[0]) &&
+            (cur_y >= 0) && (cur_y < grid_size[1]) ) {
+
+      let cur_idx = cur_x + (cur_y*grid_size[0]);
+      let cur_code = grid_code[cur_idx];
+
+      if ( (cur_code == '|') || (cur_code == '-') ) {
+        strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "n": cur_n, "type": "begin.i" } );
+        break;
+      }
+
+      cur_x += dxy[0];
+      cur_y += dxy[1];
+      cur_n ++;
+    }
+
+  }
+
+  for (let i=0; i<typeIII_start.length; i++) {
+    let sx = typeIII_start[i].x,
+        sy = typeIII_start[i].y,
+        code = typeIII_start[i].code;
+
+    strip_seq.push( {"s": [sx,sy], "dxy" : [0,0], "n": 1, "type": "begin.iii" } );
+
+  }
+
+  // idir_pair holds direction to look for the
+  // strip,
+  // so we need to do contortions to get the neighboring
+  // cell in the *opposite* direction of the probe
+  // to see if it's a type III neighbor
+  //
+  // This one is the most complex because we need to do
+  // neighbor checking to make sure the shared edge cell
+  // is of type III.
+  //
+  for (let i=0; i<typeII_start.length; i++) {
+    let sx = typeII_start[i].x,
+        sy = typeII_start[i].y,
+        code = typeII_start[i].code;
+
+    let idir_pair = typeii_start_code_idir[code];
+
+    for (let idir_pair_idx=0; idir_pair_idx < 2; idir_pair_idx++) {
+      let idir_cur    = idir_pair[idir_pair_idx];
+      let idir_ortho  = idir_pair[(idir_pair_idx+1)%2];
+
+      let dxy       = idir_dxy[idir_cur];
+      let ortho_dxy = idir_dxy[idir_ortho];
+
+      let oppo_ortho_dxy = oppo_dxy[idir_ortho];
+
+      let ortho_nei_x = sx + oppo_ortho_dxy[0];
+      let ortho_nei_y = sy + oppo_ortho_dxy[1];
+
+      let idir_ortho_oppo = oppo[idir_ortho];
+
+      if ((ortho_nei_x < 0) || (ortho_nei_x >= grid_size[0]) ||
+          (ortho_nei_y < 0) || (ortho_nei_y >= grid_size[1])) {
+        continue;
+      }
+
+      let nei_idx = ortho_nei_x + (ortho_nei_y*grid_size[0]);
+      let nei_code = grid_code[nei_idx];
+
+      let valid_start_chain = false;
+
+      if      ( ((idir_ortho_oppo == 0) || (idir_ortho_oppo == 1)) &&
+                (nei_code == '|') ) {
+        valid_start_chain = true;
+      }
+
+      else if ( ((idir_ortho_oppo == 2) || (idir_ortho_oppo == 3)) &&
+                (nei_code == '-') ) {
+        valid_start_chain = true;
+      }
+
+      if (!valid_start_chain) { continue; }
+
+      let cur_x = sx;
+      let cur_y = sy;
+
+      let cur_n = 1;
+
+      while ( (cur_x >= 0) && (cur_x < grid_size[0]) &&
+              (cur_y >= 0) && (cur_y < grid_size[1]) ) {
+        let cur_idx = cur_x + (cur_y*grid_size[0]);
+        let cur_code = grid_code[cur_idx];
+        if ( (cur_code == '|') || (cur_code == '-') ) {
+          strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "n": cur_n, "type": "chain.ii" } );
+          break;
+        }
+
+        cur_x += dxy[0];
+        cur_y += dxy[1];
+        cur_n ++;
+      }
+
+    }
+
+  }
+
+  for (let i=0; i<typeIV_start.length; i++) {
+    let sx = typeIV_start[i].x,
+        sy = typeIV_start[i].y,
+        code = typeIV_start[i].code;
+
+    let idir = typeiv_candidate_idir[code];
+    let dxy = idir_dxy[idir];
+
+    let nei_x = sx + dxy[0];
+    let nei_y = sy + dxy[1];
+
+    if ((nei_x < 0) || (nei_x >= grid_size[0]) ||
+        (nei_y < 0) || (nei_y >= grid_size[1])) {
+      continue;
+    }
+
+    let nei_idx = nei_x + (nei_y*grid_size[0]);
+    let nei_code = grid_code[nei_idx];
+
+    if ((nei_code == '-') || (nei_code == '|')) {
+      strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "n": 1, "type": "chain.iv" } );
+    }
+
+  }
+
+
+  return strip_seq;
+
+}
+
+//------
+//------
+//------
 
 function _Line(x0,y0, x1,y1, lco, lw, alpha) {
   lco = ((typeof lw === "undefined") ? "#111" : lco);
@@ -154,6 +431,49 @@ function drawDep( grid_info, disp_opt ) {
   two.update();
 }
 
+
+function drawHighlightCell( cell_info, grid_info, disp_opt ) {
+  let xy_origin = (("origin" in disp_opt) ? disp_opt.origin : [0,0]);
+  let scale = (("scale" in disp_opt) ? disp_opt.scale : 20 );
+  let cell_s = (("cell_s" in disp_opt) ? disp_opt.cell_s: 20 );
+
+  let two = g_ui.two;
+
+  let grid_code = grid_info.grid_code;
+  let size = grid_info.size;
+
+  let idx2xy = ulhp.idx2xy;
+  let xy2idx = ulhp.xy2idx;
+
+  let dx = scale/2;
+  let dy = scale/2;
+
+  let opacity = 0.35;
+
+  let fill_lookup = {
+    "-": "#b33", "|": "#b33",
+    ">": "#11b", "<": "#11b", "^": "#11b", "v": "#11b",
+    "F": "#1b1", "J": "#1b1", "7": "#1b1", "L": "#1b1",
+    "c": "#aaa", "p": "#aaa", "n": "#aaa", "u": "#aaa"
+  };
+
+  let bg_point_size = 3;
+
+  let x = cell_info.x;
+  let screen_iy = size[1] - 1 - cell_info.y;
+
+  let d = two.makeRectangle( xy_origin[0] + (scale*x) + dx,
+                             xy_origin[1] + (scale*screen_iy) + dy,
+                             cell_s, cell_s );
+  d.fill = "#a0a";
+  d.stroke = "#000";
+  d.opacity = opacity;
+  d.linewidth = 2;
+
+
+  two.update();
+}
+
 function drawDualCell( grid_info, disp_opt ) {
   let xy_origin = (("origin" in disp_opt) ? disp_opt.origin : [0,0]);
   let scale = (("scale" in disp_opt) ? disp_opt.scale : 20 );
@@ -232,7 +552,7 @@ function drawGridHook( grid_info, disp_opt ) {
 
   let two = g_ui.two;
 
-  let grid = grid_info.grid;
+  let grid = grid_info.grid_hook;
   let size = grid_info.size;
 
   let idx2xy = ulhp.idx2xy;
@@ -298,22 +618,17 @@ function drawGridHook( grid_info, disp_opt ) {
   return;
 }
 
-function redrawCustom() {
+function redrawGridInfo(grid_info, persist) {
+  persist = ((typeof persist === "undefined") ? false : persist);
+
   let two = g_ui.two;
+
+  if (!persist) { two.clear(); }
 
   let scale = 30;
 
   var ele = document.getElementById("ui_canvas");
   two.appendTo(ele);
-
-  ulhp.custom( ulhp.grid_info );
-  //ulhp.custom_C0( ulhp.grid_info );
-  //ulhp.custom_C1( ulhp.grid_info );
-
-  let grid_hook = {
-    "grid" : ulhp.grid_info.grid_deg2,
-    "size": ulhp.grid_info.size
-  };
 
   let disp_opt = {
     "origin" : [50,50],
@@ -321,7 +636,7 @@ function redrawCustom() {
   };
 
   if (g_ui.option.grid) {
-    drawGridHook( grid_hook, disp_opt );
+    drawGridHook( grid_info, disp_opt );
   }
 
   //---
@@ -332,11 +647,10 @@ function redrawCustom() {
     "cell_s": (3*scale/4)
   };
 
-  ulhp.dual( ulhp.grid_info );
-
+  ulhp.dual( grid_info );
 
   if (g_ui.option.dual) {
-    drawDualCell( ulhp.grid_info.dualG, dual_disp_opt );
+    drawDualCell( grid_info.dualG, dual_disp_opt );
   }
 
   //---
@@ -348,14 +662,136 @@ function redrawCustom() {
   };
 
   if (g_ui.option.dep) {
-    drawDep( ulhp.grid_info.depG, dep_disp_opt );
+    drawDep( grid_info.depG, dep_disp_opt );
   }
 
+}
+
+function redrawCustom() {
+  ulhp.custom( ulhp.grid_info );
+
+  g_ui.data.grid_info = ulhp.grid_info;
+
+  //redrawGridInfo( ulhp.grid_info );
+  redrawGridInfo( g_ui.data.grid_info );
+}
+
+//----
+//----
+//----
+
+function _grid_rev(grid, size) {
+  let rev_grid = [];
+  for (let y=0; y<size[1]; y++) {
+    let yr = size[1] - y - 1;
+    for (let x=0; x<size[0]; x++) {
+      let idx = size[0]*yr + x;
+      rev_grid.push( grid[idx] );
+    }
+  }
+  return rev_grid;
+}
+
+function _tfcode2tfb(grid_code) {
+ let _c2i = {
+    " " : -1,
+
+    "-" : (1 << 0) | (1 << 1),
+    "|" : (1 << 2) | (1 << 3),
+
+    "F" : (1 << 0) | (1 << 3),
+    "L" : (1 << 0) | (1 << 2),
+    "J" : (1 << 1) | (1 << 2),
+    "7" : (1 << 1) | (1 << 3)
+  };
+
+  let two_deg_grid = [];
+  for (let idx=0; idx<grid_code.length; idx++) {
+    two_deg_grid.push( _c2i[ grid_code[idx] ] );
+  }
+
+  return two_deg_grid;
+}
+
+function parseTextInput() {
+  let ele = document.getElementById("ui_import");
+
+  let lines = ele.value.split("\n");
+
+  let grid_code = [];
+  let grid_mask = [];
+
+  let width = -1;
+  let height = 0;
+
+  let valid_code = {
+    "F":1, "-":1, "7":1, "J":1, "|":1, "L":1
+  };
+
+
+  for (let line_idx=0; line_idx < lines.length; line_idx++) {
+    //let tok = lines[line_idx].replace(/,/g, ' ').replace( /  */g, ' ').split(' ');
+    let tok = lines[line_idx].split('');
+
+    if (tok.length == 0) { continue; }
+    height++;
+
+    if (width < 0) { width = tok.length; }
+
+    if (tok.length != width) {
+      console.log("WARNING: tok.length:", tok.length, "!= width", width);
+    }
+
+    for (let i=0; i<tok.length; i++) {
+
+      let inp_code = tok[i];
+
+      let code = ' ';
+      if (inp_code in valid_code) {
+        code = inp_code;
+      }
+
+      grid_code.push(code);
+
+      if ((tok[i] == "'") ||
+          (tok[i] == ' ')) {
+        grid_mask.push(0);
+      }
+      else {
+        grid_mask.push(1);
+      }
+    }
+
+  }
+
+  let size = [width, height];
+
+
+  let grid_code_rev = _grid_rev(grid_code, size);
+  let grid_mask_rev = _grid_rev(grid_mask, size);
+
+  let grid_hook = _tfcode2tfb(grid_code_rev);
+
+  let grid_info = {
+    "grid_hook": grid_hook,
+    "grid": grid_mask_rev,
+    "size": size
+  };
+
+  ulhp.dual(grid_info);
+  ulhp.dependency(grid_info);
+
+  g_ui.data.grid_info = grid_info;
+
+  //g_ui.two.clear();
+  redrawGridInfo(grid_info);
 }
 
 function ui_input(ui_id) {
 
   let opt_val = "";
+
+  if (ui_id == "ui_btn_inp") { parseTextInput(); return; }
 
   if (ui_id == "ui_cb_grid") { opt_val = "grid"; }
   if (ui_id == "ui_cb_dual") { opt_val = "dual"; }
