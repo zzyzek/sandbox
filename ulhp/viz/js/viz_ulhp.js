@@ -22,6 +22,8 @@ var g_ui = {
   }
 };
 
+var idx2xy = ulhp.idx2xy;
+var xy2idx = ulhp.xy2idx;
 
 //------
 //------
@@ -286,6 +288,145 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
 
 }
 */
+
+function ulhp_dualRegionFlood(grid_info) {
+  let dual_code_idir = {
+    "." : [1,1,1,1],
+    " " : [1,1,1,1],
+    "'" : [1,1,1,1],
+
+    "^" : [1,1,0,1],
+    ">" : [0,1,1,1],
+    "v" : [1,1,1,0],
+    "<" : [1,0,1,1],
+
+    "c" : [1,0,0,0],
+    "n" : [0,0,0,1],
+    "p" : [0,1,0,0],
+    "u" : [0,0,1,0],
+
+    "L" : [1,0,1,0],
+    "F" : [1,0,0,1],
+    "7" : [0,1,0,1],
+    "J" : [0,1,1,0],
+
+    "-" : [1,1,0,0],
+    "|" : [0,0,1,1]
+  };
+
+  let idir_dxy = [
+    [1,0], [-1,0],
+    [0,1], [0,-1]
+  ];
+
+  let oppo = [ 1,0, 3,2 ];
+
+  let grid_region = [];
+  let cell_queue = [];
+
+  let grid_size = grid_info.dualG.size;
+  let grid_code = grid_info.dualG.grid_code;
+
+  for (let idx = 0; idx < grid_code.length; idx++) {
+    grid_region.push(-1);
+    cell_queue.push(idx);
+  }
+
+  let cur_region_id = 0;
+
+  for (let _i=0; _i<cell_queue.length; _i++) {
+    let cell_idx = cell_queue[_i];
+
+    if (grid_region[cell_idx] >= 0) { continue; }
+
+    let flood_stack = [ cell_idx ];
+
+    while (flood_stack.length > 0) {
+
+      // if it's in the stack, process it and
+      // we mark it with the region
+      //
+      let flood_cell_idx = flood_stack.pop();
+      grid_region[flood_cell_idx] = cur_region_id;
+
+      let flood_cell_code = grid_code[flood_cell_idx];
+      let flood_cell_xy = idx2xy( flood_cell_idx, grid_size );
+
+      let is_open_cell = false;
+      if ( (flood_cell_code == ".") ||
+           (flood_cell_code == " ") ||
+           (flood_cell_code == "'") ) {
+        is_open_cell = true;
+      }
+
+      // traverse neighbors,
+      // if they're within bounds and the region is unmarked,
+      // put it in the stack for processing.
+      //
+      let cur_valid_idir = dual_code_idir[ flood_cell_code ];
+
+      for (let idir=0; idir < cur_valid_idir.length; idir++) {
+        if (cur_valid_idir[idir] == 0) { continue; }
+
+        let dxy = idir_dxy[ idir ];
+
+        let nei_cell_xy = [
+          flood_cell_xy[0] + dxy[0],
+          flood_cell_xy[1] + dxy[1]
+        ];
+
+        if ((nei_cell_xy[0] < 0) || (nei_cell_xy[0] >= grid_size[0]) ||
+            (nei_cell_xy[1] < 0) || (nei_cell_xy[1] >= grid_size[1])) {
+          continue;
+        }
+
+        let nei_cell_idx = xy2idx( nei_cell_xy, grid_size );
+        let nei_code = grid_code[nei_cell_idx];
+
+        // make sure we can 'dock' to neighbor
+        //
+        let nei_valid_idir = dual_code_idir[ nei_code ];
+        if (nei_valid_idir[ oppo[idir] ] == 0) {
+          continue;
+        }
+
+        // add if not already filled
+        //
+        if (grid_region[nei_cell_idx] < 0) {
+          flood_stack.push(nei_cell_idx);
+        }
+
+      }
+    }
+
+    // one region processed, go onto the next
+    //
+    cur_region_id++;
+
+  }
+
+  /*
+  console.log("#region of dual");
+  for (let y=0; y<grid_size[1]; y++) {
+    let yr = grid_size[1] - y - 1;
+
+    let a = [];
+
+    for (let x=0; x<grid_size[0]; x++) {
+      let idx = xy2idx([x,yr], grid_size);
+
+      if (grid_region[idx] == 0) { a.push(' '); }
+      else { a.push( grid_region[idx].toString() ); }
+
+    }
+
+    console.log(a.join(","));
+  }
+  */
+
+  return grid_region;
+
+}
 
 // we're in the process of development.
 // We're going to assume the two-factor is given,
