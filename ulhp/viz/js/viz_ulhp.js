@@ -455,6 +455,7 @@ function ulhp_hp(grid_info) {
     cell_strip_map[cell_key].push( strip );
   }
 
+  let dual_region = ulhp_dualRegionFlood(grid_info);
 
   for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
     let strip = strip_info[strip_idx];
