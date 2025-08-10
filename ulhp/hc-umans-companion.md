@@ -66,12 +66,58 @@ candidates:
 * mondo/muddled alternating strip sequence, MASS
   - disordered alternating strip sequence DASS
 
-## List of Theorems and Lemmas
+## List of Theorems, Lemmas and Corollarys
 
 
-> **Lemma 2.2**: If $G$ is bipartite then $G ^ { * }$ is also bipartite.
+> **[U96] Lemma 2.1**: Every cycle in a bipartite graph has even length.
 
-> **Lemma 2.3**: A perfect matching exists in $G ^ { * }$ iff a 2-factor exists in $G$.
+> **[U96] Lemma 2.2**: If $G$ is bipartite then $G ^ { * }$ is also bipartite.
+
+> **[U96] Lemma 2.3**: A perfect matching exists in $G ^ { * }$ iff a 2-factor exists in $G$.
+
+> **[U96] Theorem 2.1**: A matching $M$ in $G$ is maximal iff there exists no augmenting path w.r.t. $M$.
+
+> **[U96] Theorem 2.2**: An alternating search tree rooted at $r$ and built by repeatedly adding pairs of alternating
+> edges will find an augmenting path starting at $r$ if one exists.
+
+> **[U96] Theorem 2.3**: A blocked alternating search tree may be ignored in subsequent searches.
+
+> **[U96] Lemma 3.1**: Let $F _ 1$, $F _ 2$ be 2-factors of $G$ and let $S = F _ 1 \oplus F _ 2$. Then $S$ contains an alternating cycle
+
+> **[U96] Lemma 3.2**: Let $C$ be an alternating cycle in $G _ F$. Then $F \oplus C$ is a 2-factor of $G$.
+
+> **[U96] Lemma 3.3**: Let $F _ 1$ and $F _ 2$ be 2-factors of $G$. Let $S = F _ 1 \oplus F _ 2$. $S$ can be partitioned into
+> edge disjoint alternating cycles.
+
+> **[U96] Lemma 3.4**: Let $F _ 1$ and $F _ 2$ be 2-factors of $G$. Let $S = F _ 1 \oplus F _ 2$. An alternating cycle in $S$
+> of minimal area intersects no other cycle in $S$.
+
+> **[U96] Lemma 3.5**: Let $F _ 1$ and $F _ 2$ be 2-factors of $G$. Let $S = F _ 1 \oplus F _ 2$. $S$ can be partitioned into
+> edge disjtoin non-intersecting alternating cycles.
+
+> **[U96] Corollary 3.1**: Let $F$ be a 2-factor of $G$, a grid graph without holes, and $H$ be a Hamiltonian
+> cycle in $G$. Then $F \oplus A = H$, where A is a sequence of edge-disjoint non-intersecting alternating cycles in $G _ F$.
+
+> **[U96] Lemma 4.1**: If directions are assigned to successive edges along a path of even length in $G ^ * _ F$
+> satisfying the edge direction rules of an oriented dependency graph, then either:
+> 
+> 1. the directions of the edges at the end of the path are the same (w.r.t. a fixed orientation of the path) and the edges
+> at the edges at the ends have different parities, or
+>
+> 2. the directions of the edges at the end of the path are different (w.r.t. a fixed orientation of the path) and the
+> edges at the ends have the same parity
+
+> **[U96] Lemma 4.2**: Every dependency graph $G ^ * _ F$ can be oriented.
+
+
+
+
+
+
+
+
+
+
 
 
 
