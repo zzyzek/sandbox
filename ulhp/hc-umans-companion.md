@@ -255,7 +255,7 @@ candidates:
 > $G ^ { * } _ F$ that correspond to the two cells in $G _ F$ that share a dark edge with the alternating cell at the end of $a _ i$,
 > and let $y$ be the vertex in $G ^ { * } _ F$ that corresponds to the cell at the beginning of $a _ {i+1}$.
 > If there exists a path $p$ in $G ^ { * } _ F$ between $x _ 1$ and $x _ 2$ that includes $y$, then there exists
-> a path in $G ^ { * } _ {(F \oplus A _ {i,i})}$ between $x _ 1$ and $x  _ 2$ that includes $y$, for $1 \le i < n$.
+> a path in $G ^ { * } _ {(F \oplus A _ {1,i})}$ between $x _ 1$ and $x  _ 2$ that includes $y$, for $1 \le i < n$.
 
 
 
