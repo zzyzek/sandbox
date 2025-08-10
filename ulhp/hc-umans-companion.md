@@ -21,14 +21,16 @@ I'm trying to work through Umans (and Lenhart's) HC thesis and paper.
 | $G _ a \oplus G _ b$ | Symmetric difference ($\oplus$). Edge if exactly one edge in $G _ a$ or $G _ b$ | Also called "flipping" (esp. w.r.t. a cycle or path). Essentially the `xor` operation on graph edges. |
 | **Alternating cycle** | A cycle in $G _ F$ whose edges alternate parity | Flipping alternating cycles keeps 2-factor property |
 | **Cell** | A four edge cycle in $G _ F$ | |
-| **Alternating Cell** | **overloaded term.** Either, an independent cell whose 4 edges are alternating when traversing in a clockwise or counter clockwise direction (so (up,left,down,right) of `[1,0,1,0]` or `[0,1,0,1]`) **or** If the cell cycle is in an alternating cycle, it's called an alternating cell | Umans thesis mostly uses the first defintion later in his thesis |
+| **Alternating Cell** | **overloaded term.** Either, an independent cell whose 4 edges are alternating when traversing in a clockwise or counter clockwise direction (so (up,left,down,right) of `[1,0,1,0]` or `[0,1,0,1]`) **or** If the cell cycle is in an alternating cycle, it's called an alternating cell | Umans thesis mostly uses the first definition later in his thesis |
 | **Area** | of cycle $C$ is the number of interior cells of $C$ | |
 | **Nested** | Two edge-disjoint cycles are nested if one is entirely in the other | |
 | **Intersect** | Two edge-disjoint cycles intersect if they share at least one interior cell | They must share vertices but do not share edges |
 | $G ^ { * }$ | The dual of $G$ (a vertex in $G ^ { * }$ per cell in $G$, an edge in $G ^ { * }$ for adjacent cells in $G$) | |
 | $G ^ { + } _ F$ | The dependency graph | Add a border of vertices, see below |
 | $G ^ { - } _ F$ | Dual of $G$ with no edge present in $G ^ { - } _ F$ if neighboring cells have an edge in $F$ | $G ^ { * }$ with edges removed that cross $F$ |
-| **Border cell** | w.r.t. to $G _ F$. A cell bordering different components (of $F$) | Type `I`, `II`, `III`, `IV`, see below |
+| **Border edge** | w.r.t. to $G _ F$. An edge bordering two cells, one of which connects to the outside component and one which connects to an interior component | |
+| **Border cell** | w.r.t. to $G _ F$. A cell bordering an interior component of $F$ and the outside component | Type `I`, `II`, `III`, `IV`, see below |
+| **Boundary** $B$ | Set of border cells | |
 | **Boundary** | Set of border cells that is a simple cycle or has endpoints on the outer face | Whether a string of border cells completely encloses a region in $F$. Type `IV` cells on boundary implies a type `III` neighbor (otherwise its an internal `+` region) |
 | **Alternating Strip** | An array of cells, starting with a type `I` and ending with a type `III` (odd) or type `IV` then (rotated) type `III` (even) (with 'C' cells in between) | See below |
 | **Alternating Strip Sequence** | An array of alternating strips | |
@@ -66,7 +68,7 @@ candidates:
 * mondo/muddled alternating strip sequence, MASS
   - disordered alternating strip sequence DASS
 
-## List of Theorems, Lemmas and Corollarys
+## List of Theorems, Lemmas and Corollaries
 
 
 > **[U96] Lemma 2.1**: Every cycle in a bipartite graph has even length.
@@ -93,12 +95,12 @@ candidates:
 > of minimal area intersects no other cycle in $S$.
 
 > **[U96] Lemma 3.5**: Let $F _ 1$ and $F _ 2$ be 2-factors of $G$. Let $S = F _ 1 \oplus F _ 2$. $S$ can be partitioned into
-> edge disjtoin non-intersecting alternating cycles.
+> edge disjoint non-intersecting alternating cycles.
 
 > **[U96] Corollary 3.1**: Let $F$ be a 2-factor of $G$, a grid graph without holes, and $H$ be a Hamiltonian
 > cycle in $G$. Then $F \oplus A = H$, where A is a sequence of edge-disjoint non-intersecting alternating cycles in $G _ F$.
 
-> **[U96] Lemma 4.1**: If directions are assigned to successive edges along a path of even length in $G ^ * _ F$
+> **[U96] Lemma 4.1**: If directions are assigned to successive edges along a path of even length in $G ^ + _ F$
 > satisfying the edge direction rules of an oriented dependency graph, then either:
 > 
 > 1. the directions of the edges at the end of the path are the same (w.r.t. a fixed orientation of the path) and the edges
@@ -107,14 +109,153 @@ candidates:
 > 2. the directions of the edges at the end of the path are different (w.r.t. a fixed orientation of the path) and the
 > edges at the ends have the same parity
 
-> **[U96] Lemma 4.2**: Every dependency graph $G ^ * _ F$ can be oriented.
+> **[U96] Lemma 4.2**: Every dependency graph $G ^ + _ F$ can be oriented.
+
+> **[U96] Lemma 4.3**: The oriented dependency graph $G ^ + _ F$ contains no directed cycle.
+
+> **[U96] Lemma 4.4**: Let $C$ be a cycle in $G _ F$ and let $G ^ + _ F$ be the oriented dependency graph for $G _ F$.
+> Then $C$ is alternating iff every edge of $C$ is crossed by an edge of $G ^ + _ F$ oriented in the same direction
+> w.r.t. the interior of the cycle.
+
+> **[U96] Lemma 4.5**: Let $R$ be an alternating cell region in $G _ F$. An alternating path in $G ^ + _ F$ can
+> cross n more than one border edge of $R$.
 
 
+> **[U96] Lemma 4.6**: If $A = (a _ 1, a _ 2, a _ 3, \dots , a _ n)$ is an alternating cell sequence in $G _ F$ and
+> $B = ( b _ 1, b _ 2, \dots, b _ n)$ is an alternating cell sequence in $G _ {(F \oplus A)}$, then
+>
+> $(a _ 1, a _ 1, \dots, a _ n, b _ 1, b _ 2, \dots, b _ n)$
+>
+> is an alternating cell sequence in $G _ F$.
 
 
+> **[U96] Lemma 4.7**: Let $R$ be an alternating cell region in $G _ F$. Then there exists an alternating cell sequence
+> consisting of exactly the interior cells of $R$ with no repeated cells.
+
+> **[U96] Lemma 4.8**: Let $c _ 1, c _ 2, \dots, c _ n$ be the interior cells of a region $R$ in $G _ F$, and let $S$ be the set
+> of border edges of $R$. Then $F \oplus S = F \oplus c _ 1 \oplus c _ 2 \oplus \dots \oplus c _ n$.
+
+> **[U96] Theorem 4.1**: Let $F _ 1$ and $F _ 2$ be 2-factors of $G$. Then $F \oplus A = F _ 2$, where $A$ is alternating cell
+> sequence in $G _ F$.
 
 
+> **[U96] Lemma 5.1**: If a boundary $B$ in $G _ F$ contains a Type `IV` border cell, then $B$ contains a type `III` border cell.
 
+> **[U96] Lemma 5.2**: If $G _ F$ contains a boundary $B$ consisting of entirely type `II` cells, then $G$ is not Hamiltonian.
+
+> **[U96] Lemma 5.3**: Let $C$ be an alternating cycle with area two in $G _ F$ whose interior edge $e$ is in $F$,
+> and let $e _ 1$ and $e _ 2$ be edges in $F - C - \{ e \}$. Then the following hold:
+>
+> 1. the 2-factor $F \oplus C$ contains the same number of components as $F$ does, and
+>
+> 2. edges $e _ 1$ and $e _ 2$ are in the same component in $F \oplus C$ iff they are in the same component in $F$
+
+> **[U96] Lemma 5.4**: Let $s$ be an odd alternating strip in $G _ F$, let $e _ 1$, $e _ 2$ be edges in $F - s - \{ \text{the interior edges of s} \}$,
+> and let two vertices belong to the cell at the beginning of $s$ be labeled as in Fig. 5.6(a). Then the following hold:
+>
+> 1. the 2-factor $F \oplus s$ contains one fewer components than $F$ does, and
+>
+> 2. edges $e _ 1$ and $e _ 2$ are in the same component in $F \oplus s$ iff either they are in the same component in $F$
+> or one is in the same component of $F$ as a vertex $x$ and the other is in the same component of $F$ as a vertex $y$.
+
+*note here that odd alternating strip in [U96] is a* **border** *alternating strip in [UL97]*
+
+> **[U96] Lemma 5.5**: Let $s$ be an even alternating strip in $G _ F$. If the alternating cell at the end of
+> $s$ is not a type `III` border cell, $F \oplus s$ has the same number of components as $F$ does.
+
+> **[U96] Lemma 5.6**: Let $s$ be an even alternating strip in $G _ F$ that begins on a border cell and does
+> not end with a type `III` border cell. Then the alternating cell at the end of $s$ is a type `I` border cell
+> in $G _ {(F \oplus s)}$ .
+
+> **[U96] Lemma 5.7**: Let $G _ F$ contain no type `III` border cells, and let $s$ be an even alternating strip
+> in $G _ F$. If $G _ {(F \oplus s)}$ contains a type `III` border cell, then it contains a type `III` border cell
+> on the boundary created by $s$.
+
+
+> **[U96] Lemma 5.8**: Let $R$ be an alternating cell region in $G _ F$, and let $c$ be a type `I` border
+> cell in $R$ such that the dependency arc that crosses $c$'s dark edge is oriented in the same
+> direction as the dependency arcs that cross $R$, w.r.t. the interiors of $c$ and $R$. Then $c$ begins
+> an alternating strip that is wholly contained within $R$.
+
+
+> **[U96] Lemma 6.1**: There exists an alternating cell sequence in $A$ in $G _ { F _ 1 }$ of length no greater
+> than the $I(F _ 1, S)$ such that $F _ 1 \oplus A = F _ 2$.
+
+
+> **[U96] Lemma 6.2**: Let $c$ be an improving cell in $G _ F$, and let $F _ 1 '= F _ 1 \oplus c$. There exists
+> a partition $S'$ of $F _ 1 ' \oplus F _ 2$ into edge-disjoint non-intersecting alternating cycles such
+> that $I(F _ 1', S') = I(F _ 1, S ) - 1$.
+
+
+> **[U96] Lemma 6.3**: Let $F _ 1$, $F _ 2, $S$, and $G$ be defined as above. If $S$ contains an edge $e$ that
+> crosses a boundary in $G _ {F _ 1 }$ consisting of entirely type `I` and type `II` border cells with at least
+> one type `I` border cell, then there exists a type `I` border cell $c$ on that boundary with the following two
+> properties:
+>
+> 1. cell $c$ is on the immediate interior of a positively oriented cycle $C$ in $S$, and
+>
+> 2. the dependency arc that crosses the dark edge of $c$ is oriented in the same direction as
+> the dependency arcs that cross $C$, w.r.t. the interiors of $c$ and $C$.
+
+
+> **[U96] Lemma 6.4**: Let $F _ 1$, $F _ 2, $S$, and $G$ be defined in Lemma 6.3 and let $c$ be the type `I` border
+> cell identified in Lemma 6.3. Then there exists an alternating strip that begins at $c$ and ends at an
+> improving cell.
+
+> **[U96] Lemma 6.5**: Let $s$ be the alternating strip of length $n$ identified in Lemma 6.4, let $F _ 1$, $F _ 2$, $S$,
+> and $G$ be defined as in Lemma 6.4, and let $F _ 1 ' = F _ 1 \oplus s$. There exists a partition $S'$ of $F _ 1 ' \oplus F _ 2$
+> into edge-disjoint non-intersecting alternating cycles such that $I( S', F _ 1 ') = I (S, F _ 1) - n$.
+
+> **[U96] Lemma 6.6**: Let $A$ be an alternating strip sequence in $G _ F$. Then $F \oplus A$ has one fewer
+> components than $F$ does.
+
+> **[U96] Lemma 6.7**: Let $F$ be a 2-factor in $G$ with More than one component. If $G$ is Hamiltonian
+> then an alternating strip sequence exists in $G _ F$.
+
+> **[U96] Lemma 6.8**: If $A = (a _ 1, a _ 2, \dots, a _ n)$, $n \ge 3$ is an alternating strip sequence in $G _ F$,
+> then $G _ i = G _ {(F \oplus A _ {1,i} ) }$ contains no type `III` border cells, for all $i < n-1$ .
+
+> **[U96] Lemma 6.9**: Let $G$ be a Hamiltonian grid graph without holes, $F$ a 2-factor in $G$,
+> and $H$ a Hamiltonian cycle in $G$. Then $F \oplus A _ 1 \oplus A _ 2 \oplus \dots \oplus A _ k = H$,
+> where each $A _ i$ is an alternating strip sequence in $G _ {(F \oplus A _ 1 \oplus A _ 2 \oplus \dots \oplus A _ {i - 1})}$
+> and $k$ is the number of components in $F$ minus one.
+
+
+> **[U96] Lemma 7.1**: Let $G _ F$ contain no type `III` border cells, let $s$ be an even alternating strip
+> in $G _ F$, and let $x$ and $y$ be two vertices in $G ^ { * } _ F$ that correspond to cells not in $s$.
+> If there exists a path $p$ between $x$ and $y$ in $G ^ { * } _ F$ that does not include the vertex in $G ^ { * } _ F$
+> that corresponds to the alternating cell at the end of $s$, then there exists a path $p'$ between $x$ and $y$ in $G ^ { * } _ {(F \oplus s)}$,
+> with the following properties:
+>
+> 1. vertex $v$ on $p$ corresponds to an alternating cell in $G _ F$ iff $v$ is also on $p'$ and corresponds to an alternating cell in
+> $G _ {(F \oplus s)}$, and
+>
+> 2. if $v$ is a vertex on $p$ that corresponds to a cell in $G _ F$ that is not in $s$, then $v$ is a vertex on $p'$ in $G ^ { * } _ {(F \oplus s)}$.
+
+
+> **[U96] Lemma 7.2**: Let $G _ F$ contain no type `III` border cells.
+> Let $A = ( a _ 1, a _ 2, \dots, a _ n )$ be an alternating strip sequence in $G _ F$, $1 \le k < i < n$, and
+> let $x$ and $y$ be the vertices in $G _ {(F \oplus A _ { 1, k })}$ that correspond to the cells on either
+> side of the cell at the beginning of $a _ k$. If $x$ and $y$ are not on any of the strips $a _ {k+1}, a _ {k+2}, \dots, a _ i$,
+> then the alternating cell at the beginning of $a _ k$ in $G _ {(F \oplus A _ {1, i})}$ is not on the boundary created by $a _ i$.
+
+
+> **[U96] Lemma 7.3**: Let $G _ F$ contain no type `III` border cells. If there exists an alternating strip
+> sequence $A = ( a _ 1, a _ 2, \dots, a _ k)$ in $G _ F$ that begins on boundary $B$, then there exists a static
+> alternating strip sequence $A'$ in $G _ F$ that also begins on $B$ with total area no greater
+> than that of $A$.
+
+> **[U96] Lemma 8.1**: Let $A = ( a _ 1, a _ 2, \dots, a _ n )$ be a sequence of alternating strips obtained via the
+> shortest path method. Let $x$ and $y$ be two vertices in $G ^ { * } _ F$ that correspond to the cells
+> on either side of the alternating cell $c$ at the end of $a _ j$. Then the path between $x$ and $y$ does not
+> contain the vertex corresponding to the alternating cell at the end of $a _ i$, for $1 \le i < j < n$.
+
+> **[U96] Lemma 8.2**: Let $A = ( a _ 1, a _ 2, \dots, a _ n )$ be a sequence of alternating strips obtained via the
+> shortest path method that satisfies the static property, and let $x _ 1$ and $x _ 2$ be the two vertices in
+> $G ^ { * } _ F$ that correspond to the two cells in $G _ F$ that share a dark edge with the alternating cell at the end of $a _ i$,
+> and let $y$ be the vertex in $G ^ { * } _ F$ that corresponds to the cell at the beginning of $a _ {i+1}$.
+> If there exists a path $p$ in $G ^ { * } _ F$ between $x _ 1$ and $x _ 2$ that includes $y$, then there exists
+> a path in $G ^ { * } _ {(F \oplus A _ {i,i})}$ between $x _ 1$ and $x  _ 2$ that includes $y$, for $1 \le i < n$.
 
 
 
@@ -367,14 +508,14 @@ Here's my attempt at an overview:
   only type `II` and type `I` boundary cells are present (no type `III` boundary -> no type `IV` boundary)
 * $F \oplus H$ must cross a boundary
 * From a crossing boundary edge, walk along the boundary *cells* until you hit a type `I` boundary cell
-* From the type `I` boundary cell, shoot out in an axis-aligned direction to find an alterating strip
+* From the type `I` boundary cell, shoot out in an axis-aligned direction to find an alternating strip
   (which must exist)
 * Show that this alternating strip reduces the distance metric
 
 A bit more detail:
 
 * if $F \oplus H$ doesn't cross a boundary, this means boundary region untouched, but another application of $F$,
-  $F \oplus F \oplus H = H$, implying $H$ is multi-component -> contradictoin
+  $F \oplus F \oplus H = H$, implying $H$ is multi-component -> contradiction
 * a type `I` boundary cell must exist in the walk because .... (? working on it)
   - note that this is a *cell* walk, walking on cells, potentially crossing different circuits in $S$
   - looks like some argument about crossing.
@@ -451,7 +592,7 @@ the dependency graph direction as we walk these type `II` cells has the same dir
 
 In the case $\ell(C,S) = 1$, we're moving "away" from the egress to the outer boundary.
 We can't get to an egress on the other end, purely moving with type `II` boundary cells, as
-we'd end up at an egress mouth that must have a dependecy graph direction in the opposite
+we'd end up at an egress mouth that must have a dependency graph direction in the opposite
 direction as the dependency graph direction implied by the boundary of $C$ (contradiction) (Lemma 7).
 
 In the case of $\ell(C,S) = -1$, the cycle $C$ must exist in a cycle of $C'$ with $\ell(C',S) = 1$.
@@ -532,7 +673,7 @@ d( F \oplus s, H) < d(F, H)
 $$
 
 Let $s = ( c _ I, c _ 1, c _ 2, \dots, c _ {III} ) = ( s _ 0, s _ 1, s _ 2, \dots, s _ {m-1} )$
-( $c _ I$ the type `I` boundary cell chosen from Phase I, $c _ {III}$ the ending ceall of the
+( $c _ I$ the type `I` boundary cell chosen from Phase I, $c _ {III}$ the ending cell of the
 alternating strip of Phase II).
 
 
@@ -581,7 +722,7 @@ So islands formed by the $F$ boundary.
 
 The intuition is that even alternating strip flips don't merge cycles, so paths outside of the alternating
 strip flip remain unaffected.
-If there were a type `III` bounary cell, cycles might get merged and have long ranging effects on connectivity
+If there were a type `III` boundary cell, cycles might get merged and have long ranging effects on connectivity
 and other paths.
 
 ---
@@ -623,7 +764,7 @@ Here's an overview:
 * (Base case) If a type `III` border cell is present in $a _ 0$, or in adjacent cell, $c$, after any application of
   $a _ 0$, then trivially true by taking $S = (a _ 0)$ or $S = (a _ 0, c)$ respectively
   - subsequently can assume no type `III` cell in $a _ 0$ or after an application of $a _ 0$
-* Find the largets $i$ s.t. $s _ i$ shares area or an edge with $A$
+* Find the largest $i$ s.t. $s _ i$ shares area or an edge with $A$
   - if no such $i$ exists, $(a _ 0, s _ 0, s _ 1, \dots, s _ {n-1})$ is the static alternating strip sequence with area no bigger by inductive step
 * case analysis for when a $s _ i$ is separate, edge-adjacent but non-overlapping (side, top) or area overlapping 
 
@@ -637,9 +778,9 @@ In [U96], Lemma 7.1:
 > Let $G _ F$ be type `III` boundary cell free, let $s$ be and alternating strip in $G _ F$,
 > let $x$, $y$ be two vertices in $G ^ * _ F$ not on $s$.
 > If a path, $p$, exists between $x$ and $y$, and $p$ misses the end of strip $s$ ($|s| = m, s _ {m-1} \not\in p$),
-> with $p'$ a path betwee $x$ and $y$ in $G ^ * _ { ( F \oplus s ) }$, then:
+> with $p'$ a path between $x$ and $y$ in $G ^ * _ { ( F \oplus s ) }$, then:
 > 
-> $v \in p, v \in s \to v \in p', v \text{altnerating cell} (G _ {(F \oplus s)})$
+> $v \in p, v \in s \to v \in p', v \text{alternating cell} (G _ {(F \oplus s)})$
 >
 > $v \in p' \& \text{alternating cell} (G _ {(F \oplus s)}) \to v \in p, v \in s$
 >
@@ -767,7 +908,7 @@ pretend to flip the shared edge between $c _ {II}$ and $c _ {III}$, making $c _ 
 walk down the dual graph, away from the remaining 'on' edge in $c _ {II}$ until you hit a type `III` cell.
 
 If none exists, don't do anything.
-If a type `III` does exist, add a **chain** node with the appropriate **odd** or **evene** node and length of strip weight.
+If a type `III` does exist, add a **chain** node with the appropriate **odd** or **even** node and length of strip weight.
 
 This is done for *both* directions, if applicable, for every type `II` cell encountered.
 That is, a type `II` cell might have two type `III` cell neighbors on both of its active edges, in which
@@ -826,7 +967,7 @@ The linking procedure is:
   cells are connected
 
 All this is ensuring that the flip is identifying a bridge cell and pushing
-it around for eventualy 2-factor component connection.
+it around for eventually 2-factor component connection.
 
 Since the chain needs to have it's neighboring alternating strip activated,
 in addition to keeping the bridge cell, it can only be linked from
@@ -850,7 +991,7 @@ pg. 59:
 
 pg. 52:
 
-> The bottommost and topmost vertical dark edges *are* ~not~ implied by the degree constraint - ...
+> The bottom most and topmost vertical dark edges *are* ~not~ implied by the degree constraint - ...
 
 
 References
