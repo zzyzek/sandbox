@@ -21,7 +21,7 @@ I'm trying to work through Umans (and Lenhart's) HC thesis and paper.
 | $G _ a \oplus G _ b$ | Symmetric difference ($\oplus$). Edge if exactly one edge in $G _ a$ or $G _ b$ | Also called "flipping" (esp. w.r.t. a cycle or path). Essentially the `xor` operation on graph edges. |
 | **Alternating cycle** | A cycle in $G _ F$ whose edges alternate parity | Flipping alternating cycles keeps 2-factor property |
 | **Cell** | A four edge cycle in $G _ F$ | |
-| **Alternating Cell** | **overloaded term.** Either, an independent cell whose 4 edges are alternating when traversing in a clockwise or counter clockwise direction (so (up,left,down,right) of `[1,0,1,0]` or `[0,1,0,1]`) **or** If the cell cycle is an alternating cycle, it's called an alternating cell | Umans thesis mostly uses the first defintion later in his thesis |
+| **Alternating Cell** | **overloaded term.** Either, an independent cell whose 4 edges are alternating when traversing in a clockwise or counter clockwise direction (so (up,left,down,right) of `[1,0,1,0]` or `[0,1,0,1]`) **or** If the cell cycle is in an alternating cycle, it's called an alternating cell | Umans thesis mostly uses the first defintion later in his thesis |
 | **Area** | of cycle $C$ is the number of interior cells of $C$ | |
 | **Nested** | Two edge-disjoint cycles are nested if one is entirely in the other | |
 | **Intersect** | Two edge-disjoint cycles intersect if they share at least one interior cell | They must share vertices but do not share edges |
@@ -65,6 +65,14 @@ candidates:
 * static alternating strip sequence, SASS
 * mondo/muddled alternating strip sequence, MASS
   - disordered alternating strip sequence DASS
+
+## List of Theorems and Lemmas
+
+
+
+
+
+
 
 ---
 
