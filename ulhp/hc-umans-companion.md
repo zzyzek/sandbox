@@ -69,6 +69,9 @@ candidates:
 ## List of Theorems and Lemmas
 
 
+> **Lemma 2.2**: If $G$ is bipartite then $G ^ { * }$ is also bipartite.
+
+> **Lemma 2.3**: A perfect matching exists in $G ^ { * }$ iff a 2-factor exists in $G$.
 
 
 
