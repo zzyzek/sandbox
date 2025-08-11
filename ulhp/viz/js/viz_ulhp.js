@@ -289,6 +289,7 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
 }
 */
 
+/*
 function ulhp_dualRegionFlood(grid_info) {
   let dual_code_idir = {
     "." : [1,1,1,1],
@@ -405,27 +406,89 @@ function ulhp_dualRegionFlood(grid_info) {
 
   }
 
-  /*
-  console.log("#region of dual");
-  for (let y=0; y<grid_size[1]; y++) {
-    let yr = grid_size[1] - y - 1;
-
-    let a = [];
-
-    for (let x=0; x<grid_size[0]; x++) {
-      let idx = xy2idx([x,yr], grid_size);
-
-      if (grid_region[idx] == 0) { a.push(' '); }
-      else { a.push( grid_region[idx].toString() ); }
-
-    }
-
-    console.log(a.join(","));
-  }
-  */
-
   return grid_region;
 
+}
+*/
+
+function ulhp_dualAdjacencyGraph(grid_info) {
+  let dual_code_idir = {
+    "." : [1,1,1,1],
+    " " : [1,1,1,1],
+    "'" : [1,1,1,1],
+
+    "^" : [1,1,0,1],
+    ">" : [0,1,1,1],
+    "v" : [1,1,1,0],
+    "<" : [1,0,1,1],
+
+    "c" : [1,0,0,0],
+    "n" : [0,0,0,1],
+    "p" : [0,1,0,0],
+    "u" : [0,0,1,0],
+
+    "L" : [1,0,1,0],
+    "F" : [1,0,0,1],
+    "7" : [0,1,0,1],
+    "J" : [0,1,1,0],
+
+    "-" : [1,1,0,0],
+    "|" : [0,0,1,1]
+  };
+
+  let idir_dxy = [
+    [1,0], [-1,0],
+    [0,1], [0,-1]
+  ];
+
+  let oppo = [ 1,0, 3,2 ];
+
+  let grid_code = grid_info.dualG.grid_code;
+  let grid_size = grid_info.dualG.size;
+
+  let Adj = {};
+
+  for (let y=0; y<grid_size[1]; y++) {
+    for (let x=0; x<grid_size[0]; x++) {
+      let idx = x + (y*grid_size[0]);
+
+      let cur_valid_idir = dual_code_idir[ grid_code[idx] ];
+
+      let cur_node_name = x.toString() + "," + y.toString();
+
+      let v_nei = {};
+
+      for (let idir=0; idir<idir_dxy.length; idir++) {
+        if (cur_valid_idir[idir] == 0) { continue; }
+
+        let dxy = idir_dxy[idir];
+        let nei_cell_xy = [ x + dxy[0], y + dxy[1] ];
+
+        if ((nei_cell_xy[0] < 0) || (nei_cell_xy[0] >= grid_size[0]) ||
+            (nei_cell_xy[1] < 0) || (nei_cell_xy[1] >= grid_size[1])) {
+          continue;
+        }
+
+        let nei_cell_idx = xy2idx( nei_cell_xy, grid_size );
+        let nei_code = grid_code[nei_cell_idx];
+
+        let nei_valid_idir = dual_code_idir[ nei_code ];
+        if (nei_valid_idir[ oppo[idir] ] == 0) {
+          continue;
+        }
+
+        let nei_node_name = nei_cell_xy[0].toString() + "," + nei_cell_xy[1].toString();
+
+        v_nei[ nei_node_name ] = 1;
+
+      }
+
+      Adj[ cur_node_name ] = v_nei;
+
+    }
+  }
+
+  return Adj;
 }
 
 // we're in the process of development.
@@ -445,6 +508,152 @@ function ulhp_hp(grid_info) {
 
   let strip_info = ulhp.catalogueAlternatingStrip(grid_info);
 
+  g_ui.data["strip_info"] = strip_info;
+
+  ulhp_dualAdjacencyGraph(grid_info);
+
+  let adj = ulhp_dualAdjacencyGraph(grid_info);
+  let apsp = dijkstra.all_pair_shortest_path(adj);
+
+  g_ui.data["apsp"] = apsp;
+  g_ui.data["A"] = adj;
+
+  // strip graph
+  //
+  let SG_V = {},
+      SG_E = {};
+
+  let boundary_v = [];
+
+  let SG_v_info = [];
+
+  let v_lib = {};
+
+  let v_begin = {};
+  let v_chain = {};
+
+  for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
+    let strip = strip_info[strip_idx];
+    let cell_key = strip.s[0].toString() + "," + strip.s[1].toString();
+
+    if (strip.type.search('^begin') == 0) { v_begin[ cell_key ] = strip; }
+    else                                  { v_chain[ cell_key ] = strip; }
+
+    let node_name = strip.type + ":" + strip.n.toString() + ":d" + strip.idir.toString() + ":R" + strip.sRegion.toString();
+
+    SG_V[node_name] = strip;
+  }
+
+  g_ui.data["v_begin"] = v_begin;
+  g_ui.data["v_chain"] = v_chain;
+
+  // first do begin
+  // link begin if chain lies directly on end dongle
+  // link begin if another begin on min path between end dongles
+  //
+  for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
+    let strip = strip_info[strip_idx];
+    let cell_key = strip.s[0].toString() + "," + strip.s[1].toString();
+
+    //if (strip.type.search('^chain') == 0) { continue; }
+    if ((strip.n%2) == 1) { continue; }
+
+    let node_name = strip.type + ":" + cell_key + ":n" + strip.n.toString() + ":d" + strip.idir.toString() + ":R" + strip.sRegion.toString();
+
+    //let is_chain = false;
+    //if (strip.type.search('^chain') == 0) { is_chain = true; }
+    //let node_name = strip.type + ":" + strip.n.toString() + ":d" + strip.idir.toString() + ":R" + strip.sRegion.toString();
+
+    let xy_e = [
+      strip.s[0] + strip.dxy[0]*(strip.n-1),
+      strip.s[1] + strip.dxy[1]*(strip.n-1)
+    ];
+
+    let xy_l = [
+      xy_e[0] + idir_ortho_dxy[strip.idir][0][0],
+      xy_e[1] + idir_ortho_dxy[strip.idir][0][1]
+    ];
+
+    let xy_r = [
+      xy_e[0] + idir_ortho_dxy[strip.idir][1][0],
+      xy_e[1] + idir_ortho_dxy[strip.idir][1][1]
+    ];
+
+    let l_key = xy_l[0].toString() + "," + xy_l[1].toString();
+    let r_key = xy_r[0].toString() + "," + xy_r[1].toString();
+
+    //if ( !(l_key in apsp[r_key]) ) { continue; }
+
+    let path_info = dijkstra.all_pair_shortest_path_reconstruct( apsp, l_key, r_key );
+    let min_path = path_info.path;
+    for (let p_idx=0; p_idx < min_path.length; p_idx++) {
+
+      let v_name = min_path[p_idx];
+
+      if (v_name in v_begin) {
+
+        let dst_strip = v_begin[v_name];
+        let dst_node_name = dst_strip.type + ":" +
+                            v_name + ":" +
+                            "n" + dst_strip.n.toString() + ":" +
+                            "d" + dst_strip.idir.toString() + ":" +
+                            "R" + dst_strip.sRegion.toString();
+
+        if (!(node_name in SG_E)) {
+          SG_E[node_name] = {};
+        }
+
+        if (!(dst_node_name in SG_E[node_name])) {
+          SG_E[node_name][dst_node_name] = strip.n;
+        }
+        console.log(">>>BEG: beg vtx:", v_name, "in path of", l_key, "->", r_key, "(",cell_key,")", strip);
+      }
+
+      if ( ((p_idx == 0) || (p_idx == (min_path.length-1))) &&
+           (v_name in v_chain) ) {
+
+        let dst_strip = v_chain[v_name];
+        let dst_node_name = dst_strip.type + ":" +
+                            v_name + ":" +
+                            "n" + dst_strip.n.toString() + ":" +
+                            "d" + dst_strip.idir.toString() + ":" +
+                            "R" + dst_strip.sRegion.toString();
+
+        if (!(node_name in SG_E)) {
+          SG_E[node_name] = {};
+        }
+
+        if (!(dst_node_name in SG_E[node_name])) {
+          SG_E[node_name][dst_node_name] = strip.n;
+        }
+
+        console.log(">>>CHAIN: chain vtx:", v_name, "in path of", l_key, "->", r_key, "(",cell_key,")", strip);
+      }
+
+    }
+
+    v_lib[ cell_key ] = { "t": "s", "p": cell_key, "l": l_key, "r": r_key, "strip": strip };
+    v_lib[ l_key ] = {  "t": "l", "p": cell_key, "l": l_key, "r": r_key, "strip": strip };
+    v_lib[ r_key ] = {  "t": "r", "p": cell_key, "l": l_key, "r": r_key, "strip": strip };
+    //SG_v_info.push( {"name": node_name, "xy_l": xy_l, "xy_r": xy_r } );
+
+    //if (strip.sRegion == 0) { boundary_v.push(node_name); }
+  }
+
+  console.log(SG_E);
+
+
+  //console.log(v_lib);
+
+
+  //let res = dijkstra.all_pair_shortest_path_reconstruct( apsp, '3,1', '6,9' );
+  //console.log(">>>", res.path);
+
+  //console.log(adj);
+  //console.log(apsp);
+
+  return;
+
   let cell_strip_map = {};
 
   for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
@@ -455,7 +664,17 @@ function ulhp_hp(grid_info) {
     cell_strip_map[cell_key].push( strip );
   }
 
-  let dual_region = ulhp_dualRegionFlood(grid_info);
+  let dual_code = grid_info.dualG.grid_code;
+  let dual_size = grid_info.dualG.grid_size;
+  for (let y=0; y<dual_size[1]; y++) {
+    for (let x=0; x<dual_size[0]; x++) {
+      let idx = x + (y*dual_size[0]);
+
+
+    }
+  }
+
+  //let dual_region = ulhp_dualRegionFlood(grid_info);
 
   for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
     let strip = strip_info[strip_idx];

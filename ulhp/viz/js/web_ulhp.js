@@ -57,6 +57,152 @@
 // ---
 
 var dijkstra = {
+
+  // straight implementation based of of Floyd-Warshal
+  // all pairs shortest path algorithm:
+  //
+  //   https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm
+  //
+  // returns:
+  //
+  //  "return"  : 0 on success, non-zero on error
+  //  "msg"     : convenience message
+  //  "V"       : vertex array list
+  //  "dist"    : dict of dicts with shortest cost (vertex to itself is 0)
+  //  "prev"    : auxiliary structure for reconstruction
+  //
+  all_pair_shortest_path: function(graph) {
+    let prev = {};
+    let dist = {};
+
+    let v_list = [];
+    for (let v in graph) {
+      v_list.push(v);
+      prev[v] = {};
+      dist[v] = {};
+    }
+
+    for (let v_idx=0; v_idx < v_list.length; v_idx++) {
+      let v = v_list[v_idx];
+
+      for (let u_idx=0; u_idx < v_list.length; u_idx++) {
+        let u = v_list[u_idx];
+        dist[v][u] = undefined;
+        prev[v][u] = undefined;
+      }
+
+      dist[v][v] = 0;
+      prev[v][v] = v;
+
+      for (let u in graph[v]) {
+        dist[v][u] = graph[v][u];
+        prev[v][u] = v;
+      }
+    }
+
+    let max_k = v_list.length;
+
+    //for (let k=0; k<v_list.length; k++) {
+    for (let k=0; k<max_k; k++) {
+      let v_k = v_list[k];
+      for (let i=0; i<v_list.length; i++) {
+        let v_i = v_list[i];
+        for (let j=0; j<v_list.length; j++) {
+          let v_j = v_list[j];
+
+          // rhs infinity, regardless of lhs, just skip
+          //
+          if ((typeof dist[v_i][v_k] === "undefined") ||
+              (typeof dist[v_k][v_j] === "undefined")) {
+            continue;
+          }
+
+          // lhs infinity, rhs valid, so set to rhs
+          //
+          if (typeof dist[v_i][v_j] === "undefined") {
+            dist[v_i][v_j] = dist[v_i][v_k] + dist[v_k][v_j];
+            prev[v_i][v_j] = prev[v_k][v_j];
+            continue;
+          }
+
+          // otherwise, do test
+          //
+          if (dist[v_i][v_j] > (dist[v_i][v_k] + dist[v_k][v_j])) {
+            dist[v_i][v_j] = dist[v_i][v_k] + dist[v_k][v_j];
+            prev[v_i][v_j] = prev[v_k][v_j];
+          }
+
+        }
+      }
+    }
+
+    let dist_clean = {};
+    let prev_clean = {};
+    for (let v_idx=0; v_idx < v_list.length; v_idx++) {
+      let v = v_list[v_idx];
+
+      dist_clean[v] = {};
+      prev_clean[v] = {};
+
+      for (let u_idx=0; u_idx < v_list.length; u_idx++) {
+        let u = v_list[u_idx];
+
+        if (typeof dist[v][u] !== "undefined") {
+          dist_clean[v][u] = dist[v][u];
+        }
+
+        if (typeof prev[v][u] !== "undefined") {
+          prev_clean[v][u] = prev[v][u];
+        }
+
+      }
+    }
+
+    return { "return": 0, "msg":"", "dist": dist_clean, "prev": prev_clean, "V": v_list };
+  },
+
+  // `ctx` is return value from `all_pair_shortest_path` Ffloyd-Warshal algorithm above.
+  //
+  // returns:
+  //
+  //  "return"  : 0 on success, non-zero on error
+  //  "msg"     : convenience message
+  //  "path"    : path from s to d (inclusive) if it exists
+  //
+  all_pair_shortest_path_reconstruct: function(ctx, s, d) {
+    if (!("prev" in ctx)) { return { "return":-1, "msg": "'prev' structure not in context", "path": [] }; }
+    if (!("V" in ctx)) { return { "return":-1, "msg": "'V' structure not in context", "path": [] }; }
+
+    let v_list = ctx.V;
+    let prev = ctx.prev;
+
+    if (!(s in prev)) { return { "return":-2, "msg": "start vertex not in 'prev' structure", "path":[] }; }
+    if (typeof prev[s][d] === "undefined") {
+      return { "return":-3, "msg": "no path", "path": [] };
+    }
+
+    if (s == d) {
+      return { "return": 0, "msg": "", "path": [ s ] };
+    }
+
+    let path = [ d ];
+    let v = d;
+    for (let it=0; it<v_list.length; it++) {
+
+      v = ctx.prev[s][v]
+      path.push(v);
+
+      if (v == s) {
+        path.reverse();
+        return { "return": 0, "msg":"", "path": path };
+      }
+
+    }
+
+    return { "return": -5, "msg": "infinite loop", "path": [] };
+  },
+
+
   single_source_shortest_paths: function(graph, s, d) {
     // Predecessor map for each node that has been encountered.
     // node ID => predecessor node ID
@@ -154,10 +300,12 @@ var dijkstra = {
     return path_info;
   },
 
+
+
   /**
    * A very naive priority queue implementation.
    */
-  PriorityQueue: {
+  PriorityQueueNaive: {
     make: function (opts) {
       var T = dijkstra.PriorityQueue,
           t = {},
@@ -197,7 +345,187 @@ var dijkstra = {
     empty: function () {
       return this.queue.length === 0;
     }
+  },
+
+
+
+  /**
+   * Priority queue implementation.
+   */
+  PriorityQueue: {
+    make: function (opts) {
+      var T = dijkstra.PriorityQueue,
+          t = {},
+          key;
+      opts = opts || {};
+      for (key in T) {
+        if (T.hasOwnProperty(key)) {
+          t[key] = T[key];
+        }
+      }
+      t.queue = dijkstra.MinHeap.make(T.default_sorter.bind(t));
+      t.priorities = {};
+      return t;
+    },
+
+    default_sorter: function (a, b) {
+      return this.priorities[a] - this.priorities[b];
+    },
+
+    /**
+     * Add a new item to the queue and ensure the highest priority element
+     * is at the front of the queue.
+     */
+    push: function (value, cost) {
+      this.priorities[value] = cost;
+      this.queue.insert(value);
+    },
+
+    /**
+     * Return the highest priority element in the queue.
+     */
+    pop: function () {
+      var next_node_value = this.queue.pop();
+      var next_node_cost = this.priorities[next_node_value];
+      delete this.priorities[next_node_value];
+
+      var next_node = {
+        value: next_node_value,
+        cost: next_node_cost
+      };
+      return next_node;
+    },
+
+    empty: function () {
+      return this.queue.empty();
+    }
+  },
+
+  /**
+   * Min heap implementation.
+   */
+  MinHeap: {
+    make: function (sorter) {
+      var heap = {};
+      var minHeap = dijkstra.MinHeap;
+      for (var key in minHeap) {
+        if (minHeap.hasOwnProperty(key)) {
+          heap[key] = minHeap[key];
+        }
+      } 
+      heap.sorter = sorter;
+      heap.container = [];
+
+      return heap;
+    },
+    /**
+     * Finding parents or children with indexes.
+     */
+    get_left_child_index(parent_index) {
+      return (2 * parent_index) + 1;
+    },
+    get_right_child_index(parent_index) {
+      return (2 * parent_index) + 2;
+    },
+    get_parent_index(child_index) {
+      return Math.floor((child_index - 1) / 2);
+    },
+    has_parent(child_index) {
+      return this.get_parent_index(child_index) >= 0;
+    },
+    has_left_child(parent_index) {
+      return this.get_left_child_index(parent_index) < this.container.length;
+    },
+    has_right_child(parent_index) {
+      return this.get_right_child_index(parent_index) < this.container.length;
+    },
+    left_child(parent_index) {
+      return this.container[this.get_left_child_index(parent_index)];
+    },
+    right_child(parent_index) {
+      return this.container[this.get_right_child_index(parent_index)];
+    },
+    parent(child_index) {
+      return this.container[this.get_parent_index(child_index)];
+    },
+    swap(first, second) {
+      var tmp = this.container[second];
+      this.container[second] = this.container[first];
+      this.container[first] = tmp;
+    },
+
+    /**
+     * Returns element with the highest priority. 
+     */
+    pop() {
+      if (this.container.length === 1) {
+        return this.container.pop();
+      }
+  
+      var head_index = 0;
+      var last_element = this.container.pop();
+      var first_element = this.container[head_index];
+  
+      this.container[head_index] = last_element;
+      this.heapify_down(head_index);
+  
+      return first_element;
+    },  
+
+    insert(value) {
+      this.container.push(value);
+      this.heapify_up(this.container.length - 1);
+    },
+
+    heapify_up(start_index) {
+      var current_index = start_index || this.container.length - 1;
+  
+      while (
+        this.has_parent(current_index) && 
+        !this.pair_is_in_correct_order(
+          this.parent(current_index), 
+          this.container[current_index])
+      ) {
+        this.swap(current_index, this.get_parent_index(current_index));
+        current_index = this.get_parent_index(current_index);
+      }
+    },
+    
+    heapify_down(start_index = 0) {
+      var current_index = start_index;
+      var next_index = null;
+  
+      while (this.has_left_child(current_index)) {
+        if (
+          this.has_parent(current_index) && 
+          this.pair_is_in_correct_order(
+            this.right_child(current_index), 
+            this.left_child(current_index))
+        ) {
+          next_index = this.get_right_child_index(current_index);
+        } else {
+          next_index = this.get_left_child_index(current_index);
+        }
+  
+        if (this.pair_is_in_correct_order(
+          this.container[current_index],
+          this.container[next_index]
+        )) {
+          break;
+        }
+  
+        this.swap(current_index, next_index);
+        current_index = next_index;
+      }
+    },
+    empty() {
+      return this.container.length === 0;
+    },
+    pair_is_in_correct_order(a, b) {
+      return this.sorter(a, b) < 0;
+    }
   }
+
 };
 
 
@@ -1362,6 +1690,123 @@ function _t0() {
 //----
 //----
 
+function ulhp_dualRegionFlood(grid_info) {
+  let dual_code_idir = {
+    "." : [1,1,1,1],
+    " " : [1,1,1,1],
+    "'" : [1,1,1,1],
+
+    "^" : [1,1,0,1],
+    ">" : [0,1,1,1],
+    "v" : [1,1,1,0],
+    "<" : [1,0,1,1],
+
+    "c" : [1,0,0,0],
+    "n" : [0,0,0,1],
+    "p" : [0,1,0,0],
+    "u" : [0,0,1,0],
+
+    "L" : [1,0,1,0],
+    "F" : [1,0,0,1],
+    "7" : [0,1,0,1],
+    "J" : [0,1,1,0],
+
+    "-" : [1,1,0,0],
+    "|" : [0,0,1,1]
+  };
+
+  let idir_dxy = [
+    [1,0], [-1,0],
+    [0,1], [0,-1]
+  ];
+
+  let oppo = [ 1,0, 3,2 ];
+
+  let grid_region = [];
+  let cell_queue = [];
+
+  let grid_size = grid_info.dualG.size;
+  let grid_code = grid_info.dualG.grid_code;
+
+  for (let idx = 0; idx < grid_code.length; idx++) {
+    grid_region.push(-1);
+    cell_queue.push(idx);
+  }
+  let cur_region_id = 0;
+
+  for (let _i=0; _i<cell_queue.length; _i++) {
+    let cell_idx = cell_queue[_i];
+
+    if (grid_region[cell_idx] >= 0) { continue; }
+
+    let flood_stack = [ cell_idx ];
+
+    while (flood_stack.length > 0) {
+
+      // if it's in the stack, process it and
+      // we mark it with the region
+      //
+      let flood_cell_idx = flood_stack.pop();
+      grid_region[flood_cell_idx] = cur_region_id;
+
+      let flood_cell_code = grid_code[flood_cell_idx];
+      let flood_cell_xy = idx2xy( flood_cell_idx, grid_size );
+
+      let is_open_cell = false;
+      if ( (flood_cell_code == ".") ||
+           (flood_cell_code == " ") ||
+           (flood_cell_code == "'") ) {
+        is_open_cell = true;
+      }
+
+      // traverse neighbors,
+      // if they're within bounds and the region is unmarked,
+      // put it in the stack for processing.
+      //
+      let cur_valid_idir = dual_code_idir[ flood_cell_code ];
+
+      for (let idir=0; idir < cur_valid_idir.length; idir++) {
+        if (cur_valid_idir[idir] == 0) { continue; }
+
+        let dxy = idir_dxy[ idir ];
+
+        let nei_cell_xy = [
+          flood_cell_xy[0] + dxy[0],
+          flood_cell_xy[1] + dxy[1]
+        ];
+
+        if ((nei_cell_xy[0] < 0) || (nei_cell_xy[0] >= grid_size[0]) ||
+            (nei_cell_xy[1] < 0) || (nei_cell_xy[1] >= grid_size[1])) {
+          continue;
+        }
+
+        let nei_cell_idx = xy2idx( nei_cell_xy, grid_size );
+        let nei_code = grid_code[nei_cell_idx];
+
+        // make sure we can 'dock' to neighbor
+        //
+        let nei_valid_idir = dual_code_idir[ nei_code ];
+        if (nei_valid_idir[ oppo[idir] ] == 0) {
+          continue;
+        }
+
+        // add if not already filled
+        //
+        if (grid_region[nei_cell_idx] < 0) {
+          flood_stack.push(nei_cell_idx);
+        }
+
+      }
+    }
+
+    // one region processed, go onto the next
+    //
+    cur_region_id++;
+  }
+
+  return grid_region;
+}
+
 
 // Following the papers, the cells are labelled:
 //
@@ -1404,6 +1849,8 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
       typeII_start = [],
       typeIII_start = [],
       typeIV_start = [];
+
+  let grid_region = ulhp_dualRegionFlood(grid_info);
 
   for (let y=0; y<grid_size[1]; y++) {
     for (let x=0; x<grid_size[0]; x++) {
@@ -1486,6 +1933,7 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
     let sx = typeI_start[i].x,
         sy = typeI_start[i].y,
         code = typeI_start[i].code;
+    let s_idx = sx + (sy*grid_size[0]);
 
     let idir = strip_start_code_idir[code];
 
@@ -1501,7 +1949,7 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
       let cur_code = grid_code[cur_idx];
 
       if ( (cur_code == '|') || (cur_code == '-') ) {
-        strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir, "n": cur_n, "type": "begin.i" } );
+        strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir, "n": cur_n, "type": "begin.i", "sRegion": grid_region[s_idx] } );
         break;
       }
 
@@ -1519,8 +1967,9 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
     let sx = typeIII_start[i].x,
         sy = typeIII_start[i].y,
         code = typeIII_start[i].code;
+    let s_idx = sx + (sy*grid_size[0]);
 
-    strip_seq.push( {"s": [sx,sy], "dxy" : [0,0], "idir": 0, "n": 1, "type": "begin.iii" } );
+    strip_seq.push( {"s": [sx,sy], "dxy" : [0,0], "idir": 0, "n": 1, "type": "begin.iii", "sRegion": grid_region[s_idx] } );
   }
 
   // idir_pair holds direction to look for the
@@ -1537,6 +1986,8 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
     let sx = typeII_start[i].x,
         sy = typeII_start[i].y,
         code = typeII_start[i].code;
+
+    let s_idx = sx + (sy*grid_size[0]);
 
     let idir_pair = typeii_start_code_idir[code];
 
@@ -1586,7 +2037,7 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
         let cur_idx = cur_x + (cur_y*grid_size[0]);
         let cur_code = grid_code[cur_idx];
         if ( (cur_code == '|') || (cur_code == '-') ) {
-          strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir_cur, "n": cur_n, "type": "chain.ii" } );
+          strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir_cur, "n": cur_n, "type": "chain.ii", "sRegion": grid_region[s_idx] } );
           break;
         }
 
@@ -1604,6 +2055,8 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
         sy = typeIV_start[i].y,
         code = typeIV_start[i].code;
 
+    let s_idx = sx + (sy*grid_size[0]);
+
     let idir = typeiv_candidate_idir[code];
     let dxy = idir_dxy[idir];
 
@@ -1619,14 +2072,12 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
     let nei_code = grid_code[nei_idx];
 
     if ((nei_code == '-') || (nei_code == '|')) {
-      strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir, "n": 1, "type": "chain.iv" } );
+      strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir, "n": 1, "type": "chain.iv", "sRegion": grid_region[s_idx] } );
     }
 
   }
 
-
   return strip_seq;
-
 }
 
 
@@ -2809,6 +3260,7 @@ if (typeof module !== "undefined") {
   module.exports["dual"] = ulhp_dual;
   module.exports["dependency"] = ulhp_dependency;
   module.exports["catalogueAlternatingStrip"] = ulhp_catalogueAlternatingStrip;
+  module.exports["dualRegionFlood"] = ulhp_dualRegionFlood;
 
   module.exports["custom"] = load_custom7_1;
   module.exports["custom_C0"] = load_custom_C0;

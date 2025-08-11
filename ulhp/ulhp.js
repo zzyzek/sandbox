@@ -675,6 +675,123 @@ function _t0() {
 //----
 //----
 
+function ulhp_dualRegionFlood(grid_info) {
+  let dual_code_idir = {
+    "." : [1,1,1,1],
+    " " : [1,1,1,1],
+    "'" : [1,1,1,1],
+
+    "^" : [1,1,0,1],
+    ">" : [0,1,1,1],
+    "v" : [1,1,1,0],
+    "<" : [1,0,1,1],
+
+    "c" : [1,0,0,0],
+    "n" : [0,0,0,1],
+    "p" : [0,1,0,0],
+    "u" : [0,0,1,0],
+
+    "L" : [1,0,1,0],
+    "F" : [1,0,0,1],
+    "7" : [0,1,0,1],
+    "J" : [0,1,1,0],
+
+    "-" : [1,1,0,0],
+    "|" : [0,0,1,1]
+  };
+
+  let idir_dxy = [
+    [1,0], [-1,0],
+    [0,1], [0,-1]
+  ];
+
+  let oppo = [ 1,0, 3,2 ];
+
+  let grid_region = [];
+  let cell_queue = [];
+
+  let grid_size = grid_info.dualG.size;
+  let grid_code = grid_info.dualG.grid_code;
+
+  for (let idx = 0; idx < grid_code.length; idx++) {
+    grid_region.push(-1);
+    cell_queue.push(idx);
+  }
+  let cur_region_id = 0;
+
+  for (let _i=0; _i<cell_queue.length; _i++) {
+    let cell_idx = cell_queue[_i];
+
+    if (grid_region[cell_idx] >= 0) { continue; }
+
+    let flood_stack = [ cell_idx ];
+
+    while (flood_stack.length > 0) {
+
+      // if it's in the stack, process it and
+      // we mark it with the region
+      //
+      let flood_cell_idx = flood_stack.pop();
+      grid_region[flood_cell_idx] = cur_region_id;
+
+      let flood_cell_code = grid_code[flood_cell_idx];
+      let flood_cell_xy = idx2xy( flood_cell_idx, grid_size );
+
+      let is_open_cell = false;
+      if ( (flood_cell_code == ".") ||
+           (flood_cell_code == " ") ||
+           (flood_cell_code == "'") ) {
+        is_open_cell = true;
+      }
+
+      // traverse neighbors,
+      // if they're within bounds and the region is unmarked,
+      // put it in the stack for processing.
+      //
+      let cur_valid_idir = dual_code_idir[ flood_cell_code ];
+
+      for (let idir=0; idir < cur_valid_idir.length; idir++) {
+        if (cur_valid_idir[idir] == 0) { continue; }
+
+        let dxy = idir_dxy[ idir ];
+
+        let nei_cell_xy = [
+          flood_cell_xy[0] + dxy[0],
+          flood_cell_xy[1] + dxy[1]
+        ];
+
+        if ((nei_cell_xy[0] < 0) || (nei_cell_xy[0] >= grid_size[0]) ||
+            (nei_cell_xy[1] < 0) || (nei_cell_xy[1] >= grid_size[1])) {
+          continue;
+        }
+
+        let nei_cell_idx = xy2idx( nei_cell_xy, grid_size );
+        let nei_code = grid_code[nei_cell_idx];
+
+        // make sure we can 'dock' to neighbor
+        //
+        let nei_valid_idir = dual_code_idir[ nei_code ];
+        if (nei_valid_idir[ oppo[idir] ] == 0) {
+          continue;
+        }
+
+        // add if not already filled
+        //
+        if (grid_region[nei_cell_idx] < 0) {
+          flood_stack.push(nei_cell_idx);
+        }
+
+      }
+    }
+
+    // one region processed, go onto the next
+    //
+    cur_region_id++;
+  }
+
+  return grid_region;
+}
+
 
 // Following the papers, the cells are labelled:
 //
@@ -717,6 +834,8 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
       typeII_start = [],
       typeIII_start = [],
       typeIV_start = [];
+
+  let grid_region = ulhp_dualRegionFlood(grid_info);
 
   for (let y=0; y<grid_size[1]; y++) {
     for (let x=0; x<grid_size[0]; x++) {
@@ -799,6 +918,7 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
     let sx = typeI_start[i].x,
         sy = typeI_start[i].y,
         code = typeI_start[i].code;
+    let s_idx = sx + (sy*grid_size[0]);
 
     let idir = strip_start_code_idir[code];
 
@@ -814,7 +934,7 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
       let cur_code = grid_code[cur_idx];
 
       if ( (cur_code == '|') || (cur_code == '-') ) {
-        strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir, "n": cur_n, "type": "begin.i" } );
+        strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir, "n": cur_n, "type": "begin.i", "sRegion": grid_region[s_idx] } );
         break;
       }
 
@@ -832,8 +952,9 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
     let sx = typeIII_start[i].x,
         sy = typeIII_start[i].y,
         code = typeIII_start[i].code;
+    let s_idx = sx + (sy*grid_size[0]);
 
-    strip_seq.push( {"s": [sx,sy], "dxy" : [0,0], "idir": 0, "n": 1, "type": "begin.iii" } );
+    strip_seq.push( {"s": [sx,sy], "dxy" : [0,0], "idir": 0, "n": 1, "type": "begin.iii", "sRegion": grid_region[s_idx] } );
   }
 
   // idir_pair holds direction to look for the
@@ -850,6 +971,8 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
     let sx = typeII_start[i].x,
         sy = typeII_start[i].y,
         code = typeII_start[i].code;
+
+    let s_idx = sx + (sy*grid_size[0]);
 
     let idir_pair = typeii_start_code_idir[code];
 
@@ -899,7 +1022,7 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
         let cur_idx = cur_x + (cur_y*grid_size[0]);
         let cur_code = grid_code[cur_idx];
         if ( (cur_code == '|') || (cur_code == '-') ) {
-          strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir_cur, "n": cur_n, "type": "chain.ii" } );
+          strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir_cur, "n": cur_n, "type": "chain.ii", "sRegion": grid_region[s_idx] } );
           break;
         }
 
@@ -917,6 +1040,8 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
         sy = typeIV_start[i].y,
         code = typeIV_start[i].code;
 
+    let s_idx = sx + (sy*grid_size[0]);
+
     let idir = typeiv_candidate_idir[code];
     let dxy = idir_dxy[idir];
 
@@ -932,14 +1057,12 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
     let nei_code = grid_code[nei_idx];
 
     if ((nei_code == '-') || (nei_code == '|')) {
-      strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir, "n": 1, "type": "chain.iv" } );
+      strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir, "n": 1, "type": "chain.iv", "sRegion": grid_region[s_idx] } );
     }
 
   }
 
-
   return strip_seq;
-
 }
 
 
@@ -2122,6 +2245,7 @@ if (typeof module !== "undefined") {
   module.exports["dual"] = ulhp_dual;
   module.exports["dependency"] = ulhp_dependency;
   module.exports["catalogueAlternatingStrip"] = ulhp_catalogueAlternatingStrip;
+  module.exports["dualRegionFlood"] = ulhp_dualRegionFlood;
 
   module.exports["custom"] = load_custom7_1;
   module.exports["custom_C0"] = load_custom_C0;
