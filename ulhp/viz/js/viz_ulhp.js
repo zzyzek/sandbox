@@ -508,26 +508,25 @@ function ulhp_hp(grid_info) {
 
   let strip_info = ulhp.catalogueAlternatingStrip(grid_info);
 
+  //DEBUG
   g_ui.data["strip_info"] = strip_info;
-
-  ulhp_dualAdjacencyGraph(grid_info);
+  //DEBUG
 
   let adj = ulhp_dualAdjacencyGraph(grid_info);
   let apsp = dijkstra.all_pair_shortest_path(adj);
 
+  //DEBUG
   g_ui.data["apsp"] = apsp;
   g_ui.data["A"] = adj;
+  //DEBUG
 
   // strip graph
   //
   let SG_V = {},
       SG_E = {};
 
-  let boundary_v = [];
-
-  let SG_v_info = [];
-
-  let v_lib = {};
+  let start_boundary_strip = [];
+  let end_boundary_strip = [];
 
   let v_begin = {};
   let v_chain = {};
@@ -539,13 +538,19 @@ function ulhp_hp(grid_info) {
     if (strip.type.search('^begin') == 0) { v_begin[ cell_key ] = strip; }
     else                                  { v_chain[ cell_key ] = strip; }
 
-    let node_name = strip.type + ":" + strip.n.toString() + ":d" + strip.idir.toString() + ":R" + strip.sRegion.toString();
+    let node_name = strip.type + ":" + cell_key + ":n" + strip.n.toString() + ":d" + strip.idir.toString() + ":R" + strip.startRegion.toString();
+
+    if (strip.boundaryCell) { start_boundary_strip.push( node_name ); }
+    if ((strip.n%2) == 1) { end_boundary_strip.push( node_name ); }
 
     SG_V[node_name] = strip;
   }
 
+  //DEBUG
   g_ui.data["v_begin"] = v_begin;
   g_ui.data["v_chain"] = v_chain;
+  //DEBUG
+
 
   // first do begin
   // link begin if chain lies directly on end dongle
@@ -555,14 +560,10 @@ function ulhp_hp(grid_info) {
     let strip = strip_info[strip_idx];
     let cell_key = strip.s[0].toString() + "," + strip.s[1].toString();
 
-    //if (strip.type.search('^chain') == 0) { continue; }
     if ((strip.n%2) == 1) { continue; }
 
-    let node_name = strip.type + ":" + cell_key + ":n" + strip.n.toString() + ":d" + strip.idir.toString() + ":R" + strip.sRegion.toString();
+    let node_name = strip.type + ":" + cell_key + ":n" + strip.n.toString() + ":d" + strip.idir.toString() + ":R" + strip.startRegion.toString();
 
-    //let is_chain = false;
-    //if (strip.type.search('^chain') == 0) { is_chain = true; }
-    //let node_name = strip.type + ":" + strip.n.toString() + ":d" + strip.idir.toString() + ":R" + strip.sRegion.toString();
 
     let xy_e = [
       strip.s[0] + strip.dxy[0]*(strip.n-1),
@@ -582,8 +583,6 @@ function ulhp_hp(grid_info) {
     let l_key = xy_l[0].toString() + "," + xy_l[1].toString();
     let r_key = xy_r[0].toString() + "," + xy_r[1].toString();
 
-    //if ( !(l_key in apsp[r_key]) ) { continue; }
-
     let path_info = dijkstra.all_pair_shortest_path_reconstruct( apsp, l_key, r_key );
     let min_path = path_info.path;
     for (let p_idx=0; p_idx < min_path.length; p_idx++) {
@@ -597,7 +596,7 @@ function ulhp_hp(grid_info) {
                             v_name + ":" +
                             "n" + dst_strip.n.toString() + ":" +
                             "d" + dst_strip.idir.toString() + ":" +
-                            "R" + dst_strip.sRegion.toString();
+                            "R" + dst_strip.startRegion.toString();
 
         if (!(node_name in SG_E)) {
           SG_E[node_name] = {};
@@ -617,7 +616,7 @@ function ulhp_hp(grid_info) {
                             v_name + ":" +
                             "n" + dst_strip.n.toString() + ":" +
                             "d" + dst_strip.idir.toString() + ":" +
-                            "R" + dst_strip.sRegion.toString();
+                            "R" + dst_strip.startRegion.toString();
 
         if (!(node_name in SG_E)) {
           SG_E[node_name] = {};
@@ -632,75 +631,34 @@ function ulhp_hp(grid_info) {
 
     }
 
-    v_lib[ cell_key ] = { "t": "s", "p": cell_key, "l": l_key, "r": r_key, "strip": strip };
-    v_lib[ l_key ] = {  "t": "l", "p": cell_key, "l": l_key, "r": r_key, "strip": strip };
-    v_lib[ r_key ] = {  "t": "r", "p": cell_key, "l": l_key, "r": r_key, "strip": strip };
-    //SG_v_info.push( {"name": node_name, "xy_l": xy_l, "xy_r": xy_r } );
-
-    //if (strip.sRegion == 0) { boundary_v.push(node_name); }
   }
+
+  let SG_apsp = dijkstra.all_pair_shortest_path(SG_E);
 
   console.log(SG_E);
 
+  console.log(SG_apsp);
+  console.log("start strips (start_boundary_strip):", start_boundary_strip);
+  console.log("end strips (enD_boundary_strip):", end_boundary_strip);
 
-  //console.log(v_lib);
+  let SG_dist = SG_apsp.dist;
 
+  console.log(">>>", SG_dist);
 
-  //let res = dijkstra.all_pair_shortest_path_reconstruct( apsp, '3,1', '6,9' );
-  //console.log(">>>", res.path);
+  for (let s_idx=0; s_idx < start_boundary_strip.length; s_idx++) {
+    let s_name = start_boundary_strip[s_idx];
 
-  //console.log(adj);
-  //console.log(apsp);
+    console.log(s_name, SG_dist[s_name]);
 
-  return;
+    for (let e_idx=0; e_idx < end_boundary_strip.length; e_idx++) {
+      let e_name = end_boundary_strip[e_idx];
 
-  let cell_strip_map = {};
-
-  for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
-    let strip = strip_info[strip_idx];
-    let cell_key = strip.s[0].toString() + ":" + strip.s[1].toString();
-
-    if (!(cell_key in cell_strip_map)) { cell_strip_map[cell_key] = []; }
-    cell_strip_map[cell_key].push( strip );
-  }
-
-  let dual_code = grid_info.dualG.grid_code;
-  let dual_size = grid_info.dualG.grid_size;
-  for (let y=0; y<dual_size[1]; y++) {
-    for (let x=0; x<dual_size[0]; x++) {
-      let idx = x + (y*dual_size[0]);
-
-
+      if (e_name in SG_dist[s_name]) {
+        let p_info = dijkstra.all_pair_shortest_path_reconstruct(SG_apsp, s_name, e_name);
+        console.log(">>>>>", s_name, e_name, SG_dist[s_name][e_name], p_info.path);
+      }
     }
   }
-
-  //let dual_region = ulhp_dualRegionFlood(grid_info);
-
-  for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
-    let strip = strip_info[strip_idx];
-    let strip_idir = strip.idir;
-
-    let conn_cell = [];
-    for (let ortho_idx=0; ortho_idx < idir_ortho_dxy[strip_idir].length; ortho_idx++) {
-      let Tdxy = idir_ortho_dxy[strip_idir][ortho_idx]
-
-      let conn_cell = [
-        strip.s[0] + strip.dxy[0]*(strip.n-1) + Tdxy[0],
-        strip.s[1] + strip.dxy[1]*(strip.n-1) + Tdxy[1]
-      ];
-
-      let conn_cell_key = conn_cell[0].toString() + ":" + conn_cell[1].toString();
-
-      if (!(conn_cell_key in cell_strip_map)) { continue; }
-
-
-
-    }
-
-  }
-
-
-  console.log(strip_info);
 
 }
 

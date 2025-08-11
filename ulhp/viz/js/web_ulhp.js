@@ -1850,6 +1850,8 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
       typeIII_start = [],
       typeIV_start = [];
 
+  let dualBound = [ [0,0], [grid_size[0],grid_size[1]] ];
+
   let grid_region = ulhp_dualRegionFlood(grid_info);
 
   for (let y=0; y<grid_size[1]; y++) {
@@ -1889,12 +1891,12 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
   // direction we want to find strip goes
   // in opposite direction of dark edge
   //
-  let strip_start_code_dxy = {
+  let typei_start_code_dxy = {
     ">" : [-1, 0], "<": [ 1, 0],
     "v" : [ 0, 1], "^": [ 0,-1]
   };
 
-  let strip_start_code_idir = {
+  let typei_start_code_idir = {
     ">" : 1, "<": 0,
     "v" : 2, "^": 3
   };
@@ -1917,6 +1919,16 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
     "L": [ 2, 0 ]
   }
 
+  let typeiii_start_code_dxy = {
+    "|" : [ [1,0], [-1,0] ],
+    "-" : [ [0,1], [0,-1] ]
+  };
+
+  let typeiii_start_code_idir = {
+    "|" : [0,1],
+    "-": [2,3]
+  };
+
   let typeiv_candidate_idir = {
     'c': 1, 'p': 0,
     'n': 2, 'u': 3
@@ -1927,6 +1939,13 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
   let idir_dxy  = [ [ 1, 0], [-1, 0], [ 0, 1], [ 0,-1] ];
   let oppo_dxy  = [ [-1, 0], [ 1, 0], [ 0,-1], [ 0, 1] ];
 
+  let ortho_dxy = [
+    [ [0,1], [0,-1] ],
+    [ [0,-1], [0,1] ],
+    [ [1,0], [-1,0] ],
+    [ [-1,0], [1,0] ]
+  ];
+
   let strip_seq = [];
 
   for (let i=0; i<typeI_start.length; i++) {
@@ -1935,12 +1954,29 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
         code = typeI_start[i].code;
     let s_idx = sx + (sy*grid_size[0]);
 
-    let idir = strip_start_code_idir[code];
+    let idir = typei_start_code_idir[code];
 
-    let dxy = strip_start_code_dxy[code];
+    let dxy = typei_start_code_dxy[code];
     let cur_x = sx,
         cur_y = sy,
         cur_n = 1;
+
+    let boundaryCell = false;
+    let sm_xy = [ sx + oppo_dxy[idir][0], sy + oppo_dxy[idir][1] ];
+    let pl_xy = [ sx + dxy[0] + ortho_dxy[idir][0][0], sy + dxy[1] + ortho_dxy[idir][0][1] ];
+    let pr_xy = [ sx + dxy[0] + ortho_dxy[idir][1][0], sy + dxy[1] + ortho_dxy[idir][1][1] ];
+
+    if (inBounds([sx,sy], dualBound) && inBounds(sm_xy, dualBound) &&
+        inBounds(pl_xy, dualBound) && inBounds(pr_xy, dualBound)) {
+      let sm_idx = sm_xy[0] + (sm_xy[1]*grid_size[0]);
+      let pl_idx = pl_xy[0] + (pl_xy[1]*grid_size[0]);
+      let pr_idx = pr_xy[0] + (pr_xy[1]*grid_size[0]);
+      if ( (grid_region[s_idx] == 0) &&
+           ((grid_region[sm_idx] != grid_region[pl_idx]) ||
+            (grid_region[sm_idx] != grid_region[pr_idx])) ) {
+        boundaryCell = true;
+      }
+    }
 
     while ( (cur_x >= 0) && (cur_x < grid_size[0]) &&
             (cur_y >= 0) && (cur_y < grid_size[1]) ) {
@@ -1949,7 +1985,15 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
       let cur_code = grid_code[cur_idx];
 
       if ( (cur_code == '|') || (cur_code == '-') ) {
-        strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir, "n": cur_n, "type": "begin.i", "sRegion": grid_region[s_idx] } );
+        strip_seq.push({
+          "s": [sx,sy],
+          "dxy": [dxy[0], dxy[1]],
+          "idir": idir,
+          "n": cur_n,
+          "type": "begin.i",
+          "startRegion": grid_region[s_idx],
+          "boundaryCell": boundaryCell
+        });
         break;
       }
 
@@ -1969,11 +2013,36 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
         code = typeIII_start[i].code;
     let s_idx = sx + (sy*grid_size[0]);
 
-    strip_seq.push( {"s": [sx,sy], "dxy" : [0,0], "idir": 0, "n": 1, "type": "begin.iii", "sRegion": grid_region[s_idx] } );
+    let boundaryCell = false;
+
+    let a_dxy = typeiii_start_code_dxy[code][0];
+    let b_dxy = typeiii_start_code_dxy[code][1];
+
+    let a_xy = [sx + a_dxy[0], sy + a_dxy[1] ];
+    let b_xy = [sx + b_dxy[0], sy + b_dxy[1] ];
+
+    if (inBounds(a_xy, dualBound) && inBounds(b_xy, dualBound)) {
+      let a_idx = a_xy[0] + (a_xy[1]*grid_size[0]);
+      let b_idx = b_xy[0] + (b_xy[1]*grid_size[0]);
+
+      if ( (grid_region[s_idx] == 0) &&
+           (grid_region[a_idx] != grid_region[b_idx]) ) {
+        boundaryCell = true;
+      }
+    }
+
+    strip_seq.push({
+      "s": [sx,sy],
+      "dxy" : [0,0],
+      "idir": 0,
+      "n": 1,
+      "type": "begin.iii",
+      "startRegion": grid_region[s_idx],
+      "boundaryCell": boundaryCell
+    });
   }
 
-  // idir_pair holds direction to look for the
-  // strip,
+  // idir_pair holds direction to look for the strip,
   // so we need to do contortions to get the neighboring
   // cell in the *opposite* direction of the probe
   // to see if it's a type III neighbor
@@ -1981,6 +2050,12 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
   // This one is the most complex because we need to do
   // neighbor checking to make sure the shared edge cell
   // is of type III.
+  //
+  // We don't care about chain cells that are boundary cells
+  // as we don't ever start an alternating stip sequence
+  // with a chain.
+  // The boundaryCell here is a placeholder and doesn't indicate
+  // whether it actually is a boundary or not.
   //
   for (let i=0; i<typeII_start.length; i++) {
     let sx = typeII_start[i].x,
@@ -2037,7 +2112,15 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
         let cur_idx = cur_x + (cur_y*grid_size[0]);
         let cur_code = grid_code[cur_idx];
         if ( (cur_code == '|') || (cur_code == '-') ) {
-          strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir_cur, "n": cur_n, "type": "chain.ii", "sRegion": grid_region[s_idx] } );
+          strip_seq.push({
+            "s": [sx,sy],
+            "dxy": [dxy[0], dxy[1]],
+            "idir": idir_cur,
+            "n": cur_n,
+            "type": "chain.ii",
+            "startRegion": grid_region[s_idx],
+            "boundaryCell": false
+          });
           break;
         }
 
@@ -2050,6 +2133,18 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
 
   }
 
+  // "type IV" cells are cul-de-sacs.
+  // We need to add these as single length
+  // chain cells if their neighbor is an
+  // alternating cell.
+  //
+  // These cells can't be boundary cells
+  // as they're not bridgiing boundaries.
+  // As above, we don't start alternating strip
+  // sequences with a chain strip so the
+  // boundaryCell value can be effectively ignored.
+  //
+  //
   for (let i=0; i<typeIV_start.length; i++) {
     let sx = typeIV_start[i].x,
         sy = typeIV_start[i].y,
@@ -2072,7 +2167,15 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
     let nei_code = grid_code[nei_idx];
 
     if ((nei_code == '-') || (nei_code == '|')) {
-      strip_seq.push( {"s": [sx,sy], "dxy": [dxy[0], dxy[1]], "idir": idir, "n": 1, "type": "chain.iv", "sRegion": grid_region[s_idx] } );
+      strip_seq.push({
+        "s": [sx,sy],
+        "dxy": [dxy[0], dxy[1]],
+        "idir": idir,
+        "n": 1,
+        "type":"chain.iv",
+        "startRegion": grid_region[s_idx],
+        "boundaryCell": false
+      });
     }
 
   }
