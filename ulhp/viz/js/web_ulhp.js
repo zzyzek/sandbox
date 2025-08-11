@@ -3238,6 +3238,9 @@ function _main(argv) {
   ulhp_initTwoFactor(g_info);
   return;
 
+}
+
+function __cruft() {
 
 
 
