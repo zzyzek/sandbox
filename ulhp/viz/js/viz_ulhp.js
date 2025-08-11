@@ -497,7 +497,7 @@ function ulhp_dualAdjacencyGraph(grid_info) {
 // the strip sequence etc.
 //
 // WIP!!
-function ulhp_hp(grid_info) {
+function ulhp_staticAlternatingStrip(grid_info) {
 
   let idir_ortho_dxy = [
     [ [ 0,-1], [ 0, 1] ],
@@ -552,7 +552,6 @@ function ulhp_hp(grid_info) {
   //DEBUG
 
 
-  // first do begin
   // link begin if chain lies directly on end dongle
   // link begin if another begin on min path between end dongles
   //
@@ -560,10 +559,13 @@ function ulhp_hp(grid_info) {
     let strip = strip_info[strip_idx];
     let cell_key = strip.s[0].toString() + "," + strip.s[1].toString();
 
-    if ((strip.n%2) == 1) { continue; }
-
     let node_name = strip.type + ":" + cell_key + ":n" + strip.n.toString() + ":d" + strip.idir.toString() + ":R" + strip.startRegion.toString();
 
+    if (!(node_name in SG_E)) {
+      SG_E[node_name] = {};
+    }
+
+    if ((strip.n%2) == 1) { continue; }
 
     let xy_e = [
       strip.s[0] + strip.dxy[0]*(strip.n-1),
@@ -598,14 +600,10 @@ function ulhp_hp(grid_info) {
                             "d" + dst_strip.idir.toString() + ":" +
                             "R" + dst_strip.startRegion.toString();
 
-        if (!(node_name in SG_E)) {
-          SG_E[node_name] = {};
-        }
-
         if (!(dst_node_name in SG_E[node_name])) {
           SG_E[node_name][dst_node_name] = strip.n;
         }
-        console.log(">>>BEG: beg vtx:", v_name, "in path of", l_key, "->", r_key, "(",cell_key,")", strip);
+        //console.log(">>>BEG: beg vtx:", v_name, "in path of", l_key, "->", r_key, "(",cell_key,")", strip);
       }
 
       if ( ((p_idx == 0) || (p_idx == (min_path.length-1))) &&
@@ -618,15 +616,11 @@ function ulhp_hp(grid_info) {
                             "d" + dst_strip.idir.toString() + ":" +
                             "R" + dst_strip.startRegion.toString();
 
-        if (!(node_name in SG_E)) {
-          SG_E[node_name] = {};
-        }
-
         if (!(dst_node_name in SG_E[node_name])) {
           SG_E[node_name][dst_node_name] = strip.n;
         }
 
-        console.log(">>>CHAIN: chain vtx:", v_name, "in path of", l_key, "->", r_key, "(",cell_key,")", strip);
+        //console.log(">>>CHAIN: chain vtx:", v_name, "in path of", l_key, "->", r_key, "(",cell_key,")", strip);
       }
 
     }
@@ -635,31 +629,47 @@ function ulhp_hp(grid_info) {
 
   let SG_apsp = dijkstra.all_pair_shortest_path(SG_E);
 
-  console.log(SG_E);
-
-  console.log(SG_apsp);
-  console.log("start strips (start_boundary_strip):", start_boundary_strip);
-  console.log("end strips (enD_boundary_strip):", end_boundary_strip);
+  //console.log(SG_E);
+  //console.log(SG_apsp);
+  //console.log("start strips (start_boundary_strip):", start_boundary_strip);
+  //console.log("end strips (end_boundary_strip):", end_boundary_strip);
 
   let SG_dist = SG_apsp.dist;
 
-  console.log(">>>", SG_dist);
+  //console.log(">>>", SG_dist);
+
+  let static_alternating_strip_nodes = [];
+  let static_alternating_strips = [];
 
   for (let s_idx=0; s_idx < start_boundary_strip.length; s_idx++) {
     let s_name = start_boundary_strip[s_idx];
 
-    console.log(s_name, SG_dist[s_name]);
+    //console.log(s_name, SG_dist[s_name]);
 
     for (let e_idx=0; e_idx < end_boundary_strip.length; e_idx++) {
       let e_name = end_boundary_strip[e_idx];
 
+      //console.log(s_name, e_name, e_name in SG_dist[s_name]);
+
       if (e_name in SG_dist[s_name]) {
         let p_info = dijkstra.all_pair_shortest_path_reconstruct(SG_apsp, s_name, e_name);
-        console.log(">>>>>", s_name, e_name, SG_dist[s_name][e_name], p_info.path);
+        //console.log("!!!", s_name, e_name, SG_dist[s_name][e_name], p_info.path);
+
+        static_alternating_strip_nodes.push( p_info.path );
+
+        let static_alternating_strip = [];
+        for (let p_idx = 0; p_idx < p_info.path.length; p_idx++) {
+          static_alternating_strip.push( SG_V[ p_info.path[p_idx] ] );
+        }
+        static_alternating_strips.push( static_alternating_strip );
+
       }
     }
   }
 
+  //console.log(static_alternating_strip_nodes);
+
+  return static_alternating_strips;
 }
 
 //------
