@@ -491,13 +491,30 @@ function ulhp_dualAdjacencyGraph(grid_info) {
   return Adj;
 }
 
+
+// grid_hook is pretty much ground truth, so we should apply the strip
+// to that structure.
+// Apply a single strip to grid_hook.
+//
+function ulhp_applyAlternatingStrip(grid_info, strip) {
+}
+
+
+// grid_hook is pretty much ground truth, so we should apply the strip
+// squence to that structure.
+// Apply the array of strips (strip sequence) to grid_hook.
+//
+function ulhp_applyAlternatingStripSequence(grid_info, strip_sequence) {
+}
+
+
 // we're in the process of development.
 // We're going to assume the two-factor is given,
 // the dual is created but we need to construct
 // the strip sequence etc.
 //
 // WIP!!
-function ulhp_staticAlternatingStrip(grid_info) {
+function ulhp_staticAlternatingStripSequence(grid_info) {
 
   let idir_ortho_dxy = [
     [ [ 0,-1], [ 0, 1] ],

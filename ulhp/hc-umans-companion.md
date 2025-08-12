@@ -259,6 +259,73 @@ candidates:
 
 
 
+---
+
+> **[UL97] Observation 1**: Flipping a type `III` boundary cell (which is also an alternating strip of length one)
+> reduces the number of components in $F$ by one.
+
+> **[UL97] Lemma 2**: Flipping the last two cells of an odd alternating strip of length at least three
+> leaves the number of components of the 2-factor unchanged.
+
+> **[UL97] Lemma 3**: Let $s$ be an alternating strip that begins on
+> a boundary cell. Then flipping $s$ reduces the number of components
+> of the 2-factor by one if $s$ is an odd alternating strip and leaves the
+> number of components unchanged if $s$ is an even alternating strip that does
+> not end on a boundary cell.
+
+> **[UL97] Lemma 4**: Flipping the alternating strips of an alternating strip
+> sequence in succession results in a new 2-factor with one fewer
+> components than the original 2-factor.
+
+> **[UL97] Theorem 5**: (existence of Alternating Strip Sequences) Let $F$ be
+> a 2-factor of $G$ with more than one component. If $G$ is Hamiltonian then $G$ w.r.t.
+> $F$ contains an alternating strip sequence.
+
+> **[UL97] Theorem 5, Claim 1**: Phase `I` must reach a type `I` boundary cell.
+
+> **[UL97] Theorem 5, Claim 2**: Phase `II` proceeds along exactly the cells of an alternating strip.
+
+> **[UL97] Theorem 5, Claim 3**: $d( F \oplus s, H ) < d( F, H )$.
+
+> **[UL97] Lemma 6**: Let $F _ 1$ and $F _ 2$ be 2-factors of $G$ and let $S = F _ 1 \oplus F _ 2$.
+> Then $S$ can be partitioned into edge-disjoint non-crossing cycles that alternate w.r.t. $F _ 1$.
+
+> **[UL97] Lemma 7**: A cycle $C$ in $G$ alternates w.r.t. $F$ iff every edge of $G ^ + _ F$
+> that crosses $C$ is directed uniformly w.r.t. the interior of $C$.
+
+> **[UL97] Lemma 8**: Let $G$ contain no type `III` boundary cells, let $s$ be an even alternating
+> strip in $G$, and let $x$ and $y$ be two vertices in $G ^ - _ F$ that correspond to cells
+> not in $s$. If there exists a path $p$ between $x$ and $y$ in $G ^ - _ F$ ( $G ^ - _ {(F \oplus s)}$ )
+> that does not include the vertex corresponding to the ending (beginning) cell of $s$,
+> then there exists a path $p'$ between $x$ and $y$ in $G ^ - _ {(F \oplus s)}$ ( $G ^ - _ F$ ).
+> Furthermore, if $v$ is a vertex on $p$ that corresponds to a cell in $G$ that is not in $s$,
+> then $v$ is a vertex on $p'$ in $G ^ - _ {(F \oplus s)}$ ( $G ^ - _ F$ ).
+
+> **[UL97] Lemma 9**: If $G$ contains no type `III` boundary cells then a boundary $B$ is
+> uniquely determined by any boundary cell in $B$.
+
+**note:** *I have no idea what this lemma is trying to say*
+
+> **[UL97] Theorem 10**: (Existence of Static Alternating Strip Sequences) Let $G$ contain
+> no type `III` boundary cells and let $A = ( a _ 1, a _ 2, \dots, a _ k)$ be an alternating
+> strip sequence that begins on boundary $B$. Then there exists a static alternating strip sequence $A'$
+> that begins on $B$ iwth total area no greater than that of $A$.
+
+> **[UL97] Theorem 11**: The Hamiltonian cycle problem for quad-quad graphs (and solid grid graphs) is in $\mathcal{P}$.
+
+
+---
+
+[UL97] Lemma 8 is poorly worded. Here is a cleaner version:
+
+> **[UL97] Lemma 8 (cleaned up)**: Let $G$ contain no type `III` boundary cells, let $s$ be an even alternating
+> strip in $G$. Let $x$ and $y$ be two cells in $G ^ - _ F$ not in $s$.
+> If path, $p$, exists between $x$ and $y$ in $G ^ - _ F$,
+> where $p$ misses the ending cell of $s$,
+> then a path $p'$ exists between $x$ and $y$ in $G ^ - _ {(F \oplus s)}$.
+> If $v$, is a vertex on $p$, with $v \not\in s$, then $v$ is also a vertex on $p'$ in $G ^ - _ {(F \oplus s)}$.
+
+By taking $F \oplus s$ as the starting point and $F$ as the ending, the above lemma can be reversed.
 
 
 
