@@ -83,7 +83,7 @@
 var fasslib = require("./fasslib.js");
 var FF = require("./ff_prabod.js");
 var fs = require("fs");
-var D = require("./dijkstra.js");
+var dijkstra = require("./dijkstra.js");
 
 var g_info = {
   "size" : [0,0],
@@ -674,6 +674,328 @@ function _t0() {
 //----
 //----
 //----
+
+function ulhp_dualAdjacencyGraph(grid_info) {
+  let dual_code_idir = {
+    "." : [1,1,1,1],
+    " " : [1,1,1,1],
+    "'" : [1,1,1,1],
+    "o" : [1,1,1,1],
+
+    "^" : [1,1,0,1],
+    ">" : [0,1,1,1],
+    "v" : [1,1,1,0],
+    "<" : [1,0,1,1],
+
+    "c" : [1,0,0,0],
+    "n" : [0,0,0,1],
+    "p" : [0,1,0,0],
+    "u" : [0,0,1,0],
+
+    "L" : [1,0,1,0],
+    "F" : [1,0,0,1],
+    "7" : [0,1,0,1],
+    "J" : [0,1,1,0],
+
+    "-" : [1,1,0,0],
+    "|" : [0,0,1,1]
+  };
+
+  let idir_dxy = [
+    [1,0], [-1,0],
+    [0,1], [0,-1]
+  ];
+
+  let oppo = [ 1,0, 3,2 ];
+
+  let grid_code = grid_info.dualG.grid_code;
+  let grid_size = grid_info.dualG.size;
+
+  let Adj = {};
+
+  for (let y=0; y<grid_size[1]; y++) {
+    for (let x=0; x<grid_size[0]; x++) {
+      let idx = x + (y*grid_size[0]);
+
+      let cur_valid_idir = dual_code_idir[ grid_code[idx] ];
+
+      let cur_node_name = x.toString() + "," + y.toString();
+
+      let v_nei = {};
+
+      for (let idir=0; idir<idir_dxy.length; idir++) {
+        if (cur_valid_idir[idir] == 0) { continue; }
+
+        let dxy = idir_dxy[idir];
+        let nei_cell_xy = [ x + dxy[0], y + dxy[1] ];
+
+        if ((nei_cell_xy[0] < 0) || (nei_cell_xy[0] >= grid_size[0]) ||
+            (nei_cell_xy[1] < 0) || (nei_cell_xy[1] >= grid_size[1])) {
+          continue;
+        }
+
+        let nei_cell_idx = xy2idx( nei_cell_xy, grid_size );
+        let nei_code = grid_code[nei_cell_idx];
+
+        let nei_valid_idir = dual_code_idir[ nei_code ];
+        if (nei_valid_idir[ oppo[idir] ] == 0) {
+          continue;
+        }
+
+        let nei_node_name = nei_cell_xy[0].toString() + "," + nei_cell_xy[1].toString();
+
+        v_nei[ nei_node_name ] = 1;
+
+      }
+
+      Adj[ cur_node_name ] = v_nei;
+
+    }
+  }
+
+  return Adj;
+}
+
+
+// grid_hook is pretty much ground truth, so we should apply the strip
+// to that structure.
+// Apply a single strip to grid_hook.
+//
+function ulhp_applyAlternatingStrip(grid_info, strip) {
+  let grid_hook = grid_info.grid_hook;
+  let grid_size = grid_info.size;
+
+  let dual_beg = [ strip.s[0], strip.s[1] ];
+  let dual_end = [ strip.s[0] + (strip.dxy[0]*(strip.n-1)), strip.s[1] + (strip.dxy[1]*(strip.n-1)) ];
+
+  let xb = [
+    Math.min( dual_beg[0]-1, dual_beg[0], dual_end[0]-1, dual_end[0] ),
+    Math.max( dual_beg[0]-1, dual_beg[0], dual_end[0]-1, dual_end[0] )
+  ];
+
+  let yb = [
+    Math.min( dual_beg[1]-1, dual_beg[1], dual_end[1]-1, dual_end[1] ),
+    Math.max( dual_beg[1]-1, dual_beg[1], dual_end[1]-1, dual_end[1] )
+  ]
+
+  let x = xb[0];
+  let y = yb[0];
+
+  y = yb[0];
+  for (x=xb[0]; x<xb[1]; x++) {
+    let cur_idx = x + (y*grid_size[0]);
+    let nxt_idx = (x+1) + (y*grid_size[0]);
+
+    grid_hook[cur_idx] ^= (1 << 0);
+    grid_hook[nxt_idx] ^= (1 << 1);
+  }
+
+  y = yb[1];
+  for (x=xb[0]; x<xb[1]; x++) {
+    let cur_idx = x + (y*grid_size[0]);
+    let nxt_idx = (x+1) + (y*grid_size[0]);
+
+    grid_hook[cur_idx] ^= (1 << 0);
+    grid_hook[nxt_idx] ^= (1 << 1);
+  }
+
+  x = xb[0];
+  for (y=yb[0]; y<yb[1]; y++) {
+    let cur_idx = x + (y*grid_size[0]);
+    let nxt_idx = x + ((y+1)*grid_size[0]);
+
+    grid_hook[cur_idx] ^= (1 << 2);
+    grid_hook[nxt_idx] ^= (1 << 3);
+  }
+
+  x = xb[1];
+  for (y=yb[0]; y<yb[1]; y++) {
+    let cur_idx = x + (y*grid_size[0]);
+    let nxt_idx = x + ((y+1)*grid_size[0]);
+
+    grid_hook[cur_idx] ^= (1 << 2);
+    grid_hook[nxt_idx] ^= (1 << 3);
+  }
+
+}
+
+
+
+
+// grid_hook is pretty much ground truth, so we should apply the strip
+// squence to that structure.
+// Apply the array of strips (strip sequence) to grid_hook.
+//
+function ulhp_applyAlternatingStripSequence(grid_info, strip_sequence) {
+
+  for (let strip_idx=0; strip_idx < strip_sequence.length; strip_idx++) {
+    ulhp_applyAlternatingStrip(grid_info, strip_sequence[strip_idx]);
+  }
+
+}
+
+
+// we're in the process of development.
+// We're going to assume the two-factor is given,
+// the dual is created but we need to construct
+// the strip sequence etc.
+//
+// WIP!!
+function ulhp_staticAlternatingStripSequence(grid_info) {
+
+  let idir_ortho_dxy = [
+    [ [ 0,-1], [ 0, 1] ],
+    [ [ 0, 1], [ 0,-1] ],
+    [ [ 1, 0], [-1, 0] ],
+    [ [-1, 0], [ 1, 0] ]
+  ];
+
+  let strip_info = ulhp.catalogueAlternatingStrip(grid_info);
+
+  // Do a simple test for type III boundary cell.
+  // If found, just return the first one.
+  //
+  for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
+    let strip = strip_info[strip_idx];
+    if (strip.boundaryCell && (strip.n == 1)) {
+      return [ strip ];
+    }
+  }
+
+  let adj = ulhp_dualAdjacencyGraph(grid_info);
+  let apsp = dijkstra.all_pair_shortest_path(adj);
+
+  // strip graph
+  //
+  let SG_V = {},
+      SG_E = {};
+
+  let start_boundary_strip = [];
+  let end_boundary_strip = [];
+
+  let v_begin = {};
+  let v_chain = {};
+
+  for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
+    let strip = strip_info[strip_idx];
+    let cell_key = strip.s[0].toString() + "," + strip.s[1].toString();
+
+    if (strip.type.search('^begin') == 0) { v_begin[ cell_key ] = strip; }
+    else                                  { v_chain[ cell_key ] = strip; }
+
+    let node_name = strip.type + ":" + cell_key + ":n" + strip.n.toString() + ":d" + strip.idir.toString() + ":R" + strip.startRegion.toString();
+
+    if (strip.boundaryCell) { start_boundary_strip.push( node_name ); }
+    if ((strip.n%2) == 1) { end_boundary_strip.push( node_name ); }
+
+    SG_V[node_name] = strip;
+  }
+
+  // link begin if chain lies directly on end dongle
+  // link begin if another begin on min path between end dongles
+  //
+  for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
+    let strip = strip_info[strip_idx];
+    let cell_key = strip.s[0].toString() + "," + strip.s[1].toString();
+
+    let node_name = strip.type + ":" + cell_key + ":n" + strip.n.toString() + ":d" + strip.idir.toString() + ":R" + strip.startRegion.toString();
+
+    if (!(node_name in SG_E)) {
+      SG_E[node_name] = {};
+    }
+
+    if ((strip.n%2) == 1) { continue; }
+
+    let xy_e = [
+      strip.s[0] + strip.dxy[0]*(strip.n-1),
+      strip.s[1] + strip.dxy[1]*(strip.n-1)
+    ];
+
+    let xy_l = [
+      xy_e[0] + idir_ortho_dxy[strip.idir][0][0],
+      xy_e[1] + idir_ortho_dxy[strip.idir][0][1]
+    ];
+
+    let xy_r = [
+      xy_e[0] + idir_ortho_dxy[strip.idir][1][0],
+      xy_e[1] + idir_ortho_dxy[strip.idir][1][1]
+    ];
+
+    let l_key = xy_l[0].toString() + "," + xy_l[1].toString();
+    let r_key = xy_r[0].toString() + "," + xy_r[1].toString();
+
+    let path_info = dijkstra.all_pair_shortest_path_reconstruct( apsp, l_key, r_key );
+    let min_path = path_info.path;
+    for (let p_idx=0; p_idx < min_path.length; p_idx++) {
+
+      let v_name = min_path[p_idx];
+
+      if (v_name in v_begin) {
+
+        let dst_strip = v_begin[v_name];
+        let dst_node_name = dst_strip.type + ":" +
+                            v_name + ":" +
+                            "n" + dst_strip.n.toString() + ":" +
+                            "d" + dst_strip.idir.toString() + ":" +
+                            "R" + dst_strip.startRegion.toString();
+
+        if (!(dst_node_name in SG_E[node_name])) {
+          SG_E[node_name][dst_node_name] = strip.n;
+        }
+      }
+
+      if ( ((p_idx == 0) || (p_idx == (min_path.length-1))) &&
+           (v_name in v_chain) ) {
+
+        let dst_strip = v_chain[v_name];
+        let dst_node_name = dst_strip.type + ":" +
+                            v_name + ":" +
+                            "n" + dst_strip.n.toString() + ":" +
+                            "d" + dst_strip.idir.toString() + ":" +
+                            "R" + dst_strip.startRegion.toString();
+
+        if (!(dst_node_name in SG_E[node_name])) {
+          SG_E[node_name][dst_node_name] = strip.n;
+        }
+
+      }
+
+    }
+
+  }
+
+
+  let SG_apsp = dijkstra.all_pair_shortest_path(SG_E);
+
+  let SG_dist = SG_apsp.dist;
+
+  let static_alternating_strip_nodes = [];
+  let static_alternating_strips = [];
+
+  for (let s_idx=0; s_idx < start_boundary_strip.length; s_idx++) {
+    let s_name = start_boundary_strip[s_idx];
+
+    for (let e_idx=0; e_idx < end_boundary_strip.length; e_idx++) {
+      let e_name = end_boundary_strip[e_idx];
+
+      if (e_name in SG_dist[s_name]) {
+        let p_info = dijkstra.all_pair_shortest_path_reconstruct(SG_apsp, s_name, e_name);
+        static_alternating_strip_nodes.push( p_info.path );
+
+        let static_alternating_strip = [];
+        for (let p_idx = 0; p_idx < p_info.path.length; p_idx++) {
+          static_alternating_strip.push( SG_V[ p_info.path[p_idx] ] );
+        }
+        static_alternating_strips.push( static_alternating_strip );
+
+      }
+    }
+  }
+
+  return static_alternating_strips;
+}
+
+
 
 function ulhp_dualRegionFlood(grid_info) {
   let dual_code_idir = {
@@ -2353,6 +2675,12 @@ if (typeof module !== "undefined") {
   module.exports["dependency"] = ulhp_dependency;
   module.exports["catalogueAlternatingStrip"] = ulhp_catalogueAlternatingStrip;
   module.exports["dualRegionFlood"] = ulhp_dualRegionFlood;
+
+  module.exports["applyAlternatingStripSequence"] = ulhp_applyAlternatingStripSequence;
+  module.exports["applyAlternatingStrip"] = ulhp_applyAlternatingStrip;
+  module.exports["staticAlternatingStripSequence"] = ulhp_staticAlternatingStripSequence;
+  module.exports["dualAdjacencyGraph"] = ulhp_dualAdjacencyGraph;
+
 
   module.exports["custom"] = load_custom7_1;
   module.exports["custom_C0"] = load_custom_C0;
