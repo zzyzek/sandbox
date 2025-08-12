@@ -346,6 +346,24 @@ The above is abridged for brevity, where the *push* step has extra requirements 
 rest have a lot of implied machinery surrounding them to make them work, especially when it comes to
 proving the algorithm given meets the criteria.
 
+The *push* condition "pushes" the border cell to the other end of the alternating strip.
+Alternating strips that then begin at the end of the previous alternating strip now have a beginning border
+cell that they then can push down further.
+
+The *join* condition says that an odd alternating strip that begins on a border cell bridges together
+disparate 2-factor components.
+An alternating strip sequence, by definition, begins on a border cell and ends with an odd alternating strip,
+effectively "pushing" the border cell down through all the alternating strips until it reaches the last, odd,
+one, that reduces the 2-factor component count and makes progress.
+
+The *exists* condition ensures that an alternating strip sequence always exists if the solid grid
+graph is Hamiltonian, giving us an invariant to ensure we never get into a dead-end.
+
+The *shrink* condition makes sure we can find a succinct-enough alternating strip sequence, ensuring
+we don't blow up exponentially in run-time.
+
+
+
 
 ---
 
@@ -404,7 +422,7 @@ It looks like for sparse (random) graphs, Hopcroft-Karp gets closer to $O(|E| \l
 might expect it to be even better.
 
 
-## ULHP:SGG Algorithm Overview
+## ULHC:SGG Algorithm Overview
 
 I think the algorithm itself is pretty easy to state:
 
@@ -442,7 +460,7 @@ without an odd alternating strip present, there exists a series of flips
 of an even alternating strip to produce an odd alternating strip, which
 can then be used to reduce the 2-factor component count.
 
-One of the main difficulties in the ULHP algorithm is finding an efficient
+One of the main difficulties in the ULHC algorithm is finding an efficient
 schedule of even alternating strips to flip.
 
 
