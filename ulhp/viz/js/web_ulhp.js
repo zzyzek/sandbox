@@ -3826,6 +3826,8 @@ if (typeof module !== "undefined") {
   module.exports["staticAlternatingStripSequence"] = ulhp_staticAlternatingStripSequence;
   module.exports["dualAdjacencyGraph"] = ulhp_dualAdjacencyGraph;
 
+  module.exports["HamiltonianCycleSolidGridGraph"] = ulhp_HamiltonianCycleSolidGridGraph;
+
 
   module.exports["custom"] = load_custom7_1;
   module.exports["custom_C0"] = load_custom_C0;

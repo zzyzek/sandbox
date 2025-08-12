@@ -9,9 +9,10 @@ todo
 * more example graphs
 * testing suite
 * more efficient initial 2-factor
+  - hopcroft-karp
   - stretch goal of adding in deg-1 endpoints for
     path
-* full ulhp with grid graph bit mask
+* ~full ulhp with grid graph bit mask~
 
 ###### 2025-08-07
 
