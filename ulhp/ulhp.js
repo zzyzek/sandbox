@@ -850,7 +850,7 @@ function ulhp_staticAlternatingStripSequence(grid_info) {
     [ [-1, 0], [ 1, 0] ]
   ];
 
-  let strip_info = ulhp.catalogueAlternatingStrip(grid_info);
+  let strip_info = ulhp_catalogueAlternatingStrip(grid_info);
 
   // Do a simple test for type III boundary cell.
   // If found, just return the first one.
@@ -858,7 +858,7 @@ function ulhp_staticAlternatingStripSequence(grid_info) {
   for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
     let strip = strip_info[strip_idx];
     if (strip.boundaryCell && (strip.n == 1)) {
-      return [ strip ];
+      return [ [ strip ] ];
     }
   }
 
@@ -1593,7 +1593,7 @@ function ulhp_initTwoFactor(grid_info) {
     }
   }
 
-  let debug = true;
+  let debug = false;
 
 
   if (debug) {
@@ -1970,6 +1970,99 @@ function dualCode(edge_idir) {
 
   return '.';
 }
+
+//----
+//----
+//----
+
+// grid_info is assume to hold size and grid bit mask
+//
+// input:
+// grid_info = {
+//   "size": [ <width>, <height> ]
+//   "grid": [ <array of 1,0, 1 vertex, 0 no vertex> ]
+// }
+//
+// output:
+// {
+//   "return" : <0 success, !0 error>,
+//   "msg": <string message>,
+//   "path" : <array of [x,y] points in path>
+// }
+//
+function ulhp_HamiltonianCycleSolidGridGraph(grid_info) {
+  let size = grid_info.size;
+  let grid = grid_info.grid;
+
+  let n_it = 0;
+
+  let n_v = 0;
+  let beg_xy = [-1,-1];
+  for (let idx=0; idx<grid.length; idx++) {
+    if (grid[idx]) {
+      if (n_v == 0) { beg_xy = idx2xy( idx, size ); }
+      n_v++;
+    }
+  }
+
+  console.log("# ULHC:SGG: n_v:", n_v, "beg_xy:", beg_xy);
+
+  ulhp_initTwoFactor(grid_info);
+  ulhp_dual(grid_info);
+
+  let static_strip_seq = ulhp_staticAlternatingStripSequence( grid_info );
+  while (static_strip_seq.length > 0) {
+
+    console.log("#  n_it:", n_it);
+    n_it++;
+
+    ulhp_applyAlternatingStripSequence( grid_info, static_strip_seq[0] );
+
+    ulhp_dual( grid_info );
+
+    static_strip_seq = ulhp_staticAlternatingStripSequence( grid_info );
+
+  }
+
+  let grid_hook = grid_info.grid_hook;
+
+  let idir_dxy = [
+    [1,0], [-1,0],
+    [0,1], [0,-1]
+  ];
+
+  let path = [];
+
+  let prv_idx = -1;
+  let cur_idx = xy2idx( beg_xy, size );
+  for (let i=0; i<n_v; i++) {
+
+    let cur_xy = idx2xy( cur_idx, size );
+    let nxt_idx = -1;
+
+    path.push(cur_xy);
+
+    for (let idir=0; idir<4; idir++) {
+      if (grid_hook[cur_idx] & (1 << idir)) {
+        let dxy = idir_dxy[idir];
+        let nxt_xy = [ cur_xy[0] + dxy[0], cur_xy[1] + dxy[1] ];
+        let t_idx = xy2idx( nxt_xy, size );
+
+        if (t_idx == prv_idx) { continue; }
+
+        nxt_idx = t_idx;
+        break;
+      }
+    }
+
+    prv_idx = cur_idx;
+    cur_idx = nxt_idx;
+
+  }
+
+  return path;
+}
+
 
 //----
 //----
@@ -2534,7 +2627,41 @@ function _main(argv) {
     return;
   }
 
-  else {
+  else if (export_import == "ok") {
+
+    g_info.size = [ 7, 15 ];
+    g_info.grid = [
+      0, 0, 1, 1, 1, 1, 1,
+      0, 0, 1, 1, 1, 1, 1,
+      0, 1, 1, 1, 1, 1, 1,
+      0, 1, 1, 1, 1, 1, 1,
+      0, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 0,
+      1, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1,
+      0, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 0,
+      1, 1, 1, 1, 1, 1, 0,
+      1, 1, 1, 1, 1, 1, 0,
+      0, 1, 1, 1, 1, 0, 0,
+      1, 1, 1, 1, 0, 0, 0,
+      1, 1, 1, 1, 0, 0, 0,
+    ];
+
+    let path = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    console.log("#got:", path.length);
+    for (let i=0; i<path.length; i++) {
+      console.log( path[i][0], path[i][1] );
+    }
+    if (path.length > 0) {
+      console.log( path[0][0], path[0][1] );
+    }
+
+    return;
+
+  }
+
+  else if (export_import == "hm") {
 
     g_info.size = [24,24];
     g_info.grid = random_grid(g_info.size, 0.25, [[4,4],[20,20]]);
@@ -2543,9 +2670,12 @@ function _main(argv) {
     export_grid("grid_info.json", g_info)
   }
 
-  ulhp_initTwoFactor(g_info);
-  return;
+  else {
+    ulhp_initTwoFactor(g_info);
+  }
 
+
+  return;
 }
 
 function __cruft() {
