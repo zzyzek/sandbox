@@ -497,6 +497,61 @@ function ulhp_dualAdjacencyGraph(grid_info) {
 // Apply a single strip to grid_hook.
 //
 function ulhp_applyAlternatingStrip(grid_info, strip) {
+  let grid_hook = grid_info.grid_hook;
+  let grid_size = grid_info.size;
+
+  let dual_beg = [ strip.s[0], strip.s[1] ];
+  let dual_end = [ strip.s[0] + (strip.dxy[0]*(strip.n-1)), strip.s[1] + (strip.dxy[1]*(strip.n-1)) ];
+
+  let xb = [
+    Math.min( dual_beg[0]-1, dual_beg[0], dual_end[0]-1, dual_end[0] ),
+    Math.max( dual_beg[0]-1, dual_beg[0], dual_end[0]-1, dual_end[0] )
+  ];
+
+  let yb = [
+    Math.min( dual_beg[1]-1, dual_beg[1], dual_end[1]-1, dual_end[1] ),
+    Math.max( dual_beg[1]-1, dual_beg[1], dual_end[1]-1, dual_end[1] )
+  ]
+
+  let x = xb[0];
+  let y = yb[0];
+
+  y = yb[0];
+  for (x=xb[0]; x<xb[1]; x++) {
+    let cur_idx = x + (y*grid_size[0]);
+    let nxt_idx = (x+1) + (y*grid_size[0]);
+
+    grid_hook[cur_idx] ^= (1 << 0);
+    grid_hook[nxt_idx] ^= (1 << 1);
+  }
+
+  y = yb[1];
+  for (x=xb[0]; x<xb[1]; x++) {
+    let cur_idx = x + (y*grid_size[0]);
+    let nxt_idx = (x+1) + (y*grid_size[0]);
+
+    grid_hook[cur_idx] ^= (1 << 0);
+    grid_hook[nxt_idx] ^= (1 << 1);
+  }
+
+  x = xb[0];
+  for (y=yb[0]; y<yb[1]; y++) {
+    let cur_idx = x + (y*grid_size[0]);
+    let nxt_idx = x + ((y+1)*grid_size[0]);
+
+    grid_hook[cur_idx] ^= (1 << 2);
+    grid_hook[nxt_idx] ^= (1 << 3);
+  }
+
+  x = xb[1];
+  for (y=yb[0]; y<yb[1]; y++) {
+    let cur_idx = x + (y*grid_size[0]);
+    let nxt_idx = x + ((y+1)*grid_size[0]);
+
+    grid_hook[cur_idx] ^= (1 << 2);
+    grid_hook[nxt_idx] ^= (1 << 3);
+  }
+
 }
 
 
@@ -505,6 +560,11 @@ function ulhp_applyAlternatingStrip(grid_info, strip) {
 // Apply the array of strips (strip sequence) to grid_hook.
 //
 function ulhp_applyAlternatingStripSequence(grid_info, strip_sequence) {
+
+  for (let strip_idx=0; strip_idx < strip_sequence.length; strip_idx++) {
+    ulhp_applyAlternatingStrip(grid_info, strip_sequence[strip_idx]);
+  }
+
 }
 
 
@@ -1033,8 +1093,6 @@ function drawGridHook( grid_info, disp_opt ) {
     }
   }
 
-
-
   two.update();
   return;
 }
@@ -1062,19 +1120,22 @@ function redrawGridInfo(grid_info, persist) {
 
   //---
 
+  ulhp.dual( grid_info );
+
   let dual_disp_opt = {
     "scale": scale,
     "origin" : [50-scale, 50-scale],
     "cell_s": (3*scale/4)
   };
 
-  ulhp.dual( grid_info );
 
   if (g_ui.option.dual) {
     drawDualCell( grid_info.dualG, dual_disp_opt );
   }
 
   //---
+
+  ulhp.dependency(grid_info);
 
   let dep_disp_opt = {
     "scale": scale,
