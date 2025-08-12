@@ -416,6 +416,7 @@ function ulhp_dualAdjacencyGraph(grid_info) {
     "." : [1,1,1,1],
     " " : [1,1,1,1],
     "'" : [1,1,1,1],
+    "o" : [1,1,1,1],
 
     "^" : [1,1,0,1],
     ">" : [0,1,1,1],
@@ -584,6 +585,17 @@ function ulhp_staticAlternatingStripSequence(grid_info) {
   ];
 
   let strip_info = ulhp.catalogueAlternatingStrip(grid_info);
+
+  // Do a simple test for type III boundary cell.
+  // If found, just return the first one.
+  //
+  for (let strip_idx=0; strip_idx < strip_info.length; strip_idx++) {
+    let strip = strip_info[strip_idx];
+    if (strip.boundaryCell && (strip.n == 1)) {
+      return [ strip ];
+    }
+  }
+
 
   //DEBUG
   g_ui.data["strip_info"] = strip_info;
