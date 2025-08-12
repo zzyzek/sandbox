@@ -187,7 +187,7 @@ candidates:
 > that $I(F _ 1', S') = I(F _ 1, S ) - 1$.
 
 
-> **[U96] Lemma 6.3**: Let $F _ 1$, $F _ 2, $S$, and $G$ be defined as above. If $S$ contains an edge $e$ that
+> **[U96] Lemma 6.3**: Let $F _ 1$, $F _ 2$, $S$, and $G$ be defined as above. If $S$ contains an edge $e$ that
 > crosses a boundary in $G _ {F _ 1 }$ consisting of entirely type `I` and type `II` border cells with at least
 > one type `I` border cell, then there exists a type `I` border cell $c$ on that boundary with the following two
 > properties:
@@ -198,7 +198,7 @@ candidates:
 > the dependency arcs that cross $C$, w.r.t. the interiors of $c$ and $C$.
 
 
-> **[U96] Lemma 6.4**: Let $F _ 1$, $F _ 2, $S$, and $G$ be defined in Lemma 6.3 and let $c$ be the type `I` border
+> **[U96] Lemma 6.4**: Let $F _ 1$, $F _ 2$, $S$, and $G$ be defined in Lemma 6.3 and let $c$ be the type `I` border
 > cell identified in Lemma 6.3. Then there exists an alternating strip that begins at $c$ and ends at an
 > improving cell.
 
@@ -309,7 +309,7 @@ candidates:
 > **[UL97] Theorem 10**: (Existence of Static Alternating Strip Sequences) Let $G$ contain
 > no type `III` boundary cells and let $A = ( a _ 1, a _ 2, \dots, a _ k)$ be an alternating
 > strip sequence that begins on boundary $B$. Then there exists a static alternating strip sequence $A'$
-> that begins on $B$ iwth total area no greater than that of $A$.
+> that begins on $B$ with total area no greater than that of $A$.
 
 > **[UL97] Theorem 11**: The Hamiltonian cycle problem for quad-quad graphs (and solid grid graphs) is in $\mathcal{P}$.
 
@@ -328,7 +328,23 @@ candidates:
 By taking $F \oplus s$ as the starting point and $F$ as the ending, the above lemma can be reversed.
 
 
+## Proof Overview
 
+So I think the basic idea is this:
+
+* (**push**) An alternating strip that starts on the border reduces the 2-factor component count by one, if odd, or zero, if even
+  ([UL97] Lemma 3, [U96] Lemma 5.4, 5.5)
+* (**join**) An alternating strip sequence reduces the 2-factor component count by one
+  ([UL97] Lemma 4, [U96] Lemma 6.6)
+* (**exists**) If $G$ is Hamiltonian with a multi-component 2-factor, an alternating strip sequence exists
+  ([UL97] Theorem 5, [U96] Lemma 6.7)
+* (**shrink**) Every alternating strip sequence can be made into a static alternating strip sequence
+  ([UL97] Theorem 10, [U96] Lemma 7.3)
+
+As a quick overview of where the motivation behind the proofs comes from, the above seems succinct to me.
+The above is abridged for brevity, where the *push* step has extra requirements on the even strip, and the
+rest have a lot of implied machinery surrounding them to make them work, especially when it comes to
+proving the algorithm given meets the criteria.
 
 
 ---
@@ -351,7 +367,7 @@ A valid 2-factor can be thought of as a set of disjoint cycles covering the enti
 ### Construction
 
 Umans discusses various strategies, including a linear programming method suggested by Bridgeman, but
-Uman settles on a graph construction combined with a perfect edge matching, to find the initial 2-factor.
+Umans settles on a graph construction combined with a perfect edge matching, to find the initial 2-factor.
 
 Each vertex in the solid grid graph is replaced by a widget.
 Each vertex's widget construction has one vertex for each neighbor and each of these 'external' widget
@@ -1047,7 +1063,7 @@ line of fire for some connection.
 
 ## ERRATA
 
-pg. 58 of Uman's thesis:
+pg. 58 of Umans' thesis:
 
 > Let $c'$ be the ~first~ **last**  cell in this search that is alternating.
 
