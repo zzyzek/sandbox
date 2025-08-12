@@ -158,7 +158,7 @@ candidates:
 > 2. edges $e _ 1$ and $e _ 2$ are in the same component in $F \oplus s$ iff either they are in the same component in $F$
 > or one is in the same component of $F$ as a vertex $x$ and the other is in the same component of $F$ as a vertex $y$.
 
-*note here that odd alternating strip in [U96] is a* **border** *alternating strip in [UL97]*
+*note here that odd alternating strip in [U96] is a* **boundary** *alternating strip in [UL97]*
 
 > **[U96] Lemma 5.5**: Let $s$ be an even alternating strip in $G _ F$. If the alternating cell at the end of
 > $s$ is not a type `III` border cell, $F \oplus s$ has the same number of components as $F$ does.
@@ -362,7 +362,13 @@ graph is Hamiltonian, giving us an invariant to ensure we never get into a dead-
 The *shrink* condition makes sure we can find a succinct-enough alternating strip sequence, ensuring
 we don't blow up exponentially in run-time.
 
-
+*push* and *exists* are relatively easy to prove, as a simple case analysis can show component count is
+reduced.
+*shrink* seems relatively easy as a case analysis of how to chain alternating strips can show they can
+be trimmed.
+*exists* seems a bit difficult as that involves the dependency graph, showing that there's a type `I` border
+cell that can then be used as a starting point to create an alternating strip that then reduces the distance
+function (which is, in turn, defined in terms of area and dependency graph parity of a cycle).
 
 
 ---
@@ -1085,14 +1091,35 @@ pg. 58 of Umans' thesis:
 
 > Let $c'$ be the ~first~ **last**  cell in this search that is alternating.
 
+---
+
 pg. 59:
 
 > The directed edges are required to ensure that multiple consecutive link edges ~are~ cannot
 > appear in a path in $H$.
 
+---
+
 pg. 52:
 
 > The bottom most and topmost vertical dark edges *are* ~not~ implied by the degree constraint - ...
+
+---
+
+pg. 498 (3/10) of Umans and Lenhart's paper:
+
+> *Definition 2* An *alternating strip sequence* is defined as follows:
+>
+> 1. an odd alternating strip **that starts on a border cell** is an alternating strip sequence, and
+> ...
+
+Bold emphasis mine. The subsequent Lemma 4 is **not true** unless this condition is added to the definition
+of alternating strip sequences.
+
+Note that in [UL97], the definition of odd alternating strips doesn't condition they start on a border
+cell whereas in [U96] odd alternating strips are defined to start on a border cell.
+The ommission might have occured from copying from [U96] to the [UL97] paper without noticing the discrepency
+between odd alternating strips.
 
 
 References
