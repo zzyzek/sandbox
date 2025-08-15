@@ -354,7 +354,7 @@ A perfect matching on these widgets in $G _ { w }$ force each vertex to have deg
 
 This graphic might be helpful:
 
-![uman 2-factor widget](viz/uman_2factor_widget.png)
+![uman 2-factor widget](viz/img/uman_2factor_widget.png)
 
 Where the circle on the left represents the original vertex ($u _ k$) and the widget on the right represents the transformation,
 with the circle going the newly created $v _ k$, the squares being the $v _ { u _ k, u _ j}$ and the triangle being the extra $w _ k$ vertex.
@@ -583,7 +583,7 @@ To set up the initial path with loops, I think the following will work:
 * Add the widgets as in Umans and Lenhart, for all verticies that aren't $s$ and $t$
 * For $s$ and $t$, add the following widgets:
 
-![path 2-factor widget](viz/path_2factor_widget.png)
+![path 2-factor widget](viz/img/path_2factor_widget.png)
 
 If an edge is chosen going out for $v'$, that means the $(v',s'), (v',s''), (v',s''')$ all will be precluded.
 Choose $(s',v'')$, precluding $(s'',v''), (s''',v'')$. $s''$ and $s'''$ only have choices of $v'''$ and $v''''$.

@@ -1532,6 +1532,8 @@ function ulhp_initTwoFactor(grid_info) {
   let resG = [], flowG = [];
   let flow = FF(ffE, ffE.length-2, ffE.length-1, resG, flowG);
 
+  console.log(flow);
+
   let gi = gadget_info;
 
   let idir_dxy = [
@@ -1565,7 +1567,6 @@ function ulhp_initTwoFactor(grid_info) {
         if ((u_op == 'a') || (u_op == 'b')) {
           let idir = parseInt(v_op);
 
-
           let _p = [u_x, u_y];
           let _q = [u_x + idir_dxy[idir][0], u_y + idir_dxy[idir][1]];
 
@@ -1573,7 +1574,6 @@ function ulhp_initTwoFactor(grid_info) {
           let dst_idx = xy2idx( _q, grid_info.size );
 
           two_factor_idx_edge.push( [src_idx, dst_idx] );
-
         }
 
         else if ((v_op == 'a') || (v_op == 'b')) {
@@ -1585,7 +1585,6 @@ function ulhp_initTwoFactor(grid_info) {
           let dst_idx = xy2idx( _q, grid_info.size );
 
           two_factor_idx_edge.push( [src_idx, dst_idx] );
-
         }
 
       }
@@ -1594,7 +1593,6 @@ function ulhp_initTwoFactor(grid_info) {
   }
 
   let debug = false;
-
 
   if (debug) {
     for (let i=0; i<two_factor_idx_edge.length; i++) {
@@ -2007,7 +2005,10 @@ function ulhp_HamiltonianCycleSolidGridGraph(grid_info) {
 
   console.log("# ULHC:SGG: n_v:", n_v, "beg_xy:", beg_xy);
 
-  ulhp_initTwoFactor(grid_info);
+  let tf = ulhp_initTwoFactor(grid_info);
+
+  console.log("#### tf:", tf);
+
   ulhp_dual(grid_info);
 
   let static_strip_seq = ulhp_staticAlternatingStripSequence( grid_info );
@@ -2408,26 +2409,65 @@ function load_custom7_1(grid_info) {
 function _main(argv) {
   let debug = true;
 
-  let export_import = 'import';
+  let op = 'example7.1';
+  let param = '';
 
-  export_import = "example7.1_grid";
-  export_import = "example7.1_two-factor";
+  let wh_param = [6,6];
 
-  export_import = "custom7.1";
+  //op = "example7.1_grid";
+  //op = "example7.1_two-factor";
+  //op = "custom7.1";
 
   if (argv.length > 1)  {
-    export_import = argv[1];
+    op = argv[1];
+
+    if (argv.length > 2) {
+      param = argv[2];
+
+      let tok = param.split("x");
+      if (tok.length == 2) {
+        wh_param[0] = parseInt(tok[0]);
+        wh_param[1] = parseInt(tok[1]);
+
+        if ((wh_param[0] <= 0) ||
+            (wh_param[1] <= 0)) {
+          console.log("# invalid parameter", param, tok, wh_param);
+          return;
+        }
+      }
+
+    }
   }
 
   //----
   //----
 
 
-  if (export_import == 'import') {
+  if (op == 'import') {
     g_info = import_grid("./test_grid0.json");
   }
 
-  else if (export_import == 'test') {
+  else if (op == 'square') {
+    g_info.size[0] = wh_param[0];
+    g_info.size[1] = wh_param[1];
+
+    let n = g_info.size[0]*g_info.size[1];
+
+    g_info.grid = [];
+    for (let i=0; i<n; i++) { g_info.grid.push(1); }
+
+    let path = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    console.log("#got:", path.length);
+    for (let i=0; i<path.length; i++) {
+      console.log( path[i][0], path[i][1] );
+    }
+    if (path.length > 0) {
+      console.log( path[0][0], path[0][1] );
+    }
+    return;
+  }
+
+  else if (op == 'test') {
 
     g_info.size = [3,3];
     g_info.grid = [ 1,1,1, 1,1,1, 1,1,1 ];
@@ -2436,7 +2476,7 @@ function _main(argv) {
 
   // No ham cycle possible
   //
-  else if (export_import == "custom_C0") {
+  else if (op == "custom_C0") {
 
     load_custom_C0( g_info );
 
@@ -2446,7 +2486,7 @@ function _main(argv) {
 
   // No ham cycle possible
   //
-  else if (export_import == "custom_C1") {
+  else if (op == "custom_C1") {
     load_custom_C1( g_info );
 
     debugPrint(g_info);
@@ -2455,7 +2495,7 @@ function _main(argv) {
 
   // Custom 7.1
   //
-  else if (export_import == "custom7.1") {
+  else if (op == "custom7.1") {
     load_custom7_1( g_info );
     return;
   }
@@ -2463,7 +2503,7 @@ function _main(argv) {
   // Figure 7.1 example graph
   // with initial two-factor already provided
   //
-  else if (export_import == "example7.1_two-factor") {
+  else if (op == "example7.1_two-factor") {
 
     g_info.size = [ 7, 15 ];
     g_info.grid = [
@@ -2581,7 +2621,7 @@ function _main(argv) {
   // Figure 7.1 from Uman's thesis,
   // just the grid
   //
-  else if (export_import == "example7.1_grid") {
+  else if (op == "example7.1_grid") {
 
     g_info.size = [ 7, 15 ];
     g_info.grid = [
@@ -2627,7 +2667,81 @@ function _main(argv) {
     return;
   }
 
-  else if (export_import == "ok") {
+  else if (op == "notlife") {
+    
+  }
+
+  // no solution for this one
+  //
+  else if (op == "notlife") {
+    g_info.size = [ 4, 4 ];
+    g_info.grid = [
+      1, 1, 1, 0,
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      0, 1, 1, 1,
+    ];
+
+    let path = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    console.log("#got:", path.length);
+    for (let i=0; i<path.length; i++) {
+      console.log( path[i][0], path[i][1] );
+    }
+    if (path.length > 0) {
+      console.log( path[0][0], path[0][1] );
+    }
+    return;
+  }
+
+  // no solution for this one
+  //
+  else if (op == "notlife2") {
+    g_info.size = [ 5, 5 ];
+    g_info.grid = [
+      1, 1, 1, 1, 0,
+      1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1,
+      0, 1, 1, 1, 1,
+    ];
+
+    let path = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    console.log("#got:", path.length);
+    for (let i=0; i<path.length; i++) {
+      console.log( path[i][0], path[i][1] );
+    }
+    if (path.length > 0) {
+      console.log( path[0][0], path[0][1] );
+    }
+    return;
+  }
+
+  else if (op == "ce") {
+    g_info.size = [ 6, 6 ];
+    g_info.grid = [
+      0, 0, 0, 1, 1, 1,
+      1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1,
+      0, 0, 0, 1, 1, 1,
+    ];
+
+    let path = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    console.log("#got:", path.length);
+    for (let i=0; i<path.length; i++) {
+      console.log( path[i][0], path[i][1] );
+    }
+    if (path.length > 0) {
+      console.log( path[0][0], path[0][1] );
+    }
+
+    return;
+
+
+  }
+
+  else if (op == "ok") {
 
     g_info.size = [ 7, 15 ];
     g_info.grid = [
@@ -2661,7 +2775,7 @@ function _main(argv) {
 
   }
 
-  else if (export_import == "hm") {
+  else if (op == "hm") {
 
     g_info.size = [24,24];
     g_info.grid = random_grid(g_info.size, 0.25, [[4,4],[20,20]]);
@@ -2669,6 +2783,7 @@ function _main(argv) {
     raise_island(g_info, [0,0]);
     export_grid("grid_info.json", g_info)
   }
+
 
   else {
     ulhp_initTwoFactor(g_info);
@@ -2724,7 +2839,7 @@ function __cruft() {
     [0,1], [0,-1]
   ];
 
-  if (export_import == 'test') {
+  if (op == 'test') {
     for (let i=0; i<flowG.length; i++) {
       for (let j=0; j<flowG[i].length; j++) {
 
@@ -2822,5 +2937,6 @@ if (typeof module !== "undefined") {
 
 if ((typeof require !== "undefined") &&
     (require.main === module)) {
+  //console.log(process.argv.slice(1));
   _main(process.argv.slice(1));
 }
