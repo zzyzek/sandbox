@@ -527,6 +527,7 @@ function gadget_print(gadget_info) {
 }
 
 
+/*
 function _t0() {
   g_info.size = [3,3];
   g_info.grid = [
@@ -670,6 +671,7 @@ function _t0() {
   }
 
 }
+*/
 
 //----
 //----
@@ -1529,10 +1531,11 @@ function ulhp_initTwoFactor(grid_info) {
   // algorithm is the priority but this is already way too
   // slow and we need to get to it in the future.
   //
+  // Resulting flow count is a little complicated and will
+  // depend on the degree of the vertex.
+  //
   let resG = [], flowG = [];
   let flow = FF(ffE, ffE.length-2, ffE.length-1, resG, flowG);
-
-  console.log(flow);
 
   let gi = gadget_info;
 
@@ -1637,10 +1640,75 @@ function ulhp_initTwoFactor(grid_info) {
 
   }
 
-  //grid_info["two_deg_grid"] = two_deg_grid;
   grid_info["grid_hook"] = two_deg_grid;
 
-  return;
+  let popcount_lu = [
+    0, 1, 1, 2,
+    1, 2, 2, 3,
+    1, 2, 2, 3,
+    2, 3, 3, 4
+  ];
+
+  let ret_code = 0;
+  let ret_msg = "";
+
+  // check to make sure we've received a valid two-factor
+  //
+  for (let i=0; i<two_deg_grid.length; i++) {
+
+    let cur_bv = two_deg_grid[i];
+
+    if (popcount_lu[ cur_bv ] != 2) {
+      ret_code = -1;
+      ret_msg = "no valid initial two factor";
+      break;
+    }
+
+    let xy = idx2xy( i, grid_info.size );
+
+    for (let idir=0; idir<4; idir++) {
+      let dxy = idir_dxy[idir];
+      let nei_xy = [ xy[0] + dxy[0], xy[1] + dxy[1] ];
+
+      let nei_idx = xy2idx( nei_xy, grid_info.size );
+      if ((nei_idx < 0) ||
+          (grid_info.grid[nei_idx] != 1)) {
+        if ( cur_bv & (1 << idir) ) {
+          ret_code = -2;
+          ret_msg = "no valid initial two factor (edge oob)";
+          break;
+        }
+      }
+
+      let nei_bv = two_deg_grid[ nei_idx ];
+      let rdir = oppo[idir];
+
+      if (cur_bv & (1 << idir)) {
+        if ((nei_bv & (1 << rdir)) == 0) {
+          ret_code = -3;
+          ret_msg = "no valid initial two factor (edge neighbor mismatch 1_0)";
+          break;
+        }
+      }
+
+      else {
+        if ((nei_bv & (1 << rdir)) == 1) {
+          ret_code = -4;
+          ret_msg = "no valid initial two factor (edge neighbor mismatch 0_1)";
+          break;
+        }
+      }
+
+    }
+
+    if (ret_code < 0) { break; }
+  }
+
+  return {
+    "grid_hook": two_deg_grid,
+    "return": ret_code,
+    "msg": ret_msg
+  };
 }
 
 function ulhp_dependency(grid_info) {
@@ -1992,7 +2060,12 @@ function ulhp_HamiltonianCycleSolidGridGraph(grid_info) {
   let size = grid_info.size;
   let grid = grid_info.grid;
 
-  let n_it = 0;
+  let ret_info = {
+    "return": -1,
+    "msg": "",
+    "path": []
+  };
+
 
   let n_v = 0;
   let beg_xy = [-1,-1];
@@ -2003,18 +2076,73 @@ function ulhp_HamiltonianCycleSolidGridGraph(grid_info) {
     }
   }
 
+  grid_info["Nv"] = n_v;
+
   console.log("# ULHC:SGG: n_v:", n_v, "beg_xy:", beg_xy);
 
   let tf = ulhp_initTwoFactor(grid_info);
+  if (tf.return < 0) {
+    return {
+      "return": tf.return,
+      "msg": tf.msg,
+      "path": []
+    };
+  }
 
-  console.log("#### tf:", tf);
+  return ulhp_HCSGG_2F(grid_info);
+}
+
+// Solid Grid Graph Hamilonian Cycle starting from a two factor
+//
+// input:
+// grid_info = {
+//   "size": [ <width>, <height> ]
+//   "grid": [ <array of 1,0, 1 vertex, 0 no vertex> ]
+//   "grid_hook": [ <array of bitmask for vertex hook> ]
+// }
+//
+// output:
+// {
+//   "return" : <0 success, !0 error>,
+//   "msg": <string message>,
+//   "path" : <array of [x,y] points in path>
+// }
+//
+function ulhp_HCSGG_2F(grid_info) {
+  let size = grid_info.size;
+  let grid = grid_info.grid;
+
+  let debug = true;
+
+  let n_it = 0;
+
+  let n_v = grid_info.Nv;
+  let beg_xy = [-1,-1];
+
+  let idir_dxy = [
+    [1,0], [-1,0],
+    [0,1], [0,-1]
+  ];
+
+  let grid_hook = grid_info.grid_hook;
+
+  for (let idx=0; idx<grid.length; idx++) {
+    if (grid[idx]) {
+      beg_xy = idx2xy( idx, size );
+      break;
+    }
+  }
+
 
   ulhp_dual(grid_info);
 
   let static_strip_seq = ulhp_staticAlternatingStripSequence( grid_info );
   while (static_strip_seq.length > 0) {
 
-    console.log("#  n_it:", n_it);
+    if (debug) {
+      console.log("#  n_it:", n_it);
+    }
+
     n_it++;
 
     ulhp_applyAlternatingStripSequence( grid_info, static_strip_seq[0] );
@@ -2022,21 +2150,30 @@ function ulhp_HamiltonianCycleSolidGridGraph(grid_info) {
     ulhp_dual( grid_info );
 
     static_strip_seq = ulhp_staticAlternatingStripSequence( grid_info );
-
   }
 
-  let grid_hook = grid_info.grid_hook;
-
-  let idir_dxy = [
-    [1,0], [-1,0],
-    [0,1], [0,-1]
-  ];
+  // check to make sure we've succeeded
+  //
+  let visited = [];
+  for (let i=0; i<grid.length; i++) {
+    visited.push( (grid[i] == 0) ? -1 : 0 );
+  }
 
   let path = [];
 
   let prv_idx = -1;
   let cur_idx = xy2idx( beg_xy, size );
   for (let i=0; i<n_v; i++) {
+
+    if (visited[cur_idx] != 0) {
+      return {
+        "return": -1,
+        "msg": "no path",
+        "path": []
+      };
+    }
+
+    visited[cur_idx] = 1;
 
     let cur_xy = idx2xy( cur_idx, size );
     let nxt_idx = -1;
@@ -2061,7 +2198,11 @@ function ulhp_HamiltonianCycleSolidGridGraph(grid_info) {
 
   }
 
-  return path;
+  return {
+    "return": 0,
+    "msg":"",
+    "path":path
+  };
 }
 
 
@@ -2456,7 +2597,11 @@ function _main(argv) {
     g_info.grid = [];
     for (let i=0; i<n; i++) { g_info.grid.push(1); }
 
-    let path = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    let path_info = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+
+    //console.log(path_info);
+
+    let path = path_info.path;
     console.log("#got:", path.length);
     for (let i=0; i<path.length; i++) {
       console.log( path[i][0], path[i][1] );
@@ -2682,7 +2827,8 @@ function _main(argv) {
       0, 1, 1, 1,
     ];
 
-    let path = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    let path_info = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    let path = path_info.path;
     console.log("#got:", path.length);
     for (let i=0; i<path.length; i++) {
       console.log( path[i][0], path[i][1] );
@@ -2705,7 +2851,8 @@ function _main(argv) {
       0, 1, 1, 1, 1,
     ];
 
-    let path = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    let path_info = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    let path = path_info.path;
     console.log("#got:", path.length);
     for (let i=0; i<path.length; i++) {
       console.log( path[i][0], path[i][1] );
@@ -2727,7 +2874,8 @@ function _main(argv) {
       0, 0, 0, 1, 1, 1,
     ];
 
-    let path = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    let path_info = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    let path = path_info.path;
     console.log("#got:", path.length);
     for (let i=0; i<path.length; i++) {
       console.log( path[i][0], path[i][1] );
@@ -2762,7 +2910,8 @@ function _main(argv) {
       1, 1, 1, 1, 0, 0, 0,
     ];
 
-    let path = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    let path_info = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+    let path = path_info.path;
     console.log("#got:", path.length);
     for (let i=0; i<path.length; i++) {
       console.log( path[i][0], path[i][1] );
