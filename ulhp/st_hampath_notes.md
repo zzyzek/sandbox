@@ -366,7 +366,7 @@ It's complicated to describe but the idea is that the perfect edge matching indu
 and that's easily recoverable into the original desired 2-factor.
 
 To find a perfect edge matching, as mentioned above, LP can be used. Another option is to do max-flow-min-cut (Ford Fulkerson)
-since the induced graph ($G _ { w }$ is bipartite.
+since the induced graph ($G _ { w }$ is bipartite).
 Quickly, put weights $1$ on each edge, push one partition of the bipartite to the left, the other to the right and connect a source node
 to all left nodes and a sink node to all right nodes with each new edge weighted $1$ then use max-flow min-cut to find the flow.
 All interior edges that have a flow imply an edge between the vertices.
