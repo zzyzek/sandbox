@@ -2066,7 +2066,6 @@ function ulhp_HamiltonianCycleSolidGridGraph(grid_info) {
     "path": []
   };
 
-
   let n_v = 0;
   let beg_xy = [-1,-1];
   for (let idx=0; idx<grid.length; idx++) {
@@ -2075,8 +2074,6 @@ function ulhp_HamiltonianCycleSolidGridGraph(grid_info) {
       n_v++;
     }
   }
-
-  grid_info["Nv"] = n_v;
 
   console.log("# ULHC:SGG: n_v:", n_v, "beg_xy:", beg_xy);
 
@@ -2116,9 +2113,6 @@ function ulhp_HCSGG_2F(grid_info) {
 
   let n_it = 0;
 
-  let n_v = grid_info.Nv;
-  let beg_xy = [-1,-1];
-
   let idir_dxy = [
     [1,0], [-1,0],
     [0,1], [0,-1]
@@ -2126,13 +2120,14 @@ function ulhp_HCSGG_2F(grid_info) {
 
   let grid_hook = grid_info.grid_hook;
 
+  let n_v = 0;
+  let beg_xy = [-1,-1];
   for (let idx=0; idx<grid.length; idx++) {
     if (grid[idx]) {
-      beg_xy = idx2xy( idx, size );
-      break;
+      if (n_v == 0) { beg_xy = idx2xy( idx, size ); }
+      n_v++;
     }
   }
-
 
   ulhp_dual(grid_info);
 
@@ -2166,10 +2161,12 @@ function ulhp_HCSGG_2F(grid_info) {
   for (let i=0; i<n_v; i++) {
 
     if (visited[cur_idx] != 0) {
+      let paths = ulhp_constructTwoFactorPaths(grid_info);
       return {
         "return": -1,
         "msg": "no path",
-        "path": []
+        "path": [],
+        "paths": paths
       };
     }
 
@@ -2205,6 +2202,79 @@ function ulhp_HCSGG_2F(grid_info) {
   };
 }
 
+
+function ulhp_constructTwoFactorPaths(grid_info) {
+  let size = grid_info.size;
+  let grid = grid_info.grid;
+
+  let paths = [];
+
+  let n_v = 0;
+  for (let idx=0; idx<grid.length; idx++) {
+    if (grid[idx]) { n_v++; }
+  }
+
+  let visited = [];
+  for (let i=0; i<grid.length; i++) {
+    visited.push( (grid[i] == 0) ? -1 : 0 );
+  }
+
+  let cur_n_v = 0;
+
+  while (cur_n_v < n_v) {
+
+    let beg_xy = [-1,-1];
+    for (let idx=0; idx<grid.length; idx++) {
+      if (visited[idx] == 0) {
+        beg_xy = idx2xy(idx, size);
+        break;
+      }
+    }
+
+    let path = [];
+    let path_idx = [];
+
+
+    let prv_idx = -1;
+    let cur_idx = xy2idx( beg_xy, size );
+    for (let i=0; i<n_v; i++) {
+
+      if ((i > 0) &&
+          (visited[cur_idx] || (cur_idx == path_idx[0]))) {
+        break;
+      }
+
+      visited[cur_idx] = 1;
+
+      let cur_xy = idx2xy( cur_idx, size );
+      let nxt_idx = -1;
+
+      path.push(cur_xy);
+      path_idx.push(cur_idx);
+
+      for (let idir=0; idir<4; idir++) {
+        if (grid_hook[cur_idx] & (1 << idir)) {
+          let dxy = idir_dxy[idir];
+          let nxt_xy = [ cur_xy[0] + dxy[0], cur_xy[1] + dxy[1] ];
+          let t_idx = xy2idx( nxt_xy, size );
+
+          if (t_idx == prv_idx) { continue; }
+
+          nxt_idx = t_idx;
+          break;
+        }
+      }
+
+      prv_idx = cur_idx;
+      cur_idx = nxt_idx;
+
+    }
+
+    paths.push(path);
+  }
+
+  return paths;
+}
 
 //----
 //----
@@ -2603,12 +2673,38 @@ function _main(argv) {
 
     let path = path_info.path;
     console.log("#got:", path.length);
-    for (let i=0; i<path.length; i++) {
-      console.log( path[i][0], path[i][1] );
-    }
+
     if (path.length > 0) {
-      console.log( path[0][0], path[0][1] );
+      for (let i=0; i<path.length; i++) {
+        console.log( path[i][0], path[i][1] );
+      }
+      if (path.length > 0) {
+        console.log( path[0][0], path[0][1] );
+      }
     }
+
+    else {
+
+      console.log(path_info);
+
+      let paths = path_info.paths;
+
+      for (let path_idx=0; path_idx < paths.length; path_idx++) {
+        let path = paths[path_idx];
+
+        if (path.length > 0) {
+          for (let i=0; i<path.length; i++) {
+            console.log( path[i][0], path[i][1] );
+          }
+          if (path.length > 0) {
+            console.log( path[0][0], path[0][1] );
+          }
+          console.log("\n");
+        }
+
+      }
+    }
+
     return;
   }
 
