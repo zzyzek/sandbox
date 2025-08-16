@@ -82,8 +82,11 @@
 
 var fasslib = require("./fasslib.js");
 var FF = require("./ff_prabod.js");
+var HK = require("./hopcroftkarp.js");
 var fs = require("fs");
 var dijkstra = require("./dijkstra.js");
+
+var hopcroftKarp = HK.hopcroftKarp;
 
 var g_info = {
   "size" : [0,0],
@@ -1501,6 +1504,10 @@ function ulhp_catalogueAlternatingStrip(grid_info) {
 
 function ulhp_initTwoFactor(grid_info) {
 
+  // PROFILING
+  let _prof_s = Date.now();
+  // PROFILING
+
   let gadget_info = two_factor_gadget(grid_info);
 
   let n = gadget_info.E.length;
@@ -1656,15 +1663,17 @@ function ulhp_initTwoFactor(grid_info) {
   //
   for (let i=0; i<two_deg_grid.length; i++) {
 
+    if (grid_info.grid[i] == 0) { continue; }
+
     let cur_bv = two_deg_grid[i];
+    let xy = idx2xy( i, grid_info.size );
 
     if (popcount_lu[ cur_bv ] != 2) {
       ret_code = -1;
-      ret_msg = "no valid initial two factor";
+      ret_msg = "no valid initial two factor (v:" + i.toString() + " " + xy[0].toString() + "," + xy[1].toString() + ")";
       break;
     }
 
-    let xy = idx2xy( i, grid_info.size );
 
     for (let idir=0; idir<4; idir++) {
       let dxy = idir_dxy[idir];
@@ -1703,6 +1712,13 @@ function ulhp_initTwoFactor(grid_info) {
 
     if (ret_code < 0) { break; }
   }
+
+  // PROFILING
+  let _prof_e = Date.now();
+  console.log("## initTwoFactor.dt:", (_prof_e - _prof_s)/1000);
+  // PROFILING
+
+
 
   return {
     "grid_hook": two_deg_grid,
@@ -2079,6 +2095,9 @@ function ulhp_HamiltonianCycleSolidGridGraph(grid_info) {
 
   let tf = ulhp_initTwoFactor(grid_info);
   if (tf.return < 0) {
+
+    //console.log(">>>>", tf);
+
     return {
       "return": tf.return,
       "msg": tf.msg,
@@ -2617,6 +2636,46 @@ function load_custom7_1(grid_info) {
   return grid_info;
 }
 
+
+function _print_path_info(path_info) {
+
+  let path = path_info.path;
+  console.log("#got:", path.length);
+
+  if (path.length > 0) {
+    for (let i=0; i<path.length; i++) {
+      console.log( path[i][0], path[i][1] );
+    }
+    if (path.length > 0) {
+      console.log( path[0][0], path[0][1] );
+    }
+  }
+
+  else {
+
+    console.log(path_info);
+
+    let paths = path_info.paths;
+
+    for (let path_idx=0; path_idx < paths.length; path_idx++) {
+      let path = paths[path_idx];
+
+      if (path.length > 0) {
+        for (let i=0; i<path.length; i++) {
+          console.log( path[i][0], path[i][1] );
+        }
+        if (path.length > 0) {
+          console.log( path[0][0], path[0][1] );
+        }
+        console.log("\n");
+      }
+
+    }
+  }
+
+}
+
+
 function _main(argv) {
   let debug = true;
 
@@ -2658,6 +2717,52 @@ function _main(argv) {
     g_info = import_grid("./test_grid0.json");
   }
 
+  else if (op == 'ex9x10') {
+
+    g_info.size = [9, 10];
+    g_info.grid = [
+      0, 0, 0, 1, 1, 1, 1, 0, 0,
+      0, 0, 0, 1, 1, 1, 1, 0, 0,
+      0, 0, 0, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 0, 0, 0,
+      1, 1, 1, 1, 1, 1, 0, 0, 0,
+      1, 1, 1, 1, 1, 1, 0, 0, 0,
+      0, 0, 0, 0, 1, 1, 0, 0, 0,
+      0, 0, 0, 0, 1, 1, 0, 0, 0,
+    ];
+
+    let path_info = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+
+    _print_path_info(path_info);
+    return;
+  }
+
+  else if (op == 'ex16x13') {
+    g_info.size = [16, 13];
+    g_info.grid = [
+      0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1,
+      0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1,
+      0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+    ];
+
+    let path_info = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+
+    _print_path_info(path_info);
+    return;
+  }
+
   else if (op == 'square') {
     g_info.size[0] = wh_param[0];
     g_info.size[1] = wh_param[1];
@@ -2668,6 +2773,9 @@ function _main(argv) {
     for (let i=0; i<n; i++) { g_info.grid.push(1); }
 
     let path_info = ulhp_HamiltonianCycleSolidGridGraph( g_info );
+
+    _print_path_info(path_info);
+    return;
 
     //console.log(path_info);
 
