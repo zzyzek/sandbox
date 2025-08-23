@@ -53,10 +53,26 @@ Pairs of each of these maximal line segments can be chosen to split the original
 A complete split of the polygon means that the two parts of the outer boundary, on a potential subset of $C$,
 are contiguous.
 
-By a judicious ordering of partitions, it's possible to build up optimal solutions to sub partitions,
+On can choose an odering of partitions such that only contiguous portions of the boundary $C$ are chosen.
+Form this judicious ordering of partitions, it's possible to build up optimal solutions to sub partitions,
 referenced by their boundary and cutting line segments (potentially not maximal?).
 Calculation of sub problems and then re-using those calculations to build answers to optimal partitions
 of larger sub-polygons allows for a dynamic programming approach, and thus a polynomial time solution.
+
+The basic unit is the grid point, which informs how to choose the partition.
+Choosing the grid point alone doesn't completely describe the partition as there might be some choice as to which
+direction the maximal line shoots off from the grid point towards its connecting point on the boundary $C$.
+There's only a few choices of directions for corner boundary cuts (4?), so this only acts as a constant factor
+inflating the dynamic programming memoize array and doesn't change the order.
+
+There are some further complications if the maximal line is straight, and not a corner, or if a maximal line
+cuts off multiple regions (if there are "tabs" coming off the rectilinear polygon that would be cut off by a straight line, say).
+These again don't change the order and are only special cases that need to be handled in a reasonable way.
+
+I'm still a little shaky on the runtime and memory foot print as it seems like the basic index is the start and end
+of contiguous boundary points on $C$ which would give $O(n^2)$ ($n = |C|$) but I'm surely missing something.
+
+
 
 
 
