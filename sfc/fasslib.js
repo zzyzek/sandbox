@@ -325,8 +325,6 @@ if (typeof module !== "undefined") {
     "sgn": _sgn,
     "v_neg": v_neg,
     "v_add": v_add,
-    "v_add": v_add,
-    "v_sub": v_sub,
     "v_sub": v_sub,
     "v_mul": v_mul,
     "dot_v": dot_v,
