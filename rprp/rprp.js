@@ -55,9 +55,6 @@ var pgon_fig1 = [
   [4,7], [3,7], [3,3]
 ]
 
-_print_pgon(pgon_fig1);
-process.exit();
-
 function _ifmt(v, s) {
   s = ((typeof s === "undefined") ? 0 : s);
   let t = v.toString();
