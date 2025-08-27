@@ -51,6 +51,7 @@ var fasslib = require("./fasslib.js");
 
 var norm2_v = fasslib.norm2_v;
 var v_sub = fasslib.v_sub;
+var v_add = fasslib.v_add;
 var v_mul = fasslib.v_mul;
 var dot_v = fasslib.dot_v;
 var cross3 = fasslib.cross3;
@@ -342,6 +343,22 @@ function rectilinearGridPoints(rl_pgon) {
   return { "C": rl_pgon, "Ct": corner_type, "G": grid_xy, "Gt": type_xy, "X": x_dedup, "Y": y_dedup, "dualG" : dualG };
 }
 
+function _BBInit(BB,x,y) {
+  BB[0][0] = x;
+  BB[1][0] = x;
+
+  BB[0][1] = y;
+  BB[1][1] = y;
+}
+
+function _BBUpdate(BB,x,y) {
+  BB[0][0] = Math.min( BB[0][0], x );
+  BB[0][1] = Math.min( BB[0][1], y );
+
+  BB[0][0] = Math.max( BB[1][0], x );
+  BB[0][1] = Math.max( BB[1][1], y );
+}
+
 // straight line guillotine cut
 // provided indices are grid indices (G)
 // since the guillotine cut can be on an edge boundary and not
@@ -375,21 +392,24 @@ function addRegionGuillotine(grid_ctx, g_s_idx, g_e_idx) {
   //  return -1;
   //}
 
-
   let d_xy = v_delta( v_sub(e_xy, s_xy) );
 
   let proj_vec = [0,0],
       proj_val = 0;
-  //if ( Math.abs(d_xy[0]) > _eps ) { proj_val = s_xy[1]; proj_vec = [0,d_xy[0]]; }
-  //else                            { proj_val = s_xy[0]; proj_vec = [d_xy[1],0]; }
 
   if ( Math.abs(d_xy[0]) > _eps ) { proj_val = s_xy[1]; proj_vec = [0,1]; }
   else                            { proj_val = s_xy[0]; proj_vec = [1,0]; }
 
-  console.log("proj_vec:", proj_vec, "proj_val:", proj_val, "d_xy:", d_xy);
+  if (_debug) { console.log("proj_vec:", proj_vec, "proj_val:", proj_val, "d_xy:", d_xy); }
 
   let regions_id = [ [], [] ];
 
+  // index bounding box
+  // we do a simple rectangle check by comparing
+  // the area of the bounding box to the number
+  // of cell entries in the dual.
+  // If they're equal, we know it must be a rectangle.
+  //
   let iBB = [
     [ [0,0], [0,0] ],
     [ [0,0], [0,0] ]
@@ -406,34 +426,38 @@ function addRegionGuillotine(grid_ctx, g_s_idx, g_e_idx) {
       if (d < proj_val) {
 
         if (regions_id[0].length == 0) {
-          iBB[0][0][0] = i;
-          iBB[0][0][1] = j;
-          iBB[0][1][0] = i;
-          iBB[0][1][1] = j;
+          _BBInit(iBB[0], i,j);
+          //iBB[0][0][0] = i;
+          //iBB[0][0][1] = j;
+          //iBB[0][1][0] = i;
+          //iBB[0][1][1] = j;
         }
 
         regions_id[0].push(r_id);
 
-        if (i < iBB[0][0][0]) { iBB[0][0][0] = i; }
-        if (j < iBB[0][0][1]) { iBB[0][0][1] = j; }
-        if (i > iBB[0][1][0]) { iBB[0][1][0] = i; }
-        if (j > iBB[0][1][1]) { iBB[0][1][1] = j; }
+        _BBUpdate(iBB[0], i,j);
+        //if (i < iBB[0][0][0]) { iBB[0][0][0] = i; }
+        //if (j < iBB[0][0][1]) { iBB[0][0][1] = j; }
+        //if (i > iBB[0][1][0]) { iBB[0][1][0] = i; }
+        //if (j > iBB[0][1][1]) { iBB[0][1][1] = j; }
       }
 
       else {
         if (regions_id[1].length == 0) {
-          iBB[1][0][0] = i;
-          iBB[1][0][1] = j;
-          iBB[1][1][0] = i;
-          iBB[1][1][1] = j;
+          _BBInit(iBB[1], i,j);
+          //iBB[1][0][0] = i;
+          //iBB[1][0][1] = j;
+          //iBB[1][1][0] = i;
+          //iBB[1][1][1] = j;
         }
 
         regions_id[1].push(r_id);
 
-        if (i < iBB[1][0][0]) { iBB[1][0][0] = i; }
-        if (j < iBB[1][0][1]) { iBB[1][0][1] = j; }
-        if (i > iBB[1][1][0]) { iBB[1][1][0] = i; }
-        if (j > iBB[1][1][1]) { iBB[1][1][1] = j; }
+        _BBUpdate(iBB[1], i,j);
+        //if (i < iBB[1][0][0]) { iBB[1][0][0] = i; }
+        //if (j < iBB[1][0][1]) { iBB[1][0][1] = j; }
+        //if (i > iBB[1][1][0]) { iBB[1][1][0] = i; }
+        //if (j > iBB[1][1][1]) { iBB[1][1][1] = j; }
       }
     }
   }
@@ -488,6 +512,122 @@ function addRegionTwoCut(grid_ctx, g_s_idx, g_m_idx, g_e_idx) {
 
   let e_xy  = G[g_e_idx];
   let e_t   = Gt[g_e_idx];
+
+  let L_dxy = v_sub(m_xy, s_xy);
+  let S_dxy = v_sub(e_xy, m_xy);
+
+  let _Ldir = v_delta(L_dxy);
+  let _Sdir = v_delta(S_dxy);
+
+  let _ls_dir_dxy = v_sub(_Sdir, _Ldir);
+
+  let theta = Math.atan2(_ls_dir_dxy[1], _ls_dir_dxy[0]);
+
+  let Z = cross3( [_Ldir[0], _Ldir[1], 0], [_Sdir[0], _Sdir[1], 0 ] );
+  let sigmaZ = ((Z[2] < 0) ? -1 : 1);
+
+  let quadrent_idx = Math.floor(2*theta/Math.PI);
+  if (quadrent_idx < 0) { quadrent_idx = 4 + quadrent_idx; }
+
+  console.log("### 2cut: L_dxy:", L_dxy, "S_dxy:", S_dxy, "(ls_dir_dxy:", _ls_dir_dxy, ") theta:", theta, "quadrent_idx:", quadrent_idx, "sigmaZ:", sigmaZ);
+
+  //WIP!!!
+
+  //      |
+  //  1   |   0
+  //      |
+  // ------------
+  //      |
+  //  2   |   3
+  //      |
+  let ls_cmp = [
+    [1,1], 
+    [-1,1],
+    [-1,-1],
+    [1,-1]
+  ];
+
+  let proj_vec = [0,0];
+  let proj_val = 0;
+
+  let R0 = ( (sigmaZ < 0) ? 0 : 1 );
+  let R1 = 1-R0;
+
+  let iBB = [
+    [ [0,0], [0,0] ],
+    [ [0,0], [0,0] ]
+  ];
+
+
+  let proj_L = [ 1,0 ],
+      proj_S = [ 0,1 ];
+
+  let _Lthreshold = s_xy[0];
+  let _Sthreshold = m_xy[1];
+
+  if (Math.abs(_Ldir[0]) > _eps) {
+    _Lthreshold = s_xy[1];
+    _Sthreshold = m_xy[0];
+
+    proj_L = [0,1];
+    proj_S = [1,0];
+  }
+
+
+  let regions_id = [ [], [] ];
+
+  for (let j=0; j<dualG.length; j++) {
+    for (let i=0; i<dualG[j].length; i++) {
+      let r_id = dualG[j][i].id;
+      if (r_id < 0) { continue; }
+
+      let p_rep = dualG[j][i].R[0];
+
+      let Ld = dot_v(p_rep, proj_L);
+      let Sd = dot_v(p_rep, proj_S);
+
+      if ( ((ls_cmp[0]*(Ld - _Lthreshold)) < 0) ||
+           ((ls_cmp[1]*(Sd - _Sthreshold)) < 0) ) {
+      //if ((Ld < _Lthreshold) || (Sd < _Sthreshold)) {
+
+        if (regions_id[R0].length == 0) { _BBInit(iBB[R0], i,j); }
+        _BBUpdate(iBB[R0], i,j);
+
+        regions_id[R0].push(r_id);
+      }
+      else {
+
+        if (regions_id[R1].length == 0) { _BBInit(iBB[R1], i,j); }
+        _BBUpdate(iBB[R1], i,j);
+
+        regions_id[R1].push(r_id);
+      }
+
+    }
+  }
+
+
+  regions_id[0].sort( _icmp );
+  regions_id[1].sort( _icmp );
+
+  let regions_key = [
+    regions_id[0].map( function(_v) { return _v.toString(); } ).join(","),
+    regions_id[1].map( function(_v) { return _v.toString(); } ).join(",")
+  ];
+
+  let a0 = 0;
+  let a1 = 0;
+
+  let shape = [
+    (a0 == regions_id[0].length) ? 'U' : 'Z',
+    (a1 == regions_id[1].length) ? 'U' : 'Z',
+  ];
+
+  if (_debug) {
+    console.log("#### 2cut: [", regions_key[0], "], [", regions_key[1], "] (", shape, ")", "(", a0, a1, ")", JSON.stringify(iBB));
+  }
+
+  return { "region": regions_id, "region_key":regions_key, "shape": shape };
 
 
 }
@@ -722,7 +862,8 @@ function cataloguePartitions( grid_ctx ) {
 
                 let ce_idx = -1;
 
-                addRegionTwoCut(grid_ctx, c_idx, ce_idx, le_g_idx);
+                //addRegionTwoCut(grid_ctx, c_idx, ce_idx, le_g_idx);
+                addRegionTwoCut(grid_ctx, ls_g_idx, le_g_idx, se_g_idx);
 
                 break;
               }
