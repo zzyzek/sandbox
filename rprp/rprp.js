@@ -32,6 +32,20 @@
 //     }
 // }
 //
+// Some auxiliary structures:
+//
+// {
+//   G_idx_bp : <map of xy actual point to grid index>
+//   Gv : <2d array of xy indices to structure>
+//    {
+//      G_idx : <grid index>
+//      xy    : <xy actual point>
+//      t     : <type of grid point>
+//    }
+//   Gv_bp : <map xy actual point to xy index point in Gv>
+//   G_dualG_map : <map of xy actual grid point to xy index point>
+// }
+//
 
 var fasslib = require("./fasslib.js");
 
@@ -96,6 +110,48 @@ function _print_dual(dualG, pfx) {
     }
     console.log( pfx + pl.join(" ") );
   }
+}
+
+function _print_grid_info(grid_info) {
+  console.log("# C (countour) (", grid_info.C.length, "):");
+  for (let i=0; i<grid_info.C.length; i++) {
+    console.log("C[", i, "]:", grid_info.C[i], "(t:", grid_info.Ct[i], ")");
+  }
+  console.log("");
+
+  console.log("# G (grid) (", grid_info.G.length, "):");
+  for (let i=0; i<grid_info.G.length; i++) {
+    console.log("G[", i, "]:", grid_info.G[i], "(t:", grid_info.Gt[i], ")");
+  }
+  console.log("");
+
+  console.log("# X (", grid_info.X.length, "):");
+  let xs = [];
+  for (let i=0; i<grid_info.X.length; i++) {
+    xs.push( _ifmt(grid_info.X[i], 3) );
+  }
+  console.log(xs.join(" "));
+  console.log("");
+
+  console.log("# Y (", grid_info.Y.length, "):");
+  let ys = [];
+  for (let i=0; i<grid_info.Y.length; i++) {
+    ys.push( _ifmt(grid_info.Y[i], 3) );
+  }
+  console.log(ys.join(" "));
+  console.log("");
+
+  console.log("# dualG[iy][ix]:");
+  _print_dual(grid_info.dualG);
+  for (let j=0; j<grid_info.dualG.length; j++) {
+    for (let i=0; i<grid_info.dualG[j].length; i++) {
+      console.log("dualG[", j, "][", i, "]:", JSON.stringify(grid_info.dualG[j][i]));
+    }
+    console.log("");
+  }
+  console.log("");
+
+
 }
 
 function _icmp(a,b) {
@@ -286,17 +342,154 @@ function rectilinearGridPoints(rl_pgon) {
   return { "C": rl_pgon, "Ct": corner_type, "G": grid_xy, "Gt": type_xy, "X": x_dedup, "Y": y_dedup, "dualG" : dualG };
 }
 
-function addRegionGuillotine(grid_ctx, c_s_idx, c_e_idx) {
+// straight line guillotine cut
+// provided indices are grid indices (G)
+// since the guillotine cut can be on an edge boundary and not
+// part of the original boundary.
+//
+// start grid point *should* be a reflex vertex
+//
+function addRegionGuillotine(grid_ctx, g_s_idx, g_e_idx) {
+
+  let _debug = true;
+  let _eps = (1/1024);
+
   let G = grid_ctx.G;
+  let Gt = grid_ctx.Gt;
   let dualG = grid_ctx.dualG;
 
   let dual_regions = [ [], [] ];
 
+  if (_debug) { console.log("#### guillotine g_se:", g_s_idx, g_e_idx, "(", G[g_s_idx], G[g_e_idx], ")"); }
+
+  let s_xy  = G[g_s_idx];
+  let s_t   = Gt[g_s_idx];
+
+  let e_xy  = G[g_e_idx];
+  let e_t   = Gt[g_e_idx];
+
+  // todo, some sanity checks
+  // have to do a contour lookup to get whether its a reflex or concave
+  //if (s_t != 'r') {
+  //  if (_debug) { console.log("SANITY addRegionGuillotine, g_s_idx:", g_s_idx, "not reflex (", s_xy, s_t, ")"); }
+  //  return -1;
+  //}
 
 
+  let d_xy = v_delta( v_sub(e_xy, s_xy) );
+
+  let proj_vec = [0,0],
+      proj_val = 0;
+  //if ( Math.abs(d_xy[0]) > _eps ) { proj_val = s_xy[1]; proj_vec = [0,d_xy[0]]; }
+  //else                            { proj_val = s_xy[0]; proj_vec = [d_xy[1],0]; }
+
+  if ( Math.abs(d_xy[0]) > _eps ) { proj_val = s_xy[1]; proj_vec = [0,1]; }
+  else                            { proj_val = s_xy[0]; proj_vec = [1,0]; }
+
+  console.log("proj_vec:", proj_vec, "proj_val:", proj_val, "d_xy:", d_xy);
+
+  let regions_id = [ [], [] ];
+
+  let iBB = [
+    [ [0,0], [0,0] ],
+    [ [0,0], [0,0] ]
+  ];
+
+  for (let j=0; j<dualG.length; j++) {
+    for (let i=0; i<dualG[j].length; i++) {
+      let r_id = dualG[j][i].id;
+      if (r_id < 0) { continue; }
+
+      let p_rep = dualG[j][i].R[0];
+
+      let d = dot_v( p_rep, proj_vec );
+      if (d < proj_val) {
+
+        if (regions_id[0].length == 0) {
+          iBB[0][0][0] = i;
+          iBB[0][0][1] = j;
+          iBB[0][1][0] = i;
+          iBB[0][1][1] = j;
+        }
+
+        regions_id[0].push(r_id);
+
+        if (i < iBB[0][0][0]) { iBB[0][0][0] = i; }
+        if (j < iBB[0][0][1]) { iBB[0][0][1] = j; }
+        if (i > iBB[0][1][0]) { iBB[0][1][0] = i; }
+        if (j > iBB[0][1][1]) { iBB[0][1][1] = j; }
+      }
+
+      else {
+        if (regions_id[1].length == 0) {
+          iBB[1][0][0] = i;
+          iBB[1][0][1] = j;
+          iBB[1][1][0] = i;
+          iBB[1][1][1] = j;
+        }
+
+        regions_id[1].push(r_id);
+
+        if (i < iBB[1][0][0]) { iBB[1][0][0] = i; }
+        if (j < iBB[1][0][1]) { iBB[1][0][1] = j; }
+        if (i > iBB[1][1][0]) { iBB[1][1][0] = i; }
+        if (j > iBB[1][1][1]) { iBB[1][1][1] = j; }
+      }
+    }
+  }
+
+  let a0 = ((iBB[0][1][0] - iBB[0][0][0] + 1)*(iBB[0][1][1] - iBB[0][0][1] + 1));
+  let a1 = ((iBB[1][1][0] - iBB[1][0][0] + 1)*(iBB[1][1][1] - iBB[1][0][1] + 1));
+
+  let shape = [
+    (a0 == regions_id[0].length) ? 'U' : 'Z',
+    (a1 == regions_id[1].length) ? 'U' : 'Z',
+  ];
+
+  regions_id[0].sort( _icmp );
+  regions_id[1].sort( _icmp );
+
+  let regions_key = [
+    regions_id[0].map( function(_v) { return _v.toString(); } ).join(","),
+    regions_id[1].map( function(_v) { return _v.toString(); } ).join(",")
+  ];
+
+  if (_debug) {
+    console.log("#### [", regions_key[0], "], [", regions_key[1], "] (", shape, ")", "(", a0, a1, ")", JSON.stringify(iBB));
+  }
+
+  return { "region": regions_id, "region_key":regions_key, "shape": shape };
 }
 
-function addRegionTwoCut(grid_ctx, c_s_idx, c_e_idx, grid_two_cut_point_idx) {
+// partition rectilinear polygon by 2-cut.
+//
+// g_s_idx start of cut (from reflex vertex) of 2-cut
+// g_m_idx interior point, middle bend of cut
+// g_e_idx end of cut, grid point on edge or reflex vertex of contour
+//
+function addRegionTwoCut(grid_ctx, g_s_idx, g_m_idx, g_e_idx) {
+
+  let _debug = true;
+  let _eps = (1/1024);
+
+  let G = grid_ctx.G;
+  let Gt = grid_ctx.Gt;
+  let dualG = grid_ctx.dualG;
+
+  let dual_regions = [ [], [] ];
+
+  if (_debug) { console.log("#### 2-cut g_sme:", g_s_idx, g_m_idx, g_e_idx, "(", G[g_s_idx], G[g_m_idx], G[g_e_idx], ")"); }
+
+  let s_xy  = G[g_s_idx];
+  let s_t   = Gt[g_s_idx];
+
+  let m_xy  = G[g_m_idx];
+  let m_t   = Gt[g_m_idx];
+
+  let e_xy  = G[g_e_idx];
+  let e_t   = Gt[g_e_idx];
+
+
 }
 
 function cataloguePartitions( grid_ctx ) {
@@ -317,13 +510,19 @@ function cataloguePartitions( grid_ctx ) {
     [0,1], [0,-1]
   ];
 
+  // grid point xy key to grid index map
+  //
   let G_idx_bp = {};
   for (let i=0; i<G.length; i++) {
     let g = G[i];
     let key = g[0].toString() + "," + g[1].toString();
     G_idx_bp[key] = i;
   }
+  grid_ctx["G_idx_bp"] = G_idx_bp;
 
+  // grid point (actual) xy key to daul entry
+  // dual entry is lower left hand corner point
+  //
   let G_dualG_map = {};
   for (let j=0; j<dualG.length; j++) {
     for (let i=0; i<dualG[j].length; i++) {
@@ -333,7 +532,18 @@ function cataloguePartitions( grid_ctx ) {
       G_dualG_map[key] = [i,j];
     }
   }
+  grid_ctx["G_dualG_map"] = G_dualG_map;
 
+  // grid index xy to information about grid poitn:
+  // each entry contains:
+  // {
+  //   G_idx  : <grid index>
+  //   xy     : <xy point (actual)>
+  //   t      : <type [cbix], x being invalid>
+  // }
+  //
+  // Gv_bp maps grid xy point (actual) to grid index
+  //
   let Gv = [];
   let Gv_bp = {};
   for (let j=0; j<dualG.length; j++) {
@@ -350,10 +560,12 @@ function cataloguePartitions( grid_ctx ) {
       }
 
       Gv[j].push( { "G_idx": dg.G_idx, "xy": _xy, "t": _type } );
-
       Gv_bp[ _xy[0].toString() + "," + _xy[1].toString() ] = [i,j];
     }
   }
+
+  grid_ctx["Gv"] = Gv;
+  grid_ctx["Gv_bp"] = Gv_bp;
 
   // Go through each point on the boundary.
   //
@@ -431,6 +643,8 @@ function cataloguePartitions( grid_ctx ) {
       let l_dxy = l_dxy_choice[ l_dxy_choice_idx ];
       let l_ixy = [ src_ixy[0] + l_dxy[0], src_ixy[1] + l_dxy[1] ];
 
+      let ls_g_idx = Gv[ src_ixy[1] ][ src_ixy[0] ].G_idx;
+
       let s_dxy_choice = [];
       for (let idir=0; idir < 4; idir++) {
         if ( Math.abs(dot_v( idir_dxy[idir], l_dxy )) > _eps ) { continue; }
@@ -456,7 +670,7 @@ function cataloguePartitions( grid_ctx ) {
 
           if (debug) { console.log("    l>>> edge"); }
 
-          addRegionGuillotine(grid_ctx, c_idx, le_g_idx);
+          addRegionGuillotine(grid_ctx, ls_g_idx, le_g_idx);
 
           break;
         }
@@ -467,7 +681,7 @@ function cataloguePartitions( grid_ctx ) {
 
           let ce_idx = -1;
 
-          addRegionGuillotine(grid_ctx, c_idx, ce_idx);
+          addRegionGuillotine(grid_ctx, ls_g_idx, le_g_idx);
 
           break;
 
@@ -579,6 +793,8 @@ function _main1() {
 
   _print_dual(grid_info.dualG, '#');
   console.log("");
+
+  _print_grid_info(grid_info);
 
   cataloguePartitions(grid_info);
   return;
