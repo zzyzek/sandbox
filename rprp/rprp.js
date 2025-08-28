@@ -557,132 +557,6 @@ function addRegionGuillotine(grid_ctx, g_s_idx, g_e_idx) {
   return { "region": regions_id, "region_key":regions_key, "shape": shape };
 }
 
-// straight line guillotine cut
-// provided indices are grid indices (G)
-// since the guillotine cut can be on an edge boundary and not
-// part of the original boundary.
-//
-// start grid point *should* be a reflex vertex
-//
-function _addRegionGuillotine(grid_ctx, g_s_idx, g_e_idx) {
-
-  let _debug = true;
-  let _eps = (1/1024);
-
-  let G = grid_ctx.G;
-  let Gt = grid_ctx.Gt;
-  let dualG = grid_ctx.dualG;
-
-  let dual_regions = [ [], [] ];
-
-  if (_debug) { console.log("#### guillotine g_se:", g_s_idx, g_e_idx, "(", G[g_s_idx], G[g_e_idx], ")"); }
-
-  let s_xy  = G[g_s_idx];
-  let s_t   = Gt[g_s_idx];
-
-  let e_xy  = G[g_e_idx];
-  let e_t   = Gt[g_e_idx];
-
-  // todo, some sanity checks
-  // have to do a contour lookup to get whether its a reflex or concave
-  //if (s_t != 'r') {
-  //  if (_debug) { console.log("SANITY addRegionGuillotine, g_s_idx:", g_s_idx, "not reflex (", s_xy, s_t, ")"); }
-  //  return -1;
-  //}
-
-  let d_xy = v_delta( v_sub(e_xy, s_xy) );
-
-  let proj_vec = [0,0],
-      proj_val = 0;
-
-  if ( Math.abs(d_xy[0]) > _eps ) { proj_val = s_xy[1]; proj_vec = [0,1]; }
-  else                            { proj_val = s_xy[0]; proj_vec = [1,0]; }
-
-  if (_debug) { console.log("proj_vec:", proj_vec, "proj_val:", proj_val, "d_xy:", d_xy); }
-
-  let regions_id = [ [], [] ];
-
-  // index bounding box
-  // we do a simple rectangle check by comparing
-  // the area of the bounding box to the number
-  // of cell entries in the dual.
-  // If they're equal, we know it must be a rectangle.
-  //
-  let iBB = [
-    [ [0,0], [0,0] ],
-    [ [0,0], [0,0] ]
-  ];
-
-  for (let j=0; j<dualG.length; j++) {
-    for (let i=0; i<dualG[j].length; i++) {
-      let r_id = dualG[j][i].id;
-      if (r_id < 0) { continue; }
-
-      let p_rep = dualG[j][i].R[0];
-
-      let d = dot_v( p_rep, proj_vec );
-      if (d < proj_val) {
-
-        if (regions_id[0].length == 0) {
-          _BBInit(iBB[0], i,j);
-          //iBB[0][0][0] = i;
-          //iBB[0][0][1] = j;
-          //iBB[0][1][0] = i;
-          //iBB[0][1][1] = j;
-        }
-
-        regions_id[0].push(r_id);
-
-        _BBUpdate(iBB[0], i,j);
-        //if (i < iBB[0][0][0]) { iBB[0][0][0] = i; }
-        //if (j < iBB[0][0][1]) { iBB[0][0][1] = j; }
-        //if (i > iBB[0][1][0]) { iBB[0][1][0] = i; }
-        //if (j > iBB[0][1][1]) { iBB[0][1][1] = j; }
-      }
-
-      else {
-        if (regions_id[1].length == 0) {
-          _BBInit(iBB[1], i,j);
-          //iBB[1][0][0] = i;
-          //iBB[1][0][1] = j;
-          //iBB[1][1][0] = i;
-          //iBB[1][1][1] = j;
-        }
-
-        regions_id[1].push(r_id);
-
-        _BBUpdate(iBB[1], i,j);
-        //if (i < iBB[1][0][0]) { iBB[1][0][0] = i; }
-        //if (j < iBB[1][0][1]) { iBB[1][0][1] = j; }
-        //if (i > iBB[1][1][0]) { iBB[1][1][0] = i; }
-        //if (j > iBB[1][1][1]) { iBB[1][1][1] = j; }
-      }
-    }
-  }
-
-  let a0 = ((iBB[0][1][0] - iBB[0][0][0] + 1)*(iBB[0][1][1] - iBB[0][0][1] + 1));
-  let a1 = ((iBB[1][1][0] - iBB[1][0][0] + 1)*(iBB[1][1][1] - iBB[1][0][1] + 1));
-
-  let shape = [
-    (a0 == regions_id[0].length) ? 'U' : 'Z',
-    (a1 == regions_id[1].length) ? 'U' : 'Z',
-  ];
-
-  regions_id[0].sort( _icmp );
-  regions_id[1].sort( _icmp );
-
-  let regions_key = [
-    regions_id[0].map( function(_v) { return _v.toString(); } ).join(","),
-    regions_id[1].map( function(_v) { return _v.toString(); } ).join(",")
-  ];
-
-  if (_debug) {
-    console.log("#### [", regions_key[0], "], [", regions_key[1], "] (", shape, ")", "(", a0, a1, ")", JSON.stringify(iBB));
-  }
-
-  return { "region": regions_id, "region_key":regions_key, "shape": shape };
-}
-
 function _xyKey(xy) {
   return xy[0].toString() + "," + xy[1].toString();
 }
@@ -922,171 +796,6 @@ function addRegionTwoCut(grid_ctx, g_s_idx, g_m_idx, g_e_idx) {
 
 }
 
-// partition rectilinear polygon by 2-cut.
-//
-// g_s_idx start of cut (from reflex vertex) of 2-cut
-// g_m_idx interior point, middle bend of cut
-// g_e_idx end of cut, grid point on edge or reflex vertex of contour
-//
-// don't think this method will work
-//
-function _addRegionTwoCut(grid_ctx, g_s_idx, g_m_idx, g_e_idx) {
-
-  let _debug = true;
-  let _eps = (1/1024);
-
-  let G = grid_ctx.G;
-  let Gt = grid_ctx.Gt;
-  let dualG = grid_ctx.dualG;
-
-  let dual_regions = [ [], [] ];
-
-  if (_debug) { console.log("#### 2-cut g_sme:", g_s_idx, g_m_idx, g_e_idx, "(", G[g_s_idx], G[g_m_idx], G[g_e_idx], ")"); }
-
-  let s_xy  = G[g_s_idx];
-  let s_t   = Gt[g_s_idx];
-
-  let m_xy  = G[g_m_idx];
-  let m_t   = Gt[g_m_idx];
-
-  let e_xy  = G[g_e_idx];
-  let e_t   = Gt[g_e_idx];
-
-  let L_dxy = v_sub(m_xy, s_xy);
-  let S_dxy = v_sub(e_xy, m_xy);
-
-  let Hdxy = L_dxy;
-  let Vdxy = S_dxy;
-
-  let Hy = m_xy[1];
-  let Vx = m_xy[0];
-
-  if ( Math.abs(L_dxy[0]) < _eps ) {
-    Hdxy = S_dxy;
-    Vdxy = L_dxy;
-  }
-
-  let _Ldir = v_delta(L_dxy);
-  let _Sdir = v_delta(S_dxy);
-
-  let _ls_dir_dxy = v_sub(_Sdir, _Ldir);
-
-  let theta = Math.atan2(_ls_dir_dxy[1], _ls_dir_dxy[0]);
-
-  let Z = cross3( [_Ldir[0], _Ldir[1], 0], [_Sdir[0], _Sdir[1], 0 ] );
-  let sigmaZ = ((Z[2] < 0) ? -1 : 1);
-
-  let quadrent_idx = Math.floor(2*theta/Math.PI);
-  if (quadrent_idx < 0) { quadrent_idx = 4 + quadrent_idx; }
-
-  console.log("### 2cut: L_dxy:", L_dxy, "S_dxy:", S_dxy, "(ls_dir_dxy:", _ls_dir_dxy, ") theta:", theta, "quadrent_idx:", quadrent_idx, "sigmaZ:", sigmaZ);
-
-  //WIP!!!
-
-  //      |
-  //  1   |   0
-  //      |
-  // ------------
-  //      |
-  //  2   |   3
-  //      |
-  let ls_cmp = [
-    [1,1], 
-    [-1,1],
-    [-1,-1],
-    [1,-1]
-  ];
-
-  let R0 = ( (sigmaZ < 0) ? 0 : 1 );
-  let R1 = 1-R0;
-
-  let iBB = [
-    [ [0,0], [0,0] ],
-    [ [0,0], [0,0] ]
-  ];
-
-
-  let proj_L = [ 1,0 ],
-      proj_S = [ 0,1 ];
-
-  let _Lthreshold = s_xy[0];
-  let _Sthreshold = m_xy[1];
-
-  if (Math.abs(_Ldir[0]) > _eps) {
-    _Lthreshold = s_xy[1];
-    _Sthreshold = m_xy[0];
-
-    proj_L = [0,1];
-    proj_S = [1,0];
-  }
-
-  console.log("### 2cut: ls_cmp[", quadrent_idx,"]", ls_cmp[quadrent_idx],
-    "_LSthresh:", _Lthreshold, _Sthreshold, "proj_LS:", proj_L, proj_S, "R01(", R0, R1, ")");
-
-
-  let regions_id = [ [], [] ];
-
-  for (let j=0; j<dualG.length; j++) {
-    for (let i=0; i<dualG[j].length; i++) {
-      let r_id = dualG[j][i].id;
-      if (r_id < 0) { continue; }
-
-      //let p_rep = dualG[j][i].R[0];
-      let p_rep = dualG[j][i].midpoint;
-
-      let Ld = dot_v(p_rep, proj_L);
-      let Sd = dot_v(p_rep, proj_S);
-
-      console.log("    dualG[",j,i,"] p_rep:", p_rep, "Ld:", Ld, "Sd:", Sd,
-        "cmp_L:", (ls_cmp[quadrent_idx][0]*(Ld - _Lthreshold)),
-        "cmp_S:", (ls_cmp[quadrent_idx][1]*(Sd - _Sthreshold)) );
-
-      if ( ((ls_cmp[quadrent_idx][0]*(Ld - _Lthreshold)) > 0) &&
-           ((ls_cmp[quadrent_idx][1]*(Sd - _Sthreshold)) > 0) ) {
-      //if ((Ld < _Lthreshold) || (Sd < _Sthreshold)) {
-
-        if (regions_id[R0].length == 0) { _BBInit(iBB[R0], i,j); }
-        _BBUpdate(iBB[R0], i,j);
-
-        regions_id[R0].push(r_id);
-      }
-      else {
-
-        if (regions_id[R1].length == 0) { _BBInit(iBB[R1], i,j); }
-        _BBUpdate(iBB[R1], i,j);
-
-        regions_id[R1].push(r_id);
-      }
-
-    }
-  }
-
-
-  regions_id[0].sort( _icmp );
-  regions_id[1].sort( _icmp );
-
-  let regions_key = [
-    regions_id[0].map( function(_v) { return _v.toString(); } ).join(","),
-    regions_id[1].map( function(_v) { return _v.toString(); } ).join(",")
-  ];
-
-  let a0 = 0;
-  let a1 = 0;
-
-  let shape = [
-    (a0 == regions_id[0].length) ? 'U' : 'Z',
-    (a1 == regions_id[1].length) ? 'U' : 'Z',
-  ];
-
-  if (_debug) {
-    console.log("#### 2cut: [", regions_key[0], "], [", regions_key[1], "] (", shape, ")", "(", a0, a1, ")", JSON.stringify(iBB));
-  }
-
-  return { "region": regions_id, "region_key":regions_key, "shape": shape };
-
-
-}
-
 function cataloguePartitions( grid_ctx ) {
   let _eps = (1/1024);
 
@@ -1161,6 +870,8 @@ function cataloguePartitions( grid_ctx ) {
 
   grid_ctx["Gv"] = Gv;
   grid_ctx["Gv_bp"] = Gv_bp;
+
+  let raw_regions = [];
 
   // Go through each point on the boundary.
   //
@@ -1265,7 +976,9 @@ function cataloguePartitions( grid_ctx ) {
 
           if (debug) { console.log("    l>>> edge"); }
 
-          addRegionGuillotine(grid_ctx, ls_g_idx, le_g_idx);
+          let region_info = addRegionGuillotine(grid_ctx, ls_g_idx, le_g_idx);
+          raw_regions.push({ "region": region_info.region[0], "region_key": region_info.region_key[0], "shape": region_info.shape[0] });
+          raw_regions.push({ "region": region_info.region[1], "region_key": region_info.region_key[1], "shape": region_info.shape[1] });
 
           break;
         }
@@ -1276,7 +989,9 @@ function cataloguePartitions( grid_ctx ) {
 
           let ce_idx = -1;
 
-          addRegionGuillotine(grid_ctx, ls_g_idx, le_g_idx);
+          let region_info = addRegionGuillotine(grid_ctx, ls_g_idx, le_g_idx);
+          raw_regions.push({ "region": region_info.region[0], "region_key": region_info.region_key[0], "shape": region_info.shape[0] });
+          raw_regions.push({ "region": region_info.region[1], "region_key": region_info.region_key[1], "shape": region_info.shape[1] });
 
           break;
 
@@ -1315,7 +1030,10 @@ function cataloguePartitions( grid_ctx ) {
               if (se_g_type == 'c') {
                 if (debug) { console.log("      s>>> reflex (partition)"); }
 
-                addRegionTwoCut(grid_ctx, ls_g_idx, le_g_idx, se_g_idx);
+                let region_info = addRegionTwoCut(grid_ctx, ls_g_idx, le_g_idx, se_g_idx);
+                raw_regions.push({ "region": region_info.region[0], "region_key": region_info.region_key[0], "shape": region_info.shape[0] });
+                raw_regions.push({ "region": region_info.region[1], "region_key": region_info.region_key[1], "shape": region_info.shape[1] });
+
                 break;
               }
 
@@ -1336,8 +1054,20 @@ function cataloguePartitions( grid_ctx ) {
 
     }
 
-
   }
+
+  let all_region_map = {};
+  let all_region_name = [];
+
+  for (let i=0; i<raw_regions.length; i++) {
+    let key = raw_regions[i].region_key;
+    if (key in all_region_map) { continue; }
+
+    all_region_map[key] = raw_regions[i];
+    all_region_name.push( key );
+  }
+
+  console.log(raw_regions.length, all_region_name.length);
 
 }
 
