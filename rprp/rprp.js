@@ -334,6 +334,7 @@ function rectilinearGridPoints(rl_pgon) {
 
       dualG[j][i]["R"] = R;
       dualG[j][i]["id"] = dualG_ele_idx;
+      dualG[j][i]["midpoint"] = mp;
       dualG_ele_idx++;
     }
   }
@@ -355,8 +356,205 @@ function _BBUpdate(BB,x,y) {
   BB[0][0] = Math.min( BB[0][0], x );
   BB[0][1] = Math.min( BB[0][1], y );
 
-  BB[0][0] = Math.max( BB[1][0], x );
-  BB[0][1] = Math.max( BB[1][1], y );
+  BB[1][0] = Math.max( BB[1][0], x );
+  BB[1][1] = Math.max( BB[1][1], y );
+}
+
+function addRegionGuillotine(grid_ctx, g_s_idx, g_e_idx) {
+  let _debug = 1;
+  let _eps = (1/1024);
+
+  let G = grid_ctx.G;
+  let Gt = grid_ctx.Gt;
+  let dualG = grid_ctx.dualG;
+  let G_dualG_map = grid_ctx.G_dualG_map;
+
+  if (_debug) { console.log("#### guillotine g_se:", g_s_idx, g_e_idx, "(", G[g_s_idx], G[g_e_idx], ")"); }
+
+  let s_xy  = G[g_s_idx];
+  let s_t   = Gt[g_s_idx];
+
+  let e_xy  = G[g_e_idx];
+  let e_t   = Gt[g_e_idx];
+
+  let L_dxy = v_sub(e_xy, s_xy);
+  let L_dir = v_delta(L_dxy);
+
+  let s_ij = G_dualG_map[ _xyKey(s_xy) ];
+  let e_ij = G_dualG_map[ _xyKey(e_xy) ];
+
+  let L_seg = [ s_xy, e_xy ];
+  let iL_seg = [ s_ij, e_ij ];
+
+  if ((iL_seg[0][0] > iL_seg[1][0]) ||
+      (iL_seg[0][1] > iL_seg[1][1])) {
+    let t = iL_seg[0];
+    iL_seg[0] = iL_seg[1];
+    iL_seg[1] = t;
+  }
+
+
+  if (_debug) {
+    console.log("#### L_seg:", L_seg, "iL_seg:", iL_seg);
+  }
+
+  let Gflood = [];
+  for (let j=0; j<dualG.length; j++) {
+    Gflood.push([]);
+    for (let i=0; i<dualG[j].length; i++) {
+      Gflood[j].push( ((dualG[j][i].id < 0) ? -2 : -1) );
+    }
+  }
+
+  let idir_dxy = [
+    [1,0], [-1,0],
+    [0,1], [0,-1]
+  ];
+
+  let iBB = [
+    [ [0,0], [0,0] ],
+    [ [0,0], [0,0] ]
+  ];
+
+  let L_ortho = ( ( Math.abs(L_dxy[0]) < _eps ) ?  [1, 0] : [0,1] );
+
+  for (let flood_id=0; flood_id<2; flood_id++) {
+
+    // arg...
+    //let dir_sign = ((flood_id == 0) ? -1 : 1)
+    let dir_sign = ((flood_id == 0) ? -1 : 0)
+    //let dir_sign = ((flood_id == 0) ? 1 : 0)
+
+    let q_ij = [ [ iL_seg[0][0] + (dir_sign*L_ortho[0]), iL_seg[0][1] + (dir_sign*L_ortho[1]) ] ];
+
+    _BBInit( iBB[flood_id], q_ij[0][0], q_ij[0][1] );
+
+    if (_debug > 1) {
+      console.log("iBB[", flood_id, "] init:", iBB[flood_id], "(", q_ij[0][0], q_ij[0][1], ")");
+    }
+
+    while (q_ij.length > 0) {
+      let c_ij = q_ij.pop();
+
+      if (Gflood[ c_ij[1] ][ c_ij[0] ] >= 0) { continue; }
+
+      Gflood[ c_ij[1] ][ c_ij[0] ] = flood_id;
+
+      _BBUpdate( iBB[flood_id], c_ij[0], c_ij[1] );
+
+      if (_debug > 1) {
+        console.log("iBB[", flood_id, "] update:", iBB[flood_id], "(", c_ij[0], c_ij[1], ")");
+      }
+
+      for (let idir=0; idir<idir_dxy.length; idir++) {
+        let dxy = idir_dxy[idir];
+
+        let nei_ij = v_add(c_ij, dxy);
+
+        // oob, already visited or inadmissible
+        //
+        if ((nei_ij[1] < 0) ||
+            (nei_ij[1] >= Gflood.length) ||
+            (nei_ij[0] < 0) ||
+            (nei_ij[0] >= Gflood[ nei_ij[1] ].length)) {
+          continue;
+        }
+
+        if (Gflood[ nei_ij[1] ][ nei_ij[0] ] >= 0) {
+          continue;
+        }
+
+        if (dualG[ nei_ij[1] ][ nei_ij[0] ].id < 0) {
+          continue;
+        }
+
+        // check to see if it crosses the horizontal or vertical
+        // cut line segment
+        //
+        if ( L_ortho[1] > _eps ) {
+
+          if ( (c_ij[0] >= iL_seg[0][0]) &&
+               (c_ij[0] < iL_seg[1][0]) &&
+               (nei_ij[0] >= iL_seg[0][0]) &&
+               (nei_ij[0] < iL_seg[1][0]) ) {
+
+            let s2 = [
+              (c_ij[1] >= iL_seg[0][1]) ? 1 : -1,
+              (nei_ij[1] >= iL_seg[0][1]) ? 1 : -1,
+            ];
+
+            if (s2[0] != s2[1]) { continue; }
+
+          }
+
+        }
+
+        else {
+
+          if ( (c_ij[1] >= iL_seg[0][1]) &&
+               (c_ij[1] < iL_seg[1][1]) &&
+               (nei_ij[1] >= iL_seg[0][1]) &&
+               (nei_ij[1] < iL_seg[1][1]) ) {
+
+            let s2 = [
+              (c_ij[0] >= iL_seg[0][0]) ? 1 : -1,
+              (nei_ij[0] >= iL_seg[0][0]) ? 1 : -1,
+            ];
+
+            if (s2[0] != s2[1]) { continue; }
+
+          }
+
+        }
+
+        q_ij.push( nei_ij );
+
+      }
+
+    }
+
+  }
+
+  if (_debug) {
+    console.log("Gflood:");
+    for (let j=(Gflood.length-1); j>=0; j--) {
+      let a = [];
+      for (let i=0; i<Gflood[j].length; i++) {
+        a.push( _ifmt(Gflood[j][i], 2) );
+      }
+      console.log( a.join(" ") );
+    }
+  }
+
+
+  let regions_id = [ [], [] ];
+
+  for (let j=0; j<Gflood.length; j++) {
+    for (let i=0; i<Gflood[j].length; i++) {
+      if (Gflood[j][i] < 0) { continue; }
+      regions_id[ Gflood[j][i] ].push( dualG[j][i].id );
+    }
+  }
+
+  let a0 = ((iBB[0][1][0] - iBB[0][0][0] + 1)*(iBB[0][1][1] - iBB[0][0][1] + 1));
+  let a1 = ((iBB[1][1][0] - iBB[1][0][0] + 1)*(iBB[1][1][1] - iBB[1][0][1] + 1));
+
+  let shape = [
+    (a0 == regions_id[0].length) ? 'U' : 'Z',
+    (a1 == regions_id[1].length) ? 'U' : 'Z',
+  ];
+
+  let regions_key = [
+    regions_id[0].map( function(_v) { return _v.toString(); } ).join(","),
+    regions_id[1].map( function(_v) { return _v.toString(); } ).join(",")
+  ];
+
+  if (_debug) {
+    console.log("#### iBB:", JSON.stringify(iBB));
+    console.log("#### [", regions_key[0], "], [", regions_key[1], "] (", shape, ")", "(", a0, a1, ")", JSON.stringify(iBB));
+  }
+
+  return { "region": regions_id, "region_key":regions_key, "shape": shape };
 }
 
 // straight line guillotine cut
@@ -366,7 +564,7 @@ function _BBUpdate(BB,x,y) {
 //
 // start grid point *should* be a reflex vertex
 //
-function addRegionGuillotine(grid_ctx, g_s_idx, g_e_idx) {
+function _addRegionGuillotine(grid_ctx, g_s_idx, g_e_idx) {
 
   let _debug = true;
   let _eps = (1/1024);
@@ -485,13 +683,254 @@ function addRegionGuillotine(grid_ctx, g_s_idx, g_e_idx) {
   return { "region": regions_id, "region_key":regions_key, "shape": shape };
 }
 
+function _xyKey(xy) {
+  return xy[0].toString() + "," + xy[1].toString();
+}
+
+// three grid point indices are specified, representing the start,
+// mid (internal) and end grid point.
+//
+// From these, a horizontal and vertical line segment are determined.
+//
+// The index dual grid is then flood filled with a flood id.
+// Simple left/right cuts aren't sufficient as the line segment
+// cuts could only carve out a small region and other areas
+// of the rectilinear polygon could snake around.
+//
+// Flood fill is done by checking to make sure neighbors stay
+// within index grid bounds, don't traverse into an inadmissible cell
+// and haven't already been allocated.
+// Assuming all these basic checks pass, the current flood point
+// is checked against its neighbor to see if it crosses one of the
+// line segments.
+// If it doesn't add it to the flood queue and proceed.
+//
+// After the flood fill, regions are collected and an area check
+// is done against the index bounding box to see if it's a simple
+// rectangle (shape code 'U' for simple rectangle, 'Z' for non-simple
+// rectangle).
+//
+// returns:
+// {
+//   region : [ <array of dual cell id>, <array of dual cell id> ]
+//   region_key : [ <string of first region>, <string of second region> ]
+//   shape : [ <shape code of first region>, <shape code of second region> ]
+// }
+//
+function addRegionTwoCut(grid_ctx, g_s_idx, g_m_idx, g_e_idx) {
+  let _debug = 1;
+  let _eps = (1/1024);
+
+  let G = grid_ctx.G;
+  let Gt = grid_ctx.Gt;
+  let dualG = grid_ctx.dualG;
+  let G_dualG_map = grid_ctx.G_dualG_map;
+
+  if (_debug) { console.log("#### 2-cut g_sme:", g_s_idx, g_m_idx, g_e_idx, "(", G[g_s_idx], G[g_m_idx], G[g_e_idx], ")"); }
+
+  let s_xy  = G[g_s_idx];
+  let s_t   = Gt[g_s_idx];
+
+  let m_xy  = G[g_m_idx];
+  let m_t   = Gt[g_m_idx];
+
+  let e_xy  = G[g_e_idx];
+  let e_t   = Gt[g_e_idx];
+
+  let L_dxy = v_sub(m_xy, s_xy);
+  let S_dxy = v_sub(e_xy, m_xy);
+
+  let s_ij = G_dualG_map[ _xyKey(s_xy) ];
+  let m_ij = G_dualG_map[ _xyKey(m_xy) ];
+  let e_ij = G_dualG_map[ _xyKey(e_xy) ];
+
+
+  let H_seg = [ s_xy, m_xy ];
+  let V_seg = [ m_xy, e_xy ];
+
+  let iH_seg = [ s_ij, m_ij ];
+  let iV_seg = [ m_ij, e_ij ];
+
+  if ( Math.abs(L_dxy[0]) < _eps ) {
+    H_seg = [ m_xy, e_xy ];
+    V_seg = [ s_xy, m_xy ];
+
+    iH_seg = [ m_ij, e_ij ];
+    iV_seg = [ s_ij, m_ij ];
+  }
+
+  if (iH_seg[0][0] > iH_seg[1][0]) {
+    let t = iH_seg[0];
+    iH_seg[0] = iH_seg[1];
+    iH_seg[1] = t;
+  }
+
+  if (iV_seg[0][1] > iV_seg[1][1]) {
+    let t = iV_seg[0];
+    iV_seg[0] = iV_seg[1];
+    iV_seg[1] = t;
+  }
+
+  if (_debug) {
+    console.log("#### H_seg:", H_seg, "V_seg:", V_seg, "iH_seg:", iH_seg, "iV_seg:", iV_seg);
+  }
+
+  let Gflood = [];
+  for (let j=0; j<dualG.length; j++) {
+    Gflood.push([]);
+    for (let i=0; i<dualG[j].length; i++) {
+      Gflood[j].push( ((dualG[j][i].id < 0) ? -2 : -1) );
+    }
+  }
+
+  let idir_dxy = [
+    [1,0], [-1,0],
+    [0,1], [0,-1]
+  ];
+
+  let iBB = [
+    [ [0,0], [0,0] ],
+    [ [0,0], [0,0] ]
+  ];
+
+  for (let flood_id=0; flood_id<2; flood_id++) {
+
+    //let dx = ((flood_id == 0) ? -1 : 1)
+    let dx = ((flood_id == 0) ? -1 : 0)
+    let q_ij = [ [ iV_seg[0][0] + dx, iV_seg[0][1] ] ];
+
+    _BBInit( iBB[flood_id], q_ij[0][0], q_ij[0][1] );
+
+    if (_debug > 1) {
+      console.log("iBB[", flood_id, "] init:", iBB[flood_id], "(", q_ij[0][0], q_ij[0][1], ")");
+    }
+
+    while (q_ij.length > 0) {
+      let c_ij = q_ij.pop();
+
+      if (Gflood[ c_ij[1] ][ c_ij[0] ] >= 0) { continue; }
+
+      Gflood[ c_ij[1] ][ c_ij[0] ] = flood_id;
+
+      _BBUpdate( iBB[flood_id], c_ij[0], c_ij[1] );
+
+      if (_debug > 1) {
+        console.log("iBB[", flood_id, "] update:", iBB[flood_id], "(", c_ij[0], c_ij[1], ")");
+      }
+
+      for (let idir=0; idir<idir_dxy.length; idir++) {
+        let dxy = idir_dxy[idir];
+
+        let nei_ij = v_add(c_ij, dxy);
+
+        // oob, already visited or inadmissible
+        //
+        if ((nei_ij[1] < 0) ||
+            (nei_ij[1] >= Gflood.length) ||
+            (nei_ij[0] < 0) ||
+            (nei_ij[0] >= Gflood[ nei_ij[1] ].length)) {
+          continue;
+        }
+
+        if (Gflood[ nei_ij[1] ][ nei_ij[0] ] >= 0) {
+          continue;
+        }
+
+        if (dualG[ nei_ij[1] ][ nei_ij[0] ].id < 0) {
+          continue;
+        }
+
+        // check to see if it crosses the horizontal or vertical
+        // cut line segment
+        //
+        if ( (c_ij[0] >= iH_seg[0][0]) &&
+             (c_ij[0] < iH_seg[1][0]) &&
+             (nei_ij[0] >= iH_seg[0][0]) &&
+             (nei_ij[0] < iH_seg[1][0]) ) {
+
+          let s2 = [
+            (c_ij[1] >= iH_seg[0][1]) ? 1 : -1,
+            (nei_ij[1] >= iH_seg[0][1]) ? 1 : -1,
+          ];
+
+          if (s2[0] != s2[1]) { continue; }
+
+        }
+
+        if ( (c_ij[1] >= iV_seg[0][1]) &&
+             (c_ij[1] < iV_seg[1][1]) &&
+             (nei_ij[1] >= iV_seg[0][1]) &&
+             (nei_ij[1] < iV_seg[1][1]) ) {
+
+          let s2 = [
+            (c_ij[0] >= iV_seg[0][0]) ? 1 : -1,
+            (nei_ij[0] >= iV_seg[0][0]) ? 1 : -1,
+          ];
+
+          if (s2[0] != s2[1]) { continue; }
+
+        }
+
+        q_ij.push( nei_ij );
+
+      }
+
+    }
+
+  }
+
+  if (_debug) {
+    console.log("Gflood:");
+    for (let j=(Gflood.length-1); j>=0; j--) {
+      let a = [];
+      for (let i=0; i<Gflood[j].length; i++) {
+        a.push( _ifmt(Gflood[j][i], 2) );
+      }
+      console.log( a.join(" ") );
+    }
+  }
+
+
+  let regions_id = [ [], [] ];
+
+  for (let j=0; j<Gflood.length; j++) {
+    for (let i=0; i<Gflood[j].length; i++) {
+      if (Gflood[j][i] < 0) { continue; }
+      regions_id[ Gflood[j][i] ].push( dualG[j][i].id );
+    }
+  }
+
+  let a0 = ((iBB[0][1][0] - iBB[0][0][0] + 1)*(iBB[0][1][1] - iBB[0][0][1] + 1));
+  let a1 = ((iBB[1][1][0] - iBB[1][0][0] + 1)*(iBB[1][1][1] - iBB[1][0][1] + 1));
+
+  let shape = [
+    (a0 == regions_id[0].length) ? 'U' : 'Z',
+    (a1 == regions_id[1].length) ? 'U' : 'Z',
+  ];
+
+  let regions_key = [
+    regions_id[0].map( function(_v) { return _v.toString(); } ).join(","),
+    regions_id[1].map( function(_v) { return _v.toString(); } ).join(",")
+  ];
+
+  if (_debug) {
+    console.log("#### iBB:", JSON.stringify(iBB));
+    console.log("#### [", regions_key[0], "], [", regions_key[1], "] (", shape, ")", "(", a0, a1, ")", JSON.stringify(iBB));
+  }
+
+  return { "region": regions_id, "region_key":regions_key, "shape": shape };
+
+}
+
 // partition rectilinear polygon by 2-cut.
 //
 // g_s_idx start of cut (from reflex vertex) of 2-cut
 // g_m_idx interior point, middle bend of cut
 // g_e_idx end of cut, grid point on edge or reflex vertex of contour
 //
-function addRegionTwoCut(grid_ctx, g_s_idx, g_m_idx, g_e_idx) {
+// don't think this method will work
+//
+function _addRegionTwoCut(grid_ctx, g_s_idx, g_m_idx, g_e_idx) {
 
   let _debug = true;
   let _eps = (1/1024);
@@ -515,6 +954,17 @@ function addRegionTwoCut(grid_ctx, g_s_idx, g_m_idx, g_e_idx) {
 
   let L_dxy = v_sub(m_xy, s_xy);
   let S_dxy = v_sub(e_xy, m_xy);
+
+  let Hdxy = L_dxy;
+  let Vdxy = S_dxy;
+
+  let Hy = m_xy[1];
+  let Vx = m_xy[0];
+
+  if ( Math.abs(L_dxy[0]) < _eps ) {
+    Hdxy = S_dxy;
+    Vdxy = L_dxy;
+  }
 
   let _Ldir = v_delta(L_dxy);
   let _Sdir = v_delta(S_dxy);
@@ -547,9 +997,6 @@ function addRegionTwoCut(grid_ctx, g_s_idx, g_m_idx, g_e_idx) {
     [1,-1]
   ];
 
-  let proj_vec = [0,0];
-  let proj_val = 0;
-
   let R0 = ( (sigmaZ < 0) ? 0 : 1 );
   let R1 = 1-R0;
 
@@ -573,6 +1020,9 @@ function addRegionTwoCut(grid_ctx, g_s_idx, g_m_idx, g_e_idx) {
     proj_S = [1,0];
   }
 
+  console.log("### 2cut: ls_cmp[", quadrent_idx,"]", ls_cmp[quadrent_idx],
+    "_LSthresh:", _Lthreshold, _Sthreshold, "proj_LS:", proj_L, proj_S, "R01(", R0, R1, ")");
+
 
   let regions_id = [ [], [] ];
 
@@ -581,13 +1031,18 @@ function addRegionTwoCut(grid_ctx, g_s_idx, g_m_idx, g_e_idx) {
       let r_id = dualG[j][i].id;
       if (r_id < 0) { continue; }
 
-      let p_rep = dualG[j][i].R[0];
+      //let p_rep = dualG[j][i].R[0];
+      let p_rep = dualG[j][i].midpoint;
 
       let Ld = dot_v(p_rep, proj_L);
       let Sd = dot_v(p_rep, proj_S);
 
-      if ( ((ls_cmp[0]*(Ld - _Lthreshold)) < 0) ||
-           ((ls_cmp[1]*(Sd - _Sthreshold)) < 0) ) {
+      console.log("    dualG[",j,i,"] p_rep:", p_rep, "Ld:", Ld, "Sd:", Sd,
+        "cmp_L:", (ls_cmp[quadrent_idx][0]*(Ld - _Lthreshold)),
+        "cmp_S:", (ls_cmp[quadrent_idx][1]*(Sd - _Sthreshold)) );
+
+      if ( ((ls_cmp[quadrent_idx][0]*(Ld - _Lthreshold)) > 0) &&
+           ((ls_cmp[quadrent_idx][1]*(Sd - _Sthreshold)) > 0) ) {
       //if ((Ld < _Lthreshold) || (Sd < _Sthreshold)) {
 
         if (regions_id[R0].length == 0) { _BBInit(iBB[R0], i,j); }
@@ -860,11 +1315,7 @@ function cataloguePartitions( grid_ctx ) {
               if (se_g_type == 'c') {
                 if (debug) { console.log("      s>>> reflex (partition)"); }
 
-                let ce_idx = -1;
-
-                //addRegionTwoCut(grid_ctx, c_idx, ce_idx, le_g_idx);
                 addRegionTwoCut(grid_ctx, ls_g_idx, le_g_idx, se_g_idx);
-
                 break;
               }
 
