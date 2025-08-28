@@ -81,7 +81,7 @@ Some terminology:
 | Structure | Description |
 |---|---|
 | `C` | Original list of points describing the rectilinear polygon, in counter clockwise order |
-| `Ct`` | Matching array of corner types. `c` corner (convex relative inwards), `r` reflex (concave relative inward) |
+| `Ct` | Matching array of corner types. `c` corner (convex relative inwards), `r` reflex (concave relative inward) |
 | `G` | Array of grid points take from intersection of lines drawn out from reflex vertices |
 | `Gt` | Matching array of grid point types. `c` original boundary point (corner or reflex), `b` point on boundary edge, `i` interior point |
 | `X` | Array of x points from `C` |
@@ -113,3 +113,6 @@ References
 * ["Rectangular Partitions of a Rectilinear Polygon" by Kim, Lee, Ahn](https://arxiv.org/pdf/2111.01970)
 * ["Minimum Edge Length Partitioning of Rectilinear Polygons" by Lingas, Pinter, Rivest, Shamir](https://people.csail.mit.edu/rivest/pubs/LPRS82.pdf)
 * ["Design and Analysis of Approxmiation Algorithms" by Du, Ko, Hu](https://link.springer.com/book/10.1007/978-1-4614-1701-9)
+* ["The Structure of Optimal Partitions of Orthogonal Polygons into Fat RectanglesFat Rectangles" by O'Rourke, Tewari](https://scholarworks.smith.edu/cgi/viewcontent.cgi?article=1200&context=csc_facpubs)
+
+

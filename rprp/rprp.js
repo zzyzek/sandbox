@@ -56,6 +56,7 @@ var v_mul = fasslib.v_mul;
 var dot_v = fasslib.dot_v;
 var cross3 = fasslib.cross3;
 var v_delta = fasslib.v_delta;
+var abs_sum_v = fasslib.abs_sum_v;
 
 var pgon = [
   [1,-1], [1,1], [0,1], [0,5], [2,5], [2,6],
@@ -976,9 +977,27 @@ function cataloguePartitions( grid_ctx ) {
 
           if (debug) { console.log("    l>>> edge"); }
 
+          let grid_pnt_s = G[ls_g_idx];
+          let grid_pnt_e = G[le_g_idx];
+          let cut_cost = abs_sum_v( v_sub(grid_pnt_e, grid_pnt_s) );
+
           let region_info = addRegionGuillotine(grid_ctx, ls_g_idx, le_g_idx);
-          raw_regions.push({ "region": region_info.region[0], "region_key": region_info.region_key[0], "shape": region_info.shape[0] });
-          raw_regions.push({ "region": region_info.region[1], "region_key": region_info.region_key[1], "shape": region_info.shape[1] });
+          raw_regions.push({
+            "region": region_info.region[0],
+            "region_key": region_info.region_key[0],
+            "shape": region_info.shape[0],
+            "cut_type": "guillotine",
+            "cut_segment": [ [grid_pnt_s, grid_pnt_e] ],
+            "cut_cost" : cut_cost
+          });
+          raw_regions.push({
+            "region": region_info.region[1],
+            "region_key": region_info.region_key[1],
+            "shape": region_info.shape[1],
+            "cut_type": "guillotine",
+            "cut_segment": [ [grid_pnt_s, grid_pnt_e] ],
+            "cut_cost": cut_cost
+          });
 
           break;
         }
@@ -987,11 +1006,27 @@ function cataloguePartitions( grid_ctx ) {
 
           if (debug) { console.log("    l>>> src_reflex", src_ixy, "to dst_boundary", le_g_ixy); }
 
-          let ce_idx = -1;
+          let grid_pnt_s = G[ls_g_idx];
+          let grid_pnt_e = G[le_g_idx];
+          let cut_cost = abs_sum_v( v_sub(grid_pnt_e, grid_pnt_s) );
 
           let region_info = addRegionGuillotine(grid_ctx, ls_g_idx, le_g_idx);
-          raw_regions.push({ "region": region_info.region[0], "region_key": region_info.region_key[0], "shape": region_info.shape[0] });
-          raw_regions.push({ "region": region_info.region[1], "region_key": region_info.region_key[1], "shape": region_info.shape[1] });
+          raw_regions.push({
+            "region": region_info.region[0],
+            "region_key": region_info.region_key[0],
+            "shape": region_info.shape[0],
+            "cut_type": "guillotine",
+            "cut_segment": [[grid_pnt_s, grid_pnt_s]],
+            "cut_cost" : cut_cost
+          });
+          raw_regions.push({
+            "region": region_info.region[1],
+            "region_key": region_info.region_key[1],
+            "shape": region_info.shape[1],
+            "cut_type": "guillotine",
+            "cut_segment": [[grid_pnt_s, grid_pnt_s]],
+            "cut_cost" : cut_cost
+          });
 
           break;
 
@@ -1028,11 +1063,36 @@ function cataloguePartitions( grid_ctx ) {
               }
 
               if (se_g_type == 'c') {
-                if (debug) { console.log("      s>>> reflex (partition)"); }
+
+                let grid_pnt_s = G[ls_g_idx];
+                let grid_pnt_i = G[le_g_idx];
+                let grid_pnt_e = G[se_g_idx];
+                let cut_cost = abs_sum_v( v_sub(grid_pnt_e, grid_pnt_i) ) + abs_sum_v( v_sub(grid_pnt_e, grid_pnt_i) );
+
+                if (debug) {
+                  console.log("      s>>> reflex (partition)",
+                    "2cut-seg: [", grid_pnt_s, grid_pnt_i, "]",
+                    "[", grid_pnt_i, grid_pnt_e, "]",
+                    "(cost:", cut_cost, ")");
+                }
 
                 let region_info = addRegionTwoCut(grid_ctx, ls_g_idx, le_g_idx, se_g_idx);
-                raw_regions.push({ "region": region_info.region[0], "region_key": region_info.region_key[0], "shape": region_info.shape[0] });
-                raw_regions.push({ "region": region_info.region[1], "region_key": region_info.region_key[1], "shape": region_info.shape[1] });
+                raw_regions.push({
+                  "region": region_info.region[0],
+                  "region_key": region_info.region_key[0],
+                  "shape": region_info.shape[0],
+                  "cut_type": "2cut",
+                  "cut_segment": [ [grid_pnt_s, grid_pnt_i], [grid_pnt_i, grid_pnt_e] ],
+                  "cut_cost": cut_cost
+                });
+                raw_regions.push({
+                  "region": region_info.region[1],
+                  "region_key": region_info.region_key[1],
+                  "shape": region_info.shape[1],
+                  "cut_type": "2cut",
+                  "cut_segment": [ [grid_pnt_s, grid_pnt_i], [grid_pnt_i, grid_pnt_e] ],
+                  "cut_cost": cut_cost
+                });
 
                 break;
               }
@@ -1063,12 +1123,134 @@ function cataloguePartitions( grid_ctx ) {
     let key = raw_regions[i].region_key;
     if (key in all_region_map) { continue; }
 
-    all_region_map[key] = raw_regions[i];
+    let region_info = raw_regions[i];
+
+    region_info["child_key"] = [];
+    region_info["child_region"] = [];
+    region_info["cost"] = ( (region_info.shape == 'U') ? region_info.cut_cost : -1 );
+
+    all_region_map[key] = region_info;
     all_region_name.push( key );
   }
 
-  console.log(raw_regions.length, all_region_name.length);
+  let _jstr = JSON.stringify;
 
+  for (let src_idx = 0; src_idx < all_region_name.length; src_idx++) {
+    let region_a_key = all_region_name[src_idx];
+    let region_a = all_region_map[ region_a_key ];
+
+    for (let dst_idx = (src_idx+1); dst_idx < all_region_name.length; dst_idx++) {
+      let region_b_key = all_region_name[dst_idx];
+      let region_b = all_region_map[ region_b_key ];
+
+      let comm = commRegion( region_a.region, region_b.region );
+
+      console.log(" ...[", src_idx, dst_idx, "]:", region_a_key, region_b_key, region_a.region, region_b.region, comm);
+
+      if (comm[2].length == region_b.region.length) {
+        console.log(" B in A (", _jstr(region_b.region), "in", _jstr(region_a.region), ") A-B:", _jstr(comm[0]));
+
+        region_a.child_region.push( [ comm[0], comm[2] ] );
+        region_a.child_key.push( [ _regionKey(comm[0]), region_b.region_key ] );
+
+        //region_b.child_key.push( 
+      }
+
+      else if (comm[2].length == region_a.region.length) {
+        console.log(" A in B (", _jstr(region_a.region), "in", _jstr(region_b.region), ") B-A:", _jstr(comm[1]));
+
+        region_b.child_region.push( [ comm[1], comm[2] ] );
+        region_b.child_key.push( [ _regionKey(comm[1]), region_a.region_key ] );
+      }
+
+    }
+  }
+
+  console.log("region dag:");
+  for (let src_idx = 0; src_idx < all_region_name.length; src_idx++) {
+    let region_key = all_region_name[src_idx];
+    let region_info = all_region_map[ region_key ];
+    console.log( region_key, ":", _jstr( region_info.child_key ) );
+  }
+
+
+  resolveEdgeCost(grid_ctx, all_region_map, all_region_name);
+
+}
+
+function isRegionRect(grid_ctx, region) {
+
+  for (let idx=0; idx<region.length; idx++) {
+    let region_id = region[idx];
+
+  }
+}
+
+function resolveEdgeCost(grid_ctx, region_map, region_name) {
+
+  for (let idx=0; idx<region_name.length; idx++) {
+    let region = region_map[region_name[idx]];
+    if (region.cost >= 0) { continue; }
+
+    let sub_cost = [];
+    for (let child_idx=0; child_idx < region.child_key.length; child_idx++) {
+      let child_region = region.child_region[child_idx];
+      let child_key = region.child_key[child_idx];
+
+
+
+    }
+
+  }
+
+}
+
+
+function _regionKey( region_id ) {
+  return region_id.map( function(_v) { return _v.toString(); } ).join(",");
+}
+
+
+// returns array[3] of arrays of region ids
+//
+// A only | B only | A and B in common
+//
+// assumes a_region and b_region are sorted and have unique
+// region ids.
+//
+// like the `comm` unix tool
+//
+function commRegion(a_region, b_region) {
+  let comm = [ [], [], [] ];
+
+  let a_idx = 0,
+      b_idx = 0;
+
+  let a_n = a_region.length,
+      b_n = b_region.length;
+
+  while ( (a_idx < a_n) && (b_idx < b_n) ) {
+    if (a_region[a_idx] < b_region[b_idx]) {
+      comm[0].push( a_region[a_idx] );
+      a_idx++;
+      continue;
+    }
+
+    if (a_region[a_idx] > b_region[b_idx]) {
+      comm[1].push( b_region[b_idx] );
+      b_idx++;
+      continue;
+    }
+
+    comm[2].push( a_region[a_idx] );
+    a_idx++;
+    b_idx++;
+  }
+
+  for ( ; a_idx < a_n; a_idx++) { comm[0].push( a_region[a_idx] ); }
+  for ( ; b_idx < b_n; b_idx++) { comm[1].push( b_region[b_idx] ); }
+
+  return comm;
 }
 
 function _ok(P) {
