@@ -72,6 +72,37 @@ These again don't change the order and are only special cases that need to be ha
 I'm still a little shaky on the runtime and memory foot print as it seems like the basic index is the start and end
 of contiguous boundary points on $C$ which would give $O(n^2)$ ($n = |C|$) but I'm surely missing something.
 
+---
+
+My initial implementation is going to be pretty inefficient.
+
+Some terminology:
+
+| Structure | Description |
+|---|---|
+| `C` | Original list of points describing the rectilinear polygon, in counter clockwise order |
+| `Ct`` | Matching array of corner types. `c` corner (convex relative inwards), `r` reflex (concave relative inward) |
+| `G` | Array of grid points take from intersection of lines drawn out from reflex vertices |
+| `Gt` | Matching array of grid point types. `c` original boundary point (corner or reflex), `b` point on boundary edge, `i` interior point |
+| `X` | Array of x points from `C` |
+| `Y` | Array of y points from `C` |
+| `dualG` | 2D array of simple rectangles made of four (virtual) grid points, including inadmissible rectangles. Each entry has fields `ixy` x,y index, `G_idx` grid point index, `id` unique id (-1 if inadmissible), `R` four grid points that make up the dual rectangle |
+| `G_idx_bp` | Map of x,y grid points to grid index. Key is comma separated string of x and y coordinates (e.g. `3,5`) |
+| `Gv` | 2D array mapping 2D grid index to grid information. Each entry has fields `G_idx` grid index, `xy` two element array grid point, `t` type |
+| `Gv_bp` | Map of x,y grid points to grid point index. Key is comma separated string of x and y coordinates (e.g. `3,5`) |
+| `G_dual_map` | Map of x,y grid points to x,y index. Key is comma seaprated string of x and y coordaintes (e.g. `3,5`) |
+
+An overview is as follows:
+
+* From `C` Construct the initial structures, most notably the grid points, `G`, and `dualG`
+* Walk the boudary of `C`
+  - for each reflex vertex, start a line, $L$
+  - for each line direction
+    + if it's an interior point, start a line, $S$, in the orthogonal direction and walk until a reflex or edge boundary point is hit and
+      create two region boundaries, keyed on the list of dual rectangles within it
+    + if it's a reflex or edge boundary point, create two region boundaries, keeyed on the list of dual rectangles within it
+* Once all regions are collected, deduplicate regions, note cost of guillotine or two cuts and mark rectangular regions as resolved
+* While ...
 
 
 
@@ -79,6 +110,6 @@ of contiguous boundary points on $C$ which would give $O(n^2)$ ($n = |C|$) but I
 References
 ---
 
-* ["Rec, path);tangular Partitions of a Rectilinear Polygon" by Kim, Lee, Ahn](https://arxiv.org/pdf/2111.01970)
+* ["Rectangular Partitions of a Rectilinear Polygon" by Kim, Lee, Ahn](https://arxiv.org/pdf/2111.01970)
 * ["Minimum Edge Length Partitioning of Rectilinear Polygons" by Lingas, Pinter, Rivest, Shamir](https://people.csail.mit.edu/rivest/pubs/LPRS82.pdf)
 * ["Design and Analysis of Approxmiation Algorithms" by Du, Ko, Hu](https://link.springer.com/book/10.1007/978-1-4614-1701-9)
