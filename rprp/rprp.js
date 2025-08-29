@@ -1153,7 +1153,7 @@ function cataloguePartitions( grid_ctx ) {
                 let grid_pnt_s = G[ls_g_idx];
                 let grid_pnt_i = G[le_g_idx];
                 let grid_pnt_e = G[se_g_idx];
-                let cut_cost = abs_sum_v( v_sub(grid_pnt_e, grid_pnt_i) ) + abs_sum_v( v_sub(grid_pnt_e, grid_pnt_i) );
+                let cut_cost = abs_sum_v( v_sub(grid_pnt_e, grid_pnt_i) ) + abs_sum_v( v_sub(grid_pnt_i, grid_pnt_s) );
 
                 if (debug) {
                   console.log("      s>>> reflex (partition)",
@@ -1237,7 +1237,9 @@ function cataloguePartitions( grid_ctx ) {
 
         let c_a = regionRectCost(grid_ctx, region_a.region);
         let c_b = regionRectCost(grid_ctx, region_b.region);
-        console.log(" B in A (", _jstr(region_b.region), "in", _jstr(region_a.region), ") A-B:", _jstr(comm[0]), "(cost ab:", c_a, c_b, ")");
+        console.log(" B in A (", _jstr(region_b.region), "in", _jstr(region_a.region), ")",
+          "A-B:", _jstr(comm[0]), "(cost ab:", c_a, c_b, ")",
+          "(cut_cost:", region_a.cost, region_b.cost, ")" );
 
         region_a.child_region.push( [ comm[0], comm[2] ] );
         region_a.child_key.push( [ _regionKey(comm[0]), region_b.region_key ] );
@@ -1250,7 +1252,9 @@ function cataloguePartitions( grid_ctx ) {
 
         let c_a = regionRectCost(grid_ctx, region_a.region);
         let c_b = regionRectCost(grid_ctx, region_b.region);
-        console.log(" A in B (", _jstr(region_a.region), "in", _jstr(region_b.region), ") B-A:", _jstr(comm[1]), "(cost ab:", c_a, c_b, ")");
+        console.log(" A in B (", _jstr(region_a.region), "in", _jstr(region_b.region), ") B-A:", _jstr(comm[1]),
+          "(cost ab:", c_a, c_b, ")",
+          "(cut_cost:", region_a.cost, region_b.cost, ")" );
 
         region_b.child_region.push( [ comm[1], comm[2] ] );
         region_b.child_key.push( [ _regionKey(comm[1]), region_a.region_key ] );
@@ -1276,6 +1280,9 @@ function regionRectCost(grid_ctx, region) {
   let dualCell = grid_ctx.dualCell;
   let Gv = grid_ctx.Gv;
 
+  let B = grid_ctx.B;
+  let B_2d = grid_ctx.B_2d;
+
   let cost = 0;
 
   let iBB = [ [0,0], [1,1] ];
@@ -1294,17 +1301,96 @@ function regionRectCost(grid_ctx, region) {
   let ix = 0,
       iy = 0;
 
-  console.log("iBB:", JSON.stringify(iBB));
+  //console.log("#regionRectCost: iBB:", JSON.stringify(iBB), "region:", region);
 
-  // bottom
-  //
-  for (iy = iBB[0][1], ix = iBB[0][0]; ix < iBB[1][0]; ix++) {
-    let g0_info = Gv[ iy ][ ix + 1 ];
-    let g1_info = Gv[ iy ][ ix ];
-    if ((g0_info.t == 'i') && (g1_info.t == 'i')) {
-      cost += abs_sum_v( v_sub( g1_info.xy, g0_info.xy ) );
+  let cur_dixy = [
+    [0,0], [0,1],
+    [1,0], [0,0]
+  ];
+
+  let nei_dixy = [
+    [1,0], [1,1],
+    [1,1], [0,1]
+  ];
+
+  let d_ixy = [ [1,0], [1,0], [0,1], [0,1] ];
+  let s_ixy = [
+    [ iBB[0][0], iBB[0][1] ],
+    [ iBB[0][0], iBB[1][1] ],
+    [ iBB[1][0], iBB[0][1] ],
+    [ iBB[0][0], iBB[0][1] ]
+  ];
+
+  let n_idir = [
+    iBB[1][0] - iBB[0][0] + 1,
+    iBB[1][0] - iBB[0][0] + 1,
+    iBB[1][1] - iBB[0][1] + 1,
+    iBB[1][1] - iBB[0][1] + 1
+  ];
+
+  let cost4 = [];
+
+
+  console.log("#### s_ixy:", s_ixy, n_idir);
+
+  for (let idir=0; idir<4; idir++) {
+
+    let cur_cost = 0;
+
+    // bottom
+    //
+    for (let idx_ixy=0; idx_ixy < n_idir[idir]; idx_ixy++) {
+
+      let ix = s_ixy[idir][0] + (idx_ixy*d_ixy[idir][0]),
+          iy = s_ixy[idir][1] + (idx_ixy*d_ixy[idir][1]);
+
+
+    //for (iy = iBB[0][1], ix = iBB[0][0]; ix <= iBB[1][0]; ix++) {
+
+      let nei_ixy = [ ix + nei_dixy[idir][0], iy + nei_dixy[idir][1] ];
+      let cur_ixy = [ ix + cur_dixy[idir][0], iy + cur_dixy[idir][1] ];
+
+      if ((cur_ixy[1] < 0) || (cur_ixy[1] >= Gv.length) ||
+          (cur_ixy[0] < 0) || (cur_ixy[0] >= Gv[ cur_ixy[1] ].length)) {
+        continue;
+      }
+
+      if ((nei_ixy[1] < 0) || (nei_ixy[1] >= Gv.length) ||
+          (nei_ixy[0] < 0) || (nei_ixy[0] >= Gv[ nei_ixy[1] ].length)) {
+        continue;
+      }
+
+      if (Gv[cur_ixy[1]][cur_ixy[0]].G_idx < 0) { continue; }
+
+      let b_idx1 = B_2d[ nei_ixy[1] ][ nei_ixy[0] ];
+      let b_idx0 = B_2d[ cur_ixy[1] ][ cur_ixy[0] ];
+
+      console.log("### idir:", idir, "ixy:", ix, iy, "nei_ixy:", nei_ixy, "cur_ixy:", cur_ixy, "b_idx01:", b_idx0, b_idx1);
+
+      if ((b_idx1 >= 0) &&
+          (b_idx0 >= 0) &&
+          ( ( ((b_idx0+1)%B.length) == b_idx1 ) ||
+            ( ((b_idx1+1)%B.length) == b_idx0 ) )) {
+        continue;
+      }
+
+
+      let g0_info = Gv[ nei_ixy[1] ][ nei_ixy[0] ];
+      let g1_info = Gv[ cur_ixy[1] ][ cur_ixy[0] ];
+      cur_cost = abs_sum_v( v_sub( g1_info.xy, g0_info.xy ) );
+      cost += cur_cost;
+      cost4.push(cur_cost);
+
+      console.log("###", "nei_ixy:", nei_ixy, "cur_ixy:", cur_ixy, "ginfo:", g0_info, g1_info, "(", g1_info.xy, g0_info.xy, ")");
+
     }
+
   }
+
+  console.log("#regionRectCost: iBB:", JSON.stringify(iBB), "region:", region, "cost:", cost, cost4);
+
+  return cost;
+
 
   // right
   //
