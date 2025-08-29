@@ -156,6 +156,14 @@ function _print_grid_info(grid_info) {
 
 }
 
+// helper functions
+//
+
+function _xyKey(xy) {
+  return xy[0].toString() + "," + xy[1].toString();
+}
+
+
 function _icmp(a,b) {
   if (a < b) { return -1; }
   if (a > b) { return  1; }
@@ -181,6 +189,9 @@ function winding(u, pgn) {
 
   return w;
 }
+
+//
+// helper functions
 
 // Returns true if p on boundary of pgn,
 // false if not.
@@ -277,6 +288,7 @@ function rectilinearGridPoints(rl_pgon) {
   let type_xy = [];
 
   let dualG = [];
+  let dualCell = [];
   let g_id = 0;
 
   for (let j=0; j<y_dedup.length; j++) {
@@ -287,9 +299,9 @@ function rectilinearGridPoints(rl_pgon) {
       let _type = 'i';
       let _key = g[0].toString() + "," + g[1].toString();
 
-      if (_key in pnt_map) { _type = 'c'; }
-      else if (onBoundary(g, rl_pgon)) { _type = 'b'; }
-      else if ( Math.abs(winding(g, rl_pgon)) < _eps ) { _type = 'x'; }
+      if      ( _key in pnt_map )                       { _type = 'c'; }
+      else if ( onBoundary(g, rl_pgon) )                { _type = 'b'; }
+      else if ( Math.abs(winding(g, rl_pgon)) < _eps )  { _type = 'x'; }
 
       let g_idx = -1;
       if (_type != 'x') {
@@ -336,13 +348,143 @@ function rectilinearGridPoints(rl_pgon) {
       dualG[j][i]["R"] = R;
       dualG[j][i]["id"] = dualG_ele_idx;
       dualG[j][i]["midpoint"] = mp;
+
+      dualCell.push({"R": R, "midpoint": mp, "ixy": [i,j]});
+
       dualG_ele_idx++;
     }
   }
 
+  // grid point xy key to grid index map
+  //
+  let G = grid_xy;
+  let Gt = type_xy;
+  let G_idx_bp = {};
+  for (let i=0; i<G.length; i++) {
+    let g = G[i];
+    let key = g[0].toString() + "," + g[1].toString();
+    G_idx_bp[key] = i;
+  }
+  //grid_ctx["G_idx_bp"] = G_idx_bp;
 
+  // grid point (actual) xy key to daul entry
+  // dual entry is lower left hand corner point
+  //
+  let G_dualG_map = {};
+  for (let j=0; j<dualG.length; j++) {
+    for (let i=0; i<dualG[j].length; i++) {
+      let g_idx = dualG[j][i].G_idx;
+      if (g_idx < 0) { continue; }
+      let key = G[g_idx][0].toString() + "," + G[g_idx][1].toString();
+      G_dualG_map[key] = [i,j];
+    }
+  }
+  //grid_ctx["G_dualG_map"] = G_dualG_map;
 
-  return { "C": rl_pgon, "Ct": corner_type, "G": grid_xy, "Gt": type_xy, "X": x_dedup, "Y": y_dedup, "dualG" : dualG };
+  // grid index xy to information about grid poitn:
+  // each entry contains:
+  // {
+  //   G_idx  : <grid index>
+  //   xy     : <xy point (actual)>
+  //   t      : <type [cbix], x being invalid>
+  // }
+  //
+  // Gv_bp maps grid xy point (actual) to grid index
+  //
+  let Gv = [];
+  let Gv_bp = {};
+  for (let j=0; j<dualG.length; j++) {
+    Gv.push([]);
+    for (let i=0; i<dualG[j].length; i++) {
+      let dg = dualG[j][i];
+
+      let _xy = [-1,-1];
+      let _type = "x";
+
+      if (dg.G_idx >= 0) {
+        _xy = G[dg.G_idx];
+        _type = Gt[dg.G_idx];
+      }
+
+      Gv[j].push( { "G_idx": dg.G_idx, "xy": _xy, "t": _type } );
+      Gv_bp[ _xy[0].toString() + "," + _xy[1].toString() ] = [i,j];
+    }
+  }
+
+  //grid_ctx["Gv"] = Gv;
+  //grid_ctx["Gv_bp"] = Gv_bp;
+
+  let B = [];
+  let B_2d = [];
+
+  let _b_id = 0;
+
+  for (let j=0; j<dualG.length; j++) {
+    B_2d.push([]);
+    for (let i=0; i<dualG[j].length; i++) {
+      B_2d[j].push(-1);
+    }
+  }
+
+  for (let c_idx=0; c_idx < rl_pgon.length; c_idx++) {
+    let c_cur_xy = rl_pgon[c_idx];
+    let c_nxt_xy = rl_pgon[(c_idx+1) % rl_pgon.length];
+
+    let c_cur_key = _xyKey(c_cur_xy);
+    let c_nxt_key = _xyKey(c_nxt_xy);
+
+    let cur_ixy = Gv_bp[ c_cur_key ];
+    let nxt_ixy = Gv_bp[ c_nxt_key ];
+
+    let n_m_c_ixy = v_sub(nxt_ixy, cur_ixy);
+    let d = abs_sum_v(n_m_c_ixy );
+    let dxy = v_delta( n_m_c_ixy );
+
+    let _ixy = [ cur_ixy[0], cur_ixy[1] ];
+    for (i=0; i<d; i++) {
+
+      let g = Gv[ _ixy[1] ][ _ixy[0] ];
+
+      B.push( { "xy": [ g.xy[0], g.xy[1] ], "ixy": [ _ixy[0], _ixy[1] ], "t": g.t, "b_id": _b_id } );
+      B_2d[ _ixy[1] ][ _ixy[0] ] = _b_id;
+      _b_id++;
+
+      _ixy = v_add( _ixy, dxy );
+    }
+
+  }
+
+  /*
+  for (let i=0; i<B.length; i++) {
+    console.log(B[i].xy[0], B[i].xy[1]);
+  }
+
+  for (let j= (B_2d.length-1); j >= 0; j--) {
+    let a = [];
+    for (let i=0; i<B_2d[j].length; i++) {
+      let val = B_2d[j][i];
+
+      if (val >= 0) { a.push( _ifmt(val,2) ); }
+      else { a.push( ' .' ); }
+    }
+    console.log("#", a.join(" ") );
+  }
+  */
+
+  return {
+    "C": rl_pgon,
+    "Ct": corner_type,
+    "G": grid_xy, "Gt": type_xy,
+    "X": x_dedup, "Y": y_dedup,
+    "dualG" : dualG,
+    "dualCell": dualCell,
+    "G_idx_bp": G_idx_bp,
+    "G_dualG_map": G_dualG_map,
+    "Gv": Gv,
+    "Gv_bp": Gv_bp,
+    "B": B,
+    "B_2d": B_2d
+  };
 }
 
 function _BBInit(BB,x,y) {
@@ -556,10 +698,6 @@ function addRegionGuillotine(grid_ctx, g_s_idx, g_e_idx) {
   }
 
   return { "region": regions_id, "region_key":regions_key, "shape": shape };
-}
-
-function _xyKey(xy) {
-  return xy[0].toString() + "," + xy[1].toString();
 }
 
 // three grid point indices are specified, representing the start,
@@ -810,67 +948,14 @@ function cataloguePartitions( grid_ctx ) {
   let Y = grid_ctx.Y;
   let dualG = grid_ctx.dualG;
 
+  let Gv = grid_ctx.Gv;
+  let Gv_bp = grid_ctx.Gv_bp;
+
   let idir_dxy = [
     [1,0], [-1,0],
     [0,1], [0,-1]
   ];
 
-  // grid point xy key to grid index map
-  //
-  let G_idx_bp = {};
-  for (let i=0; i<G.length; i++) {
-    let g = G[i];
-    let key = g[0].toString() + "," + g[1].toString();
-    G_idx_bp[key] = i;
-  }
-  grid_ctx["G_idx_bp"] = G_idx_bp;
-
-  // grid point (actual) xy key to daul entry
-  // dual entry is lower left hand corner point
-  //
-  let G_dualG_map = {};
-  for (let j=0; j<dualG.length; j++) {
-    for (let i=0; i<dualG[j].length; i++) {
-      let g_idx = dualG[j][i].G_idx;
-      if (g_idx < 0) { continue; }
-      let key = G[g_idx][0].toString() + "," + G[g_idx][1].toString();
-      G_dualG_map[key] = [i,j];
-    }
-  }
-  grid_ctx["G_dualG_map"] = G_dualG_map;
-
-  // grid index xy to information about grid poitn:
-  // each entry contains:
-  // {
-  //   G_idx  : <grid index>
-  //   xy     : <xy point (actual)>
-  //   t      : <type [cbix], x being invalid>
-  // }
-  //
-  // Gv_bp maps grid xy point (actual) to grid index
-  //
-  let Gv = [];
-  let Gv_bp = {};
-  for (let j=0; j<dualG.length; j++) {
-    Gv.push([]);
-    for (let i=0; i<dualG[j].length; i++) {
-      let dg = dualG[j][i];
-
-      let _xy = [-1,-1];
-      let _type = "x";
-
-      if (dg.G_idx >= 0) {
-        _xy = G[dg.G_idx];
-        _type = Gt[dg.G_idx];
-      }
-
-      Gv[j].push( { "G_idx": dg.G_idx, "xy": _xy, "t": _type } );
-      Gv_bp[ _xy[0].toString() + "," + _xy[1].toString() ] = [i,j];
-    }
-  }
-
-  grid_ctx["Gv"] = Gv;
-  grid_ctx["Gv_bp"] = Gv_bp;
 
   let raw_regions = [];
 
@@ -933,6 +1018,7 @@ function cataloguePartitions( grid_ctx ) {
     }
 
     if (c_type != 'r') { continue; }
+
 
     let _key = c_xy[0].toString() + "," + c_xy[1].toString();
     let src_ixy = Gv_bp[_key];
@@ -1148,7 +1234,10 @@ function cataloguePartitions( grid_ctx ) {
       console.log(" ...[", src_idx, dst_idx, "]:", region_a_key, region_b_key, region_a.region, region_b.region, comm);
 
       if (comm[2].length == region_b.region.length) {
-        console.log(" B in A (", _jstr(region_b.region), "in", _jstr(region_a.region), ") A-B:", _jstr(comm[0]));
+
+        let c_a = regionRectCost(grid_ctx, region_a.region);
+        let c_b = regionRectCost(grid_ctx, region_b.region);
+        console.log(" B in A (", _jstr(region_b.region), "in", _jstr(region_a.region), ") A-B:", _jstr(comm[0]), "(cost ab:", c_a, c_b, ")");
 
         region_a.child_region.push( [ comm[0], comm[2] ] );
         region_a.child_key.push( [ _regionKey(comm[0]), region_b.region_key ] );
@@ -1157,7 +1246,11 @@ function cataloguePartitions( grid_ctx ) {
       }
 
       else if (comm[2].length == region_a.region.length) {
-        console.log(" A in B (", _jstr(region_a.region), "in", _jstr(region_b.region), ") B-A:", _jstr(comm[1]));
+
+
+        let c_a = regionRectCost(grid_ctx, region_a.region);
+        let c_b = regionRectCost(grid_ctx, region_b.region);
+        console.log(" A in B (", _jstr(region_a.region), "in", _jstr(region_b.region), ") B-A:", _jstr(comm[1]), "(cost ab:", c_a, c_b, ")");
 
         region_b.child_region.push( [ comm[1], comm[2] ] );
         region_b.child_key.push( [ _regionKey(comm[1]), region_a.region_key ] );
@@ -1178,12 +1271,75 @@ function cataloguePartitions( grid_ctx ) {
 
 }
 
-function isRegionRect(grid_ctx, region) {
+function regionRectCost(grid_ctx, region) {
+  let dualG = grid_ctx.dualG;
+  let dualCell = grid_ctx.dualCell;
+  let Gv = grid_ctx.Gv;
+
+  let cost = 0;
+
+  let iBB = [ [0,0], [1,1] ];
 
   for (let idx=0; idx<region.length; idx++) {
     let region_id = region[idx];
+    let dual_ij = dualCell[ region_id ].ixy;
 
+    if (idx == 0) { _BBInit( iBB, dual_ij[0], dual_ij[1] ); }
+    _BBUpdate( iBB, dual_ij[0], dual_ij[1] );
   }
+
+  let bbA = ((iBB[1][0] - iBB[0][0] + 1)*(iBB[1][1] - iBB[0][1] + 1));
+  if (bbA != region.length) { return -1; }
+
+  let ix = 0,
+      iy = 0;
+
+  console.log("iBB:", JSON.stringify(iBB));
+
+  // bottom
+  //
+  for (iy = iBB[0][1], ix = iBB[0][0]; ix < iBB[1][0]; ix++) {
+    let g0_info = Gv[ iy ][ ix + 1 ];
+    let g1_info = Gv[ iy ][ ix ];
+    if ((g0_info.t == 'i') && (g1_info.t == 'i')) {
+      cost += abs_sum_v( v_sub( g1_info.xy, g0_info.xy ) );
+    }
+  }
+
+  // right
+  //
+  for (iy = iBB[0][1], ix = iBB[1][0]; iy < iBB[1][1]; iy++) {
+    let g0_info = Gv[ iy ][ ix ];
+    let g1_info = Gv[ iy + 1 ][ ix ];
+    if ((g0_info.t == 'i') && (g1_info.t == 'i')) {
+      cost += abs_sum_v( v_sub( g1_info.xy, g0_info.xy ) );
+    }
+  }
+
+  // top
+  //
+  for (iy = iBB[1][1], ix = iBB[0][0]; ix < iBB[1][0]; ix++) {
+    let g0_info = Gv[ iy ][ ix + 1 ];
+    let g1_info = Gv[ iy ][ ix ];
+    if ((g0_info.t == 'i') && (g1_info.t == 'i')) {
+      cost += abs_sum_v( v_sub( g1_info.xy, g0_info.xy ) );
+    }
+  }
+
+  // left
+  //
+  for (iy = iBB[0][1], ix = iBB[0][0]; iy < iBB[1][1]; iy++) {
+    let g0_info = Gv[ iy ][ ix ];
+    let g1_info = Gv[ iy + 1 ][ ix ];
+
+    console.log("left ixy:", ix, iy, "ixy+1:", ix, iy+1, "g0_info:", g0_info, "g1_info:", g1_info);
+
+    if ((g0_info.t == 'i') && (g1_info.t == 'i')) {
+      cost += abs_sum_v( v_sub( g1_info.xy, g0_info.xy ) );
+    }
+  }
+
+  return cost;
 }
 
 function resolveEdgeCost(grid_ctx, region_map, region_name) {
