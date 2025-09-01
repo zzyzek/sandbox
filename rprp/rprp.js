@@ -71,6 +71,11 @@ var pgon_fig1 = [
   [4,7], [3,7], [3,3]
 ]
 
+function _write_data(ofn, data) {
+  var fs = require("fs");
+  return fs.writeFileSync(ofn, JSON.stringify(data, undefined, 2));
+}
+
 function _ifmt(v, s) {
   s = ((typeof s === "undefined") ? 0 : s);
   let t = v.toString();
@@ -1270,6 +1275,14 @@ function cataloguePartitions( grid_ctx ) {
     console.log( region_key, ":", _jstr( region_info.child_key ) );
   }
 
+  grid_ctx["region_map"] = all_region_map;
+  grid_ctx["region_name"] = all_region_name;
+
+  console.log("### writing all_region_map.json");
+  _write_data( "all_region_map.json", all_region_map );
+
+  console.log("### writing grid_ctx.json");
+  _write_data( "grid_ctx.json", grid_ctx);
 
   resolveEdgeCost(grid_ctx, all_region_map, all_region_name);
 
