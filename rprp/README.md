@@ -105,6 +105,72 @@ An overview is as follows:
 * While ...
 
 
+---
+
+Looks like there is a blog description of the algorithm ([here](https://nanoexplanations.wordpress.com/2011/12/16/polygon-rectangulation-part-3-minimum-length-rectangulation/)).
+
+From the blog:
+
+> Fact: It suffices to consider subfigures whose boundary consists of a
+> contiguous piece of the original boundary and at
+> most two contiguous constructed lines.
+
+Where, here, a *figure* is a 2D hole free rectilinear polygon.
+
+We want to create sub-figures from an original figure.
+Start with a figure without any constructed lines and consider the following method:
+
+* If $F$ has no constructed lines, choose any vertex of $F$ (choose a **convex** point on the perimeter/boundary)
+* If $F$ has a single constructed line (a Guillotine cut), choose either endpoint
+  of the constructed line
+* If $F$ has two constructed lines (a 2-cut), choose the point where the constructed
+  lines meet
+
+Call the candidate point $p _ F$.
+
+For all grid points, consider valid points, $q$, that construct a rectangle entirely within $F$ (rectangle, fully within $F$ that has corners $p _ F$ and $q$).
+
+So the algorithm works recursively on a (sub) region $F$ with a candidation point derived from two, one or none constructed lines passed along with it.
+The *none* condition only happens at the root, where an initial point is chosen to kick off the recursion.
+
+For a region $F$ and a candidate point $p _ F$, consider all grid points, $m _ k$, such that $R _ { p _ F, m _ k }$
+(the rectangle made by $p _ F$ and $m _ k$) lies completely in $F$.
+For each of the candidate points, take a bite out of $F$ with $R _ { p _ F, m _ k }$ and recur, choosing the new candidate
+point appropriately (from the 1 or 2-cut partition used to create $R _ { p _ F, m _ k }$) and, when the recursion bubbles
+back up, save the minimum value.
+
+When starting from the full region, only one valid candidate point needs to be chosen as we know it has to be part of some minimum
+rectangle and we loop through all possible rectangles with the candidate point.
+The other points can be argued the same, where we recur/enumerate all possibilities with our subdivision scheme.
+
+A superficial description is that a rectangular piece is chosen, then further rectangular pieces are cut, that share the
+same corner as the previous, until the whole cake is removed.
+Cutting each piece is only done from the stump of the last one and so keeps the contiguous boundary, eating away at it,
+rectangular piece by rectangular piece.
+At each step of the recursion, all rectangular pieces are chosen
+but since it's only eating away at the boundary from the ends (aka keeping a contiguous boundary),
+we know its polynomial time bounded.
+
+It looks like Lingas et al. (and the blog post) suggest ordering by area, but I'm not sure if this is necessary or a "nice to have".
+Lingas et al. have various methods to speed up matching point enumeration but these are effectively heuristics without
+addressing the overall runtime.
+Kim et al. use/refine Lingas et al.s heuristics and maybe give a tighter bound on runtime with it (?) but the "naive" algorithm
+of enumerating all valid matching points provides an overall bound of $O(N^4)$.
+
+---
+
+I still don't understand how to implement this.
+
+Here's a review:
+
+* Every maximal cut line must have at least one end anchored on a reflex vertex
+  - That is, there exists a minimum ink partition s.t. every maximal cut line has at least one reflex vertex anchor
+  - Any maximal cut line that does not end on a reflex vertex is superfluous and can be removed
+  - The other end of a maximal cut line can be another cut line, the boundary edge or a reflex vertex
+* Every reflex vertex must have at least one cut line eminating from it. In the case of two cut lines eminating,
+  each must have a reflex vertex at their other end
+
+
 
 
 References
@@ -114,5 +180,6 @@ References
 * ["Minimum Edge Length Partitioning of Rectilinear Polygons" by Lingas, Pinter, Rivest, Shamir](https://people.csail.mit.edu/rivest/pubs/LPRS82.pdf)
 * ["Design and Analysis of Approxmiation Algorithms" by Du, Ko, Hu](https://link.springer.com/book/10.1007/978-1-4614-1701-9)
 * ["The Structure of Optimal Partitions of Orthogonal Polygons into Fat RectanglesFat Rectangles" by O'Rourke, Tewari](https://scholarworks.smith.edu/cgi/viewcontent.cgi?article=1200&context=csc_facpubs)
+* ["Polygon rectangulation, part 3: Minimum-length rectangulation", Nanoexplanations, blog of Aaron Sterling](https://nanoexplanations.wordpress.com/2011/12/16/polygon-rectangulation-part-3-minimum-length-rectangulation/)
 
 

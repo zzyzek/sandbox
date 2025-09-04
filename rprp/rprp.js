@@ -59,6 +59,11 @@ var v_delta = fasslib.v_delta;
 var abs_sum_v = fasslib.abs_sum_v;
 
 var pgon = [
+  [0,0], [0,2], [1,2], [1,3], [3,3],
+  [3,1], [2,1], [2,0]
+];
+
+var pgon_pinwheel = [
   [1,-1], [1,1], [0,1], [0,5], [2,5], [2,6],
   [4,6], [4,3], [5,3], [5,0], [3,0], [3,-1],
 ];
@@ -1210,6 +1215,8 @@ function cataloguePartitions( grid_ctx ) {
   let all_region_map = {};
   let all_region_name = [];
 
+  // dedup regions
+  //
   for (let i=0; i<raw_regions.length; i++) {
     let key = raw_regions[i].region_key;
     if (key in all_region_map) { continue; }
@@ -1234,10 +1241,16 @@ function cataloguePartitions( grid_ctx ) {
       let region_b_key = all_region_name[dst_idx];
       let region_b = all_region_map[ region_b_key ];
 
+      // comm[0] = A only
+      // comm[1] = B only
+      // comm[2] = A \cap B
+      //
       let comm = commRegion( region_a.region, region_b.region );
 
       console.log(" ...[", src_idx, dst_idx, "]:", region_a_key, region_b_key, region_a.region, region_b.region, comm);
 
+      // |B| = |A \cap B| -> B \in A
+      //
       if (comm[2].length == region_b.region.length) {
 
         let c_a = regionRectCost(grid_ctx, region_a.region);
@@ -1248,12 +1261,11 @@ function cataloguePartitions( grid_ctx ) {
 
         region_a.child_region.push( [ comm[0], comm[2] ] );
         region_a.child_key.push( [ _regionKey(comm[0]), region_b.region_key ] );
-
-        //region_b.child_key.push( 
       }
 
+      // |A| = |A \cap B| -> A \in B
+      //
       else if (comm[2].length == region_a.region.length) {
-
 
         let c_a = regionRectCost(grid_ctx, region_a.region);
         let c_b = regionRectCost(grid_ctx, region_b.region);
@@ -1275,6 +1287,49 @@ function cataloguePartitions( grid_ctx ) {
     console.log( region_key, ":", _jstr( region_info.child_key ) );
   }
 
+
+  let nxt_region_map = {};
+  for (let src_idx = 0; src_idx < all_region_name.length; src_idx++) {
+    let region_key = all_region_name[src_idx];
+    let region_info = all_region_map[ region_key ];
+
+    for (let child_pair_idx = 0; child_pair_idx < region_info.child_key.length; child_pair_idx++) {
+      let child_pair_key = region_info.child_key[ child_pair_idx ];
+
+      for (let cpi = 0; cpi < child_pair_key.length; cpi++) {
+
+        let child_key = child_pair_key[cpi];
+
+        if (!(child_key in all_region_map)) {
+
+          let child_region = region_info.child_region[ child_pair_idx ][ cpi ];
+          let child_cost = regionRectCost( grid_ctx, child_region );
+
+          let child_cut_cost = child_cost;
+          let child_shape = 'U';
+          if (child_cost < 0) {
+            child_shape = 'Z';
+          }
+
+          nxt_region_map[child_key] = {
+            "region": child_region,
+            "region_key": child_key,
+            "shape": child_shape,
+            "cut_type": "derived",
+            "cust_segment": [],
+            "cut_cost": child_cost,
+            "cost": child_cut_cost,
+            "child_key": [],
+            "child_region": []
+          };
+        }
+
+      }
+
+    }
+  }
+
+
   grid_ctx["region_map"] = all_region_map;
   grid_ctx["region_name"] = all_region_name;
 
@@ -1288,7 +1343,10 @@ function cataloguePartitions( grid_ctx ) {
 
 }
 
+
 function regionRectCost(grid_ctx, region) {
+  let _debug = true;
+
   let dualG = grid_ctx.dualG;
   let dualCell = grid_ctx.dualCell;
   let Gv = grid_ctx.Gv;
@@ -1308,13 +1366,14 @@ function regionRectCost(grid_ctx, region) {
     _BBUpdate( iBB, dual_ij[0], dual_ij[1] );
   }
 
+  // check to make sure region is rectangular.
+  // If not, return -1
+  //
   let bbA = ((iBB[1][0] - iBB[0][0] + 1)*(iBB[1][1] - iBB[0][1] + 1));
   if (bbA != region.length) { return -1; }
 
   let ix = 0,
       iy = 0;
-
-  //console.log("#regionRectCost: iBB:", JSON.stringify(iBB), "region:", region);
 
   let cur_dixy = [
     [0,0], [0,1],
@@ -1344,21 +1403,33 @@ function regionRectCost(grid_ctx, region) {
   let cost4 = [];
 
 
-  console.log("#### s_ixy:", s_ixy, n_idir);
+  if (_debug) {
+    console.log("#### s_ixy:", s_ixy, n_idir);
+  }
 
+  // for each side of the rectangle, trace out right, left,
+  // top, bottom.
+  // Consider each grid point and it's directional neighbor
+  // on the perimeter of the boundary.
+  // If:
+  //   - index grid point is out of bounds
+  //   - index of neighbor grid point is out of bounds
+  //   - index of point and neighbor are within 1 on B (C + grid point
+  //     boundary points)
+  // then skip.
+  // If both current and directional neighbor grid point are on the B perimeter
+  // (with additional grid points), but they're not next to each other index-wise,
+  // then there must be an empty space between them.
+  //
+  // Otherwise, there's empty space between the points, so count
+  // the distance.
+  //
   for (let idir=0; idir<4; idir++) {
 
-    let cur_cost = 0;
-
-    // bottom
-    //
     for (let idx_ixy=0; idx_ixy < n_idir[idir]; idx_ixy++) {
 
       let ix = s_ixy[idir][0] + (idx_ixy*d_ixy[idir][0]),
           iy = s_ixy[idir][1] + (idx_ixy*d_ixy[idir][1]);
-
-
-    //for (iy = iBB[0][1], ix = iBB[0][0]; ix <= iBB[1][0]; ix++) {
 
       let nei_ixy = [ ix + nei_dixy[idir][0], iy + nei_dixy[idir][1] ];
       let cur_ixy = [ ix + cur_dixy[idir][0], iy + cur_dixy[idir][1] ];
@@ -1378,7 +1449,9 @@ function regionRectCost(grid_ctx, region) {
       let b_idx1 = B_2d[ nei_ixy[1] ][ nei_ixy[0] ];
       let b_idx0 = B_2d[ cur_ixy[1] ][ cur_ixy[0] ];
 
-      console.log("### idir:", idir, "ixy:", ix, iy, "nei_ixy:", nei_ixy, "cur_ixy:", cur_ixy, "b_idx01:", b_idx0, b_idx1);
+      if (_debug) {
+        console.log("### idir:", idir, "ixy:", ix, iy, "nei_ixy:", nei_ixy, "cur_ixy:", cur_ixy, "b_idx01:", b_idx0, b_idx1);
+      }
 
       if ((b_idx1 >= 0) &&
           (b_idx0 >= 0) &&
@@ -1390,52 +1463,20 @@ function regionRectCost(grid_ctx, region) {
 
       let g0_info = Gv[ nei_ixy[1] ][ nei_ixy[0] ];
       let g1_info = Gv[ cur_ixy[1] ][ cur_ixy[0] ];
-      cur_cost = abs_sum_v( v_sub( g1_info.xy, g0_info.xy ) );
+      let cur_cost = abs_sum_v( v_sub( g1_info.xy, g0_info.xy ) );
       cost += cur_cost;
       cost4.push(cur_cost);
 
-      console.log("###", "nei_ixy:", nei_ixy, "cur_ixy:", cur_ixy, "ginfo:", g0_info, g1_info, "(", g1_info.xy, g0_info.xy, ")");
+      if (_debug) {
+        console.log("###", "nei_ixy:", nei_ixy, "cur_ixy:", cur_ixy, "ginfo:", g0_info, g1_info, "(", g1_info.xy, g0_info.xy, ")");
+      }
 
     }
 
   }
 
-  console.log("#regionRectCost: iBB:", JSON.stringify(iBB), "region:", region, "cost:", cost, cost4);
-
-  return cost;
-
-
-  // right
-  //
-  for (iy = iBB[0][1], ix = iBB[1][0]; iy < iBB[1][1]; iy++) {
-    let g0_info = Gv[ iy ][ ix ];
-    let g1_info = Gv[ iy + 1 ][ ix ];
-    if ((g0_info.t == 'i') && (g1_info.t == 'i')) {
-      cost += abs_sum_v( v_sub( g1_info.xy, g0_info.xy ) );
-    }
-  }
-
-  // top
-  //
-  for (iy = iBB[1][1], ix = iBB[0][0]; ix < iBB[1][0]; ix++) {
-    let g0_info = Gv[ iy ][ ix + 1 ];
-    let g1_info = Gv[ iy ][ ix ];
-    if ((g0_info.t == 'i') && (g1_info.t == 'i')) {
-      cost += abs_sum_v( v_sub( g1_info.xy, g0_info.xy ) );
-    }
-  }
-
-  // left
-  //
-  for (iy = iBB[0][1], ix = iBB[0][0]; iy < iBB[1][1]; iy++) {
-    let g0_info = Gv[ iy ][ ix ];
-    let g1_info = Gv[ iy + 1 ][ ix ];
-
-    console.log("left ixy:", ix, iy, "ixy+1:", ix, iy+1, "g0_info:", g0_info, "g1_info:", g1_info);
-
-    if ((g0_info.t == 'i') && (g1_info.t == 'i')) {
-      cost += abs_sum_v( v_sub( g1_info.xy, g0_info.xy ) );
-    }
+  if (_debug) {
+    console.log("#regionRectCost: iBB:", JSON.stringify(iBB), "region:", region, "cost:", cost, cost4);
   }
 
   return cost;

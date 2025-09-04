@@ -53,7 +53,7 @@ function draw_region(region_info, oxy, scale, disp_info) {
     for (let i=0; i<R.length; i++) {
       tR.push([
         R[i][0]*scale + oxy[0],
-        R[i][1]*scale + oxy[1]
+        -R[i][1]*scale + oxy[1]
       ]);
 
       _bbupdate(bb, tR[i], (i==0));
@@ -61,7 +61,7 @@ function draw_region(region_info, oxy, scale, disp_info) {
 
     let mp = [
       cell.midpoint[0]*scale + oxy[0],
-      cell.midpoint[1]*scale + oxy[1]
+      -cell.midpoint[1]*scale + oxy[1]
     ];
 
     let w = bb[1][0] - bb[0][0];
