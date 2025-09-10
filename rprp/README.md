@@ -170,6 +170,49 @@ Here's a review:
 * Every reflex vertex must have at least one cut line eminating from it. In the case of two cut lines eminating,
   each must have a reflex vertex at their other end
 
+---
+
+###### 2025-09-10
+
+OK, I think I have a better understanding of how this algorithm works.
+
+Kim, Lee and Ahn is a little terse to read but I think they provide a much clearer view of what's going on.
+
+For a give figure (rectilinear polygon, potentially subdivided from the original), choose an origin point on
+the boundary of the figure (details of which point to choose might be important, so more on this later).
+This origin point, $\sigma$, must be part of a rectangle, so consider all grid points on the interior of the figure which
+we'll call candidate points, $\rho$.
+
+For each candidate point, try to construct a rectangle using $\sigma$ and $\rho$ as the corner points, where
+the rectangle has non-zero area and lies completely inside the figure.
+Call it $R _ { \sigma \rho }$.
+
+The rectangle $R _ { \sigma \rho }$ will have some number of edges exposed to the interior of the figure (up to 4 potentially?).
+For each of those edges, extend them in the appropriate directions so that they're maximal.
+That is, each line has to have at least one endpoint on a reflex vertex, where the reflex vertex is from the original perimeter
+of the rectilinear polygon.
+
+The case analysis is going to be a bit hairy but the idea is that the number of combinations of maximal lines is finite (3 per
+corner, max, for a total of 12?).
+Each of these choices will partition the sub-figure further, making progress at eating away at the perimeter of the original rectilinear
+polygon.
+
+If no rectangle exists with positive area, doesn't lie within the figure or has no choices for maximal edge cuts, reject it.
+
+There's an implicit DP matrix here that has the start and end of the original rectilinear polygon, the grid point of where the
+cut is and the choice of the cut lines (where their anchor is).
+This gives a hand-waivy $O( N^3 )$ run-time.
+I guess the size can be reduced but, at worst, the DP matrix is being filled out.
+
+I don't think the actual choice of origin point matters too much but I think the suggestion is to use the candidate point from
+the previous step as the new origin (and choose an arbitrary origin to start).
+
+So, to summarize, choosing an origin point, $\sigma$, must have a rectangle containing it, so we look for all possibilities.
+For each rectangle, we make sure to choose maximal cut lines that will reduce the perimeter.
+Every rectangle that can't have it's edges extended into a maximal cut is invalid.
+Since there must be a rectangle with the origin point and we've enumerated all possibilities of rectangle choices as well as the
+choices for maximal cut lines, we've exhausted the possibility space to guarantee a solution.
+
 
 
 
