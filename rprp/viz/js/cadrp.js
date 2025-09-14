@@ -23,14 +23,27 @@ var g_ui = {
 };
 
 function pgn2a() {
-  let pgn = g_ui.data.pgn;
-
+  let orig_pgn = g_ui.data.pgn;
+  let pgn = [];
   let res_pgn = [];
-
   let origin_xy = [0,0];
 
+  for (let i=0; i<orig_pgn.length; i++) {
+    let p = orig_pgn[i];
+    if ( (i > 0) && (i < (orig_pgn.length-1)) &&
+         ( ( (orig_pgn[i-1][0] == p[0]) && (orig_pgn[i+1][0] == p[0]) ) ||
+           ( (orig_pgn[i-1][1] == p[1]) && (orig_pgn[i+1][1] == p[1]) ) ) ) {
+      continue;
+    }
+
+    pgn.push( orig_pgn[i] );
+  }
+
+
   for (let i=0; i<pgn.length; i++) {
-    res_pgn.push( [ pgn[i][0], -pgn[i][1] ] );
+
+    let p = [ pgn[i][0], -pgn[i][1] ];
+    res_pgn.push( p );
     if (i==0) {
       origin_xy[0] = res_pgn[i][0];
       origin_xy[1] = res_pgn[i][1];
@@ -49,6 +62,28 @@ function pgn2a() {
   }
 
   return res_pgn;
+}
+
+function update_textarea() {
+  let a = pgn2a();
+
+  let txt_lines = ["var pgn = ["];
+
+  let txt_ele_a = [];
+  for (let i=0; i<a.length; i++) {
+
+    txt_ele_a.push( "[" + a[i][0].toString() + "," + a[i][1].toString() + "]," );
+    if (txt_ele_a.length == 4) {
+      txt_lines.push("  " + txt_ele_a.join(" "));
+      txt_ele_a = [];
+    }
+
+  }
+  txt_lines.push("];");
+
+  let ele = document.getElementById("ui_textarea");
+
+  ele.innerHTML = txt_lines.join("\n");
 }
 
 function redraw() {
@@ -173,11 +208,11 @@ function mouse_click(x,y) {
     if (snap) {
       g_ui.state = "idle";
       g_ui.data.pgn_state = "closed";
+
+      update_textarea();
     }
 
   }
-
-
 
   redraw();
 }
@@ -236,4 +271,5 @@ function init_two() {
 
 function webinit() {
   init_two();
+  redraw();
 }
