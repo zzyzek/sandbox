@@ -74,7 +74,14 @@ var pgon_fig1 = [
   [12,4], [11,4],
   [11,1], [8,1], [8,5], [4,5],
   [4,7], [3,7], [3,3]
-]
+];
+
+var pgon_fig11 = [
+  [ 0, 0],[ 0, 3],[ 3, 3],[ 3, 5],
+  [ 5, 5],[ 5, 8],[ 7, 8],[ 7, 4],
+  [ 8, 4],[ 8, 6],[10, 6],[10, 0],
+  [ 6, 0],[ 6, 1],[ 1, 1],[ 1, 0]
+];
 
 function _write_data(ofn, data) {
   var fs = require("fs");
@@ -91,6 +98,17 @@ function _ifmt(v, s) {
     a.push(' ');
   }
   a.push(t);
+
+  return a.join("");
+}
+
+function _sfmt(v, s) {
+  s = ((typeof s === "undefined") ? 0 : s);
+  let a = [];
+  for (let i=0; i<(s - v.length); i++) {
+    a.push(" ");
+  }
+  a.push(v);
 
   return a.join("");
 }
@@ -162,6 +180,40 @@ function _print_grid_info(grid_info) {
     console.log("");
   }
   console.log("");
+
+  console.log("# Sx Sy:");
+  let _sw = 2;
+  let _sp = _sfmt("", _sw);
+
+  for (let j=(grid_info.Gv.length-1); j>=0; j--) {
+
+    let row_s = [ _ifmt( grid_info.Ly[j], _sw ) + "|"  ];
+
+    for (let i=0; i<grid_info.Gv[j].length; i++) {
+      let sx = grid_info.Sx[j][i];
+      let sy = grid_info.Sy[j][i];
+
+      let a = ( (sx < 0) ? _sp : _ifmt(sx, _sw) );
+      let b = ( (sy < 0) ? _sp : _ifmt(sy, _sw) );
+
+      row_s.push( a + "," + b );
+    }
+
+    console.log( row_s.join(" ") );
+  }
+
+  let ftr = [ _sfmt("", _sw) + "|" ];
+  for (let i=0; i<grid_info.Lx.length; i++) {
+    ftr.push( _ifmt(grid_info.Lx[i], _sw) + _sp + " " );
+  }
+
+  let sep_s = [];
+  let sep_len = ftr.join(" ").length;
+  for (let i=0; i<sep_len; i++) {
+    sep_s.push("-");
+  }
+  console.log(sep_s.join(""));
+  console.log(ftr.join(" "));
 
 
 }
@@ -241,6 +293,104 @@ function onBoundary(p, pgn) {
   return false;
 }
 
+function rprp_irect_contain(grid_info, s_ij, l_ij) {
+  let Lx = grid_info.Lx,
+      Ly = grid_info.Ly,
+      Sx = grid_info.Sx,
+      Sy = grid_info.Sy;
+
+  if ((s_ij[0] < 0) || (s_ij[1] < 0) ||
+      (l_ij[0] < 0) || (l_ij[1] < 0) ||
+      (s_ij[0] >= Lx.length) ||
+      (s_ij[1] >= Ly.length) ||
+      ((s_ij[0] + l_ij[0]) >= Lx.length) ||
+      ((s_ij[1] + l_ij[1]) >= Ly.length)) {
+    return false;
+  }
+
+  let e_ij = [ s_ij[0] + l_ij[0] - 1, s_ij[1] + l_ij[1] - 1 ];
+
+  if ((Sx[s_ij[1]][s_ij[0]] < 0) ||
+      (Sx[s_ij[1]][e_ij[0]] < 0) ||
+      (Sx[e_ij[1]][s_ij[0]] < 0) ||
+      (Sx[e_ij[1]][e_ij[0]] < 0) ||
+
+      (Sy[s_ij[1]][s_ij[0]] < 0) ||
+      (Sy[s_ij[1]][e_ij[0]] < 0) ||
+      (Sy[e_ij[1]][s_ij[0]] < 0) ||
+      (Sy[e_ij[1]][e_ij[0]] < 0)) {
+
+    return false;
+  }
+
+  let len_dx = Lx[ e_ij[0] ] - Lx[ s_ij[0] ];
+  let len_dy = Ly[ e_ij[1] ] - Ly[ s_ij[1] ];
+
+  let dx0 = Sx[s_ij[1]][ e_ij[0] ] - Sx[s_ij[1]][ s_ij[0] ];
+  let dx1 = Sx[e_ij[1]][ e_ij[0] ] - Sx[e_ij[1]][ s_ij[0] ];
+
+  let dy0 = Sy[ e_ij[1] ][s_ij[0]] - Sy[ s_ij[1]][s_ij[0]];
+  let dy1 = Sy[ e_ij[1] ][e_ij[0]] - Sy[ s_ij[1]][e_ij[0]];
+
+  if ((dx0 == len_dx) && (dx1 == len_dx) &&
+      (dy0 == len_dy) && (dy1 == len_dy)) {
+    return true;
+  }
+
+  return false;
+}
+
+//---
+
+function _rprp_irect_contain_slow(grid_info, s_ij, l_ij) {
+  let Gv = grid_info.Gv;
+
+  for (let j=s_ij[1]; j<(s_ij[1] + l_ij[1]); j++) {
+    for (let i=s_ij[0]; i<(s_ij[0] + l_ij[0]); i++) {
+      if (Gv[j][i].G_idx < 0) { return false; }
+    }
+  }
+  return true;
+}
+
+function _rprp_irect_contain_test(grid_info) {
+
+  let Gv = grid_info.Gv;
+
+  for (let sj=0; sj<Gv.length; sj++) {
+    for (let si=0; si<Gv[sj].length; si++) {
+
+      for (let lj=1; lj<(Gv.length-sj); lj++) {
+        for (let li=1; li<(Gv[lj].length - si); li++) {
+
+          let s_ij = [si, sj];
+          let l_ij = [li, lj];
+
+          let slow = _rprp_irect_contain_slow(grid_info, s_ij, l_ij);
+          let fast = rprp_irect_contain(grid_info, s_ij, l_ij);
+
+          if ( _rprp_irect_contain_slow(grid_info, s_ij, l_ij) !=
+               rprp_irect_contain(grid_info, s_ij, l_ij) ) {
+
+
+            console.log("!!!!", s_ij, l_ij, slow, fast);
+
+            return false;
+          }
+        }
+      }
+
+    }
+  }
+
+  return true;
+}
+
+//---
+
+function rprp_init(rl_pgn) {
+}
+
 function rectilinearGridPoints(rl_pgon) {
   let _eps = (1/(1024));
 
@@ -301,6 +451,11 @@ function rectilinearGridPoints(rl_pgon) {
   let dualCell = [];
   let g_id = 0;
 
+  // create:
+  //  G - grid flat array (grid_xy)
+  //  Gt - grid flat type (type_xy)
+  //  dualG - 2d dual of graph
+  //
   for (let j=0; j<y_dedup.length; j++) {
     dualG.push([]);
     for (let i=0; i<x_dedup.length; i++) {
@@ -421,8 +576,77 @@ function rectilinearGridPoints(rl_pgon) {
     }
   }
 
-  //grid_ctx["Gv"] = Gv;
-  //grid_ctx["Gv_bp"] = Gv_bp;
+  // Sx Sy Lx and Ly are auxiliary structures to do
+  // quick rectangular inclusion testing
+  //
+  // Sx holds running sum from left to right of longest strip
+  // Sy holds running sum from bottom to top of longest strip
+  // Lx holds running sum of total length from left to right
+  // Ly holds running sum of total length from bottom to top
+  //
+  // All are in grid coordinates
+  //
+  let Sx = [], Sy = [];
+  let Lx = [], Ly = [];
+
+  Lx.push(0);
+  for (let i=1; i<x_dedup.length; i++) {
+    Lx.push( Lx[i-1] + (x_dedup[i] - x_dedup[i-1]) );
+  }
+
+  Ly.push(0);
+  for (let i=1; i<y_dedup.length; i++) {
+    Ly.push( Ly[i-1] + (y_dedup[i] - y_dedup[i-1]) );
+  }
+
+  for (let j=0; j<Gv.length; j++) {
+    Sx.push([]);
+    Sy.push([]);
+    for (let i=0; i<Gv[j].length; i++) {
+      Sx[j].push(-1);
+      Sy[j].push(-1);
+    }
+  }
+
+  for (let j=0; j<Gv.length; j++) {
+    let x_start = 0;
+    for (let i=0; i<Gv[j].length; i++) {
+      if (Gv[j][i].G_idx < 0) {
+        x_start = -1;
+        continue;
+      }
+
+      if ((Gv[j][i].G_idx >= 0) &&
+          (x_start < 0)) {
+        x_start = Lx[i];
+      }
+
+      Sx[j][i] = Lx[i] - x_start;
+    }
+  }
+
+  for (let i=0; i<Lx.length; i++) {
+    let y_start = 0;
+    for (let j=0; j<Ly.length; j++) {
+      if (Gv[j][i].G_idx < 0) {
+        y_start = -1;
+        continue;
+      }
+
+      if ((Gv[j][i].G_idx >= 0) &&
+          (y_start < 0)) {
+        y_start = Ly[j];
+      }
+
+      Sy[j][i] = Ly[j] - y_start;
+    }
+  }
+
+
+  //---
+  //---
+  //---
+
 
   let B = [];
   let B_2d = [];
@@ -493,7 +717,12 @@ function rectilinearGridPoints(rl_pgon) {
     "Gv": Gv,
     "Gv_bp": Gv_bp,
     "B": B,
-    "B_2d": B_2d
+    "B_2d": B_2d,
+
+    "Sx" : Sx,
+    "Sy" : Sy,
+    "Lx" : Lx,
+    "Ly" : Ly
   };
 }
 
@@ -513,6 +742,9 @@ function _BBUpdate(BB,x,y) {
   BB[1][1] = Math.max( BB[1][1], y );
 }
 
+// CRUFT!!
+// this will need to change, vestigae of a failed attempt
+//
 function addRegionGuillotine(grid_ctx, g_s_idx, g_e_idx) {
   let _debug = 1;
   let _eps = (1/1024);
@@ -710,6 +942,10 @@ function addRegionGuillotine(grid_ctx, g_s_idx, g_e_idx) {
   return { "region": regions_id, "region_key":regions_key, "shape": shape };
 }
 
+
+// CRUFT!!
+// this will need to change, vestigae of a failed attempt
+//
 // three grid point indices are specified, representing the start,
 // mid (internal) and end grid point.
 //
@@ -945,6 +1181,9 @@ function addRegionTwoCut(grid_ctx, g_s_idx, g_m_idx, g_e_idx) {
 
 }
 
+// CRUFT!!
+// vestigae of a failed attempt
+//
 function cataloguePartitions( grid_ctx ) {
   let _eps = (1/1024);
 
@@ -1344,6 +1583,9 @@ function cataloguePartitions( grid_ctx ) {
 }
 
 
+// clunky, hopefully can be updated with rectangle inclusion
+// testing
+//
 function regionRectCost(grid_ctx, region) {
   let _debug = true;
 
@@ -1482,6 +1724,8 @@ function regionRectCost(grid_ctx, region) {
   return cost;
 }
 
+// aborted
+//
 function resolveEdgeCost(grid_ctx, region_map, region_name) {
 
   for (let idx=0; idx<region_name.length; idx++) {
@@ -1587,6 +1831,17 @@ function _ok(P) {
 
 }
 
+function _main_fig11() {
+  let grid_info = rectilinearGridPoints(pgon_fig11);
+
+  //console.log(grid_info);
+
+  _print_grid_info(grid_info);
+
+  console.log(">>>>", _rprp_irect_contain_test(grid_info));
+
+}
+
 function _main1() {
 
   let grid_info = rectilinearGridPoints(pgon);
@@ -1620,5 +1875,6 @@ function _main() {
   //_ok(pgon);
 }
 
+//_main1();
+_main_fig11();
 
-_main1();

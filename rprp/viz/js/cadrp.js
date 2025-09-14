@@ -1,0 +1,239 @@
+var g_ui = {
+  "data" : {
+    "grid_size": 20,
+    "grid_snap_threshold" : 5,
+    "end_snap_threshold" : 10,
+
+    "orientation": 0,
+    "orientation_description": [ "horizontal", "vertical" ],
+
+    "cursor": [0,0],
+
+    "pgn_state": "open",
+    "pgn": []
+  },
+
+  "snap_to_grid": true,
+
+  "state": "idle",
+  "state_description" : [ "drawing", "idle", "delete" ],
+
+  "ready": false,
+  "two" : new Two({"fitted":true})
+};
+
+function pgn2a() {
+  let pgn = g_ui.data.pgn;
+
+  let res_pgn = [];
+
+  let origin_xy = [0,0];
+
+  for (let i=0; i<pgn.length; i++) {
+    res_pgn.push( [ pgn[i][0], -pgn[i][1] ] );
+    if (i==0) {
+      origin_xy[0] = res_pgn[i][0];
+      origin_xy[1] = res_pgn[i][1];
+    }
+
+    if (res_pgn[i][0] < origin_xy[0]) { origin_xy[0] = res_pgn[i][0]; }
+    if (res_pgn[i][1] < origin_xy[1]) { origin_xy[1] = res_pgn[i][1]; }
+  }
+
+  for (let i=0; i<pgn.length; i++) {
+    res_pgn[i][0] -= origin_xy[0];
+    res_pgn[i][1] -= origin_xy[1];
+
+    res_pgn[i][0] /= g_ui.data.grid_size;
+    res_pgn[i][1] /= g_ui.data.grid_size;
+  }
+
+  return res_pgn;
+}
+
+function redraw() {
+  let two = g_ui.two;
+  let data = g_ui.data;
+
+  let pgn = data.pgn;
+  let cursor = data.cursor;
+
+  two.clear();
+
+  if (data.grid_size >= 10) {
+    let ds = data.grid_size;
+    let W = g_ui.two.width;
+    let H = g_ui.two.height;
+
+    for (x=0; x<W; x+= ds) {
+      let lx = two.makeLine(x,0, x,H);
+      lx.dashes = [1,4];
+      lx.opacity = 0.8;
+      lx.linewidth = 1;
+    }
+
+    for (y=0; y<H; y += ds) {
+      let ly = two.makeLine(0,y, W,y);
+      ly.dashes = [1,4];
+      ly.opacity = 0.8;
+      ly.linewidth = 1;
+    }
+  }
+
+
+  for (let i=0; i<pgn.length; i++) {
+    two.makeRectangle(pgn[i][0], pgn[i][1], 5,5);
+  }
+
+  for (let i=1; i<pgn.length; i++) {
+    two.makeLine( pgn[i-1][0], pgn[i-1][1], pgn[i][0], pgn[i][1] );
+  }
+
+  if (data.pgn_state == "closed") {
+    if (pgn.length > 2) {
+      two.makeLine( pgn[pgn.length-1][0], pgn[pgn.length-1][1], pgn[0][0], pgn[0][1] );
+    }
+  }
+
+  if ((cursor[0] >= 0) &&
+      (cursor[1] >= 0)) {
+
+    if (g_ui.state == "idle") {
+      two.makeRectangle(cursor[0],cursor[1], 10,10);
+    }
+
+
+    else if (g_ui.state == "drawing") {
+      let prv_xy = pgn[ pgn.length-1 ];
+
+      let e_xy = [
+        ((data.orientation==0) ? prv_xy[0] : cursor[0] ),
+        ((data.orientation==0) ? cursor[1] : prv_xy[1] )
+      ];
+
+      let L0 = two.makeLine( prv_xy[0], prv_xy[1], e_xy[0], e_xy[1] );
+      let L1 = two.makeLine( e_xy[0], e_xy[1], cursor[0], cursor[1] );
+      L1.dashes = [2,2];
+    }
+
+
+  }
+
+  two.update();
+}
+
+function mouse_click(x,y) {
+  let two = g_ui.two;
+  let data = g_ui.data;
+
+  let pgn = data.pgn;
+
+  if (g_ui.state == "idle") {
+    data.pgn = [];
+    g_ui.state = "drawing";
+    data.pgn_state = "open";
+  }
+
+  if (g_ui.snap_to_grid) {
+    x = Math.round( x / data.grid_size ) * data.grid_size;
+    y = Math.round( y / data.grid_size ) * data.grid_size;
+  }
+
+  let prv_xy = [ x,y ];
+
+  if (pgn.length > 0) {
+    prv_xy[0] = pgn[ pgn.length-1 ][0];
+    prv_xy[1] = pgn[ pgn.length-1 ][1];
+  }
+
+  let p_xy = [
+    ((data.orientation==0) ? prv_xy[0] : x ),
+    ((data.orientation==0) ? y : prv_xy[1] )
+  ];
+
+  data.pgn.push(p_xy);
+  data.orientation = ((data.orientation+1)%2);
+
+  let snap = false;
+  if (pgn.length > 2) {
+    let snap_end = [-1,-1];
+    snap_end[0] = pgn[0][0];
+    snap_end[1] = pgn[0][1];
+
+    let dx = snap_end[0] - x;
+    let dy = snap_end[1] - y;
+
+    let ds = Math.sqrt( dx*dx + dy*dy );
+
+    if ( ds < data.end_snap_threshold ) {
+      snap = true;
+    }
+
+
+    if (snap) {
+      g_ui.state = "idle";
+      g_ui.data.pgn_state = "closed";
+    }
+
+  }
+
+
+
+  redraw();
+}
+
+function mouse_move(x,y) {
+  let two = g_ui.two;
+  let data = g_ui.data;
+  let pgn = data.pgn;
+
+  data.cursor[0] = x;
+  data.cursor[1] = y;
+
+  if (g_ui.snap_to_grid) {
+    let snap_xy = [
+      Math.round( x / data.grid_size ) * data.grid_size,
+      Math.round( y / data.grid_size ) * data.grid_size
+    ];
+
+    data.cursor[0] = snap_xy[0];
+    data.cursor[1] = snap_xy[1];
+  }
+
+  redraw();
+}
+
+
+function init_two() {
+  let two = g_ui.two;
+  let ele = document.getElementById("ui_canvas");
+  two.appendTo(ele);
+  two.clear();
+
+  ele.addEventListener("mouseup", (ev) => {
+    let x = ev.offsetX;
+    let y = ev.offsetY;
+    mouse_click(x,y);
+  });
+
+  /*
+  ele.addEventListener("click", (ev) => {
+    let x = ev.offsetX;
+    let y = ev.offsetY;
+    mouse_click(x,y);
+  });
+  */
+
+  ele.addEventListener("mousemove", (ev) => {
+    let x = ev.offsetX;
+    let y = ev.offsetY;
+
+    mouse_move(x,y);
+  });
+
+  g_ui.ready = true;
+}
+
+function webinit() {
+  init_two();
+}
