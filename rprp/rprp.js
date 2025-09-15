@@ -181,7 +181,7 @@ function _print_dual(dualG, pfx) {
 }
 
 function _print_grid_info(grid_info) {
-  console.log("# C (countour) (", grid_info.C.length, "):");
+  console.log("# C (contour) (", grid_info.C.length, "):");
   for (let i=0; i<grid_info.C.length; i++) {
     console.log("C[", i, "]:", grid_info.C[i], "(t:", grid_info.Ct[i], ")");
   }
@@ -268,6 +268,29 @@ function _icmp(a,b) {
   if (a < b) { return -1; }
   if (a > b) { return  1; }
   return 0;
+}
+
+function clockwise(pgn) {
+  let s = 0;
+
+  for (let i=0; i<pgn.length; i++) {
+    let j = (i+1+pgn.length)%pgn.length;
+    let u = pgn[i];
+    let v = pgn[j];
+    s += (v[0]-u[0])*(v[1]-u[1]);
+  }
+
+  if (s > 0) { return true; }
+  return false;
+}
+
+function orderCounterclockwise(pgn) {
+  if (!clockwise(pgn)) { return pgn; }
+  let ccw = [ pgn[0] ];
+  for (let i=(pgn.length-1); i>0; i--) {
+    ccw.push( pgn[i] );
+  }
+  return ccw;
 }
 
 // https://jeffe.cs.illinois.edu/teaching/comptop/2023/notes/02-winding-number.html
@@ -469,16 +492,29 @@ function rectilinearGridPoints(rl_pgon) {
   x_dup.sort( _icmp );
   y_dup.sort( _icmp );
 
+  let Xinv = {},
+      Yinv = {};
+
   let x_dedup = [ x_dup[0] ],
       y_dedup = [ y_dup[0] ];
 
+  Xinv[ x_dup[0].toString() ] = 0;
+  Yinv[ x_dup[1].toString() ] = 0;
+
   for (let i=1; i<x_dup.length; i++) {
     if (x_dup[i] == x_dup[i-1]) { continue; }
+
+    Xinv[ x_dup[i].toString() ] = x_dedup.length;
+
     x_dedup.push(x_dup[i]);
+
   }
 
   for (let i=1; i<y_dup.length; i++) {
     if (y_dup[i] == y_dup[i-1]) { continue; }
+
+    Yinv[ y_dup[i].toString() ] = y_dedup.length;
+
     y_dedup.push(y_dup[i]);
   }
 
@@ -614,81 +650,6 @@ function rectilinearGridPoints(rl_pgon) {
     }
   }
 
-  // Sx Sy Lx and Ly are auxiliary structures to do
-  // quick rectangular inclusion testing
-  //
-  // Sx holds running sum from left to right of longest strip
-  // Sy holds running sum from bottom to top of longest strip
-  // Lx holds running sum of total length from left to right
-  // Ly holds running sum of total length from bottom to top
-  //
-  // All are in grid coordinates
-  //
-  let Sx = [], Sy = [];
-  let Lx = [], Ly = [];
-
-  Lx.push(0);
-  for (let i=1; i<x_dedup.length; i++) {
-    Lx.push( Lx[i-1] + (x_dedup[i] - x_dedup[i-1]) );
-  }
-
-  Ly.push(0);
-  for (let i=1; i<y_dedup.length; i++) {
-    Ly.push( Ly[i-1] + (y_dedup[i] - y_dedup[i-1]) );
-  }
-
-  for (let j=0; j<Gv.length; j++) {
-    Sx.push([]);
-    Sy.push([]);
-    for (let i=0; i<Gv[j].length; i++) {
-      Sx[j].push(-1);
-      Sy[j].push(-1);
-    }
-  }
-
-  // BUGGY!!! TODO!!! WIP!!!
-  // yikes!!!
-  // this is buggy
-  // this assumes there's a grid
-  // point between regions if they're not
-  // part of the same body which, in general,
-  // is absolutely not true
-  //
-  for (let j=0; j<Gv.length; j++) {
-    let x_start = 0;
-    for (let i=0; i<Gv[j].length; i++) {
-      if (Gv[j][i].G_idx < 0) {
-        x_start = -1;
-        continue;
-      }
-
-      if ((Gv[j][i].G_idx >= 0) &&
-          (x_start < 0)) {
-        x_start = Lx[i];
-      }
-
-      Sx[j][i] = Lx[i] - x_start;
-    }
-  }
-
-  for (let i=0; i<Lx.length; i++) {
-    let y_start = 0;
-    for (let j=0; j<Ly.length; j++) {
-      if (Gv[j][i].G_idx < 0) {
-        y_start = -1;
-        continue;
-      }
-
-      if ((Gv[j][i].G_idx >= 0) &&
-          (y_start < 0)) {
-        y_start = Ly[j];
-      }
-
-      Sy[j][i] = Ly[j] - y_start;
-    }
-  }
-
-
   //---
   //---
   //---
@@ -727,12 +688,145 @@ function rectilinearGridPoints(rl_pgon) {
 
       B.push( { "xy": [ g.xy[0], g.xy[1] ], "ixy": [ _ixy[0], _ixy[1] ], "t": g.t, "b_id": _b_id } );
       B_2d[ _ixy[1] ][ _ixy[0] ] = _b_id;
+
       _b_id++;
 
       _ixy = v_add( _ixy, dxy );
     }
 
   }
+
+
+
+  // Sx Sy Lx and Ly are auxiliary structures to do
+  // quick rectangular inclusion testing
+  //
+  // Sx holds running sum from left to right of longest strip
+  // Sy holds running sum from bottom to top of longest strip
+  // Lx holds running sum of total length from left to right
+  // Ly holds running sum of total length from bottom to top
+  //
+  // All are in grid coordinates
+  //
+  let Sx = [], Sy = [];
+  let Lx = [], Ly = [];
+
+  Lx.push(0);
+  for (let i=1; i<x_dedup.length; i++) {
+    Lx.push( Lx[i-1] + (x_dedup[i] - x_dedup[i-1]) );
+  }
+
+  Ly.push(0);
+  for (let i=1; i<y_dedup.length; i++) {
+    Ly.push( Ly[i-1] + (y_dedup[i] - y_dedup[i-1]) );
+  }
+
+  for (let j=0; j<Gv.length; j++) {
+    Sx.push([]);
+    Sy.push([]);
+    for (let i=0; i<Gv[j].length; i++) {
+      Sx[j].push(-1);
+      Sy[j].push(-1);
+    }
+  }
+
+  // rl_pgon ordered counterclockwise
+  //
+
+  for (let idx=0; idx<B.length; idx++) {
+    let idx_prv = (idx + B.length - 1)%B.length;
+    let idx_nxt = (idx + B.length + 1)%B.length;
+
+    let prv_ixy = B[idx_prv].ixy;
+    let cur_ixy = B[idx].ixy;
+    let nxt_ixy = B[idx_nxt].ixy;
+
+    let prv_xy = B[idx_prv].xy;
+    let cur_xy = B[idx].xy;
+    let nxt_xy = B[idx_nxt].xy;
+
+
+    let _i = cur_ixy[0];
+    let _j = cur_ixy[1];
+
+    console.log(">>>", prv_ixy, cur_ixy, nxt_ixy , "-->", _i, _j);
+
+    let _u = v_sub( cur_ixy, prv_ixy );
+    let _v = v_sub( nxt_ixy, cur_ixy );
+
+    let _du = v_delta(_u);
+    let _dv = v_delta(_v);
+
+
+    if ( (_du[0] > 0.5) && (_dv[0] > 0.5) ) {
+      Sy[ _j ][ _i ] = 0;
+    }
+
+    if ( (_du[1] < -0.5) && (_dv[1] < -0.5) ) {
+      Sx[ _j ][ _i ] = 0;
+    }
+
+    if ( Math.abs(dot_v( _dv, _du )) < _eps ) {
+
+      let _tu = [ _du[0], _du[1], 0 ];
+      let _tv = [ _dv[0], _dv[1], 0 ];
+
+      let _tw = cross3( _tv, _tu );
+
+      // still wrong...
+      //
+      if ( _tw[2] < 0.5 ) {
+        Sx[ _j ][ _i ] = 0;
+      }
+
+    }
+
+  }
+
+  // BUGGY!!! TODO!!! WIP!!!
+  // yikes!!!
+  // this is buggy
+  // this assumes there's a grid
+  // point between regions if they're not
+  // part of the same body which, in general,
+  // is absolutely not true
+  //
+  /*
+  for (let j=0; j<Gv.length; j++) {
+    let x_start = 0;
+    for (let i=0; i<Gv[j].length; i++) {
+      if (Gv[j][i].G_idx < 0) {
+        x_start = -1;
+        continue;
+      }
+
+      if ((Gv[j][i].G_idx >= 0) &&
+          (x_start < 0)) {
+        x_start = Lx[i];
+      }
+
+      Sx[j][i] = Lx[i] - x_start;
+    }
+  }
+
+  for (let i=0; i<Lx.length; i++) {
+    let y_start = 0;
+    for (let j=0; j<Ly.length; j++) {
+      if (Gv[j][i].G_idx < 0) {
+        y_start = -1;
+        continue;
+      }
+
+      if ((Gv[j][i].G_idx >= 0) &&
+          (y_start < 0)) {
+        y_start = Ly[j];
+      }
+
+      Sy[j][i] = Ly[j] - y_start;
+    }
+  }
+  */
+
 
   /*
   for (let i=0; i<B.length; i++) {
@@ -754,8 +848,12 @@ function rectilinearGridPoints(rl_pgon) {
   return {
     "C": rl_pgon,
     "Ct": corner_type,
+    //"Cij": Cij,
     "G": grid_xy, "Gt": type_xy,
+
     "X": x_dedup, "Y": y_dedup,
+    "Xinv": Xinv, "Yinv": Yinv,
+
     "dualG" : dualG,
     "dualCell": dualCell,
     "G_idx_bp": G_idx_bp,
@@ -1878,8 +1976,15 @@ function _ok(P) {
 }
 
 function _main_fig11() {
-  let grid_info = rectilinearGridPoints(pgon_fig11);
-  grid_info = rectilinearGridPoints(pgon_fig11d);
+
+  let pgn = orderCounterclockwise(pgon_fig11d);
+
+  //let grid_info = rectilinearGridPoints(pgon_fig11);
+  //grid_info = rectilinearGridPoints(pgon_fig11d);
+
+  let grid_info = rectilinearGridPoints(pgn);
+
+  console.log("???", clockwise(pgn));
 
   //console.log(grid_info);
 
