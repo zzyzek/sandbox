@@ -22,24 +22,56 @@ var g_ui = {
   "two" : new Two({"fitted":true})
 };
 
+function _vcmp(a,b) {
+  if (a[0] < b[0]) { return -1; }
+  if (a[0] > b[0]) { return 1; }
+  if (a[1] < b[1]) { return -1; }
+  if (a[1] > b[1]) { return 1; }
+  return 0;
+}
+
 function pgn2a() {
   let orig_pgn = g_ui.data.pgn;
   let pgn = [];
   let res_pgn = [];
   let origin_xy = [0,0];
 
+  if (orig_pgn.length == 0) { return []; }
+
+  // start at lex min (y reversed for two, so revree here)
+  // then walk the perimeter and remove colinear points.
+  //
+  let start_idx = 0;
+  let start_xy = [ orig_pgn[0][0], -orig_pgn[0][1] ];
   for (let i=0; i<orig_pgn.length; i++) {
-    let p = orig_pgn[i];
-    if ( (i > 0) && (i < (orig_pgn.length-1)) &&
-         ( ( (orig_pgn[i-1][0] == p[0]) && (orig_pgn[i+1][0] == p[0]) ) ||
-           ( (orig_pgn[i-1][1] == p[1]) && (orig_pgn[i+1][1] == p[1]) ) ) ) {
+    let u = [ orig_pgn[i][0], -orig_pgn[i][1] ];
+    if ( _vcmp(u, start_xy) < 0 ) {
+      start_idx = i;
+      start_xy[0] = orig_pgn[i][0];
+      start_xy[1] = -orig_pgn[i][1];
+    }
+  }
+
+  let orig_n = orig_pgn.length;
+  for (let i=0; i<orig_pgn.length; i++) {
+    let prv_idx = (start_idx+i+orig_n-1)%orig_n;
+    let cur_idx = (start_idx+i+orig_n+0)%orig_n;
+    let nxt_idx = (start_idx+i+orig_n+1)%orig_n;
+
+    let p = orig_pgn[cur_idx];
+    if ( ((orig_pgn[prv_idx][0] == p[0]) && (orig_pgn[nxt_idx][0] == p[0])) ||
+         ((orig_pgn[prv_idx][1] == p[1]) && (orig_pgn[nxt_idx][1] == p[1])) ) {
       continue;
     }
 
-    pgn.push( orig_pgn[i] );
+    pgn.push( orig_pgn[cur_idx] );
   }
 
-
+  // reverse y, remember min,
+  // move relative to origin, and divide
+  // by grid size to get nice integral
+  // coordinates.
+  //
   for (let i=0; i<pgn.length; i++) {
 
     let p = [ pgn[i][0], -pgn[i][1] ];
@@ -66,7 +98,6 @@ function pgn2a() {
 
 function update_textarea() {
   let a = pgn2a();
-
   let txt_lines = ["var pgn = ["];
 
   let txt_ele_a = [];
@@ -79,6 +110,11 @@ function update_textarea() {
     }
 
   }
+
+  if (txt_ele_a.length > 0) {
+    txt_lines.push("  " + txt_ele_a.join(" "));
+  }
+
   txt_lines.push("];");
 
   let ele = document.getElementById("ui_textarea");
@@ -103,14 +139,14 @@ function redraw() {
     for (x=0; x<W; x+= ds) {
       let lx = two.makeLine(x,0, x,H);
       lx.dashes = [1,4];
-      lx.opacity = 0.8;
+      lx.opacity = 0.5;
       lx.linewidth = 1;
     }
 
     for (y=0; y<H; y += ds) {
       let ly = two.makeLine(0,y, W,y);
       ly.dashes = [1,4];
-      ly.opacity = 0.8;
+      ly.opacity = 0.5;
       ly.linewidth = 1;
     }
   }
@@ -167,6 +203,10 @@ function mouse_click(x,y) {
     data.pgn = [];
     g_ui.state = "drawing";
     data.pgn_state = "open";
+
+    g_ui.data.orientation = 0;
+
+    pgn = data.pgn;
   }
 
   if (g_ui.snap_to_grid) {
@@ -185,9 +225,19 @@ function mouse_click(x,y) {
     ((data.orientation==0) ? prv_xy[0] : x ),
     ((data.orientation==0) ? y : prv_xy[1] )
   ];
+  data.orientation = ((data.orientation+1)%2);
+
+  if (data.pgn.length > 0) {
+    if (_vcmp(data.pgn[ data.pgn.length-1 ], p_xy) == 0) {
+
+      console.log("!!!skip");
+
+      redraw();
+      return;
+    }
+  }
 
   data.pgn.push(p_xy);
-  data.orientation = ((data.orientation+1)%2);
 
   let snap = false;
   if (pgn.length > 2) {
@@ -208,7 +258,6 @@ function mouse_click(x,y) {
     if (snap) {
       g_ui.state = "idle";
       g_ui.data.pgn_state = "closed";
-
       update_textarea();
     }
 

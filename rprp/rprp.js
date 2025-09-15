@@ -83,6 +83,44 @@ var pgon_fig11 = [
   [ 6, 0],[ 6, 1],[ 1, 1],[ 1, 0]
 ];
 
+var pgon_fig9 = [
+  [0,13], [4,13], [4,8], [8,8],
+  [8,3], [14,3], [14,13], [23,13],
+  [23,10], [16,10], [16,0], [19,0],
+  [19,7], [26,7], [26,3], [31,3],
+  [31,10], [33,10], [33,8], [37,8],
+  [37,17], [34,17], [34,19], [32,19],
+  [32,22], [36,22], [36,25], [34,25],
+  [34,29], [33,29], [33,27], [31,27],
+  [31,28], [28,28], [28,26], [25,26],
+  [25,27], [21,27], [21,30], [16,30],
+  [16,29], [6,29], [6,26], [12,26],
+  [12,20], [10,20], [10,24], [0,24],
+  [0,23], [7,23], [7,21], [4,21],
+  [4,18], [0,18],
+];
+
+var pgon_fig10 = [
+  [0,14], [11,14], [11,8], [19,8],
+  [19,0], [22,0], [22,5], [25,5],
+  [25,19], [28,19], [28,23], [22,23],
+  [22,28], [3,28], [3,17], [0,17],
+];
+
+var pgon_fig11d = [
+  [0,12], [4,12], [4,14], [9,14],
+  [9,12], [12,12], [12,8], [2,8],
+  [2,5], [12,5], [12,3], [8,3],
+  [8,0], [20,0], [20,10], [26,10],
+  [26,8], [30,8], [30,14], [28,14],
+  [28,16], [20,16], [20,18], [26,18],
+  [26,25], [17,25], [17,27], [4,27],
+  [4,25], [14,25], [14,21], [12,21],
+  [12,20], [4,20], [4,17], [8,17],
+  [8,18], [12,18], [12,15], [2,15],
+  [2,20], [0,20],
+];
+
 function _write_data(ofn, data) {
   var fs = require("fs");
   return fs.writeFileSync(ofn, JSON.stringify(data, undefined, 2));
@@ -187,7 +225,7 @@ function _print_grid_info(grid_info) {
 
   for (let j=(grid_info.Gv.length-1); j>=0; j--) {
 
-    let row_s = [ _ifmt( grid_info.Ly[j], _sw ) + "|"  ];
+    let row_s = [ _ifmt(j, 2) + "," + _ifmt( grid_info.Ly[j], _sw ) + "|"  ];
 
     for (let i=0; i<grid_info.Gv[j].length; i++) {
       let sx = grid_info.Sx[j][i];
@@ -199,12 +237,12 @@ function _print_grid_info(grid_info) {
       row_s.push( a + "," + b );
     }
 
-    console.log( row_s.join(" ") );
+    console.log( row_s.join("   ") );
   }
 
-  let ftr = [ _sfmt("", _sw) + "|" ];
+  let ftr = [ "   " + _sfmt("", _sw) + "|" ];
   for (let i=0; i<grid_info.Lx.length; i++) {
-    ftr.push( _ifmt(grid_info.Lx[i], _sw) + _sp + " " );
+    ftr.push( "  " + _ifmt(grid_info.Lx[i], _sw) + _sp + " " );
   }
 
   let sep_s = [];
@@ -608,6 +646,14 @@ function rectilinearGridPoints(rl_pgon) {
     }
   }
 
+  // BUGGY!!! TODO!!! WIP!!!
+  // yikes!!!
+  // this is buggy
+  // this assumes there's a grid
+  // point between regions if they're not
+  // part of the same body which, in general,
+  // is absolutely not true
+  //
   for (let j=0; j<Gv.length; j++) {
     let x_start = 0;
     for (let i=0; i<Gv[j].length; i++) {
@@ -1833,6 +1879,7 @@ function _ok(P) {
 
 function _main_fig11() {
   let grid_info = rectilinearGridPoints(pgon_fig11);
+  grid_info = rectilinearGridPoints(pgon_fig11d);
 
   //console.log(grid_info);
 
