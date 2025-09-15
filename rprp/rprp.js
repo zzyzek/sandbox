@@ -403,12 +403,23 @@ function rprp_irect_contain(grid_info, s_ij, l_ij) {
 
 //---
 
+//WRONG!!!
+//this needs to be rewritten
+//it's buggy and doesn't work...
+//
 function _rprp_irect_contain_slow(grid_info, s_ij, l_ij) {
   let Gv = grid_info.Gv;
+  let dualG = grid_info.dualG;
 
-  for (let j=s_ij[1]; j<(s_ij[1] + l_ij[1]); j++) {
-    for (let i=s_ij[0]; i<(s_ij[0] + l_ij[0]); i++) {
-      if (Gv[j][i].G_idx < 0) { return false; }
+  let nx = ( (l_ij[0] < 2) ? 1 : (l_ij[0]-1) );
+  let ny = ( (l_ij[1] < 2) ? 1 : (l_ij[1]-1) );
+
+  //for (let j=s_ij[1]; j<(s_ij[1] + l_ij[1]); j++) {
+    //for (let i=s_ij[0]; i<(s_ij[0] + l_ij[0]); i++) {
+  for (let j=s_ij[1]; j<(s_ij[1] + ny); j++) {
+    for (let i=s_ij[0]; i<(s_ij[0] + nx); i++) {
+      //if (Gv[j][i].G_idx < 0) { return false; }
+      if (dualG[j][i].id < 0) { return false; }
     }
   }
   return true;
@@ -749,14 +760,14 @@ function rectilinearGridPoints(rl_pgon) {
     let _i = cur_ixy[0];
     let _j = cur_ixy[1];
 
-    console.log(">>>", prv_ixy, cur_ixy, nxt_ixy , "-->", _i, _j);
-
     let _u = v_sub( cur_ixy, prv_ixy );
     let _v = v_sub( nxt_ixy, cur_ixy );
 
     let _du = v_delta(_u);
     let _dv = v_delta(_v);
 
+    if (_i == 0) { Sx[ _j ][ _i ] = 0; }
+    if (_j == 0) { Sy[ _j ][ _i ] = 0; }
 
     if ( (_du[0] > 0.5) && (_dv[0] > 0.5) ) {
       Sy[ _j ][ _i ] = 0;
@@ -768,30 +779,32 @@ function rectilinearGridPoints(rl_pgon) {
 
     if ( Math.abs(dot_v( _dv, _du )) < _eps ) {
 
-      let _tu = [ _du[0], _du[1], 0 ];
-      let _tv = [ _dv[0], _dv[1], 0 ];
-
-      let _tw = cross3( _tv, _tu );
-
-      // still wrong...
-      //
-      if ( _tw[2] < 0.5 ) {
+      if ( ((_du[1] < -0.5) && (_dv[0] > 0.5))  ||
+           ((_du[0] < -0.5) && (_dv[1] < -0.5)) ) {
         Sx[ _j ][ _i ] = 0;
+      }
+
+      if ( ((_du[1] < -0.5) && (_dv[0] < -0.5)) ||
+           ((_du[0] > 0.5) && (_dv[1] > 0.5)) ) {
+        Sy[ _j ][ _i ] = 0;
       }
 
     }
 
   }
 
-  // BUGGY!!! TODO!!! WIP!!!
-  // yikes!!!
-  // this is buggy
-  // this assumes there's a grid
-  // point between regions if they're not
-  // part of the same body which, in general,
-  // is absolutely not true
-  //
   /*
+  console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", Sy.length, Sy[0].length);
+  for (let j=(Sy.length-1); j>=0; j--) {
+    let _line = [];
+    for (let i=0; i<Sy[j].length; i++) {
+      _line.push( _ifmt(Sy[j][i], 2) );
+    }
+    console.log( _line.join(" ") );
+  }
+  console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+  */
+
   for (let j=0; j<Gv.length; j++) {
     let x_start = 0;
     for (let i=0; i<Gv[j].length; i++) {
@@ -804,6 +817,8 @@ function rectilinearGridPoints(rl_pgon) {
           (x_start < 0)) {
         x_start = Lx[i];
       }
+
+      if (Sx[j][i] == 0) { x_start = Lx[i]; }
 
       Sx[j][i] = Lx[i] - x_start;
     }
@@ -822,10 +837,11 @@ function rectilinearGridPoints(rl_pgon) {
         y_start = Ly[j];
       }
 
+      if (Sy[j][i] == 0) { y_start = Ly[j]; }
+
       Sy[j][i] = Ly[j] - y_start;
     }
   }
-  */
 
 
   /*
