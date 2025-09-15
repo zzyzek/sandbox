@@ -403,22 +403,51 @@ function rprp_irect_contain(grid_info, s_ij, l_ij) {
 
 //---
 
-//WRONG!!!
-//this needs to be rewritten
-//it's buggy and doesn't work...
+// Assumes rectangles (l_ij) are at least 2 wide and hight
+// (in grid points).
+// Assumes start is lower left of rectangle.
 //
 function _rprp_irect_contain_slow(grid_info, s_ij, l_ij) {
   let Gv = grid_info.Gv;
+  let B_2d = grid_info.B_2d;
   let dualG = grid_info.dualG;
 
-  let nx = ( (l_ij[0] < 2) ? 1 : (l_ij[0]-1) );
-  let ny = ( (l_ij[1] < 2) ? 1 : (l_ij[1]-1) );
+  if (Gv[s_ij[1]][s_ij[0]].G_idx < 0) { return false; }
 
-  //for (let j=s_ij[1]; j<(s_ij[1] + l_ij[1]); j++) {
-    //for (let i=s_ij[0]; i<(s_ij[0] + l_ij[0]); i++) {
+  // linear checks still need work as they could cross
+  // boundaries but still be valid Gv points.
+  // I'm assuming rectangles are at least 2 grid points
+  // in each dimension, which means we can use the dual
+  // to do the slow test.
+  // Maybe in the fiture I'll revisit it...
+  //
+  /*
+  if (l_ij[0] == 1) {
+    let prv_bid = B_2d[s_ij[1]][s_ij[0]];
+    for (let j=(s_ij[1]+1); j<(s_ij[1] + l_ij[1]); j++) {
+      let cur_bid = B_2d[j][ s_ij[0] ];
+      if ( Math.abs( prv_bid - cur_bid ) > 1 ) { return false; }
+      prv_bid = cur_bid;
+    }
+    return true;
+  }
+
+  if (l_ij[1] == 1) {
+    let prv_bid = B_2d[s_ij[1]][s_ij[0]];
+    for (let i=(s_ij[0]+1); i<(s_ij[0] + l_ij[0]); i++) {
+      let cur_bid = B_2d[ s_ij[1] ][ i ];
+      if ( Math.abs( prv_bid - cur_bid ) > 1 ) { return false; }
+      prv_bid = cur_bid;
+    }
+    return true;
+  }
+  */
+
+  let nx = l_ij[0]-1;
+  let ny = l_ij[1]-1;
+
   for (let j=s_ij[1]; j<(s_ij[1] + ny); j++) {
     for (let i=s_ij[0]; i<(s_ij[0] + nx); i++) {
-      //if (Gv[j][i].G_idx < 0) { return false; }
       if (dualG[j][i].id < 0) { return false; }
     }
   }
@@ -432,8 +461,8 @@ function _rprp_irect_contain_test(grid_info) {
   for (let sj=0; sj<Gv.length; sj++) {
     for (let si=0; si<Gv[sj].length; si++) {
 
-      for (let lj=1; lj<(Gv.length-sj); lj++) {
-        for (let li=1; li<(Gv[lj].length - si); li++) {
+      for (let lj=2; lj<(Gv.length-sj); lj++) {
+        for (let li=2; li<(Gv[lj].length - si); li++) {
 
           let s_ij = [si, sj];
           let l_ij = [li, lj];
@@ -784,8 +813,10 @@ function rectilinearGridPoints(rl_pgon) {
         Sx[ _j ][ _i ] = 0;
       }
 
-      if ( ((_du[1] < -0.5) && (_dv[0] < -0.5)) ||
+      if ( ((_du[1] < -0.5) && (_dv[0] > 0.5)) ||
            ((_du[0] > 0.5) && (_dv[1] > 0.5)) ) {
+      //if ( ((_du[1] < -0.5) && (_dv[0] < -0.5)) ||
+      //     ((_du[0] > 0.5) && (_dv[1] > 0.5)) ) {
         Sy[ _j ][ _i ] = 0;
       }
 
@@ -795,10 +826,21 @@ function rectilinearGridPoints(rl_pgon) {
 
   /*
   console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", Sy.length, Sy[0].length);
+  console.log("Sx:");
+  for (let j=(Sx.length-1); j>=0; j--) {
+    let _line = [];
+    for (let i=0; i<Sx[j].length; i++) {
+      let _s = ((Sx[j][i] < 0) ? ' .' : _ifmt(Sx[j][i], 2));
+      _line.push( _s );
+    }
+    console.log( _line.join(" ") );
+  }
+  console.log("\nSy:");
   for (let j=(Sy.length-1); j>=0; j--) {
     let _line = [];
     for (let i=0; i<Sy[j].length; i++) {
-      _line.push( _ifmt(Sy[j][i], 2) );
+      let _s = ((Sy[j][i] < 0) ? ' .' : _ifmt(Sy[j][i], 2));
+      _line.push( _s );
     }
     console.log( _line.join(" ") );
   }
