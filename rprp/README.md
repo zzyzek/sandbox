@@ -1,14 +1,11 @@
 Rectangular Partitions of Rectilinear Polygons
 ===
 
-I'm still trying to make sense of this but I think I might have a basic undrestanding now.
+I'm still trying to make sense of this but I think I might have a basic understanding now.
 
 Consider a rectilinear polygon, $C = (c _ 0, c _ 1, c _ 2, \dots, c _ {n-1}), c _ k \in \mathbb{Z}^2$.
 
-
-Call the induced *grid* as all intersecting points within the polygon from colinear boundary edges extended.
-
-
+Call the induced *grid* as all intersecting points within the polygon from co-linear boundary edges extended.
 
 That is:
 
@@ -53,7 +50,7 @@ Pairs of each of these maximal line segments can be chosen to split the original
 A complete split of the polygon means that the two parts of the outer boundary, on a potential subset of $C$,
 are contiguous.
 
-On can choose an odering of partitions such that only contiguous portions of the boundary $C$ are chosen.
+On can choose an ordering of partitions such that only contiguous portions of the boundary $C$ are chosen.
 Form this judicious ordering of partitions, it's possible to build up optimal solutions to sub partitions,
 referenced by their boundary and cutting line segments (potentially not maximal?).
 Calculation of sub problems and then re-using those calculations to build answers to optimal partitions
@@ -90,17 +87,17 @@ Some terminology:
 | `G_idx_bp` | Map of x,y grid points to grid index. Key is comma separated string of x and y coordinates (e.g. `3,5`) |
 | `Gv` | 2D array mapping 2D grid index to grid information. Each entry has fields `G_idx` grid index, `xy` two element array grid point, `t` type |
 | `Gv_bp` | Map of x,y grid points to grid point index. Key is comma separated string of x and y coordinates (e.g. `3,5`) |
-| `G_dual_map` | Map of x,y grid points to x,y index. Key is comma seaprated string of x and y coordaintes (e.g. `3,5`) |
+| `G_dual_map` | Map of x,y grid points to x,y index. Key is comma separated string of x and y coordinates (e.g. `3,5`) |
 
 An overview is as follows:
 
 * From `C` Construct the initial structures, most notably the grid points, `G`, and `dualG`
-* Walk the boudary of `C`
+* Walk the boundary of `C`
   - for each reflex vertex, start a line, $L$
   - for each line direction
     + if it's an interior point, start a line, $S$, in the orthogonal direction and walk until a reflex or edge boundary point is hit and
       create two region boundaries, keyed on the list of dual rectangles within it
-    + if it's a reflex or edge boundary point, create two region boundaries, keeyed on the list of dual rectangles within it
+    + if it's a reflex or edge boundary point, create two region boundaries, keyed on the list of dual rectangles within it
 * Once all regions are collected, deduplicate regions, note cost of guillotine or two cuts and mark rectangular regions as resolved
 * While ...
 
@@ -111,7 +108,7 @@ Looks like there is a blog description of the algorithm ([here](https://nanoexpl
 
 From the blog:
 
-> Fact: It suffices to consider subfigures whose boundary consists of a
+> Fact: It suffices to consider sub-figures whose boundary consists of a
 > contiguous piece of the original boundary and at
 > most two contiguous constructed lines.
 
@@ -167,7 +164,7 @@ Here's a review:
   - That is, there exists a minimum ink partition s.t. every maximal cut line has at least one reflex vertex anchor
   - Any maximal cut line that does not end on a reflex vertex is superfluous and can be removed
   - The other end of a maximal cut line can be another cut line, the boundary edge or a reflex vertex
-* Every reflex vertex must have at least one cut line eminating from it. In the case of two cut lines eminating,
+* Every reflex vertex must have at least one cut line emanating from it. In the case of two cut lines emanating,
   each must have a reflex vertex at their other end
 
 ---
@@ -178,12 +175,12 @@ OK, I think I have a better understanding of how this algorithm works.
 
 Kim, Lee and Ahn is a little terse to read but I think they provide a much clearer view of what's going on.
 
-For a give figure (rectilinear polygon, potentially subdivided from the original), choose an origin point on
+For a given figure (rectilinear polygon, potentially subdivided from the original), choose an origin point on
 the boundary of the figure (details of which point to choose might be important, so more on this later).
 This origin point, $\sigma$, must be part of a rectangle, so consider all grid points on the interior of the figure which
 we'll call candidate points, $\rho$.
 
-For each candidate point, try to construct a rectangle using $\sigma$ and $\rho$ as the corner points, where
+For each candidate point, $\rho$, try to construct a rectangle using $\sigma$ as the origin and $\rho$ as the corner points, where
 the rectangle has non-zero area and lies completely inside the figure.
 Call it $R _ { \sigma \rho }$.
 
@@ -192,8 +189,7 @@ For each of those edges, extend them in the appropriate directions so that they'
 That is, each line has to have at least one endpoint on a reflex vertex, where the reflex vertex is from the original perimeter
 of the rectilinear polygon.
 
-The case analysis is going to be a bit hairy but the idea is that the number of combinations of maximal lines is finite (3 per
-corner, max, for a total of 12?).
+The case analysis is going to be a bit hairy but the idea is that the number of combinations of maximal lines is finite.
 Each of these choices will partition the sub-figure further, making progress at eating away at the perimeter of the original rectilinear
 polygon.
 
@@ -213,6 +209,18 @@ Every rectangle that can't have it's edges extended into a maximal cut is invali
 Since there must be a rectangle with the origin point and we've enumerated all possibilities of rectangle choices as well as the
 choices for maximal cut lines, we've exhausted the possibility space to guarantee a solution.
 
+###### 2025-09-17
+
+From my understanding, the choice of origin point is inconsequential, from a worst case perspective.
+The origin point ($\sigma$) might have a practical implication in run time but I don't think it matters
+overall.
+
+We might want to make sure to choose it in an ordered way (lex smallest, for example) but I don't think it matters.
+
+The number of possibilities of maximal line segments to choose that will enclose the rectangle $R _ { \sigma \rho }$ is naively
+bounded by $3^4 = 81$ (each line can be maximal left, maximal right or maximal both) but this is an overestimate as
+there are only two possibilities for maximal line segments that are anchored by the origin point, $\rho$.
+This puts the upper bound at 36 ($2^2 3^2 = 36$) and can be further lowered if the rectangle shares one or more edges with the boundary.
 
 
 
@@ -222,7 +230,7 @@ References
 * ["Rectangular Partitions of a Rectilinear Polygon" by Kim, Lee, Ahn](https://arxiv.org/pdf/2111.01970)
 * ["Minimum Edge Length Partitioning of Rectilinear Polygons" by Lingas, Pinter, Rivest, Shamir](https://people.csail.mit.edu/rivest/pubs/LPRS82.pdf)
 * ["Design and Analysis of Approxmiation Algorithms" by Du, Ko, Hu](https://link.springer.com/book/10.1007/978-1-4614-1701-9)
-* ["The Structure of Optimal Partitions of Orthogonal Polygons into Fat RectanglesFat Rectangles" by O'Rourke, Tewari](https://scholarworks.smith.edu/cgi/viewcontent.cgi?article=1200&context=csc_facpubs)
+* ["The Structure of Optimal Partitions of Orthogonal Polygons into Fat Rectangles Rectangles" by O'Rourke, Tewari](https://scholarworks.smith.edu/cgi/viewcontent.cgi?article=1200&context=csc_facpubs)
 * ["Polygon rectangulation, part 3: Minimum-length rectangulation", Nanoexplanations, blog of Aaron Sterling](https://nanoexplanations.wordpress.com/2011/12/16/polygon-rectangulation-part-3-minimum-length-rectangulation/)
 
 
