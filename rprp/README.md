@@ -222,6 +222,88 @@ bounded by $3^4 = 81$ (each line can be maximal left, maximal right or maximal b
 there are only two possibilities for maximal line segments that are anchored by the origin point, $\rho$.
 This puts the upper bound at 36 ($2^2 3^2 = 36$) and can be further lowered if the rectangle shares one or more edges with the boundary.
 
+###### 2025-09-21
+
+I think I finally understand this now.
+There's still some specifics I need to understand but I think I have the basics.
+
+Here is the key fact from the nanoexplantaions blog:
+
+> It suffices to consider a region with an original contiguous boundary segment and at most two contiguous and
+> connected constructed lines.
+
+Kim etal. state this as well but not as clearly or explitily.
+
+This leaves out some details, but I think they are:
+
+* Given a region, $Q$, that has a contiguous original boundary and at most two constructed lines
+* Consider an origin point $a$
+  - If $Q$ is a 2-cut, $a$ is taken to the meeting point of the two constructed lines
+  - If $Q$ is a 1-cut, $a$ is taken to be the endpoint of either end of the 1-cut
+  - If $Q = P$, $a$ can be taken to be any bend point on the boundary
+* Consider a matching point, $b$, in $Q$, such that $R _ { a,b }$ lies completely in $Q$
+  - Use $R _ {a,b}$ to extend its line segments to be maximal
+  - This will create a certain number of partitions into sub-regions
+  - Reject the matching point $b$, and thus the $R _ {a,b}$, if:
+    + Any sub-regions is more than a 2-cut
+    + Any sub-regions doesn't have a contiguous outer boundary
+    + $R _ {a,b}$ is known to be non-minimal (has floating interior edges, etc)
+
+A lot of the work in various papers goes on to show that only a certain subset of matching points
+need to be considered, so the rejection is implicit by only considering known possible matching points
+in the first place.
+
+Kim etal. partition into 1, 2C and 2R cases, with 1 further partitioned into 1R and 1C.
+
+For a 2-cut, the two constructed lines will be in-line with some portion of the boundary.
+When the constructed lines are extended to include the boundary colinear line, you can then
+extrapolate to create a kitty corner $\kappa$ point.
+
+This $\kappa$ point creates a rectangle, $R _ {a, \kappa}$, not necessarily contained in $Q$.
+
+If the two constructed lines create a reflex joint in $Q$, it's called 2R.
+If the two constructed lines create an interior convex joint in $Q$, it's called 2C.
+If there is only one constructed line, it's called either a 1, 1C or 1R, where 1C is when
+it's not 1R and I'm not exactly sure what's considered a 1R.
+
+The overall point is that since we're partitioning regions with only two constructed lines
+and contiguous outer boundary, we now have a dynamic programming solution whose indices are the
+indices of the contiguous boundary (so, two total) and whether it's interior/exterior (2R,2C,1, etc.).
+
+### 2C
+
+In $Q$, in the case of 2C, if the matching point, $b$, is in quadrent `III` from $R _ {a, \kappa}$
+(so diagonal opposite), unless $R _ {a,b}$ shares a non-trivial edge with $Q$, this can never
+be the case.
+In this case, $R _ {a,b}$ will always have edges that are redundant.
+
+Matching point $b$ can't be in quadrent `I` relative to $R _ {a, \kappa}$ (I believe) as this
+would create a larger than 2-cut.
+
+So the matching point, $b$, must be in quadrent `II` or `IV` relative to $R _ {a, \kappa}$.
+I'm not sure there's much more optimization that can be done and these are the main areas
+where matching points need to be considered.
+
+### 2R
+
+In $Q$, in the case of 2R, the claim is that no matching points $b$ can be within $R _ {a, \kappa}$.
+This can be easily seen as any matching point, $b$, that extends the constructed line outward will
+have the edge of the constructed rectangle, $R _ {a,b}$, to be redundant/moveable.
+The exception is that if the rectangle, $R _ {a,b}$ shares an edge with the boundary $Q$.
+
+Otherwise, any point outside of $R _ {a,\kappa}$ needs to be considered.
+
+### 1
+
+I have to think about this case a bit to see where the candidate point, $a$, can be chosen,
+but I think these are simpler cases.
+
+---
+
+
+
+
+
 
 
 References

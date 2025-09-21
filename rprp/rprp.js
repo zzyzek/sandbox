@@ -2042,7 +2042,8 @@ function _main_fig11() {
 
   let grid_info = rectilinearGridPoints(pgn);
 
-  console.log("???", clockwise(pgn));
+  console.log("clockwise(pgn):", clockwise(pgn),
+    "( pgn is", clockwise(pgn) ? "cw" : "ccw", ")");
 
   //console.log(grid_info);
 
