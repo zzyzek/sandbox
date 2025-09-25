@@ -30,6 +30,11 @@ function _vcmp(a,b) {
   return 0;
 }
 
+// polygon to array
+// finds origin from lower left point,
+// does y inversion from display to world/actual,
+// rescales by grid size (pixel to world)
+//
 function pgn2a() {
   let orig_pgn = g_ui.data.pgn;
   let pgn = [];
