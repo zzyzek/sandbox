@@ -113,6 +113,111 @@ Things that come to mind:
 * use the second (third, fourth, etc.) eigenvalue information to inform choice, if this is
   useful intuition in the first place
 
+Multi-Scale Tile Hinting
+---
+
+This idea is still nascent but I wanted a record of it for future reference.
+
+There's the low level tile rules that are hard constraints.
+The inferred rules, from an exemplar image, say, are highly localized
+and so suffer from myopia that includes things like stuttering, inability
+to discern global contraints, difficulty in creating global patterns, etc.
+
+To try and allow for longer range effects, we can try to do the following:
+
+* Consider a sequence of increasing block regions (2x2, 3x3, etc.)
+* The block regions can be thought of as "bag of tiles" and represented
+  by a frequency of tiles appearing in the block region
+* We can try to partition these bag of tiles into groups through some clustering
+  method or some lower dimensional embedding method
+* From these partitioned groups, we can infer neighbor placement probabilities
+  on a group level
+* From the group neighbor placement probabilities, we can overlay a probability
+  on the underlying small scale grid
+
+The details are probably difficult to work out but I think this is possible.
+
+At larger scales, the "bag of tiles" (BoT) approach assumes the details
+don't matter in lieu of describing the region by the tile frequency.
+We leave the small scale details of how to realize the region to the constraint
+solver.
+
+A note: spectral clustering assumed a graph with structure where we want
+to partition the nodes in the graph.
+Standard k-means might be more appropriate for BoT as now we have a potentially
+large data point set from sliding a window and creating tile frequency vectors.
+
+Thinking out loud:
+
+* BoT with a window size of the initial exemplar image will create global tile
+  frequencies
+* There might be "characteristic" features for certain BoT window sizes
+  - think of forest micro, the rivers might have a characteristic size that
+    will yield a rule set for quantized BoT groupings that alternate between
+    river-like BoT vectors and land BoT vectors
+
+This has a chance of picking up global features and guiding globally constrained systems.
+
+Give a BoT at a certain window size or scale, the basic idea is to overlay a probability
+onto the underlying individual tile probabilities.
+This means the $G$ function (individual tile probability) can be overloaded to take this
+modified probability.
+
+The probability should be clamped to some non zero minimum so that we allow for forced
+tiles.
+
+The question of how to properly weight the probabilities implied by the different
+BoT scales isn't obvious to me so will need some experimentation.
+
+In my opinion, here are the critical observations:
+
+* At larger scales, taking summary information in the form of BoT for some variety of
+  window sizes has a hope of working because because the frequency of tiles for a given
+  region gives us a sort of certificate that there is a valid realization and the realization
+  can be worked out from our low level fine grained hard constraint solver
+* The summary information for the BoT vectors can be quantized, giving us probabilistic/continuous
+  neighbor constraints at longer scale ranges
+
+The detail to work out is how to use the BoT neighbor information.
+These aren't hard constraints anymore so AC3/AC4 can't be used to knockout tiles.
+
+During constraint solving, a region's BoT vector can be calculated by summing
+a weighting each tile in each cell by the number tiles in the cell, divided by the total
+number of cells.
+Choose some similarity to the BoT quantized vectors, using dot product as a default.
+
+Take an example of forst micro at some scale with two quantized BoT elements representing
+"river" (R) and "land" (L) meta-tiles.
+
+Roughly, say the following:
+
+|   | 0 (+x) | 1 (-x) | 2 (+y) | 3 (-y) |
+|---|--------|--------|--------|--------|
+| R | L:0.95, R:0.05 | L:0.9, R:0.1 | L:0.1, R:0.9 | L0.1, R: 0.9 |
+| L | L:0.9, R:0.1 | L:0.95, R:0.05 | L:0.9, R:0.1 | L0.9, R: 0.1 |
+
+So river alternates to land, mostly, from left to right but wants to keep river
+and land tiles in columns.
+
+So now we have an implied graph created by choosing nodes from the scale window size
+whose values can be one of the quantized values along with probabilities
+for pair of the values.
+If we naively take uniform values for quantized values, we are now in a position
+to use something like belief propagation (BP) to find maximum a posteriori (MAP)
+assignments.
+
+Some things to consider:
+
+* How we create the rescaled image might have artifacts, so we might want to
+  run two models at the same time with one at half pitch and try to interpolate between
+  them
+* If BP is used, it's slow, so maybe only recalculate every so many iterations
+* One can see how path finding might work
+* You can bootstrap by considering ever larger instances and recalculating
+  the quantized values at different scales
+
+
+
 
 Kintsugi Method (theoretical)
 ---
