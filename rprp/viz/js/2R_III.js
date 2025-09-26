@@ -61,6 +61,54 @@ function makeTwoAnchor(_pnt) {
 }
 
 
+// just the arrow, not the line with the arrow
+//
+function mkarrow(px, py, dx, dy, w, h, lco, lw, alpha) {
+  lco = ((typeof lw === "undefined") ? "#111" : lco);
+  lw = ((typeof lw === "undefined") ? 3 : lw);
+  alpha = ((typeof alpha === "undefined") ? 1 : alpha);
+
+  let two = g_fig_ctx.two;
+
+  let theta = Math.atan2(-dy,dx);
+  theta += Math.PI/2;
+
+  let ct = Math.cos(theta);
+  let st = Math.sin(theta);
+
+  let w2 = w/2;
+
+  let q0 = [  ct*w2 - st*h, -st*w2 - ct*h ];
+  let q1 = [ -ct*w2 - st*h,  st*w2 - ct*h ];
+
+  let hh = h*0.95;
+
+  let qm = [  ct*0  - st*hh, -st*0  - ct*hh ];
+
+  q0[0] += px;
+  q0[1] += py;
+
+  q1[0] += px;
+  q1[1] += py;
+
+  qm[0] += px;
+  qm[1] += py;
+
+  let anch = makeTwoAnchor( [ [px,py], q0, qm, q1 ] );
+
+  let _p = two.makePath( anch );
+
+  _p.linewidth = lw;
+
+  _p.stroke = lco;;
+  _p.fill = lco;;
+  _p.join = "round";
+  _p.opacity = alpha;
+
+  return _p;
+}
+
+
 
 //---
 //---
@@ -233,9 +281,14 @@ function mkInnerGrid(pgn) {
         }
       }
 
-      let c = two.makeCircle( v.xy[0], v.xy[1], 4 );
+      let c = two.makeCircle( v.xy[0], v.xy[1], 3 );
+      c.opacity = 0.55;
     }
   }
+
+  return;
+
+  /*
 
 
   for (let y_idx=0; y_idx<Gv.length; y_idx++) {
@@ -246,11 +299,11 @@ function mkInnerGrid(pgn) {
 
       let xy = v.xy;
 
-      let c = two.makeCircle( xy[0], xy[1], 4 );
+      let c = two.makeCircle( xy[0], xy[1], 2 );
+      c.opacity = 0.45;
     }
   }
-
-  console.log(rp_info);
+  */
 
 }
 
@@ -334,14 +387,22 @@ function _2R_init() {
     [7,4], [7,0], [3,0], [3,9],
   ];
 
-  let pgn = pgn2disp(_pgn, [100,100], 15 );
+  _pgn = [
+    [0,8], [0,13], [3,13], [3,18],
+    [5,18], [5,15], [9,15], [9,19],
+    [18,19], [18,10], [13,10], [13,4],
+    [7,4], [7,0], [3,0], [3,8],
+  ];
+
+  let pgn = pgn2disp(_pgn, [100,25], 20 );
   let pgn_com = pgnCoM( pgn );
 
 
   // l0, l1 points
   //
 
-  mathjax2twojs( "Q", pgn_com[0]-46, pgn_com[1] + 70, 0.018 );
+  //mathjax2twojs( "Q", pgn_com[0]-46, pgn_com[1] + 70, 0.018 );
+  mathjax2twojs( "Q", pgn_com[0]-65, pgn_com[1] + 105, 0.025 );
 
   let tc_idx = [6,10];
 
@@ -385,6 +446,65 @@ function _2R_init() {
   //console.log(pgn, sub_pgn);
   display_region( sub_pgn );
 
+  // rectangle choice highlighting
+  // ...inverted y apparently
+  //
+
+  let rp_info = rprp.rectilinearGridPoints(pgn);
+
+  let gp0 = rp_info.Gv[4][3];
+  let gp1 = rp_info.Gv[5][3];
+  let gp2 = rp_info.Gv[5][4];
+
+  let rect_l0_xy = [ (alpha_pnt[0] + gp0.xy[0])/2, (alpha_pnt[1] + gp0.xy[1])/2 ];
+  let rect_l1_xy = [ (gp1.xy[0] + gp0.xy[0])/2, (gp1.xy[1] + gp0.xy[1])/2 ];
+  let rect_l2_xy = [ (gp2.xy[0] + gp1.xy[0])/2, (gp2.xy[1] + gp1.xy[1])/2 ];
+  let rect_l3_xy = [ (gp2.xy[0] + alpha_pnt[0])/2, (gp2.xy[1] + alpha_pnt[1])/2 ];
+
+  let _rect_l0 = two.makeLine( alpha_pnt[0], alpha_pnt[1], gp0.xy[0], gp0.xy[1] );
+  _rect_l0.dashes = [3,3];
+
+  let _rect_l1 = two.makeLine( gp0.xy[0], gp0.xy[1], gp1.xy[0], gp1.xy[1] );
+  _rect_l1.dashes = [3,3];
+
+  let _rect_l2 = two.makeLine( gp1.xy[0], gp1.xy[1], gp2.xy[0], gp2.xy[1] );
+  _rect_l2.dashes = [3,3];
+
+  let _rect_l3 = two.makeLine( gp2.xy[0], gp2.xy[1], alpha_pnt[0], alpha_pnt[1] );
+  _rect_l3.dashes = [3,3];
+
+  let _rect_l0_txt = mathjax2twojs( "rect_l0", rect_l0_xy[0]-4, rect_l0_xy[1]-5, 0.018 );
+  let _rect_l1_txt = mathjax2twojs( "rect_l1", rect_l1_xy[0] - 14, rect_l1_xy[1] + 4, 0.018 );
+  let _rect_l2_txt = mathjax2twojs( "rect_l2", rect_l2_xy[0]-4, rect_l2_xy[1] + 15, 0.018 );
+  let _rect_l3_txt = mathjax2twojs( "rect_l3", rect_l3_xy[0] + 5, rect_l3_xy[1] + 4, 0.018 );
+
+  two.makeLine( gp0.xy[0], gp0.xy[1], gp0.xy[0], gp0.xy[1] - 30 );
+  mkarrow( gp0.xy[0], gp0.xy[1] - 30, 0, -10, 5, 5 );
+  mathjax2twojs( "rect_d0", gp0.xy[0]+3, gp0.xy[1]-33, 0.018 );
+
+  two.makeLine( gp0.xy[0], gp0.xy[1], gp0.xy[0]-30, gp0.xy[1] );
+  mkarrow( gp0.xy[0]- 30, gp0.xy[1] , -10, 0, 5, 5 );
+  mathjax2twojs( "rect_d1", gp0.xy[0]-35, gp0.xy[1]-8, 0.018 );
+
+  two.makeLine( gp1.xy[0], gp1.xy[1], gp1.xy[0]-30, gp1.xy[1] );
+  mkarrow( gp1.xy[0]- 30, gp1.xy[1] , -10, 0, 5, 5 );
+  mathjax2twojs( "rect_d2", gp1.xy[0]-35, gp1.xy[1]-8, 0.018 );
+
+  two.makeLine( gp1.xy[0], gp1.xy[1], gp1.xy[0], gp1.xy[1] + 30 );
+  mkarrow( gp1.xy[0], gp1.xy[1] + 30, 0, 10, 5, 5 );
+  mathjax2twojs( "rect_d3", gp1.xy[0]+5, gp1.xy[1]+38, 0.018 );
+
+  two.makeLine( gp2.xy[0], gp2.xy[1], gp2.xy[0], gp2.xy[1] + 30 );
+  mkarrow( gp2.xy[0], gp2.xy[1] + 30, 0, 10, 5, 5 );
+  mathjax2twojs( "rect_d4", gp2.xy[0]+5, gp2.xy[1]+38, 0.018 );
+
+  two.makeLine( gp2.xy[0], gp2.xy[1], gp2.xy[0]+30, gp2.xy[1] );
+  mkarrow( gp2.xy[0] + 30, gp2.xy[1] , 10, 0, 5, 5 );
+  mathjax2twojs( "rect_d5", gp2.xy[0]+28, gp2.xy[1]-8, 0.018 );
+
+  let _c_gp0 = two.makeCircle( gp0.xy[0], gp0.xy[1], 5 );
+  let _c_gp1 = two.makeCircle( gp1.xy[0], gp1.xy[1], 5 );
+  let _c_gp2 = two.makeCircle( gp2.xy[0], gp2.xy[1], 5 );
 
 
   // kappa
