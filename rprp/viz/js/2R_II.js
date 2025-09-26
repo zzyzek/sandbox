@@ -139,9 +139,10 @@ function _dl() {
 
 }
 
-function mathjax2twojs(_id,x,y,s,s_sub) {
+function mathjax2twojs(_id,x,y,s,s_sub, opacity) {
   s = ((typeof s === "undefined") ? 0.02 : s);
   s_sub = ((typeof s_sub === "undefined") ? 0.7 : s_sub);
+  opacity = ((typeof opacity === "undefined") ? 1.0 : opacity);
 
   let two = g_fig_ctx.two;
 
@@ -158,6 +159,8 @@ function mathjax2twojs(_id,x,y,s,s_sub) {
   sgr.position.y = y;
   sgr.scale.x =  s;
   sgr.scale.y = -s;
+  sgr.opacity = opacity;
+
 
   // rescale subscript HACK
   //
@@ -286,6 +289,25 @@ function mkInnerGrid(pgn) {
     }
   }
 
+  return;
+
+  /*
+
+
+  for (let y_idx=0; y_idx<Gv.length; y_idx++) {
+    for (let x_idx=0; x_idx<Gv[y_idx].length; x_idx++) {
+      let v = Gv[y_idx][x_idx];
+      if (v.G_idx < 0) { continue; }
+      if (v.t != 'i') { continue; }
+
+      let xy = v.xy;
+
+      let c = two.makeCircle( xy[0], xy[1], 2 );
+      c.opacity = 0.45;
+    }
+  }
+  */
+
 }
 
 function pgn2disp(_pgn, origin, grid_size) {
@@ -338,7 +360,7 @@ function pgnCoM(pgn) {
   return pgn_com;
 }
 
-function _2R_III_init() {
+function _2R_II_init() {
   let two = g_fig_ctx.two;
 
   let font_style = {
@@ -417,8 +439,8 @@ function _2R_III_init() {
   let rp_info = rprp.rectilinearGridPoints(pgn);
 
   let gp0 = rp_info.Gv[4][3];
-  let gp1 = rp_info.Gv[5][3];
-  let gp2 = rp_info.Gv[5][4];
+  let gp1 = rp_info.Gv[3][3];
+  let gp2 = rp_info.Gv[3][4];
 
   let rect_l0_xy = [ (alpha_pnt[0] + gp0.xy[0])/2, (alpha_pnt[1] + gp0.xy[1])/2 ];
   let rect_l1_xy = [ (gp1.xy[0] + gp0.xy[0])/2, (gp1.xy[1] + gp0.xy[1])/2 ];
@@ -434,30 +456,36 @@ function _2R_III_init() {
   let _rect_l2 = two.makeLine( gp1.xy[0], gp1.xy[1], gp2.xy[0], gp2.xy[1] );
   _rect_l2.dashes = [3,3];
 
-  let _rect_l3 = two.makeLine( gp2.xy[0], gp2.xy[1], alpha_pnt[0], alpha_pnt[1] );
-  _rect_l3.dashes = [3,3];
+  //let _rect_l3 = two.makeLine( gp2.xy[0], gp2.xy[1], alpha_pnt[0], alpha_pnt[1] );
+  //_rect_l3.dashes = [3,3];
 
   let _rect_l0_txt = mathjax2twojs( "rect_l0", rect_l0_xy[0]-4, rect_l0_xy[1]-5, 0.018 );
   let _rect_l1_txt = mathjax2twojs( "rect_l1", rect_l1_xy[0] - 14, rect_l1_xy[1] + 4, 0.018 );
   let _rect_l2_txt = mathjax2twojs( "rect_l2", rect_l2_xy[0]-4, rect_l2_xy[1] + 15, 0.018 );
-  let _rect_l3_txt = mathjax2twojs( "rect_l3", rect_l3_xy[0] + 5, rect_l3_xy[1] + 4, 0.018 );
+  //let _rect_l3_txt = mathjax2twojs( "rect_l3", rect_l3_xy[0] + 5, rect_l3_xy[1] + 4, 0.018 );
 
-  two.makeLine( gp0.xy[0], gp0.xy[1], gp0.xy[0], gp0.xy[1] - 30 );
-  mkarrow( gp0.xy[0], gp0.xy[1] - 30, 0, -10, 5, 5 );
-  mathjax2twojs( "rect_d0", gp0.xy[0]+3, gp0.xy[1]-33, 0.018 );
+  two.makeLine( gp0.xy[0], gp0.xy[1], gp0.xy[0], gp0.xy[1] + 30 );
+  mkarrow( gp0.xy[0], gp0.xy[1] + 30, 0, 10, 5, 5 );
+  mathjax2twojs( "rect_d0", gp0.xy[0]+3, gp0.xy[1]+33, 0.018 );
 
-  two.makeLine( gp0.xy[0], gp0.xy[1], gp0.xy[0]-30, gp0.xy[1] );
-  mkarrow( gp0.xy[0]- 30, gp0.xy[1] , -10, 0, 5, 5 );
-  mathjax2twojs( "rect_d1", gp0.xy[0]-35, gp0.xy[1]-8, 0.018 );
+  let _ld1 = two.makeLine( gp0.xy[0], gp0.xy[1], gp0.xy[0]-30, gp0.xy[1] );
+  _ld1.opacity = 0.5;
+  mkarrow( gp0.xy[0]- 30, gp0.xy[1] , -10, 0, 5, 5, undefined, undefined, 0.4 );
+  mathjax2twojs( "rect_d1", gp0.xy[0]-35, gp0.xy[1]-8, 0.018, undefined, 0.5 );
+
 
   two.makeLine( gp1.xy[0], gp1.xy[1], gp1.xy[0]-30, gp1.xy[1] );
   mkarrow( gp1.xy[0]- 30, gp1.xy[1] , -10, 0, 5, 5 );
   mathjax2twojs( "rect_d2", gp1.xy[0]-35, gp1.xy[1]-8, 0.018 );
 
-  two.makeLine( gp1.xy[0], gp1.xy[1], gp1.xy[0], gp1.xy[1] + 30 );
-  mkarrow( gp1.xy[0], gp1.xy[1] + 30, 0, 10, 5, 5 );
-  mathjax2twojs( "rect_d3", gp1.xy[0]+5, gp1.xy[1]+38, 0.018 );
 
+  let _ld3 = two.makeLine( gp1.xy[0], gp1.xy[1], gp1.xy[0], gp1.xy[1] - 30 );
+  _ld3.opacity = 0.5;
+
+  mkarrow( gp1.xy[0], gp1.xy[1] - 30, 0, -10, 5, 5, undefined, undefined, 0.4 );
+  mathjax2twojs( "rect_d3", gp1.xy[0]+5, gp1.xy[1]-25, 0.018, undefined, 0.5 );
+
+  /*
   two.makeLine( gp2.xy[0], gp2.xy[1], gp2.xy[0], gp2.xy[1] + 30 );
   mkarrow( gp2.xy[0], gp2.xy[1] + 30, 0, 10, 5, 5 );
   mathjax2twojs( "rect_d4", gp2.xy[0]+5, gp2.xy[1]+38, 0.018 );
@@ -465,6 +493,7 @@ function _2R_III_init() {
   two.makeLine( gp2.xy[0], gp2.xy[1], gp2.xy[0]+30, gp2.xy[1] );
   mkarrow( gp2.xy[0] + 30, gp2.xy[1] , 10, 0, 5, 5 );
   mathjax2twojs( "rect_d5", gp2.xy[0]+28, gp2.xy[1]-8, 0.018 );
+  */
 
   let _c_gp0 = two.makeCircle( gp0.xy[0], gp0.xy[1], 5 );
   let _c_gp1 = two.makeCircle( gp1.xy[0], gp1.xy[1], 5 );
