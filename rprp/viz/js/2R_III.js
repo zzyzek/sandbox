@@ -116,7 +116,7 @@ function mkarrow(px, py, dx, dy, w, h, lco, lw, alpha) {
 
 
 function _dl() {
-  var ele = document.getElementById("gilbert3d_hellebore");
+  var ele = document.getElementById("2R_canvas");
   let defs = document.getElementById("custom_defs");
 
   // very hacky, find the defs definition, take the defs
