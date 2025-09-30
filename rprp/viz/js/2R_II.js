@@ -464,26 +464,36 @@ function _2R_II_init() {
   let _rect_l2_txt = mathjax2twojs( "rect_l2", rect_l2_xy[0]-4, rect_l2_xy[1] + 15, 0.018 );
   //let _rect_l3_txt = mathjax2twojs( "rect_l3", rect_l3_xy[0] + 5, rect_l3_xy[1] + 4, 0.018 );
 
+  two.makeLine( alpha_pnt[0], alpha_pnt[1], alpha_pnt[0], alpha_pnt[1] + 30 );
+  mkarrow( alpha_pnt[0], alpha_pnt[1] + 30, 0, 10, 5, 5 );
+  mathjax2twojs( "rect_d0", alpha_pnt[0]+3, alpha_pnt[1]+33, 0.018 );
+
   two.makeLine( gp0.xy[0], gp0.xy[1], gp0.xy[0], gp0.xy[1] + 30 );
   mkarrow( gp0.xy[0], gp0.xy[1] + 30, 0, 10, 5, 5 );
-  mathjax2twojs( "rect_d0", gp0.xy[0]+3, gp0.xy[1]+33, 0.018 );
+  mathjax2twojs( "rect_d1", gp0.xy[0]+3, gp0.xy[1]+33, 0.018 );
 
   let _ld1 = two.makeLine( gp0.xy[0], gp0.xy[1], gp0.xy[0]-30, gp0.xy[1] );
-  _ld1.opacity = 0.5;
-  mkarrow( gp0.xy[0]- 30, gp0.xy[1] , -10, 0, 5, 5, undefined, undefined, 0.4 );
-  mathjax2twojs( "rect_d1", gp0.xy[0]-35, gp0.xy[1]-8, 0.018, undefined, 0.5 );
+  //_ld1.opacity = 0.5;
+  //mkarrow( gp0.xy[0]- 30, gp0.xy[1] , -10, 0, 5, 5, undefined, undefined, 0.4 );
+  //mathjax2twojs( "rect_d2", gp0.xy[0]-35, gp0.xy[1]-8, 0.018, undefined, 0.5 );
+
+  mkarrow( gp0.xy[0]- 30, gp0.xy[1] , -10, 0, 5, 5 );
+  mathjax2twojs( "rect_d2", gp0.xy[0]-35, gp0.xy[1]-8, 0.018 );
 
 
   two.makeLine( gp1.xy[0], gp1.xy[1], gp1.xy[0]-30, gp1.xy[1] );
   mkarrow( gp1.xy[0]- 30, gp1.xy[1] , -10, 0, 5, 5 );
-  mathjax2twojs( "rect_d2", gp1.xy[0]-35, gp1.xy[1]-8, 0.018 );
+  mathjax2twojs( "rect_d3", gp1.xy[0]-35, gp1.xy[1]-8, 0.018 );
 
 
   let _ld3 = two.makeLine( gp1.xy[0], gp1.xy[1], gp1.xy[0], gp1.xy[1] - 30 );
-  _ld3.opacity = 0.5;
+  //_ld3.opacity = 0.5;
 
-  mkarrow( gp1.xy[0], gp1.xy[1] - 30, 0, -10, 5, 5, undefined, undefined, 0.4 );
-  mathjax2twojs( "rect_d3", gp1.xy[0]+5, gp1.xy[1]-25, 0.018, undefined, 0.5 );
+  //mkarrow( gp1.xy[0], gp1.xy[1] - 30, 0, -10, 5, 5, undefined, undefined, 0.4 );
+  //mathjax2twojs( "rect_d4", gp1.xy[0]+5, gp1.xy[1]-25, 0.018, undefined, 0.5 );
+
+  mkarrow( gp1.xy[0], gp1.xy[1] - 30, 0, -10, 5, 5 );
+  mathjax2twojs( "rect_d4", gp1.xy[0]+5, gp1.xy[1]-25, 0.018 );
 
   /*
   two.makeLine( gp2.xy[0], gp2.xy[1], gp2.xy[0], gp2.xy[1] + 30 );
