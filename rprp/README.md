@@ -232,7 +232,7 @@ Here is the key fact from the nanoexplantaions blog:
 > It suffices to consider a region with an original contiguous boundary segment and at most two contiguous and
 > connected constructed lines.
 
-Kim etal. state this as well but not as clearly or explitily.
+Kim et al. state this as well but not as clearly or explitily.
 
 This leaves out some details, but I think they are:
 
@@ -242,7 +242,7 @@ This leaves out some details, but I think they are:
   - If $Q$ is a 1-cut, $a$ is taken to be the endpoint of either end of the 1-cut
   - If $Q = P$, $a$ can be taken to be any bend point on the boundary
 * Consider a matching point, $b$, in $Q$, such that $R _ { a,b }$ lies completely in $Q$
-  - Use $R _ {a,b}$ to extend its line segments to be maximal
+  - Use the short edges of $R _ {a,b}$ ( *billet* ) to extend its line segments to be maximal
   - This will create a certain number of partitions into sub-regions
   - Reject the matching point $b$, and thus the $R _ {a,b}$, if:
     + Any sub-regions is more than a 2-cut
@@ -253,7 +253,7 @@ A lot of the work in various papers goes on to show that only a certain subset o
 need to be considered, so the rejection is implicit by only considering known possible matching points
 in the first place.
 
-Kim etal. partition into 1, 2C and 2R cases, with 1 further partitioned into 1R and 1C.
+Kim et al. partition into 1, 2C and 2R cases, with 1 further partitioned into 1R and 1C.
 
 For a 2-cut, the two constructed lines will be in-line with some portion of the boundary.
 When the constructed lines are extended to include the boundary colinear line, you can then
@@ -301,10 +301,59 @@ but I think these are simpler cases.
 ---
 
 
+###### 2025-09-29
+
+We have some new terms:
+
+* *quarry (rectangle)* - rectangle chosen during the algorithm
+  - *adit (vertex)* - $a$ grid vertex of quarry ($a$ grid vertex of rectangle chosen during algorithm)
+  - *quarry corner vertex* - any of the four grid point corners that make up the the quarry rectangle
+  - *bower vertex* - $b$ grid vertex, kitty corner opposite of $a$ within the (quarry) rectangle
+* *billet (edge)* - side of quarry (side rectangle chosen during the algorithm)
+* *cleave (line)* - a partition cut starting from a quarry vertex (a cleave must end at the original
+  outer boundary) (if there are two cleaves in-line, with a middle billet joining them, it is possibile
+  to combine them into a single cut)
+* *clean cut* - if a (cleave) cut is a one or two cut of the subregion
+
+Overall, we will choose an adit vertex and then choose a bower vertex.
+
+The adit, $a$, and bower, $b$, vertex will create a quarry rectangle, $R _ {a, b}$ with four billet edges.
+The billet edges might share none, some or all of their length with a previously constructed cut line
+or the original boundary of the rectilinear polygon.
+
+As a first attempt, we assume the adit, $a$, vertex is chosen
+and loop through all bower, $b$, vertices to test the following:
+
+* The quarry rectangle, $R _ {a,b}$, is completely in the current region $Q$ with positive area (no degenerate line $(a,b)$)
+* there is a choice of cleave lines from the quarry corner vertices that:
+  - lie within $Q$ and not just on the edge or outside of it (that is, the direction of the cleave cut shoots into the body of $Q$).
+  - isn't redundant by allowing a billet to slide between them
+  - creates a one or two cut of the subregion
+
+That is, if any cleave line creates a more than two cut (three cut or more), it can be rejected.
+
+If a quarry rectangle, $R _ {a,b}$, is chosen, there are four corners to consider, each of which has, at most,
+two cleave cuts that can come out of them.
+Each cleave cut can exist or not, yielding an upper bound of $2^8$ possible cleave cuts.
+
+Many of these can rejected before hand because the cleave cuts won't be in the considered region, $Q$,
+or will be parallel to a neighboring cleave cut, implying a slideable billet.
 
 
+Here's a first attempt at pseudo-code:
 
+* Given: grid point $a$, region $Q$
+* Foreach grid point, $b \in GP(Q)$:
+  - if $(a,b)$ colinear, continue
+  - if $R _ {a,b} \notin Q$, continue
+  - Foreach cleave cut choice, $D = (d _ {\sigma(0)}, d  _ {\sigma(1)} , \dots, d _ {\sigma(k)} )$
+    + if any of the cleave cuts start on the boundary of $Q$, continue
+    + if any of the cleave start out of $Q$, continue
+    + if there are two parallel cleave cuts in $D$, continue
+    + if there is a cleave cut that doesn't create a one or two cut subregion of $Q$, continue
+    + otherwise, recur on each subregion created from the cleave cut(s)
 
+I think the major complexity is figuring out if the cleave cuts partition the subregions cleanly.
 
 References
 ---
