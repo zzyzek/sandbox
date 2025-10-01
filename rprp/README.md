@@ -98,7 +98,7 @@ An overview is as follows:
     + if it's an interior point, start a line, $S$, in the orthogonal direction and walk until a reflex or edge boundary point is hit and
       create two region boundaries, keyed on the list of dual rectangles within it
     + if it's a reflex or edge boundary point, create two region boundaries, keyed on the list of dual rectangles within it
-* Once all regions are collected, deduplicate regions, note cost of guillotine or two cuts and mark rectangular regions as resolved
+* Once all regions are collected, deduplicate regions, note cost of guillotine or 2-cuts and mark rectangular regions as resolved
 * While ...
 
 
@@ -164,7 +164,7 @@ Here's a review:
   - That is, there exists a minimum ink partition s.t. every maximal cut line has at least one reflex vertex anchor
   - Any maximal cut line that does not end on a reflex vertex is superfluous and can be removed
   - The other end of a maximal cut line can be another cut line, the boundary edge or a reflex vertex
-* Every reflex vertex must have at least one cut line emanating from it. In the case of two cut lines emanating,
+* Every reflex vertex must have at least one cut line emanating from it. In the case of 2-cut lines emanating,
   each must have a reflex vertex at their other end
 
 ---
@@ -313,7 +313,7 @@ We have some new terms:
 * *cleave (line)* - a partition cut starting from a quarry vertex (a cleave must end at the original
   outer boundary) (if there are two cleaves in-line, with a middle billet joining them, it is possibile
   to combine them into a single cut)
-* *clean cut* - if a (cleave) cut is a one or two cut of the subregion
+* *clean cut* - if a (cleave) cut is a one or 2-cut of the subregion
 
 Overall, we will choose an adit vertex and then choose a bower vertex.
 
@@ -328,9 +328,9 @@ and loop through all bower, $b$, vertices to test the following:
 * there is a choice of cleave lines from the quarry corner vertices that:
   - lie within $Q$ and not just on the edge or outside of it (that is, the direction of the cleave cut shoots into the body of $Q$).
   - isn't redundant by allowing a billet to slide between them
-  - creates a one or two cut of the subregion
+  - creates a one or 2-cut of the subregion
 
-That is, if any cleave line creates a more than two cut (three cut or more), it can be rejected.
+That is, if any cleave line creates a more than 2-cut (three cut or more), it can be rejected.
 
 If a quarry rectangle, $R _ {a,b}$, is chosen, there are four corners to consider, each of which has, at most,
 two cleave cuts that can come out of them.
@@ -350,10 +350,115 @@ Here's a first attempt at pseudo-code:
     + if any of the cleave cuts start on the boundary of $Q$, continue
     + if any of the cleave start out of $Q$, continue
     + if there are two parallel cleave cuts in $D$, continue
-    + if there is a cleave cut that doesn't create a one or two cut subregion of $Q$, continue
+    + if there is a cleave cut that doesn't create a one or 2-cut subregion of $Q$, continue
     + otherwise, recur on each subregion created from the cleave cut(s)
 
 I think the major complexity is figuring out if the cleave cuts partition the subregions cleanly.
+
+---
+
+Thinking out loud:
+
+Some more glossary terms:
+
+* *interleaved boundary points* - grid points on the boundary that aren't part of the original boundary point description
+* *primitive boundary points* - original boundary points
+* *general boundary points* - all boundary points, including primitive and interleaved boundary points
+
+A note on cleave cuts:
+
+The cleave cut must not extend all the way.
+It must go until it hits some boundary then terminate.
+There are cases where extending the cleave cut will create a cut prematurely that might not be there.
+
+A simple example is a cleave cut that goes to the left, runs into a border plateau that then goes to a pit then
+eventaully terminates at a border.
+If the edge of the pit would choose to be open, say with a cut upwards at the pit edge,
+this would get missed by prematurely choosing the extended cleave cut.
+
+```
+
+ |   ?           |
+ | ? *---*...*---*
+ |   |   |   |   
+
+```
+
+The 2-cut property needs to be maintained and terminating the cleave cut at the first border still maintains that.
+Whichever subsequent quarry rectangle or cleave cuts chosen will maintain the 2-cut property.
+
+Moving on:
+
+* Given two general boundary points, $p _ s$, $p _ t$, with the assumption that the outer boundary trace
+  goes in counter clockwise order
+  - call the region under question $Q$
+  - The initial choise is on primitive boundary points
+* For non colinear $(p _ s, p _ t)$, there are up to two choices for the joining point of the constructed lines
+  - 0 index for first, which is lower in y (so lower left or lower right)
+  - 1 index for second, which is upper y (upper right or upper left)
+* For colinear $(p _ s, p _ t)$, there is a single cut line
+* Choose an *adit* grid point, $a$:
+  - For non colinear $(p _ s, p _ t)$, we enumerate $a$ at both endpoints of the two choices of where the constructed lines meet 
+  - For colinear $(p _ s, p _ t)$, we enumerate two choices of $a$ at either end of the constructed line
+  - Choose $a$ to be a primitive boundary point to bootstrap
+* From $a$, choose a *bower* point $b$
+  - $b$ must be within $Q$
+  - The *quarry rectangle*, $R _ {a,b}$, must be wholly in $Q$
+  - There are some other optimizations to further restrict $b$ and thus $R _ {a,b}$ which we'll ignore for now
+* Call the constructed line(s) (alt. cut lines) $\ell _ h$ for the horizontal and $\ell _ v$ for the vertical, if they exist (one must exist)
+* Call the line segments of the quarry rectangle, $R _ {a,b}$ *billets*, labelled $\ell _ 0$ for the bottom, $\ell _ 1$ for the left,
+  $\ell _ 2$ for the top and $\ell _ 3$ for the right
+  - some or all of the billets will be part of either the outer boundary or the constructed lines $\ell _ h$, $\ell _ v$
+* Call the four corners of the quarry rectangle $p _ 0, p _ 1, p _ 2, p _ 3$, representing the lower right, lower left, upper
+  left and upper right corners respectively (each of the $p _ 0, p _ 1, p _ 2, p _ 2 \in GP(Q)$)
+* For quarry corner $p _ j$, $j \in \{0,1,2,3\}$,  consider potential cleave cuts $d _ {2j}$ and $d _ {2j + 1}$
+* Choose all combinations of cleave cuts
+  - Create a forced virtual $d _ k$ if its $p _ j$ is on a constructed line edge or a boundary edge (that isn't a corner)
+  - In a particular combination, reject the combination if:
+    + any $d _ k$ shoots off outside of $Q$
+    + any $d _ k$ has a neighbor $d _ {k \pm 1 mod 8}$ parallel and chosen or forced (might need multiple passes)
+    + any maximal $d _ k$ lines don't have at least one end on a convex primitive border vertex
+  - The above is meant to enumerate all 1-cut or 2-cut scenarios
+  - Implicitely, this should not create any 3 (or more) cut partitions but this should be verified
+    (the parallel test should take care of it but I'm not confident)
+* For each combination, record the rectangle cost, partition the remaining regions and recur
+  - extend each cleave cut till the first time it hits the outer boundary (it should be impossible for a cleave cut to hit a constructed line)
+  - the first place the cleave cut hits the outer boundary marks the start or end of the 1-cut or 2-cut subregion
+  - walk the cleave cut in the opposite direction until it hits another cleave cut or an outer boundary, marking the intersection as the
+    new adit point $a'$ for the subregion or as the corresponding start/end of the outer boundary for the new subregion
+  - edges of the quarry rectangle need to be walked to see if they slice off any subregions by 1-cuts, adding the subregions to the queue
+    with the start and end of the 1-cut slice
+
+For the sake of clarity, the quarry rectangle $R _ {a,b}$ is not part of the 1-cut or 2-cut and is, in some sense,
+chosen as the pivot region from where the remaining region is partitioned into 1-cuts or 2-cuts.
+
+Billets will be moveable/redundant if the cleave cut is parallel to an edge or cleave cut not on a corner,
+so this is what the parallel test is trying to capture.
+If the parallel edge starts on a corner, the billet won't necessarily be redundant, so we need to be careful of this case.
+
+Every adit point, $a$, must be part of a quarry rectangle in the final partition.
+So, for example, if we have a 1-cut that has $a$ at one of its corners, there must be a bower point, $b$, that
+can be chosen to create the rectangle.
+In this case, the bower point, $b$, will be on the outer boundary and three of the the billets will be part of the outer boundary.
+
+---
+
+TODO:
+
+* cadrp:
+  - button to load from text input
+  - save border draws
+  - grab side of polygon to move
+  - 1 or 2 cut mode to draw cut lines
+  - toggle Q area
+  - quarry rectangle select
+  - cleave cut cycle
+* implementation
+* writeup
+
+
+
+
 
 References
 ---
