@@ -18,6 +18,11 @@ var g_ui = {
   "snap_to_grid": true,
 
   "mode": "draw",
+  "mode_modifier" : "",
+
+  "mode_data": {
+    "grab": { "d_idx": -1, "p_idx": [-1,-1] }
+  },
 
   "state": "idle",
   "state_description" : [ "drawing", "idle", "delete" ],
@@ -145,6 +150,11 @@ function a2pgn(p, _px_origin, _gs) {
 
 function ui_mode(_mode) {
   g_ui.mode = _mode;
+  g_ui.mode_modifer = "";
+
+  if (g_ui.mode == "grab") {
+    g_ui.mode_modifier = "select";
+  }
 
   redraw();
 }
@@ -459,26 +469,6 @@ function mouse_move_draw(x,y) {
 //  \_, /_/  \_,_/_.__/
 // /___/               
 
-function mouse_move_grab(x,y) {
-  let two = g_ui.two;
-  let data = g_ui.data;
-  let pgn = data.pgn;
-
-  data.cursor[0] = x;
-  data.cursor[1] = y;
-
-  if (g_ui.snap_to_grid) {
-    let snap_xy = [
-      Math.round( x / data.grid_size ) * data.grid_size,
-      Math.round( y / data.grid_size ) * data.grid_size
-    ];
-
-    data.cursor[0] = snap_xy[0];
-    data.cursor[1] = snap_xy[1];
-  }
-
-}
-
 function mouse_click_grab(x,y) {
   let two = g_ui.two;
   let data = g_ui.data;
@@ -497,44 +487,96 @@ function mouse_click_grab(x,y) {
     data.cursor[1] = snap_xy[1];
   }
 
-  let seg = [];
+  if (g_ui.mode_modifier == "select") {
 
-  for (let nxt_i=1; nxt_i<pgn.length; nxt_i++) {
-    let cur_i = (nxt_i-1);
+    let seg = [];
+    for (let cur_i=0; cur_i<pgn.length; cur_i++) {
+      let nxt_i = (cur_i+1)%pgn.length;
 
-    let dxy = [
-      Math.abs( pgn[nxt_i][0] - pgn[cur_i][0] ),
-      Math.abs( pgn[nxt_i][1] - pgn[cur_i][1] )
-    ];
+      let dxy = [
+        Math.abs( pgn[nxt_i][0] - pgn[cur_i][0] ),
+        Math.abs( pgn[nxt_i][1] - pgn[cur_i][1] )
+      ];
 
-    if ((dxy[0] == 0) && (pgn[cur_i][0] != data.cursor[0])) { continue; }
-    if ((dxy[1] == 0) && (pgn[cur_i][1] != data.cursor[1])) { continue; }
+      if ((dxy[0] == 0) && (pgn[cur_i][0] != data.cursor[0])) { continue; }
+      if ((dxy[1] == 0) && (pgn[cur_i][1] != data.cursor[1])) { continue; }
 
-    let dcc = [
-      Math.abs( data.cursor[0] - pgn[cur_i][0] ),
-      Math.abs( data.cursor[1] - pgn[cur_i][1] )
-    ];
+      let dcc = [
+        Math.abs( data.cursor[0] - pgn[cur_i][0] ),
+        Math.abs( data.cursor[1] - pgn[cur_i][1] )
+      ];
 
-    let dcn = [
-      Math.abs( data.cursor[0] - pgn[nxt_i][0] ),
-      Math.abs( data.cursor[1] - pgn[nxt_i][1] )
-    ];
+      let dcn = [
+        Math.abs( data.cursor[0] - pgn[nxt_i][0] ),
+        Math.abs( data.cursor[1] - pgn[nxt_i][1] )
+      ];
 
-    if ((dxy[0] == 0) && (dcc[0] == 0)) {
-      if ( (dcc[1] <= dxy[1]) && (dcn[1] <= dxy[1]) ) {
-        seg.push( [cur_i, nxt_i] );
+      if ((dxy[0] == 0) && (dcc[0] == 0)) {
+        if ( (dcc[1] <= dxy[1]) && (dcn[1] <= dxy[1]) ) {
+          seg.push( [cur_i, nxt_i] );
+        }
       }
-    }
-    else if ((dxy[1] == 0) && (dcc[1] == 0)) {
-      if ( (dcc[0] <= dxy[0]) && (dcn[0] <= dxy[0]) ) {
-        seg.push( [cur_i, nxt_i] );
+      else if ((dxy[1] == 0) && (dcc[1] == 0)) {
+        if ( (dcc[0] <= dxy[0]) && (dcn[0] <= dxy[0]) ) {
+          seg.push( [cur_i, nxt_i] );
+        }
       }
+
+      g_ui.mode_data.grab.d_idx = ((dxy[0] == 0) ? 0 : 1);
+      g_ui.mode_data.grab.p_idx = [ cur_i, nxt_i ];
+
     }
 
+    if (seg.length == 1) {
+      console.log("GRAB:MOVE");
+      g_ui.mode_modifier = "move";
+    }
+
+    return seg;
   }
 
-  return seg;
+  // unselect
+  //
+
+  g_ui.mode_modifier = "select";
+
 }
+
+function mouse_move_grab(x,y) {
+  let two = g_ui.two;
+  let data = g_ui.data;
+  let pgn = data.pgn;
+
+  data.cursor[0] = x;
+  data.cursor[1] = y;
+
+  if (g_ui.snap_to_grid) {
+    let snap_xy = [
+      Math.round( x / data.grid_size ) * data.grid_size,
+      Math.round( y / data.grid_size ) * data.grid_size
+    ];
+
+    data.cursor[0] = snap_xy[0];
+    data.cursor[1] = snap_xy[1];
+  }
+
+  if (g_ui.mode_modifier == "select") { return; }
+
+  let grab_info = g_ui.mode_data["grab"];
+
+  let d_idx = grab_info.d_idx;
+  let idx0 = grab_info.p_idx[0];
+  let idx1 = grab_info.p_idx[1];
+
+
+  console.log("d_idx:", d_idx, "idx01:", idx0, idx1);
+
+  pgn[idx0][d_idx] = data.cursor[d_idx];
+  pgn[idx1][d_idx] = data.cursor[d_idx];
+
+}
+
+
 
 //            __ 
 //  ______ __/ /_
