@@ -17,6 +17,8 @@ var g_ui = {
 
   "snap_to_grid": true,
 
+  "mode": "draw",
+
   "state": "idle",
   "state_description" : [ "drawing", "idle", "delete" ],
 
@@ -137,6 +139,16 @@ function a2pgn(p, _px_origin, _gs) {
 
 }
 
+//---
+//---
+//---
+
+function ui_mode(_mode) {
+  g_ui.mode = _mode;
+
+  redraw();
+}
+
 function load_historic(s) {
 
   // popluate current with historic
@@ -232,6 +244,8 @@ function redraw() {
 
   two.clear();
 
+  // draw underlying integral grid as dashed lines
+  //
   if (data.grid_size >= 10) {
     let ds = data.grid_size;
     let W = g_ui.two.width;
@@ -253,48 +267,98 @@ function redraw() {
   }
 
 
+  // draw little squares around polygon primitve vertices
+  //
   for (let i=0; i<pgn.length; i++) {
     two.makeRectangle(pgn[i][0], pgn[i][1], 5,5);
   }
 
+  // connect lines of rectilinear polygon
+  //
   for (let i=1; i<pgn.length; i++) {
     two.makeLine( pgn[i-1][0], pgn[i-1][1], pgn[i][0], pgn[i][1] );
   }
 
+  // close it off if we've ended drawing
+  //
   if (data.pgn_state == "closed") {
     if (pgn.length > 2) {
       two.makeLine( pgn[pgn.length-1][0], pgn[pgn.length-1][1], pgn[0][0], pgn[0][1] );
     }
   }
 
-  if ((cursor[0] >= 0) &&
-      (cursor[1] >= 0)) {
+  if (g_ui.mode == "draw") {
+    if ((cursor[0] >= 0) &&
+        (cursor[1] >= 0)) {
 
-    if (g_ui.state == "idle") {
-      two.makeRectangle(cursor[0],cursor[1], 10,10);
+      if (g_ui.state == "idle") {
+        two.makeRectangle(cursor[0],cursor[1], 10,10);
+      }
+
+
+      else if (g_ui.state == "drawing") {
+        let prv_xy = pgn[ pgn.length-1 ];
+
+        let e_xy = [
+          ((data.orientation==0) ? prv_xy[0] : cursor[0] ),
+          ((data.orientation==0) ? cursor[1] : prv_xy[1] )
+        ];
+
+        let L0 = two.makeLine( prv_xy[0], prv_xy[1], e_xy[0], e_xy[1] );
+        let L1 = two.makeLine( e_xy[0], e_xy[1], cursor[0], cursor[1] );
+        L1.dashes = [2,2];
+      }
+
     }
-
-
-    else if (g_ui.state == "drawing") {
-      let prv_xy = pgn[ pgn.length-1 ];
-
-      let e_xy = [
-        ((data.orientation==0) ? prv_xy[0] : cursor[0] ),
-        ((data.orientation==0) ? cursor[1] : prv_xy[1] )
-      ];
-
-      let L0 = two.makeLine( prv_xy[0], prv_xy[1], e_xy[0], e_xy[1] );
-      let L1 = two.makeLine( e_xy[0], e_xy[1], cursor[0], cursor[1] );
-      L1.dashes = [2,2];
-    }
-
 
   }
+
+  else if (g_ui.mode == "grab") {
+    if ((cursor[0] >= 0) &&
+        (cursor[1] >= 0)) {
+      if (g_ui.state == "idle") {
+        two.makeRectangle(cursor[0],cursor[1], 10,10);
+      }
+    }
+  }
+
+  let mode_disp = document.getElementById("ui_mode");
+  mode_disp.innerHTML = "mode: " + g_ui.mode + ( (g_ui.mode == "draw") ? " (" + g_ui.data.pgn_state + ")" : "" );
 
   two.update();
 }
 
 function mouse_click(x,y) {
+  let two = g_ui.two;
+  if      (g_ui.mode == "draw")   { mouse_click_draw(x,y); }
+  else if (g_ui.mode == "grab")   { mouse_click_grab(x,y); }
+  else if (g_ui.mode == "grid")   { }
+  else if (g_ui.mode == "cut")    { mouse_click_cut(x,y); }
+  else if (g_ui.mode == "region") { mouse_click_region(x,y); }
+
+  redraw();
+
+}
+
+function mouse_move(x,y) {
+  let two = g_ui.two;
+  if      (g_ui.mode == "draw")   { mouse_move_draw(x,y); }
+  else if (g_ui.mode == "grab")   { mouse_move_grab(x,y); }
+  else if (g_ui.mode == "grid")   { }
+  else if (g_ui.mode == "cut")    { mouse_move_cut(x,y); }
+  else if (g_ui.mode == "region") { mouse_move_region(x,y); }
+
+  redraw();
+}
+
+
+//      __               
+//  ___/ /______ __    __
+// / _  / __/ _ `/ |/|/ /
+// \_,_/_/  \_,_/|__,__/ 
+//                       
+
+function mouse_click_draw(x,y) {
   let two = g_ui.two;
   let data = g_ui.data;
 
@@ -364,10 +428,10 @@ function mouse_click(x,y) {
 
   }
 
-  redraw();
+  //redraw();
 }
 
-function mouse_move(x,y) {
+function mouse_move_draw(x,y) {
   let two = g_ui.two;
   let data = g_ui.data;
   let pgn = data.pgn;
@@ -385,8 +449,75 @@ function mouse_move(x,y) {
     data.cursor[1] = snap_xy[1];
   }
 
-  redraw();
+  //redraw();
 }
+
+
+//                  __ 
+//   ___ ________ _/ / 
+//  / _ `/ __/ _ `/ _ \
+//  \_, /_/  \_,_/_.__/
+// /___/               
+
+function mouse_click_grab(x,y) {
+
+  console.log("grabby");
+}
+
+function mouse_move_grab(x,y) {
+  let two = g_ui.two;
+  let data = g_ui.data;
+  let pgn = data.pgn;
+
+  data.cursor[0] = x;
+  data.cursor[1] = y;
+
+  if (g_ui.snap_to_grid) {
+    let snap_xy = [
+      Math.round( x / data.grid_size ) * data.grid_size,
+      Math.round( y / data.grid_size ) * data.grid_size
+    ];
+
+    data.cursor[0] = snap_xy[0];
+    data.cursor[1] = snap_xy[1];
+  }
+
+  //wip
+  let pgn = data.pgn;
+
+  for (let i=0; i<pgn.length; i++) {
+
+
+  }
+
+}
+
+//            __ 
+//  ______ __/ /_
+// / __/ // / __/
+// \__/\_,_/\__/ 
+//               
+
+function mouse_click_cut(x,y) {
+}
+
+function mouse_move_cut(x,y) {
+}
+
+//                 _         
+//   _______ ___ _(_)__  ___ 
+//  / __/ -_) _ `/ / _ \/ _ \
+// /_/  \__/\_, /_/\___/_//_/
+//         /___/             
+
+function mouse_click_region(x,y) {
+}
+
+function mouse_move_region(x,y) {
+}
+
+//----
+//----
 
 
 function init_two() {
