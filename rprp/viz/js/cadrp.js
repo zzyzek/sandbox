@@ -13,6 +13,8 @@ var g_ui = {
     "pgn": []
   },
 
+  "historic_queue_id" : 0,
+
   "snap_to_grid": true,
 
   "state": "idle",
@@ -101,7 +103,64 @@ function pgn2a() {
   return res_pgn;
 }
 
-function update_textarea() {
+function a2pgn(p, _px_origin, _gs) {
+  let two = g_ui.two;
+  let gs = ((typeof _gs === "undefined") ? g_ui.data.grid_size : _gs );
+
+  let bb = [[p[0][0],p[0][1]], [p[0][0],p[0][1]]];
+
+  for (let i=1; i<p.length; i++) {
+    bb[0][0] = Math.min( bb[0][0], p[i][0] );
+    bb[0][1] = Math.min( bb[0][1], p[i][1] );
+    bb[1][0] = Math.max( bb[1][0], p[i][0] );
+    bb[1][1] = Math.max( bb[1][1], p[i][1] );
+  }
+
+  let idxy = [ bb[1][0] - bb[0][0], bb[1][1] - bb[0][1] ];
+
+  let mid_px_xy = [ two.width / 2, two.height / 2 ];
+  let _px_o = [
+    Math.floor( (mid_px_xy[0]/gs) - (idxy[0]/2) ) * gs,
+    Math.floor( (mid_px_xy[1]/gs) + (idxy[1]/2) ) * gs
+  ];
+  if (typeof _px_origin !== "undefined") { _px_o = _px_origin; }
+
+  let px_xy = [];
+  for (let i=0; i<p.length; i++) {
+    px_xy.push([
+       p[i][0]*gs + _px_o[0],
+      -p[i][1]*gs + _px_o[1]
+    ]);
+  }
+
+  return px_xy;
+
+}
+
+function load_historic(s) {
+
+  // popluate current with historic
+  //
+  let ele = document.getElementById("ui_textarea");
+  ele.value = s;
+
+  // hacky way of getting out our array of data points
+  //
+  let a_str = s.replace( /^.*= */, '' ).replace( / *; *$/, '' ).replace( /, *\]$/, ']' );
+  let ga_pgn = JSON.parse(a_str);
+
+
+  px_pgn = a2pgn(ga_pgn);
+
+  g_ui.data.pgn = px_pgn;
+  g_ui.data.pgn_state = "closed";
+
+  redraw();
+}
+
+function update_textarea(add_to_queue) {
+  add_to_queue = ((typeof add_to_queue === "undefined") ? false : add_to_queue);
+
   let a = pgn2a();
   let txt_lines = ["var pgn = ["];
 
@@ -122,9 +181,46 @@ function update_textarea() {
 
   txt_lines.push("];");
 
-  let ele = document.getElementById("ui_textarea");
+  if (add_to_queue) {
 
-  ele.innerHTML = txt_lines.join("\n");
+    let ui_list = document.getElementById("ui_historic");
+
+    let _r = document.createElement("div");
+
+    ui_list.appendChild(_r);
+
+    let _cb = document.createElement("div");
+    _cb.classList.add("two");
+    _cb.classList.add("columns");
+
+    _r.appendChild(_cb);
+
+    let _b = document.createElement("button");
+    _b.onclick = (function(a) { return function() { load_historic(a); } })(txt_lines.join(""));
+    _b.innerHTML = "load";
+
+    _cb.appendChild(_b);
+
+
+    let _ct = document.createElement("div");
+    _ct.classList.add("ten");
+    _ct.classList.add("columns");
+
+    _r.appendChild(_ct);
+
+    let _t = document.createElement("textarea");
+    _t.style.width = '100%';
+    _t.style.height = '50%';
+    _t.value = txt_lines.join("");
+
+    _ct.appendChild(_t);
+
+
+
+  }
+
+  let ele = document.getElementById("ui_textarea");
+  ele.value = txt_lines.join("\n");
 }
 
 function redraw() {
@@ -259,11 +355,11 @@ function mouse_click(x,y) {
       snap = true;
     }
 
-
     if (snap) {
       g_ui.state = "idle";
       g_ui.data.pgn_state = "closed";
-      update_textarea();
+
+      update_textarea(true);
     }
 
   }
