@@ -459,11 +459,6 @@ function mouse_move_draw(x,y) {
 //  \_, /_/  \_,_/_.__/
 // /___/               
 
-function mouse_click_grab(x,y) {
-
-  console.log("grabby");
-}
-
 function mouse_move_grab(x,y) {
   let two = g_ui.two;
   let data = g_ui.data;
@@ -482,14 +477,63 @@ function mouse_move_grab(x,y) {
     data.cursor[1] = snap_xy[1];
   }
 
-  //wip
+}
+
+function mouse_click_grab(x,y) {
+  let two = g_ui.two;
+  let data = g_ui.data;
   let pgn = data.pgn;
 
-  for (let i=0; i<pgn.length; i++) {
+  data.cursor[0] = x;
+  data.cursor[1] = y;
 
+  if (g_ui.snap_to_grid) {
+    let snap_xy = [
+      Math.round( x / data.grid_size ) * data.grid_size,
+      Math.round( y / data.grid_size ) * data.grid_size
+    ];
+
+    data.cursor[0] = snap_xy[0];
+    data.cursor[1] = snap_xy[1];
+  }
+
+  let seg = [];
+
+  for (let nxt_i=1; nxt_i<pgn.length; nxt_i++) {
+    let cur_i = (nxt_i-1);
+
+    let dxy = [
+      Math.abs( pgn[nxt_i][0] - pgn[cur_i][0] ),
+      Math.abs( pgn[nxt_i][1] - pgn[cur_i][1] )
+    ];
+
+    if ((dxy[0] == 0) && (pgn[cur_i][0] != data.cursor[0])) { continue; }
+    if ((dxy[1] == 0) && (pgn[cur_i][1] != data.cursor[1])) { continue; }
+
+    let dcc = [
+      Math.abs( data.cursor[0] - pgn[cur_i][0] ),
+      Math.abs( data.cursor[1] - pgn[cur_i][1] )
+    ];
+
+    let dcn = [
+      Math.abs( data.cursor[0] - pgn[nxt_i][0] ),
+      Math.abs( data.cursor[1] - pgn[nxt_i][1] )
+    ];
+
+    if ((dxy[0] == 0) && (dcc[0] == 0)) {
+      if ( (dcc[1] <= dxy[1]) && (dcn[1] <= dxy[1]) ) {
+        seg.push( [cur_i, nxt_i] );
+      }
+    }
+    else if ((dxy[1] == 0) && (dcc[1] == 0)) {
+      if ( (dcc[0] <= dxy[0]) && (dcn[0] <= dxy[0]) ) {
+        seg.push( [cur_i, nxt_i] );
+      }
+    }
 
   }
 
+  return seg;
 }
 
 //            __ 
