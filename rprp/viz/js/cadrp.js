@@ -430,15 +430,63 @@ function mouse_click_draw(x,y) {
     }
 
     if (snap) {
+      data.pgn = regularize_pgn( data.pgn );
+
       g_ui.state = "idle";
       g_ui.data.pgn_state = "closed";
 
       update_textarea(true);
+
+      console.log(">>>", data.pgn);
     }
 
   }
 
-  //redraw();
+}
+
+//WIP!!!
+function regularize_pgn( pgn ) {
+  let n = pgn.length-1;
+
+  return pgn;
+
+  let res_pgn = [];
+
+  for (let cur_i=0; cur_i < n; cur_i++) {
+    let prv_i = (cur_i - 1 + n) % n;
+    let nxt_i = (cur_i + 1) % n;
+
+    let p_prv = pgn[prv_i];
+    let p_cur = pgn[cur_i];
+    let p_nxt = pgn[nxt_i];
+
+    let dxy_p_c = [
+      Math.abs( p_cur[0] - p_prv[0] ),
+      Math.abs( p_cur[1] - p_prv[1] )
+    ];
+
+    let dxy_c_n = [
+      Math.abs( p_cur[0] - p_nxt[0] ),
+      Math.abs( p_cur[1] - p_nxt[1] )
+    ];
+
+    if ((dxy_p_c[0] == 0) &&
+        (dxy_c_n[0] == 0)) {
+      continue;
+    }
+
+    if ((dxy_p_c[1] == 0) &&
+        (dxy_c_n[1] == 0)) {
+      continue;
+    }
+
+    res_pgn.push( [ pgn[cur_i][0], pgn[cur_i][1] ] );
+
+  }
+
+  res_pgn.push( [ pgn[0][0], pgn[0][1] ] );
+
+  return res_pgn;
 }
 
 function mouse_move_draw(x,y) {
