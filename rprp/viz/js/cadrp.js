@@ -444,14 +444,53 @@ function mouse_click_draw(x,y) {
 
 }
 
-//WIP!!!
-function regularize_pgn( pgn ) {
-  let n = pgn.length-1;
+// this got complicated...
+// the input points can be a mess, so this cleans them up:
+//
+// * remove duplicate points
+// * remove colinear points
+// * (todo) counterclockwise direction
+//
+// returns cleaned up polygon
+//
+function regularize_pgn( _pgn ) {
 
-  return pgn;
+  if (_pgn.length < 1) { return []; }
 
-  let res_pgn = [];
+  // if there's a string of end vertices that
+  // are the same as the starting vertex, walk back
+  // until you reach the first non-equal vertex
+  //
+  let pgn = [ [_pgn[0][0], _pgn[0][1] ]];
+  let end_idx = _pgn.length-1;
+  while ( (end_idx >= 0) &&
+          ( (_pgn[end_idx][0] == pgn[0][0]) &&
+            (_pgn[end_idx][1] == pgn[0][1]) ) ) {
+    end_idx--;
+  }
 
+  // walk forward, removing duplicate entries,
+  // until the end index discovered above
+  //
+  for (let cur_i=1; cur_i<=end_idx; cur_i++) {
+    let prv_i = (cur_i - 1 + _pgn.length) % _pgn.length;
+    let nxt_i = (cur_i + 1) % _pgn.length;
+
+    if ( (_pgn[prv_i][0] == _pgn[cur_i][0]) &&
+         (_pgn[prv_i][1] == _pgn[cur_i][1]) ) {
+      continue;
+    }
+
+    pgn.push( [ _pgn[cur_i][0], _pgn[cur_i][1] ] );
+  }
+
+  let n = pgn.length;
+
+  // if the first point is co-linear, talk foward
+  // until you find the first non-colinear point,
+  // store index in s_idx
+  //
+  let s_idx = 0;
   for (let cur_i=0; cur_i < n; cur_i++) {
     let prv_i = (cur_i - 1 + n) % n;
     let nxt_i = (cur_i + 1) % n;
@@ -480,11 +519,65 @@ function regularize_pgn( pgn ) {
       continue;
     }
 
-    res_pgn.push( [ pgn[cur_i][0], pgn[cur_i][1] ] );
 
+    s_idx = cur_i;
+    break;
   }
 
-  res_pgn.push( [ pgn[0][0], pgn[0][1] ] );
+  // put the first vertex in the resulting polygon
+  // and walk through each, removing duplicate vertices
+  // (which there should be none of, but kept in for
+  // redundancy)
+  // and removing colinear points
+  //
+  let res_pgn = [ [pgn[s_idx][0], pgn[s_idx][1]] ];
+  for (let idx=1; idx<n; idx++) {
+
+    let cur_i = (s_idx + idx) % n;
+    let prv_i = (cur_i - 1 + n) % n;
+    let nxt_i = (cur_i + 1) % n;
+
+    if ( (pgn[prv_i][0] == pgn[cur_i][0]) &&
+         (pgn[prv_i][1] == pgn[cur_i][1]) ) {
+      continue;
+    }
+
+    let p_prv = pgn[prv_i];
+    let p_cur = pgn[cur_i];
+    let p_nxt = pgn[nxt_i];
+
+    // absolute value of cur and previous
+    //
+    let dxy_p_c = [
+      Math.abs( p_cur[0] - p_prv[0] ),
+      Math.abs( p_cur[1] - p_prv[1] )
+    ];
+
+    // absolute value of cur and next
+    //
+    let dxy_c_n = [
+      Math.abs( p_cur[0] - p_nxt[0] ),
+      Math.abs( p_cur[1] - p_nxt[1] )
+    ];
+
+    // if dx is 0 between current and both previous and next,
+    // colinear, continue
+    //
+    if ((dxy_p_c[0] == 0) &&
+        (dxy_c_n[0] == 0)) {
+      continue;
+    }
+
+    // if dy is 0 between current and both previous and next,
+    // colinear, continue
+    //
+    if ((dxy_p_c[1] == 0) &&
+        (dxy_c_n[1] == 0)) {
+      continue;
+    }
+
+    res_pgn.push( [ pgn[cur_i][0], pgn[cur_i][1] ] );
+  }
 
   return res_pgn;
 }
@@ -576,7 +669,7 @@ function mouse_click_grab(x,y) {
     }
 
     if (seg.length == 1) {
-      console.log("GRAB:MOVE");
+      //console.log("GRAB:MOVE");
       g_ui.mode_modifier = "move";
     }
 
@@ -616,8 +709,7 @@ function mouse_move_grab(x,y) {
   let idx0 = grab_info.p_idx[0];
   let idx1 = grab_info.p_idx[1];
 
-
-  console.log("d_idx:", d_idx, "idx01:", idx0, idx1);
+  //console.log("d_idx:", d_idx, "idx01:", idx0, idx1);
 
   pgn[idx0][d_idx] = data.cursor[d_idx];
   pgn[idx1][d_idx] = data.cursor[d_idx];
@@ -679,6 +771,17 @@ function init_two() {
     let y = ev.offsetY;
 
     mouse_move(x,y);
+  });
+
+  ele.addEventListener("keydown", (ev) => {
+    if      (ev.key == 'd') { ui_mode("draw"); }
+    else if (ev.key == 'g') { ui_mode("grab"); }
+    else if (ev.key == 'z') { ui_mode("grid"); }
+    else if (ev.key == 'c') { ui_mode("cut"); }
+    else if (ev.key == 'r') { ui_mode("region"); }
+  });
+
+  ele.addEventListener("keyup", (ev) => {
   });
 
   g_ui.ready = true;
