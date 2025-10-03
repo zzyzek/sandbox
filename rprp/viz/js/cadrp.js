@@ -791,19 +791,23 @@ function mouse_click_grab(x,y) {
       if ((dxy[0] == 0) && (dcc[0] == 0)) {
         if ( (dcc[1] <= dxy[1]) && (dcn[1] <= dxy[1]) ) {
           seg.push( [cur_i, nxt_i] );
+
+          g_ui.mode_data.grab.d_idx = ((dxy[0] == 0) ? 0 : 1);
+          g_ui.mode_data.grab.p_idx = [ cur_i, nxt_i ];
+
         }
       }
       else if ((dxy[1] == 0) && (dcc[1] == 0)) {
         if ( (dcc[0] <= dxy[0]) && (dcn[0] <= dxy[0]) ) {
 
-          console.log("dxy:", dxy, "dcc:", dcc, "dcn:", dcn, "cursor:", data.cursor, "pgn[cur_i]:", pgn[cur_i], "pgn[nxt_i]:", pgn[nxt_i] );
-
+          console.log("dxy:", dxy, "dcc:", dcc, "dcn:", dcn, "cursor:", data.cursor, "pgn[cur_i]:", pgn[cur_i], "pgn[nxt_i]:", pgn[nxt_i], "cur_i:", cur_i, "nxt_i:", nxt_i );
           seg.push( [cur_i, nxt_i] );
+
+          g_ui.mode_data.grab.d_idx = ((dxy[0] == 0) ? 0 : 1);
+          g_ui.mode_data.grab.p_idx = [ cur_i, nxt_i ];
+
         }
       }
-
-      g_ui.mode_data.grab.d_idx = ((dxy[0] == 0) ? 0 : 1);
-      g_ui.mode_data.grab.p_idx = [ cur_i, nxt_i ];
 
     }
 
