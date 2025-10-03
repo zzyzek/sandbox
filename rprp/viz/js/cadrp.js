@@ -10,7 +10,9 @@ var g_ui = {
     "cursor": [0,0],
 
     "pgn_state": "open",
-    "pgn": []
+    "pgn": [],
+
+    "rprp_info": {}
   },
 
   "historic_queue_id" : 0,
@@ -156,6 +158,10 @@ function ui_mode(_mode) {
     g_ui.mode_modifier = "select";
   }
 
+  if (g_ui.mode == "grid") {
+    populate_grid();
+  }
+
   redraw();
 }
 
@@ -245,6 +251,119 @@ function update_textarea(add_to_queue) {
   ele.value = txt_lines.join("\n");
 }
 
+// WIP
+function _draw_rprp_grid() {
+  if (!("Gv" in g_ui.data.rprp_info)) { return; }
+  let two = g_ui.two;
+
+  let rprp_info = g_ui.data.rprp_info;
+
+  let px_pgn = g_ui.data.pgn;
+  let gs = g_ui.data.grid_size;
+
+  let Gv = rprp_info.Gv;
+  let Sx = rprp_info.Sx;
+  let Sy = rprp_info.Sy;
+
+  let B2d = rprp_info.B_2d;
+
+  let _dashes = [4,4];
+
+
+  let _oxy = [px_pgn[0][0], px_pgn[0][1]];
+  for (let i=1; i<px_pgn.length; i++) {
+    _oxy[0] = Math.min( _oxy[0], px_pgn[i][0] );
+    _oxy[1] = Math.max( _oxy[1], px_pgn[i][1] );
+  }
+
+  let grid_pnt = [];
+
+  for (let iy=1; iy < Gv.length; iy++) {
+    for (let ix=1; ix < Gv[iy].length; ix++) {
+      if (Gv[iy][ix].G_idx < 0) { continue; }
+
+      let p_cur = Gv[iy][ix].xy;
+
+      // Sx and Sy hold longest run in x or y direction
+      // (from left to right, down to top)
+      // so we can use it to know if we're inside the polygon.
+      // If we're on a border, we don't want to trace out
+      // the internal grid lines, so we check to see if
+      // either grid point is *not* on the border and
+      // in the case they both *are* on the border, we
+      // check to make sure they're not right next to each other.
+      //
+      // display has y reversed, which is why we do the negation
+      // when making the draw line
+      //
+      if ( (Sy[iy][ix] > 0) &&
+           ((B2d[iy][ix] < 0) || (B2d[iy-1][ix] < 0) ||
+           (Math.abs(B2d[iy][ix] - B2d[iy-1][ix]) > 1)) ) {
+        let p_prv = Gv[iy-1][ix].xy;
+
+        let lv = two.makeLine(
+           p_cur[0]*gs + _oxy[0],
+          -p_cur[1]*gs + _oxy[1],
+           p_prv[0]*gs + _oxy[0],
+          -p_prv[1]*gs + _oxy[1]
+        );
+
+        lv.dashes = _dashes;
+        lv.linewidth = 2;
+
+        if (Sy[iy-1][ix] == 0) {
+          grid_pnt.push([
+           p_prv[0]*gs + _oxy[0],
+          -p_prv[1]*gs + _oxy[1]
+          ]);
+        }
+
+        grid_pnt.push([
+          p_cur[0]*gs + _oxy[0],
+         -p_cur[1]*gs + _oxy[1]
+        ]);
+
+
+      }
+
+      if ( (Sx[iy][ix] > 0) &&
+           ((B2d[iy][ix] < 0) || (B2d[iy][ix-1] < 0) ||
+           (Math.abs(B2d[iy][ix] - B2d[iy][ix-1]) > 1)) ) {
+        let p_prv = Gv[iy][ix-1].xy;
+
+        let lh = two.makeLine(
+           p_cur[0]*gs + _oxy[0],
+          -p_cur[1]*gs + _oxy[1],
+           p_prv[0]*gs + _oxy[0],
+          -p_prv[1]*gs + _oxy[1]
+        );
+
+        lh.dashes = _dashes;
+        lh.linewidth = 2;
+
+        if (Sx[iy][ix-1] == 0) {
+          grid_pnt.push([
+            p_prv[0]*gs + _oxy[0],
+           -p_prv[1]*gs + _oxy[1]
+          ]);
+        }
+
+        grid_pnt.push([
+          p_cur[0]*gs + _oxy[0],
+         -p_cur[1]*gs + _oxy[1]
+        ]);
+
+      }
+
+    }
+  }
+
+  for (let i=0; i<grid_pnt.length; i++) {
+    let _c = two.makeCircle( grid_pnt[i][0], grid_pnt[i][1], 3 );
+  }
+
+}
+
 function redraw() {
   let two = g_ui.two;
   let data = g_ui.data;
@@ -332,17 +451,32 @@ function redraw() {
     }
   }
 
+  else if (g_ui.mode == "grid") {
+
+    _draw_rprp_grid();
+
+  }
+
   let mode_disp = document.getElementById("ui_mode");
   mode_disp.innerHTML = "mode: " + g_ui.mode + ( (g_ui.mode == "draw") ? " (" + g_ui.data.pgn_state + ")" : "" );
 
   two.update();
 }
 
+function populate_grid() {
+  let data = g_ui.data;
+  let pgn = pgn2a(data.pgn);
+  let rprp_info = rprp.rectilinearGridPoints( pgn );
+  g_ui.data.rprp_info = rprp_info;
+
+  redraw();
+}
+
 function mouse_click(x,y) {
   let two = g_ui.two;
   if      (g_ui.mode == "draw")   { mouse_click_draw(x,y); }
   else if (g_ui.mode == "grab")   { mouse_click_grab(x,y); }
-  else if (g_ui.mode == "grid")   { }
+  else if (g_ui.mode == "grid")   {  }
   else if (g_ui.mode == "cut")    { mouse_click_cut(x,y); }
   else if (g_ui.mode == "region") { mouse_click_region(x,y); }
 
@@ -436,8 +570,6 @@ function mouse_click_draw(x,y) {
       g_ui.data.pgn_state = "closed";
 
       update_textarea(true);
-
-      console.log(">>>", data.pgn);
     }
 
   }
