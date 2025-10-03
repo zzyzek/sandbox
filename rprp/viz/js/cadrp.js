@@ -774,6 +774,10 @@ function mouse_click_grab(x,y) {
       if ((dxy[0] == 0) && (pgn[cur_i][0] != data.cursor[0])) { continue; }
       if ((dxy[1] == 0) && (pgn[cur_i][1] != data.cursor[1])) { continue; }
 
+      // BUG!!
+      // when two lines are colinear bu otherwise valid/seperated,
+      // will pick on over the other...
+      //
       let dcc = [
         Math.abs( data.cursor[0] - pgn[cur_i][0] ),
         Math.abs( data.cursor[1] - pgn[cur_i][1] )
@@ -791,6 +795,9 @@ function mouse_click_grab(x,y) {
       }
       else if ((dxy[1] == 0) && (dcc[1] == 0)) {
         if ( (dcc[0] <= dxy[0]) && (dcn[0] <= dxy[0]) ) {
+
+          console.log("dxy:", dxy, "dcc:", dcc, "dcn:", dcn, "cursor:", data.cursor, "pgn[cur_i]:", pgn[cur_i], "pgn[nxt_i]:", pgn[nxt_i] );
+
           seg.push( [cur_i, nxt_i] );
         }
       }
