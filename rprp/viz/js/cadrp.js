@@ -159,12 +159,18 @@ function a2pgn(p, _px_origin, _gs) {
 //---
 
 function ui_mode(_mode) {
+  if (_mode == "save") {
+    update_textarea(true);
+    return;
+  }
+
   g_ui.mode = _mode;
   g_ui.mode_modifer = "";
 
   if (g_ui.mode == "grab")  { g_ui.mode_modifier = "select"; }
   if (g_ui.mode == "grid")  { populate_grid(); }
   if (g_ui.mode == "cut")   { g_ui.mode_modifier = "select"; }
+
 
 
   // button background pattern updates
@@ -343,6 +349,10 @@ function _draw_rprp_grid() {
 
       }
 
+      else {
+        //console.log("skipping", ix, iy, "Sy:", Sy[iy][ix], "B2d[iy][ix]:", B2d[iy][ix], "B2d[iy-1][ix]:", B2d[iy-1][ix]);
+      }
+
       if ( (Sx[iy][ix] > 0) &&
            ((B2d[iy][ix] < 0) || (B2d[iy][ix-1] < 0) ||
            (Math.abs(B2d[iy][ix] - B2d[iy][ix-1]) > 1)) ) {
@@ -371,6 +381,11 @@ function _draw_rprp_grid() {
         ]);
 
       }
+
+      else {
+        //console.log("skipping", ix, iy, "Sx:", Sx[iy][ix], "B2d[iy][ix]:", B2d[iy][ix], "B2d[iy][ix-1]:", B2d[iy][ix-1]);
+      }
+
 
     }
   }
@@ -735,6 +750,10 @@ function regularize_pgn( _pgn ) {
     res_pgn.push( [ pgn[cur_i][0], pgn[cur_i][1] ] );
   }
 
+  if ( rprp.windingA( res_pgn ) < 0 ) {
+    res_pgn.reverse();
+  }
+
   return res_pgn;
 }
 
@@ -982,6 +1001,7 @@ function init_two() {
     else if (ev.key == 'z') { ui_mode("grid"); }
     else if (ev.key == 'c') { ui_mode("cut"); }
     else if (ev.key == 'r') { ui_mode("region"); }
+    else if (ev.key == 's') { ui_mode("save"); }
   });
 
   ele.addEventListener("keyup", (ev) => {

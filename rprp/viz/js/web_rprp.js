@@ -322,6 +322,17 @@ function winding(u, pgn) {
   return w;
 }
 
+function windingA(pgn) {
+  let n = pgn.length;
+  let s = 0;
+  for (let i=0; i<n; i++) {
+    let p = pgn[i];
+    let q = pgn[(i+1)%n];
+    s += (q[0] - p[0])*(q[1] + p[1]);
+  }
+  return s;
+}
+
 //
 // helper functions
 
@@ -2100,6 +2111,8 @@ function _main() {
 
 if (typeof module !== "undefined") {
   let func_name_map = {
+    "winding" : winding,
+    "windingA" : windingA,
     "rectilinearGridPoints" : rectilinearGridPoints
   };
 
