@@ -15,6 +15,14 @@ var g_ui = {
     "rprp_info": {}
   },
 
+  "mode_bg_pattern" : {
+    "draw": "pattern26",
+    "grab": "pattern3",
+    "grid": "pattern18",
+    "cut": "pattern16",
+    "region": "pattern38"
+  },
+
   "historic_queue_id" : 0,
 
   "snap_to_grid": true,
@@ -154,13 +162,22 @@ function ui_mode(_mode) {
   g_ui.mode = _mode;
   g_ui.mode_modifer = "";
 
-  if (g_ui.mode == "grab") {
-    g_ui.mode_modifier = "select";
-  }
+  if (g_ui.mode == "grab")  { g_ui.mode_modifier = "select"; }
+  if (g_ui.mode == "grid")  { populate_grid(); }
+  if (g_ui.mode == "cut")   { g_ui.mode_modifier = "select"; }
 
-  if (g_ui.mode == "grid") {
-    populate_grid();
+
+  // button background pattern updates
+  //
+
+  let bg_patt_name = g_ui.mode_bg_pattern[ _mode ];
+
+  let ele = document.getElementById("ui_mode");
+
+  for (let _mt in g_ui.mode_bg_pattern) {
+    ele.classList.remove( g_ui.mode_bg_pattern[_mt] );
   }
+  ele.classList.add( bg_patt_name );
 
   redraw();
 }
@@ -448,6 +465,13 @@ function redraw() {
       if (g_ui.state == "idle") {
         two.makeRectangle(cursor[0],cursor[1], 10,10);
       }
+    }
+  }
+
+  else if (g_ui.mode == "cut") {
+    if ((cursor[0] >= 0) &&
+        (cursor[1] >= 0)) {
+      two.makeRectangle(cursor[0],cursor[1], 10,10);
     }
   }
 
@@ -800,7 +824,11 @@ function mouse_click_grab(x,y) {
       else if ((dxy[1] == 0) && (dcc[1] == 0)) {
         if ( (dcc[0] <= dxy[0]) && (dcn[0] <= dxy[0]) ) {
 
-          console.log("dxy:", dxy, "dcc:", dcc, "dcn:", dcn, "cursor:", data.cursor, "pgn[cur_i]:", pgn[cur_i], "pgn[nxt_i]:", pgn[nxt_i], "cur_i:", cur_i, "nxt_i:", nxt_i );
+          //console.log("dxy:", dxy,
+          //  "dcc:", dcc, "dcn:", dcn,
+          //  "cursor:", data.cursor, "pgn[cur_i]:", pgn[cur_i], "pgn[nxt_i]:", pgn[nxt_i],
+          //  "cur_i:", cur_i, "nxt_i:", nxt_i );
+
           seg.push( [cur_i, nxt_i] );
 
           g_ui.mode_data.grab.d_idx = ((dxy[0] == 0) ? 0 : 1);
@@ -868,9 +896,33 @@ function mouse_move_grab(x,y) {
 //               
 
 function mouse_click_cut(x,y) {
+  let two = g_ui.two;
+  let data = g_ui.data;
+  let pgn = data.pgn;
+
+  data.cursor = snap_to_grid( x, y, data.grid_size );
+
+  let border_idx = -1;
+
+  for (let i=0; i<pgn.length; i++) {
+    if ( (pgn[i][0] == data.cursor[0]) &&
+         (pgn[i][1] == data.cursor[1]) ) {
+      border_idx = i;
+    }
+  }
+
+  console.log(">>>", border_idx);
+
 }
 
 function mouse_move_cut(x,y) {
+  let two = g_ui.two;
+  let data = g_ui.data;
+  let pgn = data.pgn;
+
+  data.cursor = snap_to_grid( x, y, data.grid_size );
+
+
 }
 
 //                 _         
@@ -888,6 +940,14 @@ function mouse_move_region(x,y) {
 //----
 //----
 
+
+function snap_to_grid(x,y,gs) {
+  gs = ((typeof gs === "undefined") ? g_ui.data.grid_size : gs );
+  return [
+    Math.round( x / gs ) * gs,
+    Math.round( y / gs ) * gs
+  ];
+}
 
 function init_two() {
   let two = g_ui.two;

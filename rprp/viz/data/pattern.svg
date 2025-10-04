@@ -1,18 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-
-  <title>Rectilinear Polygons</title>
-
-  <!--  <link rel="icon" type="image/png" href="images/favicon.ico"> -->
-  <script type='text/javascript' src='js/two.js'></script>
-  <script type='text/javascript' src='js/cadrp.js'></script>
-  <script type='text/javascript' src='js/web_rprp.js'></script>
-  <link rel='stylesheet' href='css/skeleton.css'>
-
-  <!-- https://patterns.helloyes.dev/ -->
-  <svg  xmlns="http://www.w3.org/2000/svg"
+<svg  xmlns="http://www.w3.org/2000/svg"
         xmlns:xlink="http://www.w3.org/1999/xlink"
         width="6" height="6" viewBox="0 0 6 6" xml:space="preserve">
 <defs id='custom_defs'>
@@ -82,7 +68,7 @@
 </pattern>
 
 <pattern id="pattern-Rdiag-big1" patternUnits="userSpaceOnUse" width="12" height="12">
-    <path d="M-1.5,1.5 l6,-6 M0,12 l12,-12 M9,15 l6,-6" stroke="rgb(155,195,212)" opacity=0.64 style="stroke: var(--pattern-channel-1, rgb(155,195,212))" stroke-width="1.75" />
+    <path d="M-1.5,1.5 l6,-6 M0,12 l12,-12 M9,15 l6,-6" stroke="rgb(155,195,212)" opacity="0.64" style="stroke: var(--pattern-channel-1, rgb(155,195,212))" stroke-width="1.75" />
 </pattern>
 
 <!-- 31 -->
@@ -265,70 +251,6 @@
               style="stroke: var(--pattern-channel-1, #ff0000)" />
       </pattern>
     </defs>
-  </svg>
 
-  <link rel='stylesheet' href='css/custom.css'>
-
-</head>
-
-<body>
-  <div class='container' id='ui_container'>
-
-    <div class='row'>
-      <div class='nine columns' >
-        <h4>Rectilinear Polygons</h4>
-      </div>
-
-      <div class='three columns'>
-        <button class='pattern26' id='ui_mode' style='width:100%;text-align:left; text-shadow: -2px -2px 0 #fff, 2px -2px 0 #fff, 2px 2px 0 #fff, -2px 2px 0 #fff;'>mode: draw</button>
-      </div>
-    </div>
-
-    <div class='row'>
-      <div class='nine columns'>
-        <div id='ui_canvas' tabindex='1' style='width:800px;height:800px;'></div>
-      </div>
-
-      <div class='three columns'>
-
-        <br>
-
-        <textarea id='ui_textarea' style='width:100%;height:50%;'>
-        </textarea>
-
-        <br>
-
-        <button class='pattern26' id='btn_draw' style='width:100%; text-shadow: -2px -2px 0 #fff, 2px -2px 0 #fff, 2px 2px 0 #fff, -2px 2px 0 #fff;' onclick='ui_mode("draw")' >draw</button>
-
-        <br>
-
-        <button class='pattern3' id='btn_grab' style='width:100%; text-shadow: -2px -2px 0 #fff, 2px -2px 0 #fff, 2px 2px 0 #fff, -2px 2px 0 #fff;' onclick='ui_mode("grab")' >grab</button>
-
-        <br>
-
-        <button class='pattern18' id='btn0' style='width:100%; text-shadow: -2px -2px 0 #fff, 2px -2px 0 #fff, 2px 2px 0 #fff, -2px 2px 0 #fff;' onclick='ui_mode("grid")' >grid</button>
-
-        <br>
-
-        <button class='pattern16' id='btn_cut' style='width:100%; text-shadow: -2px -2px 0 #fff, 2px -2px 0 #fff, 2px 2px 0 #fff, -2px 2px 0 #fff;' onclick='ui_mode("cut")' >cut</button>
-
-        <br>
-
-        <button class='pattern38' id='btn_region' style='width:100%; text-shadow: -2px -2px 0 #fff, 2px -2px 0 #fff, 2px 2px 0 #fff, -2px 2px 0 #fff;' onclick='ui_mode("region")' >region</button>
-
-      </div>
-
-    </div>
-
-    <div id='ui_historic'>
-    </div>
-
-  </div>
-</body>
-
-<script>
-  webinit();
-</script>
-
-<html>
-
+<rect x="0" y="0" width="100%" height="100%" fill='url(#pattern-4)'/>
+</svg>

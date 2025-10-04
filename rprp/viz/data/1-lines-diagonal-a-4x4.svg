@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="4" height="4" viewBox="0 0 4 4" xml:space="preserve"> <defs id="def_1">
+  person: "Ingo Kegel"
+  cite: "https://stackoverflow.com/questions/13069446/simple-fill-pattern-in-svg-diagonal-hatching/14500054#14500054"
+---
+<pattern id="pattern1" patternUnits="userSpaceOnUse" width="4" height="4">
+    <path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" stroke="currentcolor" style="stroke: var(--pattern-channel-1, currentcolor)" />
+</pattern>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="url(#pattern1)" />
+</svg>

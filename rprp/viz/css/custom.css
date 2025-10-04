@@ -1,0 +1,328 @@
+.pattern10 {
+  background-image: url(data/10-cross-4x4.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern11 {
+  background-image: url(data/11-cross-6x6.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern12 {
+  background-image: url(data/12-cross-8x8.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern13 {
+  background-image: url(data/13-cross-12x12.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern14 {
+  background-image: url(data/14-zigzag-6x6.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern15 {
+  background-image: url(data/15-zigzag-8x8.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern16 {
+  background-image: url(data/16-zigzag-12x12.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern17 {
+  background-image: url(data/17-circles-lined-a-8x8.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern18 {
+  background-image: url(data/18-circles-lined-a-12x12.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern19 {
+  background-image: url(data/19-circles-lined-a-16x16.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern1 {
+  background-image: url(data/1-lines-diagonal-a-4x4.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern20 {
+  background-image: url(data/20-circles-lined-b-12x12.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern21 {
+  background-image: url(data/21-circles-lined-b-16x16.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern22 {
+  background-image: url(data/22-circles-lined-b-24x24.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern23 {
+  background-image: url(data/23-points-a-4x4.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern24 {
+  background-image: url(data/24-points-a-6x6.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern25 {
+  background-image: url(data/25-points-a-8x8.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern26 {
+  background-image: url(data/26-points-a-12x12.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern27 {
+  background-image: url(data/27-points-b-6x6x.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern28 {
+  background-image: url(data/28-points-b-8x8.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern29 {
+  background-image: url(data/29-points-b-12x12.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern2 {
+  background-image: url(data/2-lines-diagonal-b-4x4.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern30 {
+  background-image: url(data/30-points-b-16x16.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern31 {
+  background-image: url(data/31-dots-a-4x4.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern32 {
+  background-image: url(data/32-dots-a-6x6.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern33 {
+  background-image: url(data/33-dots-a-8x8.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern34 {
+  background-image: url(data/34-dots-a-12x12.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern35 {
+  background-image: url(data/35-dots-b-6x6.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern36 {
+  background-image: url(data/36-dots-b-8x8.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern37 {
+  background-image: url(data/37-dots-b-12x12.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern38 {
+  background-image: url(data/38-dots-b-16x16.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern39 {
+  background-image: url(data/39-zigzag-vertical-6x6.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern3 {
+  background-image: url(data/3-lines-diagonal-a-8x8.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern40 {
+  background-image: url(data/40-zigag-vertical-8x8.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern41 {
+  background-image: url(data/41-zigag-vertical-12x12.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern4 {
+  background-image: url(data/4-lines-diagonal-b-8x8.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern5 {
+  background-image: url(data/5-lines-diagonal-a-6x6.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern6 {
+  background-image: url(data/6-lines-diagonal-b-6x6.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern7 {
+  background-image: url(data/7-cross-diagonal-6x6.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern8 {
+  background-image: url(data/8-cross-diagonal-8x8.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+
+.pattern9 {
+  background-image: url(data/9-cross-diagonal-12x12.svg);
+  background-color: rgba(255,255,255,0.7);
+  background-blend-mode: lighten;
+  width: 100%;
+  height: 100%;
+}
+

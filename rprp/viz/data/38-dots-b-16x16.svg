@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" viewBox="0 0 16 16" xml:space="preserve"> <defs id="def_38">
+<pattern id="pattern38" patternUnits="userSpaceOnUse" width="16" height="16">
+    <circle cx="0" cy="0" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)" />
+    <circle cx="0" cy="16" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)" />
+    <circle cx="16" cy="16" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)" />
+    <circle cx="16" cy="0" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)" />
+    <circle cx="8" cy="8" r="1" fill="currentcolor" style="fill: var(--pattern-channel-1, currentcolor)" />
+</pattern>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="url(#pattern38)" />
+</svg>
