@@ -12,6 +12,7 @@ var g_ui = {
     "pgn_state": "open",
     "pgn": [],
 
+    "rprp_info_ready": false,
     "rprp_info": {}
   },
 
@@ -170,6 +171,7 @@ function ui_mode(_mode) {
   if (g_ui.mode == "grab")  { g_ui.mode_modifier = "select"; }
   if (g_ui.mode == "grid")  { populate_grid(); }
   if (g_ui.mode == "cut")   { g_ui.mode_modifier = "select"; }
+  if (g_ui.mode == "load")  { load_pgn(); }
 
 
 
@@ -197,7 +199,7 @@ function load_historic(s) {
 
   // hacky way of getting out our array of data points
   //
-  let a_str = s.replace( /^.*= */, '' ).replace( / *; *$/, '' ).replace( /, *\]$/, ']' );
+  let a_str = s.replace( /^.*= */, '' ).replace( / *; *$/, '' ).replace( /,[ \n]*\]$/, ']' );
   let ga_pgn = JSON.parse(a_str);
 
 
@@ -207,6 +209,18 @@ function load_historic(s) {
   g_ui.data.pgn_state = "closed";
 
   redraw();
+}
+
+function load_pgn() {
+  let ele = document.getElementById("ui_textarea");
+
+  load_historic( ele.value );
+
+  //let pgn_txt = ele.value.replace(/^.*= */, '').replace(/;/g, '').replace( /\] *,[ \n]*\] *$/, ']]');
+  //console.log(pgn_txt );
+  //let v = JSON.parse(pgn_txt);
+  //console.log(pgn_txt, v);
+
 }
 
 function update_textarea(add_to_queue) {
@@ -488,6 +502,10 @@ function redraw() {
         (cursor[1] >= 0)) {
       two.makeRectangle(cursor[0],cursor[1], 10,10);
     }
+
+    if (g_ui.data.rprp_info_ready) {
+      _draw_rprp_grid();
+    }
   }
 
   else if (g_ui.mode == "grid") {
@@ -507,6 +525,8 @@ function populate_grid() {
   let pgn = pgn2a(data.pgn);
   let rprp_info = rprp.rectilinearGridPoints( pgn );
   g_ui.data.rprp_info = rprp_info;
+
+  g_ui.data.rprp_info_ready = true;
 
   redraw();
 }
@@ -919,8 +939,30 @@ function mouse_click_cut(x,y) {
   let data = g_ui.data;
   let pgn = data.pgn;
 
+  let rprp_info = {};
+  if (data.rprp_info_ready) { rprp_info = data.rprp_info; }
+
   data.cursor = snap_to_grid( x, y, data.grid_size );
 
+  if (!data.rprp_info_ready) {
+    console.log("rprp_info not ready");
+    return;
+  }
+
+  let border_idx = -1;
+
+  let B = rprp_info.B;
+
+  for (let i=0; i<B.length; i++) {
+    if ((B[i][0] == data.cursor[0]) &&
+        (B[i][1] == data.cursor[1])) {
+      border_idx = i;
+    }
+  }
+  console.log(">>>", border_idx);
+
+
+  /*
   let border_idx = -1;
 
   for (let i=0; i<pgn.length; i++) {
@@ -931,6 +973,7 @@ function mouse_click_cut(x,y) {
   }
 
   console.log(">>>", border_idx);
+  */
 
 }
 
