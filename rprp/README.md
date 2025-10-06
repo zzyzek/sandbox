@@ -446,16 +446,37 @@ In this case, the bower point, $b$, will be on the outer boundary and three of t
 TODO:
 
 * cadrp:
-  - button to load from text input
-  - save border draws
-  - grab side of polygon to move
-  - 1 or 2 cut mode to draw cut lines
+  - ~button to load from text input~
+  - ~save border draws~
+  - ~grab side of polygon to move~
+  - ~1 or 2 cut mode to draw cut lines~
   - toggle Q area
-  - quarry rectangle select
+  - ~quarry rectangle select~
   - cleave cut cycle
 * implementation
 * writeup
 
+
+###### 2025-10-06
+
+
+A note on picking cleave cuts from the quarry rectangle.
+
+* If the cleave cut creates a region with more than three constructed lines, reject
+* If the maximal constructed line containing the cleave cut doesn't end on a convex
+  primitive boundary point, reject
+* If the cleave cut would leave a constructed line floating, reject
+
+One can easily see how a cleave cut could leave a three constructed line partition.
+
+One can easily see how a cleave cut could not be on a maximal line that ends on a primitive boundary point.
+
+It's a little harder to see but if you take the pinwheel configuration, you can see how you can create cleave
+cuts that are embedded in maximal constructed lines that end on primitive boundary points but have a floating
+constructed line.
+
+
+  
 
 
 
