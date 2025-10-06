@@ -32,7 +32,10 @@ var g_ui = {
   "mode_modifier" : "",
 
   "mode_data": {
-    "grab": { "d_idx": -1, "p_idx": [-1,-1] }
+    "grab": { "d_idx": -1, "p_idx": [-1,-1] },
+    "cut" : { "dir_code" : "h", "update_dir_code" : false, "l_cut": [ [[0,0], [0,0]], [[0,0],[0,0]] ], "B_idx_cut": [-1,-1], "ready": false },
+    "rect": { "G_idx_R" : [-1, -1], "pR": [ [0,0], [0,0], [0,0], [0,0] ], "ready": false }
+
   },
 
   "state": "idle",
@@ -121,6 +124,19 @@ function pgn2a() {
   return res_pgn;
 }
 
+function pgnBBox(p) {
+  let bb = [[p[0][0],p[0][1]], [p[0][0],p[0][1]]];
+
+  for (let i=1; i<p.length; i++) {
+    bb[0][0] = Math.min( bb[0][0], p[i][0] );
+    bb[0][1] = Math.min( bb[0][1], p[i][1] );
+    bb[1][0] = Math.max( bb[1][0], p[i][0] );
+    bb[1][1] = Math.max( bb[1][1], p[i][1] );
+  }
+
+  return bb;
+}
+
 function a2pgn(p, _px_origin, _gs) {
   let two = g_ui.two;
   let gs = ((typeof _gs === "undefined") ? g_ui.data.grid_size : _gs );
@@ -166,13 +182,13 @@ function ui_mode(_mode) {
   }
 
   g_ui.mode = _mode;
-  g_ui.mode_modifer = "";
+  g_ui.mode_modifier = "";
 
   if (g_ui.mode == "grab")  { g_ui.mode_modifier = "select"; }
   if (g_ui.mode == "grid")  { populate_grid(); }
-  if (g_ui.mode == "cut")   { g_ui.mode_modifier = "select"; }
+  if (g_ui.mode == "cut")   { g_ui.mode_modifier = "select"; g_ui.mode_data.cut.ready = false; }
   if (g_ui.mode == "load")  { load_pgn(); }
-
+  if (g_ui.mode == "rect")  { g_ui.mode_modifier = "select_begin"; g_ui.mode_data.rect.ready = false; }
 
 
   // button background pattern updates
@@ -506,6 +522,83 @@ function redraw() {
     if (g_ui.data.rprp_info_ready) {
       _draw_rprp_grid();
     }
+
+    if (g_ui.mode_modifier == "select_endpoint") {
+
+      let ui_data = g_ui.mode_data.cut;
+      let l_cut = ui_data.l_cut;
+
+      let cl0 = two.makeLine(
+        l_cut[0][0][0], l_cut[0][0][1],
+        l_cut[0][1][0], l_cut[0][1][1]
+      );
+
+      let cl1 = two.makeLine(
+        l_cut[0][1][0], l_cut[0][1][1],
+        cursor[0], cursor[1]
+      );
+
+      cl0.linewidth = 8;
+      cl0.opacity = 0.5;
+      cl0.stroke = "rgb(128,0,128)";
+
+      cl1.linewidth = 8;
+      cl1.opacity = 0.5;
+      cl1.stroke = "rgb(128,0,128)";
+    }
+
+    else if (g_ui.mode_data.cut.ready) {
+      let ui_data = g_ui.mode_data.cut;
+      let l_cut = ui_data.l_cut;
+
+      let cl0 = two.makeLine(
+        l_cut[0][0][0], l_cut[0][0][1],
+        l_cut[0][1][0], l_cut[0][1][1]
+      );
+
+      let cl1 = two.makeLine(
+        l_cut[1][0][0], l_cut[1][0][1],
+        l_cut[1][1][0], l_cut[1][1][1]
+      );
+
+      cl0.linewidth = 8;
+      cl0.opacity = 0.5;
+      cl0.stroke = "rgb(128,0,128)";
+
+      cl1.linewidth = 8;
+      cl1.opacity = 0.5;
+      cl1.stroke = "rgb(128,0,128)";
+
+    }
+
+  }
+
+  else if (g_ui.mode == "rect") {
+    if ((cursor[0] >= 0) &&
+        (cursor[1] >= 0)) {
+      two.makeRectangle(cursor[0],cursor[1], 10,10);
+    }
+
+    if (g_ui.data.rprp_info_ready) {
+      _draw_rprp_grid();
+    }
+
+    if (g_ui.mode_modifier == "select_endpoint") {
+      let ui_data = g_ui.mode_data.rect;
+
+      let pR = ui_data.pR;
+
+      let x = Math.abs(pR[0][0] + pR[1][0])/2;
+      let y = Math.abs(pR[0][1] + pR[3][1])/2;
+      let dx = Math.abs(pR[1][0] - pR[0][0]);
+      let dy = Math.abs(pR[3][1] - pR[0][1]);
+
+      let _r = two.makeRectangle( x,y, dx, dy );
+      _r.noFill();
+      _r.linewidth = 6;
+      _r.stroke = "rgb(255,0,0)";
+      _r.opacity = 0.5;
+    }
   }
 
   else if (g_ui.mode == "grid") {
@@ -527,29 +620,6 @@ function populate_grid() {
   g_ui.data.rprp_info = rprp_info;
 
   g_ui.data.rprp_info_ready = true;
-
-  redraw();
-}
-
-function mouse_click(x,y) {
-  let two = g_ui.two;
-  if      (g_ui.mode == "draw")   { mouse_click_draw(x,y); }
-  else if (g_ui.mode == "grab")   { mouse_click_grab(x,y); }
-  else if (g_ui.mode == "grid")   {  }
-  else if (g_ui.mode == "cut")    { mouse_click_cut(x,y); }
-  else if (g_ui.mode == "region") { mouse_click_region(x,y); }
-
-  redraw();
-
-}
-
-function mouse_move(x,y) {
-  let two = g_ui.two;
-  if      (g_ui.mode == "draw")   { mouse_move_draw(x,y); }
-  else if (g_ui.mode == "grab")   { mouse_move_grab(x,y); }
-  else if (g_ui.mode == "grid")   { }
-  else if (g_ui.mode == "cut")    { mouse_move_cut(x,y); }
-  else if (g_ui.mode == "region") { mouse_move_region(x,y); }
 
   redraw();
 }
@@ -953,27 +1023,49 @@ function mouse_click_cut(x,y) {
 
   let B = rprp_info.B;
 
+  let Ba = [];
   for (let i=0; i<B.length; i++) {
-    if ((B[i][0] == data.cursor[0]) &&
-        (B[i][1] == data.cursor[1])) {
-      border_idx = i;
-    }
+    Ba.push( B[i].xy );
   }
-  console.log(">>>", border_idx);
 
+  let tB = a2pgn(Ba);
 
-  /*
-  let border_idx = -1;
-
-  for (let i=0; i<pgn.length; i++) {
-    if ( (pgn[i][0] == data.cursor[0]) &&
-         (pgn[i][1] == data.cursor[1]) ) {
+  for (let i=0; i<tB.length; i++) {
+    if ((tB[i][0] == data.cursor[0]) &&
+        (tB[i][1] == data.cursor[1])) {
       border_idx = i;
+      break;
     }
   }
 
-  console.log(">>>", border_idx);
-  */
+  if (border_idx >= 0) {
+
+    if (g_ui.mode_modifier == "select") {
+      g_ui.mode_modifier = "select_endpoint";
+
+      g_ui.mode_data.cut.dir_code = 'h';
+      g_ui.mode_data.cut.l_cut[0][0] = [ tB[border_idx][0], tB[border_idx][1] ];
+      g_ui.mode_data.cut.l_cut[0][1] = [ tB[border_idx][0], tB[border_idx][1] ];
+      g_ui.mode_data.cut.l_cut[1][0] = [ 0,0 ];
+      g_ui.mode_data.cut.l_cut[1][1] = [ 0,0 ];
+      g_ui.mode_data.cut.B_idx_cut[0] = border_idx;
+      g_ui.mode_data.cut.B_idx_cut[1] = -1;
+
+    }
+    else if (g_ui.mode_modifier == "select_endpoint") {
+      g_ui.mode_modifier = "select";
+
+      let lcut_beg = g_ui.mode_data.cut.l_cut[0];
+
+      g_ui.mode_data.cut.l_cut[1][0] = [ lcut_beg[1][0], lcut_beg[1][1] ];
+      g_ui.mode_data.cut.l_cut[1][1] = [ tB[border_idx][0], tB[border_idx][1] ];
+      g_ui.mode_data.cut.B_idx_cut[1] = border_idx;
+
+      g_ui.mode_data.cut.ready = true;
+
+    }
+
+  }
 
 }
 
@@ -984,6 +1076,39 @@ function mouse_move_cut(x,y) {
 
   data.cursor = snap_to_grid( x, y, data.grid_size );
 
+  let ui_data = g_ui.mode_data.cut;
+
+  // 'sticky' direction
+  // when cursor hovers over origin, how it leaves
+  // the origin point determines whether the first cut
+  // line is horizontal or vertical
+  //
+  if (g_ui.mode_modifier == "select_endpoint") {
+    if ((data.cursor[0] == ui_data.l_cut[0][0][0]) &&
+        (data.cursor[1] == ui_data.l_cut[0][0][1])) {
+      ui_data.update_dir_code = true;
+    }
+    else if (ui_data.update_dir_code) {
+      ui_data.update_dir_code = false;
+
+      let dx = Math.abs( data.cursor[0] - ui_data.l_cut[0][0][0] );
+      let dy = Math.abs( data.cursor[1] - ui_data.l_cut[0][0][1] );
+
+      if (dx >= dy) { ui_data.dir_code = 'h'; }
+      else { ui_data.dir_code = 'v'; }
+    }
+
+    if (ui_data.dir_code == 'h') {
+      ui_data.l_cut[0][1][0] = data.cursor[0];
+      ui_data.l_cut[0][1][1] = ui_data.l_cut[0][0][1];
+    }
+
+    else if (ui_data.dir_code == 'v') {
+      ui_data.l_cut[0][1][0] = ui_data.l_cut[0][0][0];
+      ui_data.l_cut[0][1][1] = data.cursor[1];
+    }
+
+  }
 
 }
 
@@ -994,10 +1119,149 @@ function mouse_move_cut(x,y) {
 //         /___/             
 
 function mouse_click_region(x,y) {
+  let two = g_ui.two;
+  let data = g_ui.data;
+  let pgn = data.pgn;
+
+  data.cursor = snap_to_grid( x, y, data.grid_size );
+
+  //let ui_data = g_ui.mode_data.region;
+
 }
 
 function mouse_move_region(x,y) {
+  let two = g_ui.two;
+  let data = g_ui.data;
+  let pgn = data.pgn;
+
+  data.cursor = snap_to_grid( x, y, data.grid_size );
+
+  //let ui_data = g_ui.mode_data.region;
+
 }
+
+//                __ 
+//   _______ ____/ /_
+//  / __/ -_) __/ __/
+// /_/  \__/\__/\__/ 
+//                   
+
+function mouse_click_rect(x,y) {
+  let two = g_ui.two;
+  let data = g_ui.data;
+  let pgn = data.pgn;
+
+  data.cursor = snap_to_grid( x, y, data.grid_size );
+
+  let ui_data = g_ui.mode_data.rect;
+
+  let rprp_info = {};
+  if (data.rprp_info_ready) { rprp_info = data.rprp_info; }
+
+  data.cursor = snap_to_grid( x, y, data.grid_size );
+
+  if (!data.rprp_info_ready) {
+    console.log("rprp_info not ready");
+    return;
+  }
+
+  let grid_idx = -1;
+
+  let G = rprp_info.G;
+  let tG = a2pgn(G);
+
+  for (let i=0; i<tG.length; i++) {
+    if ((tG[i][0] == data.cursor[0]) &&
+        (tG[i][1] == data.cursor[1])) {
+      grid_idx = i;
+      break;
+    }
+  }
+  console.log(">>>", grid_idx, g_ui.mode_modifier);
+
+  if (grid_idx >= 0) {
+
+    if (g_ui.mode_modifier == "select_begin") {
+      g_ui.mode_modifier = "select_endpoint";
+      ui_data.G_idx_R[0] = grid_idx;
+
+      ui_data.pR[0][0] = tG[grid_idx][0];
+      ui_data.pR[0][1] = tG[grid_idx][1];
+
+      ui_data.ready = false;
+
+      console.log("ui_data.pR:", JSON.stringify(ui_data.pR));
+    }
+
+    else if (g_ui.mode_modifier == "select_endpoint") {
+      g_ui.mode_modifier = "select_begin";
+      ui_data.G_idx_R[1] = grid_idx;
+
+      ui_data.pR[2][0] = tG[grid_idx][0];
+      ui_data.pR[2][1] = tG[grid_idx][1];
+
+      ui_data.ready = true;
+    }
+
+  }
+
+}
+
+function mouse_move_rect(x,y) {
+  let two = g_ui.two;
+  let data = g_ui.data;
+  let pgn = data.pgn;
+
+  data.cursor = snap_to_grid( x, y, data.grid_size );
+
+  let ui_data = g_ui.mode_data.rect;
+
+
+  if (g_ui.mode_modifier == "select_endpoint") {
+
+    ui_data.pR[2][0] = data.cursor[0];
+    ui_data.pR[2][1] = data.cursor[1];
+
+    ui_data.pR[1][0] = ui_data.pR[2][0];
+    ui_data.pR[1][1] = ui_data.pR[0][1];
+
+    ui_data.pR[3][0] = ui_data.pR[0][0];
+    ui_data.pR[3][1] = ui_data.pR[2][1];
+
+  }
+
+
+}
+
+//---
+//---
+//---
+
+function mouse_click(x,y) {
+  let two = g_ui.two;
+  if      (g_ui.mode == "draw")   { mouse_click_draw(x,y); }
+  else if (g_ui.mode == "grab")   { mouse_click_grab(x,y); }
+  else if (g_ui.mode == "grid")   {  }
+  else if (g_ui.mode == "cut")    { mouse_click_cut(x,y); }
+  else if (g_ui.mode == "region") { mouse_click_region(x,y); }
+  else if (g_ui.mode == "rect")   { mouse_click_rect(x,y); }
+
+  redraw();
+
+}
+
+function mouse_move(x,y) {
+  let two = g_ui.two;
+  if      (g_ui.mode == "draw")   { mouse_move_draw(x,y); }
+  else if (g_ui.mode == "grab")   { mouse_move_grab(x,y); }
+  else if (g_ui.mode == "grid")   { }
+  else if (g_ui.mode == "cut")    { mouse_move_cut(x,y); }
+  else if (g_ui.mode == "region") { mouse_move_region(x,y); }
+  else if (g_ui.mode == "rect")   { mouse_move_rect(x,y); }
+
+  redraw();
+}
+
 
 //----
 //----
