@@ -571,6 +571,23 @@ function redraw() {
 
     }
 
+    if (g_ui.mode_data.rect.ready) {
+      let pR = g_ui.mode_data.rect.pR;
+
+      let x = Math.abs(pR[0][0] + pR[1][0])/2;
+      let y = Math.abs(pR[0][1] + pR[3][1])/2;
+      let dx = Math.abs(pR[1][0] - pR[0][0]);
+      let dy = Math.abs(pR[3][1] - pR[0][1]);
+
+      let _r = two.makeRectangle( x,y, dx, dy );
+      _r.noFill();
+      _r.linewidth = 6;
+      _r.stroke = "rgb(255,0,0)";
+      _r.opacity = 0.5;
+    }
+
+
+
   }
 
   else if (g_ui.mode == "rect") {
@@ -583,9 +600,10 @@ function redraw() {
       _draw_rprp_grid();
     }
 
-    if (g_ui.mode_modifier == "select_endpoint") {
-      let ui_data = g_ui.mode_data.rect;
+    let ui_data = g_ui.mode_data.rect;
 
+    if ((g_ui.mode_modifier == "select_endpoint") ||
+        ((g_ui.mode_modifier == "select_begin") && ui_data.ready)) {
       let pR = ui_data.pR;
 
       let x = Math.abs(pR[0][0] + pR[1][0])/2;
@@ -599,6 +617,31 @@ function redraw() {
       _r.stroke = "rgb(255,0,0)";
       _r.opacity = 0.5;
     }
+
+    if (g_ui.mode_data.cut.ready) {
+      let ui_data = g_ui.mode_data.cut;
+      let l_cut = ui_data.l_cut;
+
+      let cl0 = two.makeLine(
+        l_cut[0][0][0], l_cut[0][0][1],
+        l_cut[0][1][0], l_cut[0][1][1]
+      );
+
+      let cl1 = two.makeLine(
+        l_cut[1][0][0], l_cut[1][0][1],
+        l_cut[1][1][0], l_cut[1][1][1]
+      );
+
+      cl0.linewidth = 8;
+      cl0.opacity = 0.5;
+      cl0.stroke = "rgb(128,0,128)";
+
+      cl1.linewidth = 8;
+      cl1.opacity = 0.5;
+      cl1.stroke = "rgb(128,0,128)";
+    }
+
+
   }
 
   else if (g_ui.mode == "grid") {
@@ -1187,6 +1230,15 @@ function mouse_click_rect(x,y) {
 
       ui_data.pR[0][0] = tG[grid_idx][0];
       ui_data.pR[0][1] = tG[grid_idx][1];
+
+      ui_data.pR[1][0] = tG[grid_idx][0];
+      ui_data.pR[1][1] = tG[grid_idx][1];
+
+      ui_data.pR[2][0] = tG[grid_idx][0];
+      ui_data.pR[2][1] = tG[grid_idx][1];
+
+      ui_data.pR[3][0] = tG[grid_idx][0];
+      ui_data.pR[3][1] = tG[grid_idx][1];
 
       ui_data.ready = false;
 
