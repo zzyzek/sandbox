@@ -1369,6 +1369,44 @@ function init_two() {
   g_ui.ready = true;
 }
 
+// basic functionality
+//
+function _dl() {
+  var ele = document.getElementById("ui_canvas");
+  let svg_txt = ele.innerHTML;
+  let pos = 0;
+  let fin_txt = svg_txt.slice(0,pos);
+  fin_txt = svg_txt;
+  var b = new Blob([ fin_txt ]);
+  saveAs(b, "fig.svg");
+}
+
+function __dl() {
+  var ele = document.getElementById("ui_canvas");
+  let defs = document.getElementById("custom_defs");
+
+  // very hacky, find the defs definition, take the defs
+  // from the html and insert them here.
+  // Probably should define the patterns in this file and
+  // use two.js to append them...
+  //
+  let _defs = "<defs>";
+  let svg_txt = ele.innerHTML;
+  let pos = svg_txt.search("<defs>");
+
+  let fin_txt = svg_txt.slice(0,pos);
+
+  fin_txt +=  "<defs>";
+  fin_txt += defs.innerHTML;
+  fin_txt += svg_txt.slice(pos + _defs.length);
+
+  var b = new Blob([ fin_txt ]);
+  saveAs(b, "fig.svg");
+
+
+}
+
+
 function webinit() {
   init_two();
   redraw();
