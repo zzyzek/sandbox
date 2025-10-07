@@ -68,6 +68,12 @@ var pgon_pinwheel = [
   [4,6], [4,3], [5,3], [5,0], [3,0], [3,-1],
 ];
 
+var pgn_pinwheel1 = [
+  [0,6], [4,6], [4,0], [9,0],
+  [9,4], [14,4], [14,9], [11,9],
+  [11,15], [6,15], [6,11], [0,11]
+]
+
 var pgon_fig1 = [
   [0,3], [0,9], [7,9], [7,10], [10,10],
   [10,8], [12,8],
@@ -2013,6 +2019,159 @@ function commRegion(a_region, b_region) {
   return comm;
 }
 
+function _ixykey(p) {
+  return p[0].toString() + "," + p[1].toString();
+}
+
+// UNTESTED!!!
+// rprp_info
+// g gird origin point
+// dg axis aligned unit vector direction
+//
+// returns if the cleave cut starts inside the rectangle
+//
+function cleaveGridInside(rprp_iinfo, g, dg) {
+  let Gv = rprp_info.Gv;
+  let Gv_bp = rprp_info.Gv_bp;
+  let Sx = rprp_info.Sx;
+  let Sy = rprp_info.Sy;
+
+  let Gsize = [ Gv[0].length, Gv.length ];
+
+  let g_nei = [ g[0] + dg[0], g[1] + dg[1] ];
+
+
+  if ( (g_nei[0] < 0) ||
+       (g_nei[1] < 0) ||
+       (g_nei[0] >= Gsize[0]) ||
+       (g_nei[1] >= Gsize[1]) ) {
+    return false;
+  }
+
+
+  if ((dg[0] == 1) && (dg[1] == 0)) {
+    if (Sx[ g[1] ][ g[0] ] > Sx[ g_nei[1] ][ g_nei[0] ]) { return false; }
+  }
+
+  else if ((dg[0] == -1) && (dg[1] == 0)) {
+    if (Sx[ g_nei[1] ][ g_nei[0] ] > Sx[ g[1] ][ g[0] ]) { return false; }
+  }
+
+  else if ((dg[0] == 0) && (dg[1] == 1)) {
+    if (Sy[ g[1] ][ g[0] ] > Sy[ g_nei[1] ][ g_nei[0] ]) { return false; }
+  }
+
+  else if ((dg[0] == 0) && (dg[1] == -1)) {
+    if (Sy[ g_nei[1] ][ g_nei[0] ] > Sy[ g[1] ][ g[0] ]) { return false; }
+  }
+
+  return true;
+}
+
+// WIP!!!
+// return a list of cleave lines
+//
+// p_s : xy point on boundary that starts the region
+// p_e : xy point on boundary that ends the region, counterclockwise from p_s
+// a : adit point, at the intersection of two constructed lines from p_s, p_e
+//     or one of p_s or p_e if a guillotine cut
+// b : bower point defining quarry rectangle R_{a,b}
+//
+function cleaveEnumerate(rprp_info, p_s, p_e, a, b) {
+
+  let Gv = rprp_info.Gv;
+  let Gv_bp = rprp_info.Gv_bp;
+
+  let Sx = rprp_info.Sx;
+  let Sy = rprp_info.Sy;
+
+  let g_s = Gv_bp[ _ixykey(p_s) ];
+  let g_e = Gv_bp[ _ixykey(p_e) ];
+
+  let g_a = Gv_bp[ _ixykey(a) ];
+  let g_b = Gv_bp[ _ixykey(b) ];
+
+  console.log("cleaveEnumerate:");
+  console.log("p_se,ab:", p_s, p_e, a, b);
+  console.log("g_se,g_ab:", g_s, g_e, g_a, g_b);
+
+  let cleave_a = [];
+
+  let Rdxy = [ Math.abs(b[0]-a[0]), Math.abs(b[1]-a[1]) ];
+  if ((Rdxy[0] == 0) || (Rdxy[1] == 0)) { return []; }
+
+  let Rp = [
+    [ Math.max( a[0], b[0] ), Math.min( a[1], b[1] ) ],
+    [ Math.min( a[0], b[0] ), Math.min( a[1], b[1] ) ],
+    [ Math.min( a[0], b[0] ), Math.max( a[1], b[1] ) ],
+    [ Math.max( a[0], b[0] ), Math.max( a[1], b[1] ) ]
+  ];
+
+  let cleave_dxy = [
+    [  1,  0 ], [  0, -1 ],
+    [  0, -1 ], [ -1,  0 ],
+    [ -1,  0 ], [  0,  1 ],
+    [  0,  1 ], [  1,  0 ]
+  ];
+
+  let Gsize = [ Gv[0].length, Gv.length ];
+
+  let forced_cleave = [ 0, 0, 0, 0, 0, 0, 0, 0 ];
+
+  for (let b=0; b<(1<<8); b++) {
+
+    let cleave_valid = true;
+
+    let cleave_bv = [0,0,0,0,0,0,0,0]
+    let cleave = [];
+
+    // choose our cleave cut
+    //
+    for (let i=0; i<8; i++) {
+      if (b&(1<<i)) {
+        cleave_bv[i] = 1;
+        cleave.push( [ cleave_dxy[i][0], cleave_dxy[i][1] ] );
+      }
+
+      // if the cleave point is forced, make sure we've chosen it
+      //
+      if ((forced_cleave[i] == 1) && (cleave_bv[i] == 0)) {
+        cleave_valid = false;
+        break;
+      }
+    }
+
+    if (!cleave_valid) { continue; }
+
+    // each corner must have at least one cleave point
+    //
+    if ( ((cleave_bv[0] == 0) && (cleave_bv[1] == 0)) ||
+         ((cleave_bv[2] == 0) && (cleave_bv[3] == 0)) ||
+         ((cleave_bv[4] == 0) && (cleave_bv[5] == 0)) ||
+         ((cleave_bv[6] == 0) && (cleave_bv[7] == 0)) ) {
+      continue;
+    }
+
+    // if the cleave goes out of the polygon, ignore
+    //
+    for (let i=0; i<8; i++) {
+      if (cleave_bv[i] == 0) { continue; }
+      let _p = Rp[ Math.floor(i/2) ];
+
+      if ( !cleaveGridInside(rprp_info, _p, cleave_dxy[i]) ) {
+        cleave_valid = false;
+        break;
+      }
+
+    }
+
+    if (!cleave_valid) { continue; }
+
+    console.log(b, cleave);
+  }
+
+}
+
 function _ok(P) {
 
   let all_x_pnt = [],
@@ -2104,6 +2263,12 @@ function _main() {
   //_ok(pgon);
 }
 
+function _main_pinwheel1() {
+  let grid_info = rectilinearGridPoints(pgn_pinwheel1);
+
+  cleaveEnumerate(grid_info, [4,6], [9,4], [9,6], [6,9]);
+}
+
 //_main1();
 //_main_fig11();
 
@@ -2121,6 +2286,7 @@ if (typeof module !== "undefined") {
 
 if ((typeof require !== "undefined") &&
     (require.main === module)) {
-  _main(process.argv.slice(1));
+  //_main(process.argv.slice(1));
+  _main_pinwheel1(process.argv.slice(1));
 }
 
