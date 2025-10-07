@@ -476,8 +476,60 @@ cuts that are embedded in maximal constructed lines that end on primitive bounda
 constructed line.
 
 
-  
+---
 
+Need to think out loud.
+
+Start from full polygon, create auxilliary structures, specifically, G2d, B2d.
+
+Taking 2-cut (or 1-cut) as two general boundary points, we have not only which direction
+the joint is in but also which subregion to use.
+I was thinking we could use just the order of the general boundary points to tell us
+which joint it is, which can be done, but we still need an extra piece of information for
+the subregion that we're recurring on.
+
+So we should have a convention that the direction goes counter clockwise along the boundary,
+with the cut at as the last 1 or 2 constructed lines.
+
+For example, say we have start 5 and end 10 of 20.
+This means a general boundary of (5,6,7,8,9,10).
+If it were (10,5), this would mean a general boundary of (10,11,12,13,14,15,16,17,18,19,0,1,2,3,4,5).
+
+We should have as additional key the position of the cut point (joining point of the 2-cuts) or none
+if it's a guillotine cut.
+
+For convenience, I guess choose the actual 2d point as the keys, so we don't need to mix-and-match
+index types.
+
+So the array is `DP[s_pnt][e_pnt][m_pnt]`, which a special `null` `m_pnt` for guillotine cuts.
+By convention, since we traverse the boundary in counter clockwise order, this gives us a natural
+way to describe which region we're working on.
+Ordering the points in the other direction (`DP[e_pnt][s_pnt][m_pnt]`) gives us an indication
+that we can traverse the region in the other direction.
+
+We can translate between the start and end point by doing a lookup to the general boundary index.
+
+Once we have a sub region as defined by the start, end and mid point (start/end on general boundary,
+midpoint is one of the (internal) grid points), we can begin to process the sub region.
+
+Processing the subregion begins with getting a list of adit ($a$) points (only 1 for convex or concave
+2-cuts, a choice of two for guillotine cuts) that define one corner of the quarry rectangle.
+We then loop through all possible grid points in the sub-region to test to see if it's a valid quarry
+rectangle.
+
+Testing the quarry rectangle for being completely enclosed can be done from our auxiliary structure
+we've described above.
+
+Once a candidate quarry rectangle is chosen, we enumerate all cleave cuts originating from corners
+of the quarry rectangle.
+
+For every choice of cleave cut, we extend outwards and then extend in the other direction, getting it's
+endpoints.
+If any of the cleave cuts don't end on primitive convex boundary, we reject the cleave cut choice.
+
+For every choice of cleave cut, we extend outwards and then extend in the other direction, getting it's
+endpoints.
+If any of the cleave cuts don't end on primitive convex boundary, we reject the cleave cut choice.
 
 
 
