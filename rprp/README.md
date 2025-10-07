@@ -405,12 +405,12 @@ Moving on:
   - $b$ must be within $Q$
   - The *quarry rectangle*, $R _ {a,b}$, must be wholly in $Q$
   - There are some other optimizations to further restrict $b$ and thus $R _ {a,b}$ which we'll ignore for now
-* Call the constructed line(s) (alt. cut lines) $\ell _ h$ for the horizontal and $\ell _ v$ for the vertical, if they exist (one must exist)
+* Call the constructed line(s) (alt. cut lines) defined by $p _ s$ and $p _ t$ as $\ell _ h$ for the horizontal and $\ell _ v$ for the vertical, if they exist (one must exist)
 * Call the line segments of the quarry rectangle, $R _ {a,b}$ *billets*, labelled $\ell _ 0$ for the bottom, $\ell _ 1$ for the left,
   $\ell _ 2$ for the top and $\ell _ 3$ for the right
   - some or all of the billets will be part of either the outer boundary or the constructed lines $\ell _ h$, $\ell _ v$
 * Call the four corners of the quarry rectangle $p _ 0, p _ 1, p _ 2, p _ 3$, representing the lower right, lower left, upper
-  left and upper right corners respectively (each of the $p _ 0, p _ 1, p _ 2, p _ 2 \in GP(Q)$)
+  left and upper right corners respectively (each of the $p _ 0, p _ 1, p _ 2, p _ 2 \in GP(Q)$ )
 * For quarry corner $p _ j$, $j \in \{0,1,2,3\}$,  consider potential cleave cuts $d _ {2j}$ and $d _ {2j + 1}$
 * Choose all combinations of cleave cuts
   - Create a forced virtual $d _ k$ if its $p _ j$ is on a constructed line edge or a boundary edge (that isn't a corner)
@@ -504,8 +504,8 @@ index types.
 So the array is `DP[s_pnt][e_pnt][m_pnt]`, which a special `null` `m_pnt` for guillotine cuts.
 By convention, since we traverse the boundary in counter clockwise order, this gives us a natural
 way to describe which region we're working on.
-Ordering the points in the other direction (`DP[e_pnt][s_pnt][m_pnt]`) gives us an indication
-that we can traverse the region in the other direction.
+Ordering the points in the other direction (`DP[e_pnt][s_pnt][m_pnt]`) indicates we're considering
+the other sub-region.
 
 We can translate between the start and end point by doing a lookup to the general boundary index.
 
