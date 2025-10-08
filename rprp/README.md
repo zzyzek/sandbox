@@ -532,6 +532,34 @@ endpoints.
 If any of the cleave cuts don't end on primitive convex boundary, we reject the cleave cut choice.
 
 
+###### 2025-10-08
+
+I'm working through the details of choosing cleave cuts from the quarry rectangle.
+
+Thinking out loud:
+
+* For a 2-cut, adit $a$ will be at the intersection point between the two constructed lines
+* For a 1-cut, adit $a$ will be one of $p _ s$ or $p _ e$
+* We have 12 choices for cleave cuts
+* We can mark each potential cleave cut as having it's first segment:
+  - `x` out of bounds
+  - `b` on a boundary
+  - `c` on a constructed line
+  - `*` inside grid (not on boundary or constructed line)
+* `x` can be tested with the `Sx` and `Sy` structures
+  - I think we have an auxiliary function that tests for line segement inclusion
+* `b` can be tested by making sure it's inside and looking at the `B_2d` structure for both points having
+  no more than 1 index difference
+* `c` ...
+
+For the `c` case, here are some example pictures:
+
+| | |
+|---|---|
+| ![pinwheel with center quarry rectangle](viz/img/pinwheel_pivot.png) | ![pinwheel with offset quarry rectangle](vis/img/pinwheel_quarry1.png) |
+  
+
+
 
 References
 ---
