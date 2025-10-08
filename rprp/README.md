@@ -559,6 +559,19 @@ For the `c` case, here are some example pictures:
 | ![pinwheel with center quarry rectangle](viz/img/pinwheel_pivot.png) | ![pinwheel with offset quarry rectangle](viz/img/pinwheel_quarry1.png) |
   
 
+We're trying to determine if our rooted ray cleave cut is on a constructed
+line or inside the grid, where we assume we've already tested for out of bounds (`x`)
+and whether it's on the boundary (`b`).
+
+Consider a point on the primitive boundary $p _ b$, the adit point $a$, cleave cut root $p _ c$,
+and cleave cut direction $d _ k$.
+
+* If $\del(p _ b - a) \ne \del(d _ k)$, the cleave is not in-line with the constructed line $(a, p _ b)$
+* Else if $p _ c = a$, the cleave cut is on the constructed line $(a, p _ b)$ (`c`)
+* Else if $\del( p _ c - a ) = d _ k$, the cleave cut is on the constructed line $(a, p _ b)$ (`c`)
+
+So, orthogonal test, root test, in line test.
+If $d _ k$ is not in-line with either of the two constructed lines, the it must be internal (`*`).
 
 
 References
