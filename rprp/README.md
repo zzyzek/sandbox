@@ -556,7 +556,7 @@ For the `c` case, here are some example pictures:
 
 | | |
 |---|---|
-| ![pinwheel with center quarry rectangle](viz/img/pinwheel_pivot.png) | ![pinwheel with offset quarry rectangle](vis/img/pinwheel_quarry1.png) |
+| ![pinwheel with center quarry rectangle](viz/img/pinwheel_pivot.png) | ![pinwheel with offset quarry rectangle](viz/img/pinwheel_quarry1.png) |
   
 
 
