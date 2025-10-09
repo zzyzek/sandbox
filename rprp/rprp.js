@@ -2030,7 +2030,7 @@ function _ixykey(p) {
 //
 // returns if the cleave cut starts inside the rectangle
 //
-function cleaveGridInside(rprp_iinfo, g, dg) {
+function cleaveGridInside(rprp_info, g, dg) {
   let Gv = rprp_info.Gv;
   let Gv_bp = rprp_info.Gv_bp;
   let Sx = rprp_info.Sx;
@@ -2040,6 +2040,7 @@ function cleaveGridInside(rprp_iinfo, g, dg) {
 
   let g_nei = [ g[0] + dg[0], g[1] + dg[1] ];
 
+  //console.log("cleaveGridInside: g:", g, "dg:", dg, "g_nei:", g_nei, "Gsize:", Gsize);
 
   if ( (g_nei[0] < 0) ||
        (g_nei[1] < 0) ||
@@ -2048,22 +2049,63 @@ function cleaveGridInside(rprp_iinfo, g, dg) {
     return false;
   }
 
+  //console.log("  cleaveGridInside: Sx[", g[1], "][", g[0], "]:", Sx[g[1]][g[0]]);
+  //console.log("  cleaveGridInside: Sx[", g_nei[1], "][", g_nei[0], "]:", Sx[g_nei[1]][g_nei[0]]);
+
+  //console.log("  cleaveGridInside: Sy[", g[1], "][", g[0], "]:", Sy[g[1]][g[0]]);
+  //console.log("  cleaveGridInside: Sy[", g_nei[1], "][", g_nei[0], "]:", Sy[g_nei[1]][g_nei[0]]);
+
+  let uxy = [
+    Sx[ g[1] ][ g[0] ],
+    Sy[ g[1] ][ g[0] ]
+  ];
+
+  let vxy = [
+    Sx[ g_nei[1] ][ g_nei[0] ],
+    Sy[ g_nei[1] ][ g_nei[0] ]
+  ];
 
   if ((dg[0] == 1) && (dg[1] == 0)) {
-    if (Sx[ g[1] ][ g[0] ] > Sx[ g_nei[1] ][ g_nei[0] ]) { return false; }
+
+    if ((uxy[0] < 0) || (vxy[0] < 0)) { return false; }
+
+    if (Sx[ g[1] ][ g[0] ] > Sx[ g_nei[1] ][ g_nei[0] ]) {
+      console.log("  cgi.0");
+      return false;
+    }
   }
 
   else if ((dg[0] == -1) && (dg[1] == 0)) {
-    if (Sx[ g_nei[1] ][ g_nei[0] ] > Sx[ g[1] ][ g[0] ]) { return false; }
+
+    if ((uxy[0] < 0) || (vxy[0] < 0)) { return false; }
+
+    if (Sx[ g_nei[1] ][ g_nei[0] ] > Sx[ g[1] ][ g[0] ]) {
+      console.log("  cgi.1");
+      return false;
+    }
   }
 
   else if ((dg[0] == 0) && (dg[1] == 1)) {
-    if (Sy[ g[1] ][ g[0] ] > Sy[ g_nei[1] ][ g_nei[0] ]) { return false; }
+
+    if ((uxy[1] < 0) || (vxy[1] < 0)) { return false; }
+
+    if (Sy[ g[1] ][ g[0] ] > Sy[ g_nei[1] ][ g_nei[0] ]) {
+      console.log("  cgi.2");
+      return false;
+    }
   }
 
   else if ((dg[0] == 0) && (dg[1] == -1)) {
-    if (Sy[ g_nei[1] ][ g_nei[0] ] > Sy[ g[1] ][ g[0] ]) { return false; }
+
+    if ((uxy[1] < 0) || (vxy[1] < 0)) { return false; }
+
+    if (Sy[ g_nei[1] ][ g_nei[0] ] > Sy[ g[1] ][ g[0] ]) {
+      console.log("  cgi.3");
+      return false;
+    }
   }
+
+  //console.log("  cgi.t");
 
   return true;
 }
@@ -2073,6 +2115,8 @@ function cleaveGridOnBorder(rprp_info, g, dg) {
   let B2d = rprp_info.B_2d;
 
   if (!cleaveGridInside(rprp_info, g, dg)) { return false; }
+
+  console.log("cleaveGridOnBorder: g:", g, "dg:", dg);
 
   let g_nei = [ g[0] + dg[0], g[1] + dg[1] ];
 
@@ -2087,7 +2131,7 @@ function cleaveGridOnBorder(rprp_info, g, dg) {
   return true;
 }
 
-//WIP!!!
+//UNTESTED!!!
 function cleaveGridInline(rprp_info, g, dg, h, dh) {
   let Gv = rprp_info.Gv;
   let Gv_bp = rprp_info.Gv_bp;
@@ -2096,14 +2140,38 @@ function cleaveGridInline(rprp_info, g, dg, h, dh) {
 
   let Gsize = [ Gv[0].length, Gv.length ];
 
+  console.log("#########################");
+  console.log("cleaveGridInline: inside:",
+    cleaveGridInside(rprp_info, g, dg),
+    "onborder:",
+    cleaveGridOnBorder(rprp_info, g, dg));
+
+
+
   if (!cleaveGridInside(rprp_info, g, dg)) { return false; }
+  if (cleaveGridOnBorder(rprp_info, g, dg)) { return false; }
+
+  console.log("cleaveGridInline: g:", g, "dg:", dg, "h:", h, "dh:", dh);
+
+  // cleave and constructed line not parallele
+  //
+  if ( (dg[0] != dh[0]) || (dg[1] != dh[1]) ) { return false; }
+
+  // cleave root is same as constructed line end
+  //
+  if ((g[0] == h[0]) && (g[1] == h[1])) { return true; }
+
+
+  let dga = v_delta( v_sub( g, h ) );
+
+  // segment from adit to cleave is same direction as
+  // cleave direction
+  //
+  if ((dga[0] == dg[0]) && (dga[1] == dg[1])) { return true; }
 
   return false;
-
-  //let g_nei = [ g[0] + dg[0], g[1] + dg[1] ];
-  //if ((dg[0] != dh[0]) || (dg[1] != dh[1])) { return false; }
-
 }
+
 
 // WIP!!!
 // return a list of cleave lines
@@ -2129,8 +2197,8 @@ function cleaveEnumerate(rprp_info, p_s, p_e, a, b) {
   let g_b = Gv_bp[ _ixykey(b) ];
 
   console.log("cleaveEnumerate:");
-  console.log("p_se,ab:", p_s, p_e, a, b);
-  console.log("g_se,g_ab:", g_s, g_e, g_a, g_b);
+  console.log("p_s:", p_s, "p_e:", p_e, "a:", a, "b:", b);
+  console.log("g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b);
 
   let cleave_a = [];
 
@@ -2144,6 +2212,13 @@ function cleaveEnumerate(rprp_info, p_s, p_e, a, b) {
     [ Math.max( a[0], b[0] ), Math.max( a[1], b[1] ) ]
   ];
 
+  let Rg = [
+    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
+    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
+  ];
+
   let cleave_dxy = [
     [  1,  0 ], [  0, -1 ],
     [  0, -1 ], [ -1,  0 ],
@@ -2153,19 +2228,45 @@ function cleaveEnumerate(rprp_info, p_s, p_e, a, b) {
 
   let Gsize = [ Gv[0].length, Gv.length ];
 
-  let cleave_profile = [ '.', '.', '.', '.', '.', '.', '.', '.' ];
+  let cleave_profile = [ '~', '~', '~', '~', '~', '~', '~', '~' ];
 
   for (let i=0; i<cleave_dxy.length; i++) {
     let p = Rp[ Math.floor(i/2) ];
+    let g = Rg[ Math.floor(i/2) ];
 
-    if (!cleaveGridInside(rprp_info, p, cleave_dxy)) {
+    console.log("\n##cleave_dxy[", i, "]:", cleave_dxy[i], "p:", p, "g:", g);
+
+    if (!cleaveGridInside(rprp_info, g, cleave_dxy[i])) {
       cleave_profile[i] = 'x';
       continue;
     }
 
+    if (cleaveGridOnBorder(rprp_info, g, cleave_dxy[i])) {
+      cleave_profile[i] = 'b';
+      continue;
+    }
 
+    let cl_dxy = [
+      v_delta( v_sub( g_s, g_a ) ),
+      v_delta( v_sub( g_e, g_a ) )
+    ];
+
+    if ( (cleaveGridInline(rprp_info, g, cleave_dxy[i], g_a, cl_dxy[0])) ||
+         (cleaveGridInline(rprp_info, g, cleave_dxy[i], g_a, cl_dxy[1])) ) {
+      cleave_profile[i] = 'c';
+      continue;
+    }
+
+    cleave_profile[i] = '.';
 
   }
+
+  console.log("");
+  console.log("cleave_profile:", cleave_profile.join(""));
+  console.log("");
+
+  return;
+
 
   for (let b=0; b<(1<<8); b++) {
 
@@ -2173,6 +2274,8 @@ function cleaveEnumerate(rprp_info, p_s, p_e, a, b) {
 
     let cleave_bv = [0,0,0,0,0,0,0,0]
     let cleave = [];
+
+    //WIP!!!!
 
     // choose our cleave cut
     //
@@ -2184,10 +2287,10 @@ function cleaveEnumerate(rprp_info, p_s, p_e, a, b) {
 
       // if the cleave point is forced, make sure we've chosen it
       //
-      if ((forced_cleave[i] == 1) && (cleave_bv[i] == 0)) {
-        cleave_valid = false;
-        break;
-      }
+      //if ((forced_cleave[i] == 1) && (cleave_bv[i] == 0)) {
+      //  cleave_valid = false;
+      //  break;
+      //}
     }
 
     if (!cleave_valid) { continue; }
@@ -2315,7 +2418,34 @@ function _main() {
 function _main_pinwheel1() {
   let grid_info = rectilinearGridPoints(pgn_pinwheel1);
 
-  cleaveEnumerate(grid_info, [4,6], [9,4], [9,6], [6,9]);
+  console.log("pgn_pinwheel1:");
+  console.log(pgn_pinwheel1);
+  console.log("----");
+
+  // test case 0  .c.c....
+  //cleaveEnumerate(grid_info, [4,6], [9,4], [9,6], [6,9]);
+
+  // test case 1 .c.....c
+  //cleaveEnumerate(grid_info, [11,9], [9,4], [9,9], [6,6]);
+
+  // test case 2 xbc...xx
+  //cleaveEnumerate(grid_info, [11,9], [9,4], [9,9], [14,6]);
+
+  // test case 3 xxb...xx
+  //cleaveEnumerate(grid_info, [11,9], [9,4], [9,9], [14,4]);
+
+  // test case 4  ..cc..bb
+  //cleaveEnumerate(grid_info, [4,6], [9,4], [9,6], [11,9]);
+
+  // test case 5  .cbb....
+  //cleaveEnumerate(grid_info, [4,6], [9,4], [9,6], [4,9]);
+
+  // test case 6  .cbbbx..
+  //cleaveEnumerate(grid_info, [4,6], [9,4], [9,6], [4,11]);
+
+  // test case 7  .c.cxxxb
+  cleaveEnumerate(grid_info, [4,6], [9,4], [9,6], [6,15]);
+
 }
 
 //_main1();

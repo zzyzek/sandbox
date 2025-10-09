@@ -545,7 +545,7 @@ Thinking out loud:
   - `x` out of bounds
   - `b` on a boundary
   - `c` on a constructed line
-  - `*` inside grid (not on boundary or constructed line)
+  - `.` inside grid (not on boundary or constructed line)
 * `x` can be tested with the `Sx` and `Sy` structures
   - I think we have an auxiliary function that tests for line segement inclusion
 * `b` can be tested by making sure it's inside and looking at the `B_2d` structure for both points having
@@ -571,7 +571,7 @@ and cleave cut direction $d _ k$.
 * Else if $\delta( p _ c - a ) = d _ k$, the cleave cut is on the constructed line $(a, p _ b)$ (`c`)
 
 So, orthogonal test, root test, in line test.
-If $d _ k$ is not in-line with either of the two constructed lines, the it must be internal (`*`).
+If $d _ k$ is not in-line with either of the two constructed lines, the it must be internal (`.`).
 
 
 References
