@@ -566,9 +566,9 @@ and whether it's on the boundary (`b`).
 Consider a point on the primitive boundary $p _ b$, the adit point $a$, cleave cut root $p _ c$,
 and cleave cut direction $d _ k$.
 
-* If $\del(p _ b - a) \ne \del(d _ k)$, the cleave is not in-line with the constructed line $(a, p _ b)$
+* If $\delta(p _ b - a) \ne \delta(d _ k)$, the cleave is not in-line with the constructed line $(a, p _ b)$
 * Else if $p _ c = a$, the cleave cut is on the constructed line $(a, p _ b)$ (`c`)
-* Else if $\del( p _ c - a ) = d _ k$, the cleave cut is on the constructed line $(a, p _ b)$ (`c`)
+* Else if $\delta( p _ c - a ) = d _ k$, the cleave cut is on the constructed line $(a, p _ b)$ (`c`)
 
 So, orthogonal test, root test, in line test.
 If $d _ k$ is not in-line with either of the two constructed lines, the it must be internal (`*`).
