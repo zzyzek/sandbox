@@ -597,6 +597,41 @@ One of the candidate cleave points should be rejected if its not in the region u
 
 I'm fussing with how to do this test well.
 
+... The cleave ray is part of a 2-cut.
+If it's not, we reject to begin with.
+If the 2-cut has it's partition in the boundary range outside of our current region, we can reject.
+
+So, follow the cleave ray to the boundary and get the general boundary point index.
+If the index falls outside of the current general boundary index range we're working on, reject.
+
+Or just initially follow each ray until it hits the general boundary point, and mark it appropriately
+if it falls outside the current region.
+
+With the auxiliary rectangle testing structures, this can be made to be $O(\log n)$ but initially we'll
+just use the simple grid point walk ($O(n)$).
+
+---
+
+So, here's a recap:
+
+* We're only considering a 2-cut with two constructed lines right now
+* For a 2-cut with adit point $a$, bower point $b$ and quarry rectangle $R _ {a,b}$
+* Construct the cleave candidate vector with `x` for out of bounds, `b` for boundary edge,
+  `c` for constructed line edge and `.` for interior grid point
+  - follow each rooted cleave ray to the first general boundary point, marking the position
+    as `x` if the intersecting general boundary point is out of the current boundary range
+* Enumerate all possible cleave cuts for positions in the clave candidate vector that are `.` (interior points)
+  - reject if a quarry rectangle corner has two `.` positions and there isn't at least one cleave cut
+    occupying it
+  - reject if cleave cut starts on a flat edge and ends on a flat edge
+  - reject if the maximal edge the cleave cut sits in doesn't have at least one primitive convex border intersection
+  - reject if cleave cut is parallel to an edge
+    + if the parallel edge is a another cleave cut or a constructed edge (part of the original 2-cut), then this represents
+      a 3-cut
+    + if the parallel edge is a border, then the billet between them is floating
+
+I don't think much changes with a guillotine cut, but this needs confirmation.
+
 
 References
 ---
