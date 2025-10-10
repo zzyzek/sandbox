@@ -593,7 +593,7 @@ One of the candidate cleave points should be rejected if its not in the region u
 
 | |
 |---|
-| ![out of region](viz/img/cleanve_out_of_region.png) |
+| ![out of region](viz/img/cleave_out_of_region.png) |
 
 I'm fussing with how to do this test well.
 
