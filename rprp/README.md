@@ -589,6 +589,13 @@ Some example pictures:
 |---|---|---|
 | ![bridge](viz/img/cleave_bridge_reject.png) | ![float](viz/img/cleave_nonconvexendpoint_reject.png) | ![parallel](viz/img/cleave_parallel_reject.png) |
 
+One of the candidate cleave points should be rejected if its not in the region under consideration:
+
+| |
+|---|
+| ![out of region](viz/img/cleanve_out_of_region.png) |
+
+I'm fussing with how to do this test well.
 
 
 References
