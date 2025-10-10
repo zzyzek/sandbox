@@ -215,9 +215,9 @@ function load_historic(s) {
 
   // hacky way of getting out our array of data points
   //
-  let a_str = s.replace( /^.*= */, '' ).replace( / *; *$/, '' ).replace( /,[ \n]*\]$/, ']' );
-  let ga_pgn = JSON.parse(a_str);
+  let a_str = s.replace(/\n/g, ' ').replace( /^.*= */, '' ).replace( / *; *$/, '' ).replace( /,[ \n]*\]$/, ']' );
 
+  let ga_pgn = JSON.parse(a_str);
 
   px_pgn = a2pgn(ga_pgn);
 

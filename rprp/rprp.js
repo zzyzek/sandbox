@@ -72,7 +72,32 @@ var pgn_pinwheel1 = [
   [0,6], [4,6], [4,0], [9,0],
   [9,4], [14,4], [14,9], [11,9],
   [11,15], [6,15], [6,11], [0,11]
-]
+];
+
+// example that can have quarry endpoints floating over
+// the sides.
+// Used to show various rejection conditions for cleave
+// cuts eminating from corners of quarry rectangle.
+//
+var pgn_balance = [
+  [0,6], [5,6], [5,8], [9,8],
+  [9,11], [12,11], [12,6], [15,6],
+  [15,0], [21,0], [21,9], [19,9],
+  [19,17], [14,17], [14,21], [7,21],
+  [7,19], [3,19], [3,14], [0,14]
+];
+
+// can choose quarry so that it's perched wholly
+// on the top of a 2cut
+//
+var pgn_quarry_share_2cut = [
+  [0,8], [7,8], [7,7], [10,7],
+  [10,12], [13,12], [13,9], [15,9],
+  [15,5], [18,5], [18,2], [22,2],
+  [22,0], [27,0], [27,18], [20,18],
+  [20,23], [4,23], [4,17], [1,17],
+  [1,14], [0,14]
+];
 
 var pgon_fig1 = [
   [0,3], [0,9], [7,9], [7,10], [10,10],
@@ -2182,7 +2207,7 @@ function cleaveGridInline(rprp_info, g, dg, h, dh) {
 //     or one of p_s or p_e if a guillotine cut
 // b : bower point defining quarry rectangle R_{a,b}
 //
-function cleaveEnumerate(rprp_info, p_s, p_e, a, b) {
+function cleaveProfile(rprp_info, p_s, p_e, a, b) {
 
   let Gv = rprp_info.Gv;
   let Gv_bp = rprp_info.Gv_bp;
@@ -2196,7 +2221,7 @@ function cleaveEnumerate(rprp_info, p_s, p_e, a, b) {
   let g_a = Gv_bp[ _ixykey(a) ];
   let g_b = Gv_bp[ _ixykey(b) ];
 
-  console.log("cleaveEnumerate:");
+  console.log("cleaveProfile:");
   console.log("p_s:", p_s, "p_e:", p_e, "a:", a, "b:", b);
   console.log("g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b);
 
@@ -2423,28 +2448,28 @@ function _main_pinwheel1() {
   console.log("----");
 
   // test case 0  .c.c....
-  //cleaveEnumerate(grid_info, [4,6], [9,4], [9,6], [6,9]);
+  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [6,9]);
 
   // test case 1 .c.....c
-  //cleaveEnumerate(grid_info, [11,9], [9,4], [9,9], [6,6]);
+  //cleaveProfile(grid_info, [11,9], [9,4], [9,9], [6,6]);
 
   // test case 2 xbc...xx
-  //cleaveEnumerate(grid_info, [11,9], [9,4], [9,9], [14,6]);
+  //cleaveProfile(grid_info, [11,9], [9,4], [9,9], [14,6]);
 
   // test case 3 xxb...xx
-  //cleaveEnumerate(grid_info, [11,9], [9,4], [9,9], [14,4]);
+  //cleaveProfile(grid_info, [11,9], [9,4], [9,9], [14,4]);
 
   // test case 4  ..cc..bb
-  //cleaveEnumerate(grid_info, [4,6], [9,4], [9,6], [11,9]);
+  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [11,9]);
 
   // test case 5  .cbb....
-  //cleaveEnumerate(grid_info, [4,6], [9,4], [9,6], [4,9]);
+  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [4,9]);
 
   // test case 6  .cbbbx..
-  //cleaveEnumerate(grid_info, [4,6], [9,4], [9,6], [4,11]);
+  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [4,11]);
 
   // test case 7  .c.cxxxb
-  cleaveEnumerate(grid_info, [4,6], [9,4], [9,6], [6,15]);
+  cleaveProfile(grid_info, [4,6], [9,4], [9,6], [6,15]);
 
 }
 

@@ -573,6 +573,23 @@ and cleave cut direction $d _ k$.
 So, orthogonal test, root test, in line test.
 If $d _ k$ is not in-line with either of the two constructed lines, the it must be internal (`.`).
 
+###### 2025-10-10
+
+I'm still fussing with figuring out on how to validate a cleave realization.
+
+So far, for adit $a$, bower $b$, quarry $R$, an a cleave candidate vector ( $\gamma \in \{\text{x}, \text{b}, \text{c}, \text{.}\}^8$ ):
+
+* reject if a cleave ray starts on flat edge and ends on flat edge (**bridge**)
+* reject if a cleave ray's maximal line does not end on at least one convex primitive border point (**float**)
+* reject if a cleave ray is parallel to another cleave ray, constructed edge or boundary edge (so any parallel edge) (**parallel**)
+
+Some example pictures:
+
+| bridge | float | parallel |
+|---|---|---|
+| ![bridge](viz/img/cleave_bridge_reject.png) | ![float](viz/img/cleave_nonconvexendpoint_reject.png) | ![parallel](viz/img/cleave_parallel_reject.png) |
+
+
 
 References
 ---
