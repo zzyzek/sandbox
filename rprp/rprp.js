@@ -403,6 +403,29 @@ function onBoundary(p, pgn) {
   return false;
 }
 
+// Test if a rectangle is wholly contained in rectilinear polygon.
+// Assumes structures Sx, Sy, Lx, Ly have been precomputed
+//
+// input:
+//
+// s_ij - xy vector of grid start point
+// l_ij - xy vector of rectangle width/height
+//
+// output:
+//
+// true if rectangle with lower left corner at s_ij and width/height of l_ij
+//      in rectilinear polygon
+// false otherwise
+//
+// precomputed auxiliary structures:
+//
+// Sx holds grid cell running lengths, from left to right, of contiguous region within
+//    rectilinear polygon, resetting to 0 at the beginning of every interior
+//    edge and -1 for exterior points
+// Sy, like Sx, but from bottom to top
+// Lx holds total sum of left to right, regardless of interior/exterior
+// Ly holds total sum of bottom to top, regardless of interior/exterior
+//
 function rprp_irect_contain(grid_info, s_ij, l_ij) {
   let Lx = grid_info.Lx,
       Ly = grid_info.Ly,
@@ -449,6 +472,75 @@ function rprp_irect_contain(grid_info, s_ij, l_ij) {
 
   return false;
 }
+
+// return the general boundary index that the ray starting at s_ij
+// and in the direction of d_ij intersects.
+//
+// return -1 if an error (ray out of bounds, etc.)
+//
+function rprp_iray_boundary_intersection_linear(grid_info, s_ij, d_ij) {
+  let Lx = grid_info.Lx,
+      Ly = grid_info.Ly,
+      Sx = grid_info.Sx,
+      Sy = grid_info.Sy;
+
+  let max_step = Math.max( Lx.length, Ly.length );
+
+  let B2d = grid_info.B_2d;
+
+  let cur_ij = [ s_ij[0], s_ij[1] ];
+
+  for (let step = 0; step < max_step; step++) {
+    if ( (cur_ij[0] < 0) || (cur_ij[0] >= Lx.length) ||
+         (cur_ij[1] < 0) || (cur_ij[1] >= Ly.length) ) {
+      return -1;
+    }
+
+    if (B2d[ cur_ij[1] ][ cur_ij[0] ] >= 0) {
+      return B2d[ cur_ij[1] ][ cur_ij[0] ];
+    }
+
+    cur_ij[0] += d_ij[0];
+    cur_ij[1] += d_ij[1];
+  }
+
+  return -1;
+}
+
+// WIP!!!
+function rprp_iray_boundary_intersection(grid_info, s_ij, d_ij) {
+  /*
+  let Lx = grid_info.Lx,
+      Ly = grid_info.Ly,
+      Sx = grid_info.Sx,
+      Sy = grid_info.Sy;
+
+  let max_step = Math.max( Lx.length, Ly.length );
+
+  let B2d = grid_info.B_2d;
+
+  let cur_ij = [ s_ij[0], s_ij[1] ];
+
+  for (let step = 0; step < max_step; step++) {
+    if ( (cur_ij[0] < 0) || (cur_ij[0] >= Lx.length) ||
+         (cur_ij[1] < 0) || (cur_ij[1] >= Ly.length) ) {
+      return -1;
+    }
+
+    if (B2d[ cur_ij[1] ][ cur_ij[0] ] >= 0) {
+      return B2d[ cur_ij[1] ][ cur_ij[0] ];
+    }
+
+    cur_ij[0] += d_ij[0];
+    cur_ij[1] += d_ij[1];
+  }
+  */
+
+  return -1;
+
+}
+
+
 
 //---
 
@@ -2440,6 +2532,28 @@ function _main() {
   //_ok(pgon);
 }
 
+function _main_iray_boundary_test() {
+  let grid_info = rectilinearGridPoints(pgn_pinwheel1);
+
+  let ny = grid_info.B_2d.length;
+  let nx = grid_info.B_2d[0].length;
+
+  let idir_dxy = [
+    [1,0], [-1,0], [0,1], [0,-1]
+  ];
+
+  for (let j=0; j<ny; j++) {
+    for (let i=0; i<nx; i++) {
+
+      for (let idir=0; idir<idir_dxy.length; idir++) {
+        console.log("s_ij:", i,j, "d_ij:", idir_dxy[idir],
+          "b_idx:", rprp_iray_boundary_intersection_linear(grid_info, [i,j], idir_dxy[idir]));
+      }
+
+    }
+  }
+}
+
 function _main_pinwheel1() {
   let grid_info = rectilinearGridPoints(pgn_pinwheel1);
 
@@ -2491,6 +2605,7 @@ if (typeof module !== "undefined") {
 if ((typeof require !== "undefined") &&
     (require.main === module)) {
   //_main(process.argv.slice(1));
-  _main_pinwheel1(process.argv.slice(1));
+  //_main_pinwheel1(process.argv.slice(1));
+  _main_iray_boundary_test();
 }
 
