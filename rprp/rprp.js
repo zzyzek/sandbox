@@ -99,6 +99,20 @@ var pgn_quarry_share_2cut = [
   [1,14], [0,14]
 ];
 
+var pgn_spiral = [
+  [0,0], [35,0], [35,10], [32,10],
+  [32,2], [2,2], [2,26], [28,26],
+  [28,21], [30,21], [30,17], [27,17],
+  [27,6], [6,6], [6,22], [21,22],
+  [21,11], [10,11], [10,18], [15,18],
+  [15,14], [18,14], [18,20], [9,20],
+  [9,8], [25,8], [25,24], [4,24],
+  [4,4], [30,4], [30,15], [33,15],
+  [33,28], [11,28], [11,29], [0,29]
+];
+
+
+
 var pgon_fig1 = [
   [0,3], [0,9], [7,9], [7,10], [10,10],
   [10,8], [12,8],
@@ -507,37 +521,80 @@ function rprp_iray_boundary_intersection_linear(grid_info, s_ij, d_ij) {
   return -1;
 }
 
+function _clamp(a, b, c) {
+  if (a < b) { return b; }
+  if (a > c) { return c; }
+  return a;
+}
+
 // WIP!!!
+// ROUGH DRAFT!!!
+//
 function rprp_iray_boundary_intersection(grid_info, s_ij, d_ij) {
-  /*
   let Lx = grid_info.Lx,
       Ly = grid_info.Ly,
       Sx = grid_info.Sx,
       Sy = grid_info.Sy;
+  let B2d = grid_info.B_2d;
+
+  let _L = Lx;
+  let _S = Sx;
+  if (d_ij[0] == 0) {
+    _L = Ly;
+    _S = Sy;
+  }
 
   let max_step = Math.max( Lx.length, Ly.length );
 
-  let B2d = grid_info.B_2d;
-
   let cur_ij = [ s_ij[0], s_ij[1] ];
+  let step_ij = [ d_ij[0] * Lx.length, d_ij[1] * Ly.length ];
 
-  for (let step = 0; step < max_step; step++) {
+  let end_ij = [
+    _clamp( s_ij[0] + step_ij[0], 0, Lx.length-1 ),
+    _clamp( s_ij[1] + step_ij[1], 0, Ly.length-1 )
+  ];
+
+  let ub = abs_sum_v( v_sub( end_ij, s_ij ) );
+  let lb = 0;
+
+  while ((ub - lb) > 1) {
+    let d_len = _L[ end_ij[1] ][ end_ij[0] ] - _L[ s_ij[1] ][ s_ij[0] ];
+    let s_len = _S[ end_ij[1] ][ end_ij[0] ] - _S[ s_ij[1] ][ s_ij[0] ];
+
+    let ds = Math.floor((ub - lb)/2);
+
+    if (s_len == d_len) {
+      lb = lb + ds;
+      end_ij[0] = s_ij[0] + ds*d_ij[0];
+      end_ij[1] = s_ij[1] + ds*d_ij[1];
+    }
+    else {
+      ub = ub - ds;
+      end_ij[0] = e_ij[0] - (ds-1)*d_ij[0];
+      end_ij[1] = e_ij[1] - (ds-1)*d_ij[1];
+    }
+
+
+  }
+
+  for (let i=ub; i>=lb; i--) {
+    cur_ij[0] = s_ij[0] + i*d_ij[0];
+    cur_ij[1] = s_ij[1] + i*d_ij[1];
+
+    /*
     if ( (cur_ij[0] < 0) || (cur_ij[0] >= Lx.length) ||
          (cur_ij[1] < 0) || (cur_ij[1] >= Ly.length) ) {
       return -1;
     }
+    */
 
     if (B2d[ cur_ij[1] ][ cur_ij[0] ] >= 0) {
       return B2d[ cur_ij[1] ][ cur_ij[0] ];
     }
 
-    cur_ij[0] += d_ij[0];
-    cur_ij[1] += d_ij[1];
   }
-  */
 
   return -1;
-
 }
 
 
@@ -2382,63 +2439,7 @@ function cleaveProfile(rprp_info, p_s, p_e, a, b) {
   console.log("cleave_profile:", cleave_profile.join(""));
   console.log("");
 
-  return;
-
-
-  for (let b=0; b<(1<<8); b++) {
-
-    let cleave_valid = true;
-
-    let cleave_bv = [0,0,0,0,0,0,0,0]
-    let cleave = [];
-
-    //WIP!!!!
-
-    // choose our cleave cut
-    //
-    for (let i=0; i<8; i++) {
-      if (b&(1<<i)) {
-        cleave_bv[i] = 1;
-        cleave.push( [ cleave_dxy[i][0], cleave_dxy[i][1] ] );
-      }
-
-      // if the cleave point is forced, make sure we've chosen it
-      //
-      //if ((forced_cleave[i] == 1) && (cleave_bv[i] == 0)) {
-      //  cleave_valid = false;
-      //  break;
-      //}
-    }
-
-    if (!cleave_valid) { continue; }
-
-    // each corner must have at least one cleave point
-    //
-    if ( ((cleave_bv[0] == 0) && (cleave_bv[1] == 0)) ||
-         ((cleave_bv[2] == 0) && (cleave_bv[3] == 0)) ||
-         ((cleave_bv[4] == 0) && (cleave_bv[5] == 0)) ||
-         ((cleave_bv[6] == 0) && (cleave_bv[7] == 0)) ) {
-      continue;
-    }
-
-    // if the cleave goes out of the polygon, ignore
-    //
-    for (let i=0; i<8; i++) {
-      if (cleave_bv[i] == 0) { continue; }
-      let _p = Rp[ Math.floor(i/2) ];
-
-      if ( !cleaveGridInside(rprp_info, _p, cleave_dxy[i]) ) {
-        cleave_valid = false;
-        break;
-      }
-
-    }
-
-    if (!cleave_valid) { continue; }
-
-    console.log(b, cleave);
-  }
-
+  return cleave_profile;
 }
 
 function _ok(P) {
@@ -2533,7 +2534,8 @@ function _main() {
 }
 
 function _main_iray_boundary_test() {
-  let grid_info = rectilinearGridPoints(pgn_pinwheel1);
+  //let grid_info = rectilinearGridPoints(pgn_pinwheel1);
+  let grid_info = rectilinearGridPoints(pgn_spiral);
 
   let ny = grid_info.B_2d.length;
   let nx = grid_info.B_2d[0].length;
