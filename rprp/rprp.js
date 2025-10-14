@@ -111,6 +111,18 @@ var pgn_spiral = [
   [33,28], [11,28], [11,29], [0,29]
 ];
 
+var pgn_spiral1 = [
+  [0,0], [11,0], [11,12], [9,12],
+  [9,15], [3,15], [3,19], [8,19],
+  [8,26], [27,26], [27,10], [16,10],
+  [16,20], [19,20], [19,22], [20,22],
+  [20,16], [19,16], [19,14], [22,14],
+  [22,23], [10,23], [10,15], [13,15],
+  [13,8], [31,8], [31,23], [33,23],
+  [33,29], [5,29], [5,21], [0,21],
+  [0,6], [5,6], [5,10], [3,10],
+  [3,13], [7,13], [7,3], [0,3]
+];
 
 
 var pgon_fig1 = [
@@ -530,6 +542,14 @@ function _clamp(a, b, c) {
 // WIP!!!
 // ROUGH DRAFT!!!
 //
+//
+// As implemented:
+// * assumes start point is on interior
+// * gets furthest boundary
+//
+// We probably want nearest boundary.
+// We're probably going to need to change the underlying structure.
+//
 function rprp_iray_boundary_intersection(grid_info, s_ij, d_ij) {
   let Lx = grid_info.Lx,
       Ly = grid_info.Ly,
@@ -537,11 +557,14 @@ function rprp_iray_boundary_intersection(grid_info, s_ij, d_ij) {
       Sy = grid_info.Sy;
   let B2d = grid_info.B_2d;
 
+  let dir_idx = 0;
+
   let _L = Lx;
   let _S = Sx;
   if (d_ij[0] == 0) {
     _L = Ly;
     _S = Sy;
+    dir_idx = 1;
   }
 
   let max_step = Math.max( Lx.length, Ly.length );
@@ -554,15 +577,70 @@ function rprp_iray_boundary_intersection(grid_info, s_ij, d_ij) {
     _clamp( s_ij[1] + step_ij[1], 0, Ly.length-1 )
   ];
 
+  let e_ij = [ end_ij[0], end_ij[1] ];
+
   let ub = abs_sum_v( v_sub( end_ij, s_ij ) );
   let lb = 0;
 
+  //DEBUG
+  //DEBUG
+  //DEBUG
+  let _dbg_p = [4,2],
+      _dbg_d = [1,0];
+
+  if ((s_ij[0] == _dbg_p[0]) && (s_ij[1] == _dbg_p[1]) && (d_ij[0]==_dbg_d[0]) && (d_ij[1] == _dbg_d[1])) {
+    console.log(">>>", "s_ij:", s_ij, "e_ij:", e_ij, "d_ij:", d_ij, "ulb:", ub, lb);
+  }
+
+  //DEBUG
+  //DEBUG
+  //DEBUG
+
+
   while ((ub - lb) > 1) {
-    let d_len = _L[ end_ij[1] ][ end_ij[0] ] - _L[ s_ij[1] ][ s_ij[0] ];
+    let d_len = _L[ end_ij[dir_idx] ] - _L[ s_ij[dir_idx] ];
     let s_len = _S[ end_ij[1] ][ end_ij[0] ] - _S[ s_ij[1] ][ s_ij[0] ];
 
     let ds = Math.floor((ub - lb)/2);
 
+    //DEBUG
+    //DEBUG
+    //DEBUG
+    if ((s_ij[0] == _dbg_p[0]) && (s_ij[1] == _dbg_p[1]) && (d_ij[0]==_dbg_d[0]) && (d_ij[1] == _dbg_d[1])) {
+      console.log("  >>>", "ulb:", ub, lb, "ds:", ds, "d_len:", d_len, "s_len:", s_len, "end_ij:", end_ij[0], end_ij[1],
+        "_S[][]:", _S[ end_ij[1] ][ end_ij[0] ] , _S[ s_ij[1] ][ s_ij[0] ]);
+    }
+    //DEBUG
+    //DEBUG
+    //DEBUG
+
+
+    if ( (_S[end_ij[1]][end_ij[0]] < 0) ||
+         (s_len > d_len) ) {
+      ub = ub - ds;
+      //end_ij[0] = e_ij[0] - (ds-1)*d_ij[0];
+      //end_ij[1] = e_ij[1] - (ds-1)*d_ij[1];
+      end_ij[0] = s_ij[0] + ds*d_ij[0];
+      end_ij[1] = s_ij[1] + ds*d_ij[1];
+
+
+
+      if ((s_ij[0] == _dbg_p[0]) && (s_ij[1] == _dbg_p[1]) && (d_ij[0]==_dbg_d[0]) && (d_ij[1] == _dbg_d[1])) {
+        console.log("  ... ub:", ub);
+      }
+
+    }
+    else {
+      lb = lb + ds;
+      end_ij[0] = s_ij[0] + ds*d_ij[0];
+      end_ij[1] = s_ij[1] + ds*d_ij[1];
+
+      if ((s_ij[0] == _dbg_p[0]) && (s_ij[1] == _dbg_p[1]) && (d_ij[0]==_dbg_d[0]) && (d_ij[1] == _dbg_d[1])) {
+        console.log("  ... lb:", lb);
+      }
+    }
+
+    /*
     if (s_len == d_len) {
       lb = lb + ds;
       end_ij[0] = s_ij[0] + ds*d_ij[0];
@@ -573,26 +651,41 @@ function rprp_iray_boundary_intersection(grid_info, s_ij, d_ij) {
       end_ij[0] = e_ij[0] - (ds-1)*d_ij[0];
       end_ij[1] = e_ij[1] - (ds-1)*d_ij[1];
     }
-
-
-  }
-
-  for (let i=ub; i>=lb; i--) {
-    cur_ij[0] = s_ij[0] + i*d_ij[0];
-    cur_ij[1] = s_ij[1] + i*d_ij[1];
-
-    /*
-    if ( (cur_ij[0] < 0) || (cur_ij[0] >= Lx.length) ||
-         (cur_ij[1] < 0) || (cur_ij[1] >= Ly.length) ) {
-      return -1;
-    }
     */
 
-    if (B2d[ cur_ij[1] ][ cur_ij[0] ] >= 0) {
-      return B2d[ cur_ij[1] ][ cur_ij[0] ];
+
+  }
+
+  if (d_ij[dir_idx] < 0) {
+
+    for (let i=ub; i>=lb; i--) {
+      cur_ij[0] = s_ij[0] + i*d_ij[0];
+      cur_ij[1] = s_ij[1] + i*d_ij[1];
+
+      if (B2d[ cur_ij[1] ][ cur_ij[0] ] >= 0) {
+        return B2d[ cur_ij[1] ][ cur_ij[0] ];
+      }
+
     }
 
   }
+  else {
+
+    for (let i=lb; i<=ub; i++) {
+      cur_ij[0] = s_ij[0] + i*d_ij[0];
+      cur_ij[1] = s_ij[1] + i*d_ij[1];
+
+      if ((s_ij[0] == _dbg_p[0]) && (s_ij[1] == _dbg_p[1]) && (d_ij[0]==_dbg_d[0]) && (d_ij[1] == _dbg_d[1])) {
+        console.log("  ...", "cur_ij:", cur_ij, "B2d[][]:", B2d[cur_ij[1]][cur_ij[0]] );
+      }
+
+      if (B2d[ cur_ij[1] ][ cur_ij[0] ] >= 0) {
+        return B2d[ cur_ij[1] ][ cur_ij[0] ];
+      }
+
+    }
+  }
+
 
   return -1;
 }
@@ -2535,7 +2628,7 @@ function _main() {
 
 function _main_iray_boundary_test() {
   //let grid_info = rectilinearGridPoints(pgn_pinwheel1);
-  let grid_info = rectilinearGridPoints(pgn_spiral);
+  let grid_info = rectilinearGridPoints(pgn_spiral1);
 
   let ny = grid_info.B_2d.length;
   let nx = grid_info.B_2d[0].length;
@@ -2549,7 +2642,8 @@ function _main_iray_boundary_test() {
 
       for (let idir=0; idir<idir_dxy.length; idir++) {
         console.log("s_ij:", i,j, "d_ij:", idir_dxy[idir],
-          "b_idx:", rprp_iray_boundary_intersection_linear(grid_info, [i,j], idir_dxy[idir]));
+          "b_idx:", rprp_iray_boundary_intersection_linear(grid_info, [i,j], idir_dxy[idir]),
+          rprp_iray_boundary_intersection(grid_info, [i,j], idir_dxy[idir]) );
       }
 
     }
