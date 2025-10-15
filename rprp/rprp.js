@@ -274,12 +274,26 @@ function _print_grid_info(grid_info) {
   console.log("");
 
   console.log("# dualG[iy][ix]:");
-  _print_dual(grid_info.dualG);
   for (let j=0; j<grid_info.dualG.length; j++) {
     for (let i=0; i<grid_info.dualG[j].length; i++) {
       console.log("dualG[", j, "][", i, "]:", JSON.stringify(grid_info.dualG[j][i]));
     }
     console.log("");
+  }
+  console.log("");
+
+  _print_dual(grid_info.dualG);
+  console.log("");
+
+  console.log("# B2d:");
+  for (let j=(grid_info.B_2d.length-1); j>=0; j--) {
+    let row_s = ["  "];
+    for (let i=0; i<grid_info.B_2d[j].length; i++) {
+      let v = _ifmt( grid_info.B_2d[j][i] );
+      let s = ( (v < 0) ? "  ." : _ifmt(v, 3) );
+      row_s.push( s );
+    }
+    console.log(row_s.join(" "));
   }
   console.log("");
 
@@ -1027,6 +1041,44 @@ function rectilinearGridPoints(rl_pgon) {
 
   }
 
+  // Jx Jy structures
+  //
+
+  let Jsx = [ [], [], [], [] ],
+      Jex = [ [], [], [], [] ],
+      Jsy = [ [], [], [], [] ],
+      Jey = [ [], [], [], [] ];
+
+  for (let j=0; j<Gv.length; j++) {
+    for (let i=0; i<Gv[j].length; i++) {
+      for (let idir=0; idir<4; idir++) {
+
+        if (i==0) {
+          Jsx[idir].push([]);
+          Jex[idir].push([]);
+          Jsy[idir].push([]);
+          Jey[idir].push([]);
+        }
+
+        Jsx[idir][j].push(-1);
+        Jex[idir][j].push(-1);
+
+        Jsy[idir][j].push(-1);
+        Jey[idir][j].push(-1);
+
+      }
+    }
+  }
+
+  //WIP!!!!
+
+  for (let j=0; j<Gv.length; j++) {
+    for (let i=0; i<Gv[j].length; i++) {
+
+    }
+  }
+
+
 
 
   // Sx Sy Lx and Ly are auxiliary structures to do
@@ -1061,7 +1113,16 @@ function rectilinearGridPoints(rl_pgon) {
     }
   }
 
-  // rl_pgon ordered counterclockwise
+  // rl_pgon ordered counterclockwise.
+  //
+  // We walk the border structure, initializing
+  // Sx and Sy anywhere the border starts from
+  // left to right or bottom to top.
+  // We keep a previous, current and next
+  // index into the border, and see if
+  // the current vertex is in line or
+  // at a corner.
+  // If it's inline, then
   //
 
   for (let idx=0; idx<B.length; idx++) {
@@ -1083,60 +1144,61 @@ function rectilinearGridPoints(rl_pgon) {
     let _u = v_sub( cur_ixy, prv_ixy );
     let _v = v_sub( nxt_ixy, cur_ixy );
 
-    let _du = v_delta(_u);
-    let _dv = v_delta(_v);
+    let _dprv = v_delta(_u);
+    let _dnxt = v_delta(_v);
 
+    // if we're on the edge of the grid and on
+    // the border, initialize Sx or Sy to 0,
+    // as appropriate.
+    //
     if (_i == 0) { Sx[ _j ][ _i ] = 0; }
     if (_j == 0) { Sy[ _j ][ _i ] = 0; }
 
-    if ( (_du[0] > 0.5) && (_dv[0] > 0.5) ) {
+    // prv-cur-nxt on horizontal line, init Sy to 0
+    // Mark Sx to -2 so that on second pass we
+    // fill in with neighbor value.
+    //
+    if ( (_dprv[0] > 0.5) && (_dnxt[0] > 0.5) ) {
       Sy[ _j ][ _i ] = 0;
+      //Sx[ _j ][ _i ] = -2;
     }
 
-    if ( (_du[1] < -0.5) && (_dv[1] < -0.5) ) {
+    // prv-cur-nxt on vertical line, init Sx to 0.
+    // Mark Sy to -2 so that on second pass we
+    // fill in with neighbor value.
+    //
+    if ( (_dprv[1] < -0.5) && (_dnxt[1] < -0.5) ) {
       Sx[ _j ][ _i ] = 0;
+      //Sy[ _j ][ _i ] = -2;
     }
 
-    if ( Math.abs(dot_v( _dv, _du )) < _eps ) {
+    // cur vertex is at bend point
+    //
+    if ( Math.abs(dot_v( _dnxt, _dprv )) < _eps ) {
 
-      if ( ((_du[1] < -0.5) && (_dv[0] > 0.5))  ||
-           ((_du[0] < -0.5) && (_dv[1] < -0.5)) ) {
+      // prv *           cur * <- * prv
+      //     |               |
+      //     v               v
+      // cur * -> * nxt      * nxt
+      //
+      if ( ((_dprv[1] < -0.5) && (_dnxt[0] >  0.5))  ||
+           ((_dprv[0] < -0.5) && (_dnxt[1] < -0.5)) ) {
         Sx[ _j ][ _i ] = 0;
       }
 
-      if ( ((_du[1] < -0.5) && (_dv[0] > 0.5)) ||
-           ((_du[0] > 0.5) && (_dv[1] > 0.5)) ) {
-      //if ( ((_du[1] < -0.5) && (_dv[0] < -0.5)) ||
-      //     ((_du[0] > 0.5) && (_dv[1] > 0.5)) ) {
+      // prv *                      * nxt
+      //     |                      ^
+      //     v                      |
+      // cur * -> * nxt    prv * -> * cur
+      //
+      if ( ((_dprv[1] < -0.5) && (_dnxt[0] > 0.5)) ||
+           ((_dprv[0] >  0.5) && (_dnxt[1] > 0.5)) ) {
         Sy[ _j ][ _i ] = 0;
       }
 
     }
 
   }
-
-  /*
-  console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", Sy.length, Sy[0].length);
-  console.log("Sx:");
-  for (let j=(Sx.length-1); j>=0; j--) {
-    let _line = [];
-    for (let i=0; i<Sx[j].length; i++) {
-      let _s = ((Sx[j][i] < 0) ? ' .' : _ifmt(Sx[j][i], 2));
-      _line.push( _s );
-    }
-    console.log( _line.join(" ") );
-  }
-  console.log("\nSy:");
-  for (let j=(Sy.length-1); j>=0; j--) {
-    let _line = [];
-    for (let i=0; i<Sy[j].length; i++) {
-      let _s = ((Sy[j][i] < 0) ? ' .' : _ifmt(Sy[j][i], 2));
-      _line.push( _s );
-    }
-    console.log( _line.join(" ") );
-  }
-  console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-  */
 
   for (let j=0; j<Gv.length; j++) {
     let x_start = 0;
@@ -1151,8 +1213,10 @@ function rectilinearGridPoints(rl_pgon) {
         x_start = Lx[i];
       }
 
-      if (Sx[j][i] == 0) { x_start = Lx[i]; }
+      if (Sx[j][i] ==  0) { x_start = Lx[i]; }
 
+      //if (Sx[j][i] == -2) { Sx[j][i] = Sx[j][i-1]; }
+      //else                { Sx[j][i] = Lx[i] - x_start; }
       Sx[j][i] = Lx[i] - x_start;
     }
   }
@@ -1170,34 +1234,19 @@ function rectilinearGridPoints(rl_pgon) {
         y_start = Ly[j];
       }
 
-      if (Sy[j][i] == 0) { y_start = Ly[j]; }
+      if (Sy[j][i] ==  0) { y_start = Ly[j]; }
 
+
+      //if (Sy[j][i] == -2) { Sy[j][i] = Sy[j-1][i]; }
+      //else                { Sy[j][i] = Ly[j] - y_start; }
       Sy[j][i] = Ly[j] - y_start;
     }
   }
 
 
-  /*
-  for (let i=0; i<B.length; i++) {
-    console.log(B[i].xy[0], B[i].xy[1]);
-  }
-
-  for (let j= (B_2d.length-1); j >= 0; j--) {
-    let a = [];
-    for (let i=0; i<B_2d[j].length; i++) {
-      let val = B_2d[j][i];
-
-      if (val >= 0) { a.push( _ifmt(val,2) ); }
-      else { a.push( ' .' ); }
-    }
-    console.log("#", a.join(" ") );
-  }
-  */
-
   return {
     "C": rl_pgon,
     "Ct": corner_type,
-    //"Cij": Cij,
     "G": grid_xy, "Gt": type_xy,
 
     "X": x_dedup, "Y": y_dedup,
@@ -1215,7 +1264,13 @@ function rectilinearGridPoints(rl_pgon) {
     "Sx" : Sx,
     "Sy" : Sy,
     "Lx" : Lx,
-    "Ly" : Ly
+    "Ly" : Ly,
+
+    "Jsx" : Jsx,
+    "Jsy" : Jsy,
+    "Jex" : Jex,
+    "Jey" : Jey
+
   };
 }
 
@@ -2629,6 +2684,8 @@ function _main() {
 function _main_iray_boundary_test() {
   //let grid_info = rectilinearGridPoints(pgn_pinwheel1);
   let grid_info = rectilinearGridPoints(pgn_spiral1);
+
+  _print_grid_info(grid_info);
 
   let ny = grid_info.B_2d.length;
   let nx = grid_info.B_2d[0].length;
