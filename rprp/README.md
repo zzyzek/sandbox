@@ -632,6 +632,47 @@ So, here's a recap:
 
 I don't think much changes with a guillotine cut, but this needs confirmation.
 
+---
+
+We want efficient cleave to boundary lookups.
+A naive algorithm would walk the grid until it hits the boundary.
+This works but has the potential to be slow, being effecitvely and $O(n^2)$ operation,
+depending on how many grid points are in line.
+
+The `Sx` and `Sy` structures (sum of contiguous interior regions from left-to-right and bottom-to-top)
+but:
+
+* To calculate maximum boundary, binary search needs to be used
+* Linear search needs to be used
+
+We can just save the boundary point from each grid point and direction directly.
+We need to traverse the whole grid to begin with, so we can do an extra pass to save
+the information that we want.
+
+The proposal is to create `4x4` (16) 2D arrays `Jsx[4]`, `Jsy[4]`, `Jex[4]` and `Jey[4]`,
+representing the first and last boundary point for a ray in a contiguous region of the boundary
+in each of the axis aligned directions (right/left/up/down).
+
+Each of the `J[se][xy][0123]` arrays is negative for grid points not on the boundary or not on
+the interior.
+For interior or on-boundary points, the value will be the first boundary point intersection of the
+ray for the `Js[xy]` structures and the last boundary point intersection for the `Je[xy]` structures.
+For a ray that starts on a boundary point but has direction that would go outside of the interior,
+the value for the `J` structures is `-1`.
+
+This gives an $O(1)$ test, after precomputation, to find the internal boundary intersection point.
+Testing to see if the billet is on the boundary, on the interior, etc. might need to be done with
+other structures, such as the `B_2d` or `S[xy]` structures.
+
+The specifics are involved but the idea is to sweep from one side to another, keeping
+track of whether we're interior or not.
+If we continue to be in the interior, keep track of the far boundary, updating the near
+boundary as necessary.
+As we walk the points, update with the appropriate value.
+
+The trick comes from understanding when to update the transition from interior to exterior.
+I think looking at neighboring boundary points, if we encounter a boundary point during our
+walk, will suffice, but we'll see.
 
 References
 ---
