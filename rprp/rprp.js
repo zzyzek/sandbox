@@ -297,9 +297,65 @@ function _print_grid_info(grid_info) {
   }
   console.log("");
 
-  console.log("# Sx Sy:");
   let _sw = 2;
   let _sp = _sfmt("", _sw);
+
+  console.log("# Jsx Jsy Jex Jey:");
+
+  let idir_descr = [ "+x", "-x", "+y", "-y" ];
+
+  for (let idir=0; idir<4; idir++) {
+
+    console.log("## Jsx,Jsy[", idir_descr[idir], "]");
+
+    for (let j=(grid_info.Gv.length-1); j>=0; j--) {
+      let idir = 0;
+
+      //let row_s = [ _ifmt(j, 2) + "," + _ifmt( grid_info.Ly[j], _sw ) + "|"  ];
+      let row_s = [];
+
+      for (let i=0; i<grid_info.Gv[j].length; i++) {
+        let jsx = grid_info.Jsx[idir][j][i];
+        let jsy = grid_info.Jsy[idir][j][i];
+
+        let a = ( (jsx < 0) ? _sp : _ifmt(jsx, _sw) );
+        let b = ( (jsy < 0) ? _sp : _ifmt(jsy, _sw) );
+
+        row_s.push( a + "," + b );
+      }
+
+      console.log( row_s.join("   ") );
+    }
+    console.log("");
+
+    console.log("## Jex,Jey[", idir_descr[idir], "]");
+
+    for (let j=(grid_info.Gv.length-1); j>=0; j--) {
+      let idir = 0;
+
+      //let row_s = [ _ifmt(j, 2) + "," + _ifmt( grid_info.Ly[j], _sw ) + "|"  ];
+      let row_s = [];
+
+      for (let i=0; i<grid_info.Gv[j].length; i++) {
+        let jex = grid_info.Jex[idir][j][i];
+        let jey = grid_info.Jey[idir][j][i];
+
+        let a = ( (jex < 0) ? _sp : _ifmt(jex, _sw) );
+        let b = ( (jey < 0) ? _sp : _ifmt(jey, _sw) );
+
+        row_s.push( a + "," + b );
+      }
+
+      console.log( row_s.join("   ") );
+    }
+    console.log("");
+  }
+  console.log("");
+
+
+  console.log("# Sx Sy:");
+  //let _sw = 2;
+  //let _sp = _sfmt("", _sw);
 
   for (let j=(grid_info.Gv.length-1); j>=0; j--) {
 
@@ -1071,9 +1127,36 @@ function rectilinearGridPoints(rl_pgon) {
   }
 
   //WIP!!!!
+  // the question is what kind of api do I want to enable.
+  // I want fast lookups to find the nearest and most distant
+  // boundary edge from an axis aligned ray.
+  // One question is whether I want the 
+
+  let idir = 0;
+  let idir_dxy = [ [1,0], [-1,0], [0,1], [0,-1] ];
+  let _ibound = [
+    [ [Gv[0].length-1, 0, -1], [0,Gv.length-1,1] ],
+    [ [0, Gv[0].length-1, 1], [0,Gv.length-1,1] ],
+    [ [0, Gv[0].length-1, 1], [Gv.length-1,0,-1] ],
+    [ [0, Gv[0].length-1, 1], [0,Gv.length-1,1] ]
+  ];
+
+  let _dxy = idir_dxy[idir];
 
   for (let j=0; j<Gv.length; j++) {
-    for (let i=0; i<Gv[j].length; i++) {
+
+    let _parity = 0;
+    let prv_idx = -1;
+    let afar_idx = -1,
+        near_idx = -1;
+
+    for (let i=(Gv[j].length-1); i>=0; i--) {
+
+      if (B_2d[j][i] >= 0) {
+        if (afar_idx < 0) { afar_idx = B_2d[j][i]
+      }
+
+
 
     }
   }
