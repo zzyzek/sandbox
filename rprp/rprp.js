@@ -300,9 +300,37 @@ function _print_grid_info(grid_info) {
   let _sw = 3;
   let _sp = _sfmt("", _sw);
 
+  let idir_descr = [ "+x", "-x", "+y", "-y" ];
+
+  console.log("# Js Je:");
+
+  for (let idir=0; idir<4; idir++) {
+
+    console.log("## Js,Je[", idir_descr[idir], "]");
+
+    for (let j=(grid_info.Gv.length-1); j>=0; j--) {
+      let row_s = [];
+
+      for (let i=0; i<grid_info.Gv[j].length; i++) {
+        let js = grid_info.Js[idir][j][i];
+        let je = grid_info.Je[idir][j][i];
+
+        let a = ( (js < 0) ? _sp : _ifmt(js, _sw) );
+        let b = ( (je < 0) ? _sp : _ifmt(je, _sw) );
+
+        row_s.push( a + "," + b );
+      }
+
+      console.log( row_s.join("   ") );
+    }
+    console.log("");
+
+  }
+  console.log("");
+
+
   console.log("# Jsx Jsy Jex Jey:");
 
-  let idir_descr = [ "+x", "-x", "+y", "-y" ];
 
   for (let idir=0; idir<4; idir++) {
 
@@ -844,6 +872,14 @@ function _rprp_irect_contain_test(grid_info) {
 
 //---
 
+function dxy2idir( dxy ) {
+  if (dxy[0] ==  1) { return 0; }
+  if (dxy[0] == -1) { return 1; }
+  if (dxy[1] ==  1) { return 2; }
+  if (dxy[1] == -1) { return 3; }
+  return -1;
+}
+
 function rprp_init(rl_pgn) {
 }
 
@@ -1264,6 +1300,9 @@ function rectilinearGridPoints(_rl_pgon) {
       Jsy = [ [], [], [], [] ],
       Jey = [ [], [], [], [] ];
 
+  let Js = [ [], [], [], [] ],
+      Je = [ [], [], [], [] ];
+
   for (let j=0; j<Gv.length; j++) {
     for (let i=0; i<Gv[j].length; i++) {
       for (let idir=0; idir<4; idir++) {
@@ -1273,6 +1312,9 @@ function rectilinearGridPoints(_rl_pgon) {
           Jex[idir].push([]);
           Jsy[idir].push([]);
           Jey[idir].push([]);
+
+          Js[idir].push([]);
+          Je[idir].push([]);
         }
 
         Jsx[idir][j].push(-1);
@@ -1280,6 +1322,9 @@ function rectilinearGridPoints(_rl_pgon) {
 
         Jsy[idir][j].push(-1);
         Jey[idir][j].push(-1);
+
+        Js[idir][j].push(-1);
+        Je[idir][j].push(-1);
 
       }
     }
@@ -1300,30 +1345,44 @@ function rectilinearGridPoints(_rl_pgon) {
     [ [0, Gv[0].length-1, 1], [0,Gv.length-1,1] ]
   ];
 
+  _ibound = [
+    [ [Gv[0].length-1, -1, -1], [0,Gv.length,1] ],
+    [ [0, Gv[0].length, 1], [0,Gv.length,1] ],
+    [ [0, Gv[0].length, 1], [Gv.length-1,-1,-1] ],
+    [ [0, Gv[0].length, 1], [0,Gv.length,1] ]
+  ];
+
   //-----------------------------------------------------
-  // p - parity, a - afar, n - near
+  // I - interior, a - afar, n - near
   //
   //
-  //                  +x        -x        +y        -y
-  // idx  prv nxt   p  a  n   p  a  n   p  a  n   p  a  n
-  //  0    0   0    .  .  .   .  .  .
-  //  1    1   1    .  .  .   .  .  .
-  //  2    2   2    1 -1 -1   0  B  B
-  //  3    3   3    0  B  B   
-  //  4    0   2    1  B  B
-  //  5    0   3    1  .  .
-  //  6    1   2    1  .  B
-  //  7    1   3    0 -1 -1
-  //  8    2   0    1  .  B
-  //  9    2   1    1  B  B
-  //  10   3   0    0 -1 -1
-  //  11   3   1    .  .  .
+  //        idir      +x        -x        +y        -y
+  // idx  prv nxt   I  a  n   I  a  n   I  a  n   I  a  n
+  //  0    0   0    .  .  .   .  .  .   0 -1 -1   1  B  B
+  //  1    1   1    .  .  .   .  .  .   1  B  B   0 -1 -1
+  //  2    2   2    1  B  B   0 -1 -1   .  .  .   .  .  .
+  //  3    3   3    0 -1 -1   1  B  B   .  .  .   .  .  .
+  //  4    0   2    1  B  B   0 -1 -1   0 -1 -1   1  B  B
+  //  5    0   3    .  .  .   .  .  B   .  .  .   .  .  B
+  //  6    1   2    .  .  B   .  .  .   .  .  B   .  .  .
+  //  7    1   3    0 -1 -1   1  B  B   1  B  B   0 -1 -1
+  //  8    2   0    .  .  B   .  .  .   .  .  .   .  .  B
+  //  9    2   1    1  B  B   0 -1 -1   1  B  B   0 -1 -1
+  //  10   3   0    0 -1 -1   1  B  B   0 -1 -1   1  B  B
+  //  11   3   1    .  .  .   .  .  B   .  .  B   .  .  .
   //
   // Note that the walk is in the opposite direction of the ray,
   // so +x above is indicating the ray is shotting in the +x direction
   // but we look at transitions walking from right to left.
   //
+  // Whenever we change from exterior to interior, we need to update
+  // the near and far saved indices.
+  // There are only a few other cases where the near index needs
+  // to be updated.
+  //
   //-----------------------------------------------------
+
+
 
   let _idir2lu = [
     [  0, -1,  4,  5 ],
@@ -1332,20 +1391,128 @@ function rectilinearGridPoints(_rl_pgon) {
     [ 10, 11, -1,  3 ]
   ];
 
-  let _lu = [
-    [ "...", "...", "1--", "0BB", "1BB", "1..", "1.B", "0--", "1.B", "1BB", "0--", "..." ],
+  let _lu_Ian = [
 
-    [ "...", "...", "1--", "0BB", "1BB", "1..", "1.B", "0--", "1.B", "1BB", "0--", "..." ],
-    [ "...", "...", "1--", "0BB", "1BB", "1..", "1.B", "0--", "1.B", "1BB", "0--", "..." ],
-    [ "...", "...", "1--", "0BB", "1BB", "1..", "1.B", "0--", "1.B", "1BB", "0--", "..." ]
+    //  00     11     22     33     01     03     12     13     20     21     30     31
+    //
+    [ "...", "...", "1BB", "0--", "1BB", "...", "..B", "0--", "..B", "1BB", "0--", "..." ],
+    [ "...", "...", "0--", "1BB", "0--", "..B", "...", "1BB", "...", "0--", "1BB", "..B" ],
+
+    [ "0--", "1BB", "...", "...", "0--", "...", "..B", "1BB", "...", "1BB", "0--", "..B" ],
+    [ "1BB", "0--", "...", "...", "1BB", "..B", "...", "0--", "..B", "0--", "1BB", "..." ]
+
   ];
 
+  for (let idir=0; idir<4; idir++) {
+
+    let _interior = 0;
+    let afar_B_idx = -1,
+        near_B_idx = -1;
+
+    if (idir < 2) {
+
+      for (let j = _ibound[idir][1][0]; j != _ibound[idir][1][1]; j += _ibound[idir][1][2]) {
+
+        afar_B_idx = -1;
+        near_B_idx = -1;
+
+        for (let i = _ibound[idir][0][0]; i != _ibound[idir][0][1]; i += _ibound[idir][0][2]) {
+          Jex[idir][j][i] = afar_B_idx;
+          Jsx[idir][j][i] = near_B_idx;
+
+          Je[idir][j][i] = afar_B_idx;
+          Js[idir][j][i] = near_B_idx;
+
+          if (B_2d[j][i] >= 0) {
+
+            let cur_B_idx = B_2d[j][i];
+            let cur_B_ixy = B[cur_B_idx].ixy;
+            let prv_B_ixy = B[(cur_B_idx-1 + B.length) % B.length].ixy;
+            let nxt_B_ixy = B[(cur_B_idx+1) % B.length].ixy;
+
+            let _dprv = v_sub( cur_B_ixy, prv_B_ixy );
+            let _dnxt = v_sub( nxt_B_ixy, cur_B_ixy );
+
+            let _idir_prv = dxy2idir( _dprv );
+            let _idir_nxt = dxy2idir( _dnxt );
+
+            let _code = _lu_Ian[idir][ _idir2lu[ _idir_prv ][ _idir_nxt ] ];
+
+            if      (_code[0] == '0') { _interior = 0; }
+            else if (_code[0] == '1') { _interior = 1; }
+
+            if      (_code[1] == 'B') { afar_B_idx = cur_B_idx; }
+            else if (_code[1] == '-') { afar_B_idx = -1; }
+
+            if      (_code[2] == 'B') { near_B_idx = cur_B_idx; }
+            else if (_code[2] == '-') { near_B_idx = -1; }
+
+          }
+
+        }
+
+      }
+
+    }
+
+    else {
+
+      for (let i = _ibound[idir][0][0]; i != _ibound[idir][0][1]; i += _ibound[idir][0][2]) {
+
+        afar_B_idx = -1;
+        near_B_idx = -1;
+
+        for (let j = _ibound[idir][1][0]; j != _ibound[idir][1][1]; j += _ibound[idir][1][2]) {
+
+          Jey[idir][j][i] = afar_B_idx;
+          Jsy[idir][j][i] = near_B_idx;
+
+          Je[idir][j][i] = afar_B_idx;
+          Js[idir][j][i] = near_B_idx;
+
+          if (B_2d[j][i] >= 0) {
+
+            let cur_B_idx = B_2d[j][i];
+            let cur_B_ixy = B[cur_B_idx].ixy;
+            let prv_B_ixy = B[(cur_B_idx-1 + B.length) % B.length].ixy;
+            let nxt_B_ixy = B[(cur_B_idx+1) % B.length].ixy;
+
+            let _dprv = v_sub( cur_B_ixy, prv_B_ixy );
+            let _dnxt = v_sub( nxt_B_ixy, cur_B_ixy );
+
+            let _idir_prv = dxy2idir( _dprv );
+            let _idir_nxt = dxy2idir( _dnxt );
+
+            let _code = _lu_Ian[idir][ _idir2lu[ _idir_prv ][ _idir_nxt ] ];
+
+            if      (_code[0] == '0') { _interior = 0; }
+            else if (_code[0] == '1') { _interior = 1; }
+
+            if      (_code[1] == 'B') { afar_B_idx = cur_B_idx; }
+            else if (_code[1] == '-') { afar_B_idx = -1; }
+
+            if      (_code[2] == 'B') { near_B_idx = cur_B_idx; }
+            else if (_code[2] == '-') { near_B_idx = -1; }
+
+          }
+
+        }
+
+      }
+
+    }
+
+
+  }
+
+
+  /*
   let idir = 0;
   let _dxy = idir_dxy[idir];
 
   for (let j=0; j<Gv.length; j++) {
 
-    let _parity = 0;
+    let _interior = 0;
     let afar_B_idx = -1,
         near_B_idx = -1;
 
@@ -1383,7 +1550,7 @@ function rectilinearGridPoints(_rl_pgon) {
         //
         else if ( (_dprv[0] ==  0) && (_dprv[1] ==  1) &&
                   (_dnxt[0] ==  0) && (_dnxt[1] ==  1) ) {
-          _parity = 1;
+          _interior = 1;
           afar_B_idx = cur_B_idx;
           near_B_idx = cur_B_idx;
         }
@@ -1392,7 +1559,7 @@ function rectilinearGridPoints(_rl_pgon) {
         //
         else if ( (_dprv[0] ==  0) && (_dprv[1] == -1) &&
                   (_dnxt[0] ==  0) && (_dnxt[1] == -1) ) {
-          _parity = 0;
+          _interior = 0;
           afar_B_idx = -1;
           near_B_idx = -1;
         }
@@ -1402,7 +1569,7 @@ function rectilinearGridPoints(_rl_pgon) {
         //
         else if ( (_dprv[0] ==  1) && (_dprv[1] ==  0) &&
                   (_dnxt[0] ==  0) && (_dnxt[1] ==  1) ) {
-          _parity = 1;
+          _interior = 1;
           afar_B_idx = cur_B_idx;
           near_B_idx = cur_B_idx;
         }
@@ -1411,14 +1578,14 @@ function rectilinearGridPoints(_rl_pgon) {
         //
         else if ( (_dprv[0] ==  1) && (_dprv[1] ==  0) &&
                   (_dnxt[0] ==  0) && (_dnxt[1] == -1) ) {
-          _parity = 1;
+          _interior = 1;
         }
 
         // bend, upper right outside
         //
         else if ( (_dprv[0] == -1) && (_dprv[1] ==  0) &&
                   (_dnxt[0] ==  0) && (_dnxt[1] ==  1) ) {
-          _parity = 1;
+          _interior = 1;
           near_B_idx = cur_B_idx;
         }
 
@@ -1426,7 +1593,7 @@ function rectilinearGridPoints(_rl_pgon) {
         //
         else if ( (_dprv[0] == -1) && (_dprv[1] ==  0) &&
                   (_dnxt[0] ==  0) && (_dnxt[1] == -1) ) {
-          _parity = 0;
+          _interior = 0;
           afar_B_idx = -1;
           near_B_idx = -1;
         }
@@ -1436,7 +1603,7 @@ function rectilinearGridPoints(_rl_pgon) {
         //
         else if ( (_dprv[0] ==  0) && (_dprv[1] ==  1) &&
                   (_dnxt[0] ==  1) && (_dnxt[1] ==  0) ) {
-          _parity = 1;
+          _interior = 1;
           near_B_idx = cur_B_idx;
         }
 
@@ -1444,7 +1611,7 @@ function rectilinearGridPoints(_rl_pgon) {
         //
         else if ( (_dprv[0] ==  0) && (_dprv[1] ==  1) &&
                   (_dnxt[0] == -1) && (_dnxt[1] ==  0) ) {
-          _parity = 1;
+          _interior = 1;
           near_B_idx = cur_B_idx;
           afar_B_idx = cur_B_idx;
         }
@@ -1453,7 +1620,7 @@ function rectilinearGridPoints(_rl_pgon) {
         //
         else if ( (_dprv[0] ==  0) && (_dprv[1] == -1) &&
                   (_dnxt[0] ==  1) && (_dnxt[1] ==  0) ) {
-          _parity = 0;
+          _interior = 0;
           near_B_idx = -1;
           afar_B_idx = -1;
         }
@@ -1474,6 +1641,7 @@ function rectilinearGridPoints(_rl_pgon) {
 
     }
   }
+  */
 
 
 
@@ -1503,7 +1671,10 @@ function rectilinearGridPoints(_rl_pgon) {
     "Jsx" : Jsx,
     "Jsy" : Jsy,
     "Jex" : Jex,
-    "Jey" : Jey
+    "Jey" : Jey,
+
+    "Js": Js,
+    "Je": Je
 
   };
 }
