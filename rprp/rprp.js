@@ -1300,6 +1300,46 @@ function rectilinearGridPoints(_rl_pgon) {
     [ [0, Gv[0].length-1, 1], [0,Gv.length-1,1] ]
   ];
 
+  //-----------------------------------------------------
+  // p - parity, a - afar, n - near
+  //
+  //
+  //                  +x        -x        +y        -y
+  // idx  prv nxt   p  a  n   p  a  n   p  a  n   p  a  n
+  //  0    0   0    .  .  .   .  .  .
+  //  1    1   1    .  .  .   .  .  .
+  //  2    2   2    1 -1 -1   0  B  B
+  //  3    3   3    0  B  B   
+  //  4    0   2    1  B  B
+  //  5    0   3    1  .  .
+  //  6    1   2    1  .  B
+  //  7    1   3    0 -1 -1
+  //  8    2   0    1  .  B
+  //  9    2   1    1  B  B
+  //  10   3   0    0 -1 -1
+  //  11   3   1    .  .  .
+  //
+  // Note that the walk is in the opposite direction of the ray,
+  // so +x above is indicating the ray is shotting in the +x direction
+  // but we look at transitions walking from right to left.
+  //
+  //-----------------------------------------------------
+
+  let _idir2lu = [
+    [  0, -1,  4,  5 ],
+    [ -1,  1,  6,  7 ],
+    [  8,  9,  2, -1 ],
+    [ 10, 11, -1,  3 ]
+  ];
+
+  let _lu = [
+    [ "...", "...", "1--", "0BB", "1BB", "1..", "1.B", "0--", "1.B", "1BB", "0--", "..." ],
+
+    [ "...", "...", "1--", "0BB", "1BB", "1..", "1.B", "0--", "1.B", "1BB", "0--", "..." ],
+    [ "...", "...", "1--", "0BB", "1BB", "1..", "1.B", "0--", "1.B", "1BB", "0--", "..." ],
+    [ "...", "...", "1--", "0BB", "1BB", "1..", "1.B", "0--", "1.B", "1BB", "0--", "..." ]
+  ];
+
   let idir = 0;
   let _dxy = idir_dxy[idir];
 
