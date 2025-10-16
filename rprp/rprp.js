@@ -297,7 +297,7 @@ function _print_grid_info(grid_info) {
   }
   console.log("");
 
-  let _sw = 2;
+  let _sw = 3;
   let _sp = _sfmt("", _sw);
 
   console.log("# Jsx Jsy Jex Jey:");
@@ -309,9 +309,6 @@ function _print_grid_info(grid_info) {
     console.log("## Jsx,Jsy[", idir_descr[idir], "]");
 
     for (let j=(grid_info.Gv.length-1); j>=0; j--) {
-      let idir = 0;
-
-      //let row_s = [ _ifmt(j, 2) + "," + _ifmt( grid_info.Ly[j], _sw ) + "|"  ];
       let row_s = [];
 
       for (let i=0; i<grid_info.Gv[j].length; i++) {
@@ -331,9 +328,6 @@ function _print_grid_info(grid_info) {
     console.log("## Jex,Jey[", idir_descr[idir], "]");
 
     for (let j=(grid_info.Gv.length-1); j>=0; j--) {
-      let idir = 0;
-
-      //let row_s = [ _ifmt(j, 2) + "," + _ifmt( grid_info.Ly[j], _sw ) + "|"  ];
       let row_s = [];
 
       for (let i=0; i<grid_info.Gv[j].length; i++) {
@@ -411,7 +405,7 @@ function clockwise(pgn) {
     let j = (i+1+pgn.length)%pgn.length;
     let u = pgn[i];
     let v = pgn[j];
-    s += (v[0]-u[0])*(v[1]-u[1]);
+    s += (v[0]-u[0])*(v[1]+u[1]);
   }
 
   if (s > 0) { return true; }
@@ -853,7 +847,7 @@ function _rprp_irect_contain_test(grid_info) {
 function rprp_init(rl_pgn) {
 }
 
-function rectilinearGridPoints(rl_pgon) {
+function rectilinearGridPoints(_rl_pgon) {
   let _eps = (1/(1024));
 
   let x_dup = [],
@@ -862,7 +856,9 @@ function rectilinearGridPoints(rl_pgon) {
   let pnt_map = {};
   let corner_type = [];
 
-  if (rl_pgon.length == 0) { return []; }
+  if (_rl_pgon.length == 0) { return []; }
+
+  let rl_pgon = orderCounterclockwise( _rl_pgon );
 
   let n = rl_pgon.length;
 
@@ -1097,73 +1093,6 @@ function rectilinearGridPoints(rl_pgon) {
 
   }
 
-  // Jx Jy structures
-  //
-
-  let Jsx = [ [], [], [], [] ],
-      Jex = [ [], [], [], [] ],
-      Jsy = [ [], [], [], [] ],
-      Jey = [ [], [], [], [] ];
-
-  for (let j=0; j<Gv.length; j++) {
-    for (let i=0; i<Gv[j].length; i++) {
-      for (let idir=0; idir<4; idir++) {
-
-        if (i==0) {
-          Jsx[idir].push([]);
-          Jex[idir].push([]);
-          Jsy[idir].push([]);
-          Jey[idir].push([]);
-        }
-
-        Jsx[idir][j].push(-1);
-        Jex[idir][j].push(-1);
-
-        Jsy[idir][j].push(-1);
-        Jey[idir][j].push(-1);
-
-      }
-    }
-  }
-
-  //WIP!!!!
-  // the question is what kind of api do I want to enable.
-  // I want fast lookups to find the nearest and most distant
-  // boundary edge from an axis aligned ray.
-  // One question is whether I want the 
-
-  let idir = 0;
-  let idir_dxy = [ [1,0], [-1,0], [0,1], [0,-1] ];
-  let _ibound = [
-    [ [Gv[0].length-1, 0, -1], [0,Gv.length-1,1] ],
-    [ [0, Gv[0].length-1, 1], [0,Gv.length-1,1] ],
-    [ [0, Gv[0].length-1, 1], [Gv.length-1,0,-1] ],
-    [ [0, Gv[0].length-1, 1], [0,Gv.length-1,1] ]
-  ];
-
-  let _dxy = idir_dxy[idir];
-
-  for (let j=0; j<Gv.length; j++) {
-
-    let _parity = 0;
-    let prv_idx = -1;
-    let afar_idx = -1,
-        near_idx = -1;
-
-    for (let i=(Gv[j].length-1); i>=0; i--) {
-
-      if (B_2d[j][i] >= 0) {
-        if (afar_idx < 0) { afar_idx = B_2d[j][i]
-      }
-
-
-
-    }
-  }
-
-
-
-
   // Sx Sy Lx and Ly are auxiliary structures to do
   // quick rectangular inclusion testing
   //
@@ -1325,6 +1254,188 @@ function rectilinearGridPoints(rl_pgon) {
       Sy[j][i] = Ly[j] - y_start;
     }
   }
+
+
+  // Jx Jy structures
+  //
+
+  let Jsx = [ [], [], [], [] ],
+      Jex = [ [], [], [], [] ],
+      Jsy = [ [], [], [], [] ],
+      Jey = [ [], [], [], [] ];
+
+  for (let j=0; j<Gv.length; j++) {
+    for (let i=0; i<Gv[j].length; i++) {
+      for (let idir=0; idir<4; idir++) {
+
+        if (i==0) {
+          Jsx[idir].push([]);
+          Jex[idir].push([]);
+          Jsy[idir].push([]);
+          Jey[idir].push([]);
+        }
+
+        Jsx[idir][j].push(-1);
+        Jex[idir][j].push(-1);
+
+        Jsy[idir][j].push(-1);
+        Jey[idir][j].push(-1);
+
+      }
+    }
+  }
+
+
+  //WIP!!!!
+  // the question is what kind of api do I want to enable.
+  // I want fast lookups to find the nearest and most distant
+  // boundary edge from an axis aligned ray.
+  // One question is whether I want the 
+
+  let idir_dxy = [ [1,0], [-1,0], [0,1], [0,-1] ];
+  let _ibound = [
+    [ [Gv[0].length-1, 0, -1], [0,Gv.length-1,1] ],
+    [ [0, Gv[0].length-1, 1], [0,Gv.length-1,1] ],
+    [ [0, Gv[0].length-1, 1], [Gv.length-1,0,-1] ],
+    [ [0, Gv[0].length-1, 1], [0,Gv.length-1,1] ]
+  ];
+
+  let idir = 0;
+  let _dxy = idir_dxy[idir];
+
+  for (let j=0; j<Gv.length; j++) {
+
+    let _parity = 0;
+    let afar_B_idx = -1,
+        near_B_idx = -1;
+
+    for (let i=(Gv[j].length-1); i>=0; i--) {
+
+      Jex[idir][j][i] = afar_B_idx;
+      Jsx[idir][j][i] = near_B_idx;
+
+      if (B_2d[j][i] >= 0) {
+
+
+        let cur_B_idx = B_2d[j][i];
+        let cur_B_ixy = B[cur_B_idx].ixy;
+        let prv_B_ixy = B[(cur_B_idx-1 + B.length) % B.length].ixy;
+        let nxt_B_ixy = B[(cur_B_idx+1) % B.length].ixy;
+
+        let _dprv = v_sub( cur_B_ixy, prv_B_ixy );
+        let _dnxt = v_sub( nxt_B_ixy, cur_B_ixy );
+
+        let _dnp = dot_v( _dnxt, _dprv );
+
+        // in-line, bottom outside
+        //
+        if      ( (_dprv[0] ==  1) && (_dprv[1] ==  0) &&
+                  (_dnxt[0] ==  1) && (_dnxt[1] ==  0) ) {
+        }
+
+        // in-line, top outside
+        //
+        else if ( (_dprv[0] == -1) && (_dprv[1] ==  0) &&
+                  (_dnxt[0] == -1) && (_dnxt[1] ==  0) ) {
+        }
+
+        // in-line, right outside
+        //
+        else if ( (_dprv[0] ==  0) && (_dprv[1] ==  1) &&
+                  (_dnxt[0] ==  0) && (_dnxt[1] ==  1) ) {
+          _parity = 1;
+          afar_B_idx = cur_B_idx;
+          near_B_idx = cur_B_idx;
+        }
+
+        // in-line, left outside
+        //
+        else if ( (_dprv[0] ==  0) && (_dprv[1] == -1) &&
+                  (_dnxt[0] ==  0) && (_dnxt[1] == -1) ) {
+          _parity = 0;
+          afar_B_idx = -1;
+          near_B_idx = -1;
+        }
+
+
+        // bend, lower right outside
+        //
+        else if ( (_dprv[0] ==  1) && (_dprv[1] ==  0) &&
+                  (_dnxt[0] ==  0) && (_dnxt[1] ==  1) ) {
+          _parity = 1;
+          afar_B_idx = cur_B_idx;
+          near_B_idx = cur_B_idx;
+        }
+
+        // bend, lower left outside
+        //
+        else if ( (_dprv[0] ==  1) && (_dprv[1] ==  0) &&
+                  (_dnxt[0] ==  0) && (_dnxt[1] == -1) ) {
+          _parity = 1;
+        }
+
+        // bend, upper right outside
+        //
+        else if ( (_dprv[0] == -1) && (_dprv[1] ==  0) &&
+                  (_dnxt[0] ==  0) && (_dnxt[1] ==  1) ) {
+          _parity = 1;
+          near_B_idx = cur_B_idx;
+        }
+
+        // bend, upper left outside
+        //
+        else if ( (_dprv[0] == -1) && (_dprv[1] ==  0) &&
+                  (_dnxt[0] ==  0) && (_dnxt[1] == -1) ) {
+          _parity = 0;
+          afar_B_idx = -1;
+          near_B_idx = -1;
+        }
+
+
+        // bend, lower right outside
+        //
+        else if ( (_dprv[0] ==  0) && (_dprv[1] ==  1) &&
+                  (_dnxt[0] ==  1) && (_dnxt[1] ==  0) ) {
+          _parity = 1;
+          near_B_idx = cur_B_idx;
+        }
+
+        // bend, upper right outside
+        //
+        else if ( (_dprv[0] ==  0) && (_dprv[1] ==  1) &&
+                  (_dnxt[0] == -1) && (_dnxt[1] ==  0) ) {
+          _parity = 1;
+          near_B_idx = cur_B_idx;
+          afar_B_idx = cur_B_idx;
+        }
+
+        // bend, lower left outside
+        //
+        else if ( (_dprv[0] ==  0) && (_dprv[1] == -1) &&
+                  (_dnxt[0] ==  1) && (_dnxt[1] ==  0) ) {
+          _parity = 0;
+          near_B_idx = -1;
+          afar_B_idx = -1;
+        }
+
+        // bend, upper left outside
+        //
+        else if ( (_dprv[0] ==  0) && (_dprv[1] == -1) &&
+                  (_dnxt[0] == -1) && (_dnxt[1] ==  0) ) {
+        }
+
+
+        //console.log("### cur_B_idx:", cur_B_idx, "prv_B_idx:", prv_B_idx, "nxt_B_idx:", nxt_B_idx);
+        console.log("### cur_B_ixy:", cur_B_ixy, "prv_B_ixy:", prv_B_ixy, "nxt_B_ixy:", nxt_B_ixy);
+
+      }
+
+
+
+    }
+  }
+
+
 
 
   return {
@@ -2766,6 +2877,7 @@ function _main() {
 
 function _main_iray_boundary_test() {
   //let grid_info = rectilinearGridPoints(pgn_pinwheel1);
+
   let grid_info = rectilinearGridPoints(pgn_spiral1);
 
   _print_grid_info(grid_info);
