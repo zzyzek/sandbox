@@ -324,7 +324,7 @@ or the original boundary of the rectilinear polygon.
 As a first attempt, we assume the adit, $a$, vertex is chosen
 and loop through all bower, $b$, vertices to test the following:
 
-* The quarry rectangle, $R _ {a,b}$, is completely in the current region $Q$ with positive area (no degenerate line $(a,b)$)
+* The quarry rectangle, $R _ {a,b}$, is completely in the current region $Q$ with positive area (no degenerate line $(a,b)$ )
 * there is a choice of cleave lines from the quarry corner vertices that:
   - lie within $Q$ and not just on the edge or outside of it (that is, the direction of the cleave cut shoots into the body of $Q$).
   - isn't redundant by allowing a billet to slide between them
@@ -608,7 +608,7 @@ Or just initially follow each ray until it hits the general boundary point, and 
 if it falls outside the current region.
 
 With the auxiliary rectangle testing structures, this can be made to be $O(\log n)$ but initially we'll
-just use the simple grid point walk ($O(n)$).
+just use the simple grid point walk ( $O(n)$ ).
 
 ---
 
@@ -643,7 +643,10 @@ The `Sx` and `Sy` structures exist (sum of contiguous interior regions from left
 but:
 
 * To calculate maximum boundary, binary search needs to be used
-* Linear search needs to be used
+* Linear search still needs to be used for closest boundary point
+
+The `Sx` and `Sy` structures almost get us there but they only give us the sum and so we know we have to have
+something else to give us the choice between the nearest and furthest boundary point.
 
 We can just save the boundary point from each grid point and direction directly.
 We need to traverse the whole grid to begin with, so we can do an extra pass to save
@@ -686,6 +689,45 @@ As we walk the points, update with the appropriate value.
 The trick comes from understanding when to update the transition from interior to exterior.
 I think looking at neighboring boundary points, if we encounter a boundary point during our
 walk, will suffice, but we'll see.
+
+---
+
+###### 2025-10-20
+
+More thinking out loud.
+
+Create a function that takes in two general boundary points, the order of which determine the region in question,
+an adit point, $a$, that is either the intersection of the 2-cut made from two constructed line cuts from the boundary or is on either
+side of a single 1-cut, and a bower point, $b$, that marks the edge of the rectangle.
+
+Either it's assumed adit $a$ is on the corner of the 2-cut or on the one side of the 1-cut and that $b$ is within the region or these checks
+can be made.
+
+The function will then cycle through the cleave cuts, checking for validity, but otherwise return a list of candidate cleave cuts
+that will partition the remaining region into 2-cut or 1-cut regions.
+
+So:
+
+```
+function enumerateCleaveCut(rprp_ctx, gb_idx0, gb_idx1, a, b) {
+  determine region R
+  construct Rab
+
+  // look at Sx and Sy to determine if Rab wholly in region R
+  if (Rab not in R) { return []; }
+
+  is2cut = gb_idx0 and gb_idx1 are non colinear
+
+
+  if (is2cut) {
+    billet0 = 
+  }
+
+  else {  // 1-cut
+  }
+
+}
+```
 
 References
 ---
