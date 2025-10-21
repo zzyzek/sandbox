@@ -43,8 +43,8 @@ var g_ui = {
 
   "viz_opt" : {
     "show_ij": false,
-    "show_Js": true,
-    "show_Je": false,
+    "show_Js": false,
+    "show_Je": true,
     "show_B": true
   },
 
@@ -470,24 +470,36 @@ function _draw_rprp_grid() {
       let _t = two.makeText( _txt, _txy[0], _txy[1], _style );
     }
 
-    if (g_ui.viz_opt.show_Js) {
-      for (let idir=0; idir<4; idir++) {
-        let v = Js[idir][ grid_ij[i][1] ][ grid_ij[i][0] ];
-        if (v>=0) {
-          let _tj = two.makeText( v.toString(), _b[0] + idir_offset[idir][0], _b[1] + idir_offset[idir][1], _style1 );
-          _tj.rotation = idir_offset[idir][2];
-        }
-      }
-    }
+  }
 
-    if (g_ui.viz_opt.show_Je) {
-      for (let idir=0; idir<4; idir++) {
-        let v = Je[idir][ grid_ij[i][1] ][ grid_ij[i][0] ];
-        if (v>=0) {
-          let _tj = two.makeText( v.toString(), _b[0] + idir_offset[idir][0], _b[1] + idir_offset[idir][1], _style1 );
-          _tj.rotation = idir_offset[idir][2];
+  for (let j=0; j<Gv.length; j++) {
+    for (let i=0; i<Gv[j].length; i++) {
+
+      let _b = [
+        Gv[j][i].xy[0]*gs + _oxy[0],
+       -Gv[j][i].xy[1]*gs + _oxy[1]
+      ];
+
+      if (g_ui.viz_opt.show_Js) {
+        for (let idir=0; idir<4; idir++) {
+          let v = Js[idir][j][i];
+          if (v>=0) {
+            let _tj = two.makeText( v.toString(), _b[0] + idir_offset[idir][0], _b[1] + idir_offset[idir][1], _style1 );
+            _tj.rotation = idir_offset[idir][2];
+          }
         }
       }
+
+      if (g_ui.viz_opt.show_Je) {
+        for (let idir=0; idir<4; idir++) {
+          let v = Je[idir][j][i];
+          if (v>=0) {
+            let _tj = two.makeText( v.toString(), _b[0] + idir_offset[idir][0], _b[1] + idir_offset[idir][1], _style1 );
+            _tj.rotation = idir_offset[idir][2];
+          }
+        }
+      }
+
     }
 
   }

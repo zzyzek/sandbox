@@ -185,6 +185,14 @@ let pgn_custom0 = [
   [7,4], [7,0], [3,0], [3,9]
 ];
 
+let pgn_clover = [
+  [0,2], [10,2], [10,6], [17,6],
+  [17,0], [31,0], [31,4], [23,4],
+  [23,12], [30,12], [30,27], [20,27],
+  [20,19], [8,19], [8,24], [3,24],
+  [3,14], [10,14], [10,10], [0,10]
+];
+
 function _write_data(ofn, data) {
   var fs = require("fs");
   return fs.writeFileSync(ofn, JSON.stringify(data, undefined, 2));
@@ -1425,6 +1433,7 @@ function rectilinearGridPoints(_rl_pgon) {
         for (let i = _ibound[idir][0][0]; i != _ibound[idir][0][1]; i += _ibound[idir][0][2]) {
           //Jex[idir][j][i] = afar_B_idx;
           //Jsx[idir][j][i] = near_B_idx;
+
 
           Je[idir][j][i] = afar_B_idx;
           Js[idir][j][i] = near_B_idx;
@@ -3095,7 +3104,8 @@ function _main() {
 function _main_iray_boundary_test() {
   //let grid_info = rectilinearGridPoints(pgn_pinwheel1);
 
-  let grid_info = rectilinearGridPoints(pgn_spiral1);
+  //let grid_info = rectilinearGridPoints(pgn_spiral1);
+  let grid_info = rectilinearGridPoints(pgn_clover);
 
   _print_grid_info(grid_info);
 
