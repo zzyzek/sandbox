@@ -43,8 +43,8 @@ var g_ui = {
 
   "viz_opt" : {
     "show_ij": false,
-    "show_Js": false,
-    "show_Je": true,
+    "show_Js": true,
+    "show_Je": false,
     "show_B": true
   },
 

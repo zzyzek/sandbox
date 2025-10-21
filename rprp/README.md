@@ -667,15 +667,11 @@ Figure on the left is `Js` and figure on the right is `Je`:
 
 | | |
 |---|---|
-| ![Overhang Js](viz/img/overhang_Js.png) | ![Overhang Je](viz/img/overhang_Je.png) |
+| ![Clover Js](viz/img/clover_Js.png) | ![Clover Je](viz/img/clover_Je.png) |
 
 
 Numbers in yellow represent the index of the general boundary point and numbers in red represent the
 first general boundary point intersection in the appropriate `idir`.
-
-Note that the only difference in the above two pictures is how the middle hill is handled.
-For the `Js` structure, the first general boundary index is `7` (from left to right) and for the `Je`
-structure, it's `21`.
 
 With `Je` and `Js`, we precompute the values to get an $O(1)$ test to find the internal boundary intersection point.
 Testing to see if the billet is on the boundary, on the interior, etc. might need to be done with
