@@ -41,6 +41,13 @@ var g_ui = {
   "state": "idle",
   "state_description" : [ "drawing", "idle", "delete" ],
 
+  "viz_opt" : {
+    "show_ij": false,
+    "show_Js": true,
+    "show_Je": false,
+    "show_B": true
+  },
+
   "ready": false,
   "two" : new Two({"fitted":true})
 };
@@ -318,10 +325,14 @@ function _draw_rprp_grid() {
   let Sx = rprp_info.Sx;
   let Sy = rprp_info.Sy;
 
+  let Js = rprp_info.Js;
+  let Je = rprp_info.Je;
+
+  let B = rprp_info.B;
+
   let B2d = rprp_info.B_2d;
 
   let _dashes = [4,4];
-
 
   let _oxy = [px_pgn[0][0], px_pgn[0][1]];
   for (let i=1; i<px_pgn.length; i++) {
@@ -330,6 +341,7 @@ function _draw_rprp_grid() {
   }
 
   let grid_pnt = [];
+  let grid_ij = [];
 
   for (let iy=1; iy < Gv.length; iy++) {
     for (let ix=1; ix < Gv[iy].length; ix++) {
@@ -369,6 +381,8 @@ function _draw_rprp_grid() {
            p_prv[0]*gs + _oxy[0],
           -p_prv[1]*gs + _oxy[1]
           ]);
+
+          grid_ij.push( [ix, iy-1] );
         }
 
         grid_pnt.push([
@@ -376,6 +390,7 @@ function _draw_rprp_grid() {
          -p_cur[1]*gs + _oxy[1]
         ]);
 
+        grid_ij.push( [ix, iy] );
 
       }
 
@@ -403,6 +418,8 @@ function _draw_rprp_grid() {
             p_prv[0]*gs + _oxy[0],
            -p_prv[1]*gs + _oxy[1]
           ]);
+
+          grid_ij.push( [ix-1, iy] );
         }
 
         grid_pnt.push([
@@ -410,6 +427,7 @@ function _draw_rprp_grid() {
          -p_cur[1]*gs + _oxy[1]
         ]);
 
+        grid_ij.push( [ix, iy] );
       }
 
       else {
@@ -420,9 +438,70 @@ function _draw_rprp_grid() {
     }
   }
 
+  let _style = {
+    "fill": "rgb(128,128,0)",
+    "size": 7
+  };
+
+  let _style1 = {
+    "fill": "rgb(128,64,0)",
+    "size": 7
+  };
+
+  let idir_offset = [
+    [12,-4, 0],
+    [-12,6, 0],
+    [-5, -10, -Math.PI/2 ],
+    [6,  10,  Math.PI/2 ]
+  ];
+
   for (let i=0; i<grid_pnt.length; i++) {
     let _c = two.makeCircle( grid_pnt[i][0], grid_pnt[i][1], 3 );
+
+    let _txt = grid_ij[i][0].toString() + "," + grid_ij[i][1].toString();
+    let _txy = [
+      grid_pnt[i][0] + 12,
+      grid_pnt[i][1] + 8
+    ];
+
+    let _b = [grid_pnt[i][0], grid_pnt[i][1]];
+
+    if (g_ui.viz_opt.show_ij) {
+      let _t = two.makeText( _txt, _txy[0], _txy[1], _style );
+    }
+
+    if (g_ui.viz_opt.show_Js) {
+      for (let idir=0; idir<4; idir++) {
+        let v = Js[idir][ grid_ij[i][1] ][ grid_ij[i][0] ];
+        if (v>=0) {
+          let _tj = two.makeText( v.toString(), _b[0] + idir_offset[idir][0], _b[1] + idir_offset[idir][1], _style1 );
+          _tj.rotation = idir_offset[idir][2];
+        }
+      }
+    }
+
+    if (g_ui.viz_opt.show_Je) {
+      for (let idir=0; idir<4; idir++) {
+        let v = Je[idir][ grid_ij[i][1] ][ grid_ij[i][0] ];
+        if (v>=0) {
+          let _tj = two.makeText( v.toString(), _b[0] + idir_offset[idir][0], _b[1] + idir_offset[idir][1], _style1 );
+          _tj.rotation = idir_offset[idir][2];
+        }
+      }
+    }
+
   }
+
+  if (g_ui.viz_opt.show_B) {
+    for (let b_idx=0; b_idx < B.length; b_idx++) {
+      let bxy = [
+        B[b_idx].xy[0]*gs + _oxy[0],
+       -B[b_idx].xy[1]*gs + _oxy[1]
+      ];
+      let _tb = two.makeText( b_idx.toString(), bxy[0] + 12, bxy[1] + 8, _style );
+    }
+  }
+
 
 }
 

@@ -1,5 +1,4 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.rprp = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-(function (process){(function (){
 // To the extent possible under law, the person who associated CC0 with
 // this project has waived all copyright and related or neighboring rights
 // to this project.
@@ -69,6 +68,63 @@ var pgon_pinwheel = [
   [1,-1], [1,1], [0,1], [0,5], [2,5], [2,6],
   [4,6], [4,3], [5,3], [5,0], [3,0], [3,-1],
 ];
+
+var pgn_pinwheel1 = [
+  [0,6], [4,6], [4,0], [9,0],
+  [9,4], [14,4], [14,9], [11,9],
+  [11,15], [6,15], [6,11], [0,11]
+];
+
+// example that can have quarry endpoints floating over
+// the sides.
+// Used to show various rejection conditions for cleave
+// cuts eminating from corners of quarry rectangle.
+//
+var pgn_balance = [
+  [0,6], [5,6], [5,8], [9,8],
+  [9,11], [12,11], [12,6], [15,6],
+  [15,0], [21,0], [21,9], [19,9],
+  [19,17], [14,17], [14,21], [7,21],
+  [7,19], [3,19], [3,14], [0,14]
+];
+
+// can choose quarry so that it's perched wholly
+// on the top of a 2cut
+//
+var pgn_quarry_share_2cut = [
+  [0,8], [7,8], [7,7], [10,7],
+  [10,12], [13,12], [13,9], [15,9],
+  [15,5], [18,5], [18,2], [22,2],
+  [22,0], [27,0], [27,18], [20,18],
+  [20,23], [4,23], [4,17], [1,17],
+  [1,14], [0,14]
+];
+
+var pgn_spiral = [
+  [0,0], [35,0], [35,10], [32,10],
+  [32,2], [2,2], [2,26], [28,26],
+  [28,21], [30,21], [30,17], [27,17],
+  [27,6], [6,6], [6,22], [21,22],
+  [21,11], [10,11], [10,18], [15,18],
+  [15,14], [18,14], [18,20], [9,20],
+  [9,8], [25,8], [25,24], [4,24],
+  [4,4], [30,4], [30,15], [33,15],
+  [33,28], [11,28], [11,29], [0,29]
+];
+
+var pgn_spiral1 = [
+  [0,0], [11,0], [11,12], [9,12],
+  [9,15], [3,15], [3,19], [8,19],
+  [8,26], [27,26], [27,10], [16,10],
+  [16,20], [19,20], [19,22], [20,22],
+  [20,16], [19,16], [19,14], [22,14],
+  [22,23], [10,23], [10,15], [13,15],
+  [13,8], [31,8], [31,23], [33,23],
+  [33,29], [5,29], [5,21], [0,21],
+  [0,6], [5,6], [5,10], [3,10],
+  [3,13], [7,13], [7,3], [0,3]
+];
+
 
 var pgon_fig1 = [
   [0,3], [0,9], [7,9], [7,10], [10,10],
@@ -219,7 +275,6 @@ function _print_grid_info(grid_info) {
   console.log("");
 
   console.log("# dualG[iy][ix]:");
-  _print_dual(grid_info.dualG);
   for (let j=0; j<grid_info.dualG.length; j++) {
     for (let i=0; i<grid_info.dualG[j].length; i++) {
       console.log("dualG[", j, "][", i, "]:", JSON.stringify(grid_info.dualG[j][i]));
@@ -228,9 +283,104 @@ function _print_grid_info(grid_info) {
   }
   console.log("");
 
-  console.log("# Sx Sy:");
-  let _sw = 2;
+  _print_dual(grid_info.dualG);
+  console.log("");
+
+  console.log("# B2d:");
+  for (let j=(grid_info.B_2d.length-1); j>=0; j--) {
+    let row_s = ["  "];
+    for (let i=0; i<grid_info.B_2d[j].length; i++) {
+      let v = _ifmt( grid_info.B_2d[j][i] );
+      let s = ( (v < 0) ? "  ." : _ifmt(v, 3) );
+      row_s.push( s );
+    }
+    console.log(row_s.join(" "));
+  }
+  console.log("");
+
+  let _sw = 3;
   let _sp = _sfmt("", _sw);
+
+  let idir_descr = [ "+x", "-x", "+y", "-y" ];
+
+  console.log("# Js Je:");
+
+  for (let idir=0; idir<4; idir++) {
+
+    console.log("## Js,Je[", idir_descr[idir], "]");
+
+    for (let j=(grid_info.Gv.length-1); j>=0; j--) {
+      let row_s = [];
+
+      for (let i=0; i<grid_info.Gv[j].length; i++) {
+        let js = grid_info.Js[idir][j][i];
+        let je = grid_info.Je[idir][j][i];
+
+        let a = ( (js < 0) ? _sp : _ifmt(js, _sw) );
+        let b = ( (je < 0) ? _sp : _ifmt(je, _sw) );
+
+        row_s.push( a + "," + b );
+      }
+
+      console.log( row_s.join("   ") );
+    }
+    console.log("");
+
+  }
+  console.log("");
+
+
+  /*
+  console.log("# Jsx Jsy Jex Jey:");
+
+
+  for (let idir=0; idir<4; idir++) {
+
+    console.log("## Jsx,Jsy[", idir_descr[idir], "]");
+
+    for (let j=(grid_info.Gv.length-1); j>=0; j--) {
+      let row_s = [];
+
+      for (let i=0; i<grid_info.Gv[j].length; i++) {
+        let jsx = grid_info.Jsx[idir][j][i];
+        let jsy = grid_info.Jsy[idir][j][i];
+
+        let a = ( (jsx < 0) ? _sp : _ifmt(jsx, _sw) );
+        let b = ( (jsy < 0) ? _sp : _ifmt(jsy, _sw) );
+
+        row_s.push( a + "," + b );
+      }
+
+      console.log( row_s.join("   ") );
+    }
+    console.log("");
+
+    console.log("## Jex,Jey[", idir_descr[idir], "]");
+
+    for (let j=(grid_info.Gv.length-1); j>=0; j--) {
+      let row_s = [];
+
+      for (let i=0; i<grid_info.Gv[j].length; i++) {
+        let jex = grid_info.Jex[idir][j][i];
+        let jey = grid_info.Jey[idir][j][i];
+
+        let a = ( (jex < 0) ? _sp : _ifmt(jex, _sw) );
+        let b = ( (jey < 0) ? _sp : _ifmt(jey, _sw) );
+
+        row_s.push( a + "," + b );
+      }
+
+      console.log( row_s.join("   ") );
+    }
+    console.log("");
+  }
+  console.log("");
+  */
+
+
+  console.log("# Sx Sy:");
+  //let _sw = 2;
+  //let _sp = _sfmt("", _sw);
 
   for (let j=(grid_info.Gv.length-1); j>=0; j--) {
 
@@ -286,7 +436,7 @@ function clockwise(pgn) {
     let j = (i+1+pgn.length)%pgn.length;
     let u = pgn[i];
     let v = pgn[j];
-    s += (v[0]-u[0])*(v[1]-u[1]);
+    s += (v[0]-u[0])*(v[1]+u[1]);
   }
 
   if (s > 0) { return true; }
@@ -374,6 +524,29 @@ function onBoundary(p, pgn) {
   return false;
 }
 
+// Test if a rectangle is wholly contained in rectilinear polygon.
+// Assumes structures Sx, Sy, Lx, Ly have been precomputed
+//
+// input:
+//
+// s_ij - xy vector of grid start point
+// l_ij - xy vector of rectangle width/height
+//
+// output:
+//
+// true if rectangle with lower left corner at s_ij and width/height of l_ij
+//      in rectilinear polygon
+// false otherwise
+//
+// precomputed auxiliary structures:
+//
+// Sx holds grid cell running lengths, from left to right, of contiguous region within
+//    rectilinear polygon, resetting to 0 at the beginning of every interior
+//    edge and -1 for exterior points
+// Sy, like Sx, but from bottom to top
+// Lx holds total sum of left to right, regardless of interior/exterior
+// Ly holds total sum of bottom to top, regardless of interior/exterior
+//
 function rprp_irect_contain(grid_info, s_ij, l_ij) {
   let Lx = grid_info.Lx,
       Ly = grid_info.Ly,
@@ -420,6 +593,199 @@ function rprp_irect_contain(grid_info, s_ij, l_ij) {
 
   return false;
 }
+
+// return the general boundary index that the ray starting at s_ij
+// and in the direction of d_ij intersects.
+//
+// return -1 if an error (ray out of bounds, etc.)
+//
+function rprp_iray_boundary_intersection_linear(grid_info, s_ij, d_ij) {
+  let Lx = grid_info.Lx,
+      Ly = grid_info.Ly,
+      Sx = grid_info.Sx,
+      Sy = grid_info.Sy;
+
+  let max_step = Math.max( Lx.length, Ly.length );
+
+  let B2d = grid_info.B_2d;
+
+  let cur_ij = [ s_ij[0], s_ij[1] ];
+
+  for (let step = 0; step < max_step; step++) {
+    if ( (cur_ij[0] < 0) || (cur_ij[0] >= Lx.length) ||
+         (cur_ij[1] < 0) || (cur_ij[1] >= Ly.length) ) {
+      return -1;
+    }
+
+    if (B2d[ cur_ij[1] ][ cur_ij[0] ] >= 0) {
+      return B2d[ cur_ij[1] ][ cur_ij[0] ];
+    }
+
+    cur_ij[0] += d_ij[0];
+    cur_ij[1] += d_ij[1];
+  }
+
+  return -1;
+}
+
+function _clamp(a, b, c) {
+  if (a < b) { return b; }
+  if (a > c) { return c; }
+  return a;
+}
+
+// WIP!!!
+// ROUGH DRAFT!!!
+//
+//
+// As implemented:
+// * assumes start point is on interior
+// * gets furthest boundary
+//
+// We probably want nearest boundary.
+// We're probably going to need to change the underlying structure.
+//
+function rprp_iray_boundary_intersection(grid_info, s_ij, d_ij) {
+  let Lx = grid_info.Lx,
+      Ly = grid_info.Ly,
+      Sx = grid_info.Sx,
+      Sy = grid_info.Sy;
+  let B2d = grid_info.B_2d;
+
+  let dir_idx = 0;
+
+  let _L = Lx;
+  let _S = Sx;
+  if (d_ij[0] == 0) {
+    _L = Ly;
+    _S = Sy;
+    dir_idx = 1;
+  }
+
+  let max_step = Math.max( Lx.length, Ly.length );
+
+  let cur_ij = [ s_ij[0], s_ij[1] ];
+  let step_ij = [ d_ij[0] * Lx.length, d_ij[1] * Ly.length ];
+
+  let end_ij = [
+    _clamp( s_ij[0] + step_ij[0], 0, Lx.length-1 ),
+    _clamp( s_ij[1] + step_ij[1], 0, Ly.length-1 )
+  ];
+
+  let e_ij = [ end_ij[0], end_ij[1] ];
+
+  let ub = abs_sum_v( v_sub( end_ij, s_ij ) );
+  let lb = 0;
+
+  //DEBUG
+  //DEBUG
+  //DEBUG
+  let _dbg_p = [4,2],
+      _dbg_d = [1,0];
+
+  if ((s_ij[0] == _dbg_p[0]) && (s_ij[1] == _dbg_p[1]) && (d_ij[0]==_dbg_d[0]) && (d_ij[1] == _dbg_d[1])) {
+    console.log(">>>", "s_ij:", s_ij, "e_ij:", e_ij, "d_ij:", d_ij, "ulb:", ub, lb);
+  }
+
+  //DEBUG
+  //DEBUG
+  //DEBUG
+
+
+  while ((ub - lb) > 1) {
+    let d_len = _L[ end_ij[dir_idx] ] - _L[ s_ij[dir_idx] ];
+    let s_len = _S[ end_ij[1] ][ end_ij[0] ] - _S[ s_ij[1] ][ s_ij[0] ];
+
+    let ds = Math.floor((ub - lb)/2);
+
+    //DEBUG
+    //DEBUG
+    //DEBUG
+    if ((s_ij[0] == _dbg_p[0]) && (s_ij[1] == _dbg_p[1]) && (d_ij[0]==_dbg_d[0]) && (d_ij[1] == _dbg_d[1])) {
+      console.log("  >>>", "ulb:", ub, lb, "ds:", ds, "d_len:", d_len, "s_len:", s_len, "end_ij:", end_ij[0], end_ij[1],
+        "_S[][]:", _S[ end_ij[1] ][ end_ij[0] ] , _S[ s_ij[1] ][ s_ij[0] ]);
+    }
+    //DEBUG
+    //DEBUG
+    //DEBUG
+
+
+    if ( (_S[end_ij[1]][end_ij[0]] < 0) ||
+         (s_len > d_len) ) {
+      ub = ub - ds;
+      //end_ij[0] = e_ij[0] - (ds-1)*d_ij[0];
+      //end_ij[1] = e_ij[1] - (ds-1)*d_ij[1];
+      end_ij[0] = s_ij[0] + ds*d_ij[0];
+      end_ij[1] = s_ij[1] + ds*d_ij[1];
+
+
+
+      if ((s_ij[0] == _dbg_p[0]) && (s_ij[1] == _dbg_p[1]) && (d_ij[0]==_dbg_d[0]) && (d_ij[1] == _dbg_d[1])) {
+        console.log("  ... ub:", ub);
+      }
+
+    }
+    else {
+      lb = lb + ds;
+      end_ij[0] = s_ij[0] + ds*d_ij[0];
+      end_ij[1] = s_ij[1] + ds*d_ij[1];
+
+      if ((s_ij[0] == _dbg_p[0]) && (s_ij[1] == _dbg_p[1]) && (d_ij[0]==_dbg_d[0]) && (d_ij[1] == _dbg_d[1])) {
+        console.log("  ... lb:", lb);
+      }
+    }
+
+    /*
+    if (s_len == d_len) {
+      lb = lb + ds;
+      end_ij[0] = s_ij[0] + ds*d_ij[0];
+      end_ij[1] = s_ij[1] + ds*d_ij[1];
+    }
+    else {
+      ub = ub - ds;
+      end_ij[0] = e_ij[0] - (ds-1)*d_ij[0];
+      end_ij[1] = e_ij[1] - (ds-1)*d_ij[1];
+    }
+    */
+
+
+  }
+
+  if (d_ij[dir_idx] < 0) {
+
+    for (let i=ub; i>=lb; i--) {
+      cur_ij[0] = s_ij[0] + i*d_ij[0];
+      cur_ij[1] = s_ij[1] + i*d_ij[1];
+
+      if (B2d[ cur_ij[1] ][ cur_ij[0] ] >= 0) {
+        return B2d[ cur_ij[1] ][ cur_ij[0] ];
+      }
+
+    }
+
+  }
+  else {
+
+    for (let i=lb; i<=ub; i++) {
+      cur_ij[0] = s_ij[0] + i*d_ij[0];
+      cur_ij[1] = s_ij[1] + i*d_ij[1];
+
+      if ((s_ij[0] == _dbg_p[0]) && (s_ij[1] == _dbg_p[1]) && (d_ij[0]==_dbg_d[0]) && (d_ij[1] == _dbg_d[1])) {
+        console.log("  ...", "cur_ij:", cur_ij, "B2d[][]:", B2d[cur_ij[1]][cur_ij[0]] );
+      }
+
+      if (B2d[ cur_ij[1] ][ cur_ij[0] ] >= 0) {
+        return B2d[ cur_ij[1] ][ cur_ij[0] ];
+      }
+
+    }
+  }
+
+
+  return -1;
+}
+
+
 
 //---
 
@@ -509,10 +875,18 @@ function _rprp_irect_contain_test(grid_info) {
 
 //---
 
+function dxy2idir( dxy ) {
+  if (dxy[0] ==  1) { return 0; }
+  if (dxy[0] == -1) { return 1; }
+  if (dxy[1] ==  1) { return 2; }
+  if (dxy[1] == -1) { return 3; }
+  return -1;
+}
+
 function rprp_init(rl_pgn) {
 }
 
-function rectilinearGridPoints(rl_pgon) {
+function rectilinearGridPoints(_rl_pgon) {
   let _eps = (1/(1024));
 
   let x_dup = [],
@@ -521,7 +895,9 @@ function rectilinearGridPoints(rl_pgon) {
   let pnt_map = {};
   let corner_type = [];
 
-  if (rl_pgon.length == 0) { return []; }
+  if (_rl_pgon.length == 0) { return []; }
+
+  let rl_pgon = orderCounterclockwise( _rl_pgon );
 
   let n = rl_pgon.length;
 
@@ -756,8 +1132,6 @@ function rectilinearGridPoints(rl_pgon) {
 
   }
 
-
-
   // Sx Sy Lx and Ly are auxiliary structures to do
   // quick rectangular inclusion testing
   //
@@ -790,7 +1164,16 @@ function rectilinearGridPoints(rl_pgon) {
     }
   }
 
-  // rl_pgon ordered counterclockwise
+  // rl_pgon ordered counterclockwise.
+  //
+  // We walk the border structure, initializing
+  // Sx and Sy anywhere the border starts from
+  // left to right or bottom to top.
+  // We keep a previous, current and next
+  // index into the border, and see if
+  // the current vertex is in line or
+  // at a corner.
+  // If it's inline, then
   //
 
   for (let idx=0; idx<B.length; idx++) {
@@ -812,60 +1195,61 @@ function rectilinearGridPoints(rl_pgon) {
     let _u = v_sub( cur_ixy, prv_ixy );
     let _v = v_sub( nxt_ixy, cur_ixy );
 
-    let _du = v_delta(_u);
-    let _dv = v_delta(_v);
+    let _dprv = v_delta(_u);
+    let _dnxt = v_delta(_v);
 
+    // if we're on the edge of the grid and on
+    // the border, initialize Sx or Sy to 0,
+    // as appropriate.
+    //
     if (_i == 0) { Sx[ _j ][ _i ] = 0; }
     if (_j == 0) { Sy[ _j ][ _i ] = 0; }
 
-    if ( (_du[0] > 0.5) && (_dv[0] > 0.5) ) {
+    // prv-cur-nxt on horizontal line, init Sy to 0
+    // Mark Sx to -2 so that on second pass we
+    // fill in with neighbor value.
+    //
+    if ( (_dprv[0] > 0.5) && (_dnxt[0] > 0.5) ) {
       Sy[ _j ][ _i ] = 0;
+      //Sx[ _j ][ _i ] = -2;
     }
 
-    if ( (_du[1] < -0.5) && (_dv[1] < -0.5) ) {
+    // prv-cur-nxt on vertical line, init Sx to 0.
+    // Mark Sy to -2 so that on second pass we
+    // fill in with neighbor value.
+    //
+    if ( (_dprv[1] < -0.5) && (_dnxt[1] < -0.5) ) {
       Sx[ _j ][ _i ] = 0;
+      //Sy[ _j ][ _i ] = -2;
     }
 
-    if ( Math.abs(dot_v( _dv, _du )) < _eps ) {
+    // cur vertex is at bend point
+    //
+    if ( Math.abs(dot_v( _dnxt, _dprv )) < _eps ) {
 
-      if ( ((_du[1] < -0.5) && (_dv[0] > 0.5))  ||
-           ((_du[0] < -0.5) && (_dv[1] < -0.5)) ) {
+      // prv *           cur * <- * prv
+      //     |               |
+      //     v               v
+      // cur * -> * nxt      * nxt
+      //
+      if ( ((_dprv[1] < -0.5) && (_dnxt[0] >  0.5))  ||
+           ((_dprv[0] < -0.5) && (_dnxt[1] < -0.5)) ) {
         Sx[ _j ][ _i ] = 0;
       }
 
-      if ( ((_du[1] < -0.5) && (_dv[0] > 0.5)) ||
-           ((_du[0] > 0.5) && (_dv[1] > 0.5)) ) {
-      //if ( ((_du[1] < -0.5) && (_dv[0] < -0.5)) ||
-      //     ((_du[0] > 0.5) && (_dv[1] > 0.5)) ) {
+      // prv *                      * nxt
+      //     |                      ^
+      //     v                      |
+      // cur * -> * nxt    prv * -> * cur
+      //
+      if ( ((_dprv[1] < -0.5) && (_dnxt[0] > 0.5)) ||
+           ((_dprv[0] >  0.5) && (_dnxt[1] > 0.5)) ) {
         Sy[ _j ][ _i ] = 0;
       }
 
     }
 
   }
-
-  /*
-  console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", Sy.length, Sy[0].length);
-  console.log("Sx:");
-  for (let j=(Sx.length-1); j>=0; j--) {
-    let _line = [];
-    for (let i=0; i<Sx[j].length; i++) {
-      let _s = ((Sx[j][i] < 0) ? ' .' : _ifmt(Sx[j][i], 2));
-      _line.push( _s );
-    }
-    console.log( _line.join(" ") );
-  }
-  console.log("\nSy:");
-  for (let j=(Sy.length-1); j>=0; j--) {
-    let _line = [];
-    for (let i=0; i<Sy[j].length; i++) {
-      let _s = ((Sy[j][i] < 0) ? ' .' : _ifmt(Sy[j][i], 2));
-      _line.push( _s );
-    }
-    console.log( _line.join(" ") );
-  }
-  console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-  */
 
   for (let j=0; j<Gv.length; j++) {
     let x_start = 0;
@@ -880,8 +1264,10 @@ function rectilinearGridPoints(rl_pgon) {
         x_start = Lx[i];
       }
 
-      if (Sx[j][i] == 0) { x_start = Lx[i]; }
+      if (Sx[j][i] ==  0) { x_start = Lx[i]; }
 
+      //if (Sx[j][i] == -2) { Sx[j][i] = Sx[j][i-1]; }
+      //else                { Sx[j][i] = Lx[i] - x_start; }
       Sx[j][i] = Lx[i] - x_start;
     }
   }
@@ -899,34 +1285,377 @@ function rectilinearGridPoints(rl_pgon) {
         y_start = Ly[j];
       }
 
-      if (Sy[j][i] == 0) { y_start = Ly[j]; }
+      if (Sy[j][i] ==  0) { y_start = Ly[j]; }
 
+
+      //if (Sy[j][i] == -2) { Sy[j][i] = Sy[j-1][i]; }
+      //else                { Sy[j][i] = Ly[j] - y_start; }
       Sy[j][i] = Ly[j] - y_start;
     }
   }
 
 
-  /*
-  for (let i=0; i<B.length; i++) {
-    console.log(B[i].xy[0], B[i].xy[1]);
+  // Jx Jy structures
+  //
+
+  //let Jsx = [ [], [], [], [] ],
+  //    Jex = [ [], [], [], [] ],
+  //    Jsy = [ [], [], [], [] ],
+  //    Jey = [ [], [], [], [] ];
+
+  let Js = [ [], [], [], [] ],
+      Je = [ [], [], [], [] ];
+
+  for (let j=0; j<Gv.length; j++) {
+    for (let i=0; i<Gv[j].length; i++) {
+      for (let idir=0; idir<4; idir++) {
+
+        if (i==0) {
+          //Jsx[idir].push([]);
+          //Jex[idir].push([]);
+          //Jsy[idir].push([]);
+          //Jey[idir].push([]);
+
+          Js[idir].push([]);
+          Je[idir].push([]);
+        }
+
+        //Jsx[idir][j].push(-1);
+        //Jex[idir][j].push(-1);
+
+        //Jsy[idir][j].push(-1);
+        //Jey[idir][j].push(-1);
+
+        Js[idir][j].push(-1);
+        Je[idir][j].push(-1);
+
+      }
+    }
   }
 
-  for (let j= (B_2d.length-1); j >= 0; j--) {
-    let a = [];
-    for (let i=0; i<B_2d[j].length; i++) {
-      let val = B_2d[j][i];
 
-      if (val >= 0) { a.push( _ifmt(val,2) ); }
-      else { a.push( ' .' ); }
+  //WIP!!!!
+  // the question is what kind of api do I want to enable.
+  // I want fast lookups to find the nearest and most distant
+  // boundary edge from an axis aligned ray.
+  // One question is whether I want the 
+
+  let idir_dxy = [ [1,0], [-1,0], [0,1], [0,-1] ];
+  let _ibound = [
+    [ [Gv[0].length-1, 0, -1], [0,Gv.length-1,1] ],
+    [ [0, Gv[0].length-1, 1], [0,Gv.length-1,1] ],
+    [ [0, Gv[0].length-1, 1], [Gv.length-1,0,-1] ],
+    [ [0, Gv[0].length-1, 1], [0,Gv.length-1,1] ]
+  ];
+
+  _ibound = [
+    [ [Gv[0].length-1, -1, -1], [0,Gv.length,1] ],
+    [ [0, Gv[0].length, 1], [0,Gv.length,1] ],
+    [ [0, Gv[0].length, 1], [Gv.length-1,-1,-1] ],
+    [ [0, Gv[0].length, 1], [0,Gv.length,1] ]
+  ];
+
+  //-----------------------------------------------------
+  // I - interior, a - afar, n - near
+  //
+  //
+  //        idir      +x        -x        +y        -y
+  // idx  prv nxt   I  a  n   I  a  n   I  a  n   I  a  n
+  //  0    0   0    .  .  .   .  .  .   0 -1 -1   1  B  B
+  //  1    1   1    .  .  .   .  .  .   1  B  B   0 -1 -1
+  //  2    2   2    1  B  B   0 -1 -1   .  .  .   .  .  .
+  //  3    3   3    0 -1 -1   1  B  B   .  .  .   .  .  .
+  //  4    0   2    1  B  B   0 -1 -1   0 -1 -1   1  B  B
+  //  5    0   3    .  .  .   .  .  B   .  .  .   .  .  B
+  //  6    1   2    .  .  B   .  .  .   .  .  B   .  .  .
+  //  7    1   3    0 -1 -1   1  B  B   1  B  B   0 -1 -1
+  //  8    2   0    .  .  B   .  .  .   .  .  .   .  .  B
+  //  9    2   1    1  B  B   0 -1 -1   1  B  B   0 -1 -1
+  //  10   3   0    0 -1 -1   1  B  B   0 -1 -1   1  B  B
+  //  11   3   1    .  .  .   .  .  B   .  .  B   .  .  .
+  //
+  // Note that the walk is in the opposite direction of the ray,
+  // so +x above is indicating the ray is shotting in the +x direction
+  // but we look at transitions walking from right to left.
+  //
+  // Whenever we change from exterior to interior, we need to update
+  // the near and far saved indices.
+  // There are only a few other cases where the near index needs
+  // to be updated.
+  //
+  //-----------------------------------------------------
+
+
+
+  let _idir2lu = [
+    [  0, -1,  4,  5 ],
+    [ -1,  1,  6,  7 ],
+    [  8,  9,  2, -1 ],
+    [ 10, 11, -1,  3 ]
+  ];
+
+  let _lu_Ian = [
+
+    // idir prv, idir nxt
+    // e.g. 21 y-up (+y) followed by x-left (-x)
+    // note that the cleave can't go back on itself, so e.g. 01 isn't represented
+    //
+    //  00     11     22     33     02     03     12     13     20     21     30     31
+    //
+    [ "...", "...", "1BB", "0--", "1BB", "...", "..B", "0--", "..B", "1BB", "0--", "..." ],
+    [ "...", "...", "0--", "1BB", "0--", "..B", "...", "1BB", "...", "0--", "1BB", "..B" ],
+
+    [ "0--", "1BB", "...", "...", "0--", "...", "..B", "1BB", "...", "1BB", "0--", "..B" ],
+    [ "1BB", "0--", "...", "...", "1BB", "..B", "...", "0--", "..B", "0--", "1BB", "..." ]
+
+  ];
+
+  for (let idir=0; idir<4; idir++) {
+
+    let _interior = 0;
+    let afar_B_idx = -1,
+        near_B_idx = -1;
+
+    if (idir < 2) {
+
+      for (let j = _ibound[idir][1][0]; j != _ibound[idir][1][1]; j += _ibound[idir][1][2]) {
+
+        afar_B_idx = -1;
+        near_B_idx = -1;
+
+        for (let i = _ibound[idir][0][0]; i != _ibound[idir][0][1]; i += _ibound[idir][0][2]) {
+          //Jex[idir][j][i] = afar_B_idx;
+          //Jsx[idir][j][i] = near_B_idx;
+
+          Je[idir][j][i] = afar_B_idx;
+          Js[idir][j][i] = near_B_idx;
+
+          if (B_2d[j][i] >= 0) {
+
+            let cur_B_idx = B_2d[j][i];
+            let cur_B_ixy = B[cur_B_idx].ixy;
+            let prv_B_ixy = B[(cur_B_idx-1 + B.length) % B.length].ixy;
+            let nxt_B_ixy = B[(cur_B_idx+1) % B.length].ixy;
+
+            let _dprv = v_sub( cur_B_ixy, prv_B_ixy );
+            let _dnxt = v_sub( nxt_B_ixy, cur_B_ixy );
+
+            let _idir_prv = dxy2idir( _dprv );
+            let _idir_nxt = dxy2idir( _dnxt );
+
+            let _code = _lu_Ian[idir][ _idir2lu[ _idir_prv ][ _idir_nxt ] ];
+
+            if      (_code[0] == '0') { _interior = 0; }
+            else if (_code[0] == '1') { _interior = 1; }
+
+            if      (_code[1] == 'B') { afar_B_idx = cur_B_idx; }
+            else if (_code[1] == '-') { afar_B_idx = -1; }
+
+            if      (_code[2] == 'B') { near_B_idx = cur_B_idx; }
+            else if (_code[2] == '-') { near_B_idx = -1; }
+
+          }
+
+        }
+
+      }
+
     }
-    console.log("#", a.join(" ") );
+
+    else {
+
+      for (let i = _ibound[idir][0][0]; i != _ibound[idir][0][1]; i += _ibound[idir][0][2]) {
+
+        afar_B_idx = -1;
+        near_B_idx = -1;
+
+        for (let j = _ibound[idir][1][0]; j != _ibound[idir][1][1]; j += _ibound[idir][1][2]) {
+
+          //Jey[idir][j][i] = afar_B_idx;
+          //Jsy[idir][j][i] = near_B_idx;
+
+          Je[idir][j][i] = afar_B_idx;
+          Js[idir][j][i] = near_B_idx;
+
+          if (B_2d[j][i] >= 0) {
+
+            let cur_B_idx = B_2d[j][i];
+            let cur_B_ixy = B[cur_B_idx].ixy;
+            let prv_B_ixy = B[(cur_B_idx-1 + B.length) % B.length].ixy;
+            let nxt_B_ixy = B[(cur_B_idx+1) % B.length].ixy;
+
+            let _dprv = v_sub( cur_B_ixy, prv_B_ixy );
+            let _dnxt = v_sub( nxt_B_ixy, cur_B_ixy );
+
+            let _idir_prv = dxy2idir( _dprv );
+            let _idir_nxt = dxy2idir( _dnxt );
+
+            let _code = _lu_Ian[idir][ _idir2lu[ _idir_prv ][ _idir_nxt ] ];
+
+            if      (_code[0] == '0') { _interior = 0; }
+            else if (_code[0] == '1') { _interior = 1; }
+
+            if      (_code[1] == 'B') { afar_B_idx = cur_B_idx; }
+            else if (_code[1] == '-') { afar_B_idx = -1; }
+
+            if      (_code[2] == 'B') { near_B_idx = cur_B_idx; }
+            else if (_code[2] == '-') { near_B_idx = -1; }
+
+          }
+
+        }
+
+      }
+
+    }
+
+
+  }
+
+
+  /*
+  let idir = 0;
+  let _dxy = idir_dxy[idir];
+
+  for (let j=0; j<Gv.length; j++) {
+
+    let _interior = 0;
+    let afar_B_idx = -1,
+        near_B_idx = -1;
+
+    for (let i=(Gv[j].length-1); i>=0; i--) {
+
+      Jex[idir][j][i] = afar_B_idx;
+      Jsx[idir][j][i] = near_B_idx;
+
+      if (B_2d[j][i] >= 0) {
+
+
+        let cur_B_idx = B_2d[j][i];
+        let cur_B_ixy = B[cur_B_idx].ixy;
+        let prv_B_ixy = B[(cur_B_idx-1 + B.length) % B.length].ixy;
+        let nxt_B_ixy = B[(cur_B_idx+1) % B.length].ixy;
+
+        let _dprv = v_sub( cur_B_ixy, prv_B_ixy );
+        let _dnxt = v_sub( nxt_B_ixy, cur_B_ixy );
+
+        let _dnp = dot_v( _dnxt, _dprv );
+
+        // in-line, bottom outside
+        //
+        if      ( (_dprv[0] ==  1) && (_dprv[1] ==  0) &&
+                  (_dnxt[0] ==  1) && (_dnxt[1] ==  0) ) {
+        }
+
+        // in-line, top outside
+        //
+        else if ( (_dprv[0] == -1) && (_dprv[1] ==  0) &&
+                  (_dnxt[0] == -1) && (_dnxt[1] ==  0) ) {
+        }
+
+        // in-line, right outside
+        //
+        else if ( (_dprv[0] ==  0) && (_dprv[1] ==  1) &&
+                  (_dnxt[0] ==  0) && (_dnxt[1] ==  1) ) {
+          _interior = 1;
+          afar_B_idx = cur_B_idx;
+          near_B_idx = cur_B_idx;
+        }
+
+        // in-line, left outside
+        //
+        else if ( (_dprv[0] ==  0) && (_dprv[1] == -1) &&
+                  (_dnxt[0] ==  0) && (_dnxt[1] == -1) ) {
+          _interior = 0;
+          afar_B_idx = -1;
+          near_B_idx = -1;
+        }
+
+
+        // bend, lower right outside
+        //
+        else if ( (_dprv[0] ==  1) && (_dprv[1] ==  0) &&
+                  (_dnxt[0] ==  0) && (_dnxt[1] ==  1) ) {
+          _interior = 1;
+          afar_B_idx = cur_B_idx;
+          near_B_idx = cur_B_idx;
+        }
+
+        // bend, lower left outside
+        //
+        else if ( (_dprv[0] ==  1) && (_dprv[1] ==  0) &&
+                  (_dnxt[0] ==  0) && (_dnxt[1] == -1) ) {
+          _interior = 1;
+        }
+
+        // bend, upper right outside
+        //
+        else if ( (_dprv[0] == -1) && (_dprv[1] ==  0) &&
+                  (_dnxt[0] ==  0) && (_dnxt[1] ==  1) ) {
+          _interior = 1;
+          near_B_idx = cur_B_idx;
+        }
+
+        // bend, upper left outside
+        //
+        else if ( (_dprv[0] == -1) && (_dprv[1] ==  0) &&
+                  (_dnxt[0] ==  0) && (_dnxt[1] == -1) ) {
+          _interior = 0;
+          afar_B_idx = -1;
+          near_B_idx = -1;
+        }
+
+
+        // bend, lower right outside
+        //
+        else if ( (_dprv[0] ==  0) && (_dprv[1] ==  1) &&
+                  (_dnxt[0] ==  1) && (_dnxt[1] ==  0) ) {
+          _interior = 1;
+          near_B_idx = cur_B_idx;
+        }
+
+        // bend, upper right outside
+        //
+        else if ( (_dprv[0] ==  0) && (_dprv[1] ==  1) &&
+                  (_dnxt[0] == -1) && (_dnxt[1] ==  0) ) {
+          _interior = 1;
+          near_B_idx = cur_B_idx;
+          afar_B_idx = cur_B_idx;
+        }
+
+        // bend, lower left outside
+        //
+        else if ( (_dprv[0] ==  0) && (_dprv[1] == -1) &&
+                  (_dnxt[0] ==  1) && (_dnxt[1] ==  0) ) {
+          _interior = 0;
+          near_B_idx = -1;
+          afar_B_idx = -1;
+        }
+
+        // bend, upper left outside
+        //
+        else if ( (_dprv[0] ==  0) && (_dprv[1] == -1) &&
+                  (_dnxt[0] == -1) && (_dnxt[1] ==  0) ) {
+        }
+
+
+        //console.log("### cur_B_idx:", cur_B_idx, "prv_B_idx:", prv_B_idx, "nxt_B_idx:", nxt_B_idx);
+        console.log("### cur_B_ixy:", cur_B_ixy, "prv_B_ixy:", prv_B_ixy, "nxt_B_ixy:", nxt_B_ixy);
+
+      }
+
+
+
+    }
   }
   */
+
+
+
 
   return {
     "C": rl_pgon,
     "Ct": corner_type,
-    //"Cij": Cij,
     "G": grid_xy, "Gt": type_xy,
 
     "X": x_dedup, "Y": y_dedup,
@@ -944,7 +1673,16 @@ function rectilinearGridPoints(rl_pgon) {
     "Sx" : Sx,
     "Sy" : Sy,
     "Lx" : Lx,
-    "Ly" : Ly
+    "Ly" : Ly,
+
+    //"Jsx" : Jsx,
+    //"Jsy" : Jsy,
+    //"Jex" : Jex,
+    //"Jey" : Jey,
+
+    "Js": Js,
+    "Je": Je
+
   };
 }
 
@@ -2015,6 +2753,255 @@ function commRegion(a_region, b_region) {
   return comm;
 }
 
+function _ixykey(p) {
+  return p[0].toString() + "," + p[1].toString();
+}
+
+// UNTESTED!!!
+// rprp_info
+// g gird origin point
+// dg axis aligned unit vector direction
+//
+// returns if the cleave cut starts inside the rectangle
+//
+function cleaveGridInside(rprp_info, g, dg) {
+  let Gv = rprp_info.Gv;
+  let Gv_bp = rprp_info.Gv_bp;
+  let Sx = rprp_info.Sx;
+  let Sy = rprp_info.Sy;
+
+  let Gsize = [ Gv[0].length, Gv.length ];
+
+  let g_nei = [ g[0] + dg[0], g[1] + dg[1] ];
+
+  //console.log("cleaveGridInside: g:", g, "dg:", dg, "g_nei:", g_nei, "Gsize:", Gsize);
+
+  if ( (g_nei[0] < 0) ||
+       (g_nei[1] < 0) ||
+       (g_nei[0] >= Gsize[0]) ||
+       (g_nei[1] >= Gsize[1]) ) {
+    return false;
+  }
+
+  //console.log("  cleaveGridInside: Sx[", g[1], "][", g[0], "]:", Sx[g[1]][g[0]]);
+  //console.log("  cleaveGridInside: Sx[", g_nei[1], "][", g_nei[0], "]:", Sx[g_nei[1]][g_nei[0]]);
+
+  //console.log("  cleaveGridInside: Sy[", g[1], "][", g[0], "]:", Sy[g[1]][g[0]]);
+  //console.log("  cleaveGridInside: Sy[", g_nei[1], "][", g_nei[0], "]:", Sy[g_nei[1]][g_nei[0]]);
+
+  let uxy = [
+    Sx[ g[1] ][ g[0] ],
+    Sy[ g[1] ][ g[0] ]
+  ];
+
+  let vxy = [
+    Sx[ g_nei[1] ][ g_nei[0] ],
+    Sy[ g_nei[1] ][ g_nei[0] ]
+  ];
+
+  if ((dg[0] == 1) && (dg[1] == 0)) {
+
+    if ((uxy[0] < 0) || (vxy[0] < 0)) { return false; }
+
+    if (Sx[ g[1] ][ g[0] ] > Sx[ g_nei[1] ][ g_nei[0] ]) {
+      console.log("  cgi.0");
+      return false;
+    }
+  }
+
+  else if ((dg[0] == -1) && (dg[1] == 0)) {
+
+    if ((uxy[0] < 0) || (vxy[0] < 0)) { return false; }
+
+    if (Sx[ g_nei[1] ][ g_nei[0] ] > Sx[ g[1] ][ g[0] ]) {
+      console.log("  cgi.1");
+      return false;
+    }
+  }
+
+  else if ((dg[0] == 0) && (dg[1] == 1)) {
+
+    if ((uxy[1] < 0) || (vxy[1] < 0)) { return false; }
+
+    if (Sy[ g[1] ][ g[0] ] > Sy[ g_nei[1] ][ g_nei[0] ]) {
+      console.log("  cgi.2");
+      return false;
+    }
+  }
+
+  else if ((dg[0] == 0) && (dg[1] == -1)) {
+
+    if ((uxy[1] < 0) || (vxy[1] < 0)) { return false; }
+
+    if (Sy[ g_nei[1] ][ g_nei[0] ] > Sy[ g[1] ][ g[0] ]) {
+      console.log("  cgi.3");
+      return false;
+    }
+  }
+
+  //console.log("  cgi.t");
+
+  return true;
+}
+
+//UNTESTED!!!!
+function cleaveGridOnBorder(rprp_info, g, dg) {
+  let B2d = rprp_info.B_2d;
+
+  if (!cleaveGridInside(rprp_info, g, dg)) { return false; }
+
+  console.log("cleaveGridOnBorder: g:", g, "dg:", dg);
+
+  let g_nei = [ g[0] + dg[0], g[1] + dg[1] ];
+
+  let _bb = B2d[g[1]][g[0]]
+  let _be = B2d[g_nei[1]][g_nei[0]]
+
+  if ((_bb < 0) || (_be < 0) ||
+      (Math.abs(_be-_bb) != 1)) {
+    return false;
+  }
+
+  return true;
+}
+
+//UNTESTED!!!
+function cleaveGridInline(rprp_info, g, dg, h, dh) {
+  let Gv = rprp_info.Gv;
+  let Gv_bp = rprp_info.Gv_bp;
+  let Sx = rprp_info.Sx;
+  let Sy = rprp_info.Sy;
+
+  let Gsize = [ Gv[0].length, Gv.length ];
+
+  console.log("#########################");
+  console.log("cleaveGridInline: inside:",
+    cleaveGridInside(rprp_info, g, dg),
+    "onborder:",
+    cleaveGridOnBorder(rprp_info, g, dg));
+
+
+
+  if (!cleaveGridInside(rprp_info, g, dg)) { return false; }
+  if (cleaveGridOnBorder(rprp_info, g, dg)) { return false; }
+
+  console.log("cleaveGridInline: g:", g, "dg:", dg, "h:", h, "dh:", dh);
+
+  // cleave and constructed line not parallele
+  //
+  if ( (dg[0] != dh[0]) || (dg[1] != dh[1]) ) { return false; }
+
+  // cleave root is same as constructed line end
+  //
+  if ((g[0] == h[0]) && (g[1] == h[1])) { return true; }
+
+
+  let dga = v_delta( v_sub( g, h ) );
+
+  // segment from adit to cleave is same direction as
+  // cleave direction
+  //
+  if ((dga[0] == dg[0]) && (dga[1] == dg[1])) { return true; }
+
+  return false;
+}
+
+
+// WIP!!!
+// return a list of cleave lines
+//
+// p_s : xy point on boundary that starts the region
+// p_e : xy point on boundary that ends the region, counterclockwise from p_s
+// a : adit point, at the intersection of two constructed lines from p_s, p_e
+//     or one of p_s or p_e if a guillotine cut
+// b : bower point defining quarry rectangle R_{a,b}
+//
+function cleaveProfile(rprp_info, p_s, p_e, a, b) {
+
+  let Gv = rprp_info.Gv;
+  let Gv_bp = rprp_info.Gv_bp;
+
+  let Sx = rprp_info.Sx;
+  let Sy = rprp_info.Sy;
+
+  let g_s = Gv_bp[ _ixykey(p_s) ];
+  let g_e = Gv_bp[ _ixykey(p_e) ];
+
+  let g_a = Gv_bp[ _ixykey(a) ];
+  let g_b = Gv_bp[ _ixykey(b) ];
+
+  console.log("cleaveProfile:");
+  console.log("p_s:", p_s, "p_e:", p_e, "a:", a, "b:", b);
+  console.log("g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b);
+
+  let cleave_a = [];
+
+  let Rdxy = [ Math.abs(b[0]-a[0]), Math.abs(b[1]-a[1]) ];
+  if ((Rdxy[0] == 0) || (Rdxy[1] == 0)) { return []; }
+
+  let Rp = [
+    [ Math.max( a[0], b[0] ), Math.min( a[1], b[1] ) ],
+    [ Math.min( a[0], b[0] ), Math.min( a[1], b[1] ) ],
+    [ Math.min( a[0], b[0] ), Math.max( a[1], b[1] ) ],
+    [ Math.max( a[0], b[0] ), Math.max( a[1], b[1] ) ]
+  ];
+
+  let Rg = [
+    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
+    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
+  ];
+
+  let cleave_dxy = [
+    [  1,  0 ], [  0, -1 ],
+    [  0, -1 ], [ -1,  0 ],
+    [ -1,  0 ], [  0,  1 ],
+    [  0,  1 ], [  1,  0 ]
+  ];
+
+  let Gsize = [ Gv[0].length, Gv.length ];
+
+  let cleave_profile = [ '~', '~', '~', '~', '~', '~', '~', '~' ];
+
+  for (let i=0; i<cleave_dxy.length; i++) {
+    let p = Rp[ Math.floor(i/2) ];
+    let g = Rg[ Math.floor(i/2) ];
+
+    console.log("\n##cleave_dxy[", i, "]:", cleave_dxy[i], "p:", p, "g:", g);
+
+    if (!cleaveGridInside(rprp_info, g, cleave_dxy[i])) {
+      cleave_profile[i] = 'x';
+      continue;
+    }
+
+    if (cleaveGridOnBorder(rprp_info, g, cleave_dxy[i])) {
+      cleave_profile[i] = 'b';
+      continue;
+    }
+
+    let cl_dxy = [
+      v_delta( v_sub( g_s, g_a ) ),
+      v_delta( v_sub( g_e, g_a ) )
+    ];
+
+    if ( (cleaveGridInline(rprp_info, g, cleave_dxy[i], g_a, cl_dxy[0])) ||
+         (cleaveGridInline(rprp_info, g, cleave_dxy[i], g_a, cl_dxy[1])) ) {
+      cleave_profile[i] = 'c';
+      continue;
+    }
+
+    cleave_profile[i] = '.';
+
+  }
+
+  console.log("");
+  console.log("cleave_profile:", cleave_profile.join(""));
+  console.log("");
+
+  return cleave_profile;
+}
+
 function _ok(P) {
 
   let all_x_pnt = [],
@@ -2106,6 +3093,66 @@ function _main() {
   //_ok(pgon);
 }
 
+function _main_iray_boundary_test() {
+  //let grid_info = rectilinearGridPoints(pgn_pinwheel1);
+
+  let grid_info = rectilinearGridPoints(pgn_spiral1);
+
+  _print_grid_info(grid_info);
+
+  let ny = grid_info.B_2d.length;
+  let nx = grid_info.B_2d[0].length;
+
+  let idir_dxy = [
+    [1,0], [-1,0], [0,1], [0,-1]
+  ];
+
+  for (let j=0; j<ny; j++) {
+    for (let i=0; i<nx; i++) {
+
+      for (let idir=0; idir<idir_dxy.length; idir++) {
+        console.log("s_ij:", i,j, "d_ij:", idir_dxy[idir],
+          "b_idx:", rprp_iray_boundary_intersection_linear(grid_info, [i,j], idir_dxy[idir]),
+          rprp_iray_boundary_intersection(grid_info, [i,j], idir_dxy[idir]) );
+      }
+
+    }
+  }
+}
+
+function _main_pinwheel1() {
+  let grid_info = rectilinearGridPoints(pgn_pinwheel1);
+
+  console.log("pgn_pinwheel1:");
+  console.log(pgn_pinwheel1);
+  console.log("----");
+
+  // test case 0  .c.c....
+  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [6,9]);
+
+  // test case 1 .c.....c
+  //cleaveProfile(grid_info, [11,9], [9,4], [9,9], [6,6]);
+
+  // test case 2 xbc...xx
+  //cleaveProfile(grid_info, [11,9], [9,4], [9,9], [14,6]);
+
+  // test case 3 xxb...xx
+  //cleaveProfile(grid_info, [11,9], [9,4], [9,9], [14,4]);
+
+  // test case 4  ..cc..bb
+  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [11,9]);
+
+  // test case 5  .cbb....
+  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [4,9]);
+
+  // test case 6  .cbbbx..
+  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [4,11]);
+
+  // test case 7  .c.cxxxb
+  cleaveProfile(grid_info, [4,6], [9,4], [9,6], [6,15]);
+
+}
+
 //_main1();
 //_main_fig11();
 
@@ -2123,12 +3170,13 @@ if (typeof module !== "undefined") {
 
 if ((typeof require !== "undefined") &&
     (require.main === module)) {
-  _main(process.argv.slice(1));
+  //_main(process.argv.slice(1));
+  //_main_pinwheel1(process.argv.slice(1));
+  _main_iray_boundary_test();
 }
 
 
-}).call(this)}).call(this,require('_process'))
-},{"./fasslib.js":2,"_process":4,"fs":3}],2:[function(require,module,exports){
+},{"./fasslib.js":2,"fs":3}],2:[function(require,module,exports){
 // To the extent possible under law, the person who associated CC0 with
 // this project has waived all copyright and related or neighboring rights
 // to this project.
@@ -2479,192 +3527,6 @@ if (typeof module !== "undefined") {
 
 
 },{}],3:[function(require,module,exports){
-
-},{}],4:[function(require,module,exports){
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
 
 },{}]},{},[1])(1)
 });

@@ -329,6 +329,7 @@ function _print_grid_info(grid_info) {
   console.log("");
 
 
+  /*
   console.log("# Jsx Jsy Jex Jey:");
 
 
@@ -373,6 +374,7 @@ function _print_grid_info(grid_info) {
     console.log("");
   }
   console.log("");
+  */
 
 
   console.log("# Sx Sy:");
@@ -1295,10 +1297,10 @@ function rectilinearGridPoints(_rl_pgon) {
   // Jx Jy structures
   //
 
-  let Jsx = [ [], [], [], [] ],
-      Jex = [ [], [], [], [] ],
-      Jsy = [ [], [], [], [] ],
-      Jey = [ [], [], [], [] ];
+  //let Jsx = [ [], [], [], [] ],
+  //    Jex = [ [], [], [], [] ],
+  //    Jsy = [ [], [], [], [] ],
+  //    Jey = [ [], [], [], [] ];
 
   let Js = [ [], [], [], [] ],
       Je = [ [], [], [], [] ];
@@ -1308,20 +1310,20 @@ function rectilinearGridPoints(_rl_pgon) {
       for (let idir=0; idir<4; idir++) {
 
         if (i==0) {
-          Jsx[idir].push([]);
-          Jex[idir].push([]);
-          Jsy[idir].push([]);
-          Jey[idir].push([]);
+          //Jsx[idir].push([]);
+          //Jex[idir].push([]);
+          //Jsy[idir].push([]);
+          //Jey[idir].push([]);
 
           Js[idir].push([]);
           Je[idir].push([]);
         }
 
-        Jsx[idir][j].push(-1);
-        Jex[idir][j].push(-1);
+        //Jsx[idir][j].push(-1);
+        //Jex[idir][j].push(-1);
 
-        Jsy[idir][j].push(-1);
-        Jey[idir][j].push(-1);
+        //Jsy[idir][j].push(-1);
+        //Jey[idir][j].push(-1);
 
         Js[idir][j].push(-1);
         Je[idir][j].push(-1);
@@ -1393,7 +1395,11 @@ function rectilinearGridPoints(_rl_pgon) {
 
   let _lu_Ian = [
 
-    //  00     11     22     33     01     03     12     13     20     21     30     31
+    // idir prv, idir nxt
+    // e.g. 21 y-up (+y) followed by x-left (-x)
+    // note that the cleave can't go back on itself, so e.g. 01 isn't represented
+    //
+    //  00     11     22     33     02     03     12     13     20     21     30     31
     //
     [ "...", "...", "1BB", "0--", "1BB", "...", "..B", "0--", "..B", "1BB", "0--", "..." ],
     [ "...", "...", "0--", "1BB", "0--", "..B", "...", "1BB", "...", "0--", "1BB", "..B" ],
@@ -1417,8 +1423,8 @@ function rectilinearGridPoints(_rl_pgon) {
         near_B_idx = -1;
 
         for (let i = _ibound[idir][0][0]; i != _ibound[idir][0][1]; i += _ibound[idir][0][2]) {
-          Jex[idir][j][i] = afar_B_idx;
-          Jsx[idir][j][i] = near_B_idx;
+          //Jex[idir][j][i] = afar_B_idx;
+          //Jsx[idir][j][i] = near_B_idx;
 
           Je[idir][j][i] = afar_B_idx;
           Js[idir][j][i] = near_B_idx;
@@ -1464,8 +1470,8 @@ function rectilinearGridPoints(_rl_pgon) {
 
         for (let j = _ibound[idir][1][0]; j != _ibound[idir][1][1]; j += _ibound[idir][1][2]) {
 
-          Jey[idir][j][i] = afar_B_idx;
-          Jsy[idir][j][i] = near_B_idx;
+          //Jey[idir][j][i] = afar_B_idx;
+          //Jsy[idir][j][i] = near_B_idx;
 
           Je[idir][j][i] = afar_B_idx;
           Js[idir][j][i] = near_B_idx;
@@ -1668,10 +1674,10 @@ function rectilinearGridPoints(_rl_pgon) {
     "Lx" : Lx,
     "Ly" : Ly,
 
-    "Jsx" : Jsx,
-    "Jsy" : Jsy,
-    "Jex" : Jex,
-    "Jey" : Jey,
+    //"Jsx" : Jsx,
+    //"Jsy" : Jsy,
+    //"Jex" : Jex,
+    //"Jey" : Jey,
 
     "Js": Js,
     "Je": Je
