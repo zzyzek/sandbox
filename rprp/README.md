@@ -706,7 +706,24 @@ can be made.
 The function will then cycle through the cleave cuts, checking for validity, but otherwise return a list of candidate cleave cuts
 that will partition the remaining region into 2-cut or 1-cut regions.
 
-So:
+
+My current tactic will be to try to first get a cleave profile that tells us which can be rejected outright.
+
+
+WIP:
+
+```
+  For v in $R _ {a,b}$ corners:
+    for vdir:
+      profile[idx] =
+        'x' if (v,vdir) oustide of rectilinear polygon
+        'x' if (v,vdir) not in region
+        'b' if base edges are orthogonal (no corner) (?? check for other intersecting border edge?)
+        ... check for parallel edge on other end of rectangle?
+```
+
+
+WIP:
 
 ```
 function enumerateCleaveCut(rprp_ctx, gb_idx0, gb_idx1, a, b) {
