@@ -577,7 +577,7 @@ If $d _ k$ is not in-line with either of the two constructed lines, the it must 
 
 I'm still fussing with figuring out on how to validate a cleave realization.
 
-So far, for adit $a$, bower $b$, quarry $R$, an a cleave candidate vector ( $\gamma \in \{\text{x}, \text{b}, \text{c}, \text{.}\}^8$ ):
+So far, for adit $a$, bower $b$, quarry $R$, an a cleave candidate vector ( $\gamma \in \\{\text{x}, \text{b}, \text{c}, \text{.}\\}^8$ ):
 
 * reject if a cleave ray starts on flat edge and ends on flat edge (**bridge**)
 * reject if a cleave ray's maximal line does not end on at least one convex primitive border point (**float**)
