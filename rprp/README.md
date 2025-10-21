@@ -639,7 +639,7 @@ A naive algorithm would walk the grid until it hits the boundary.
 This works but has the potential to be slow, being effecitvely and $O(n^2)$ operation,
 depending on how many grid points are in line.
 
-The `Sx` and `Sy` structures (sum of contiguous interior regions from left-to-right and bottom-to-top)
+The `Sx` and `Sy` structures exist (sum of contiguous interior regions from left-to-right and bottom-to-top)
 but:
 
 * To calculate maximum boundary, binary search needs to be used
@@ -649,20 +649,33 @@ We can just save the boundary point from each grid point and direction directly.
 We need to traverse the whole grid to begin with, so we can do an extra pass to save
 the information that we want.
 
-The proposal is to create `4x4` (16) 2D arrays `Jsx[4]`, `Jsy[4]`, `Jex[4]` and `Jey[4]`,
-representing the first and last boundary point for a ray in a contiguous region of the boundary
-in each of the axis aligned directions (right/left/up/down).
+The idea is to create two extra structures, `Je` and `Js`, each a 3d array with
+the first dimension the `idir`, the second, the y index coordinate and the third the x index
+coordinate.
 
-Each of the `J[se][xy][0123]` arrays is negative for grid points not on the boundary or not on
-the interior.
-For interior or on-boundary points, the value will be the first boundary point intersection of the
-ray for the `Js[xy]` structures and the last boundary point intersection for the `Je[xy]` structures.
-For a ray that starts on a boundary point but has direction that would go outside of the interior,
-the value for the `J` structures is `-1`.
+`Js` will hold the *first* boundary point, in the cleave direction, on an orthogonal boundary line to the cleave direction,
+not including the starting point.
+`Je` will hold the *last* boundary point, in the cleave direction, on an orthogonal boundary line to the cleave direction,
+not including the starting point.
 
-This gives an $O(1)$ test, after precomputation, to find the internal boundary intersection point.
+In other words, shoot a ray out from the point in the cleave direction.
+Walk the ray until it hits a boundary point that has an edge orthogonal to the cleave direction.
+For the `Js` structure, catalogue the first time that happens, for the `Je` structure, catalogue
+the last time that happens.
+
+Figure on the left is `Js` and figure on the right is `Je`:
+
+| | |
+|---|---|
+| ![Overhang Js](viz/img/overhang_Js.png) | ![Overhang Je](viz/img/overhang_Je.png) |
+
+
+Numbers in yellow represent the index of the general boundary point and numbers in red represent the
+first general boundary point intersection in the appropriate `idir`.
+
+With `Je` and `Js`, we precompute the values to get an $O(1)$ test to find the internal boundary intersection point.
 Testing to see if the billet is on the boundary, on the interior, etc. might need to be done with
-other structures, such as the `B_2d` or `S[xy]` structures.
+other structures, such as the `B_2d` or `Sx,Sy` structures, so we might want to keep the `Sx` and `Sy` structures.
 
 The specifics are involved but the idea is to sweep from one side to another, keeping
 track of whether we're interior or not.
