@@ -14,23 +14,22 @@ I(3) = \left[
  0 & 0 & 1 
 \end{array}
  \right] \\
-W = \left[ 
-\begin{array}{rrr}
- 0 & -\omega_z & \omega_y \\
+W = \left[  \begin{array}{rrr}  0 & -\omega_z & \omega_y \\
  \omega_z &  0 &  -\omega_x \\
  -\omega_y & \omega_x & 0 \\
 \end{array}
  \right] \\
 R _ { \omega}(\theta)  = I(3) + W \sin(\theta) + W^2 ( 1 - \cos(\theta)) & \\
-= \left[
-\begin{array}{rrr}
+= \left[ \\
+\begin{array}{rrr} \\
 c _ \theta + \omega_x^2(1-c_{\theta}) &  - \omega_z s_\theta + \omega_x \omega _ y (1-c_\theta) & \omega_y s_\theta + \omega_x \omega_z (1 - c_\theta)  \\
 \omega_z s_\theta + \omega_x \omega_y (1-c_\theta) & c_\theta + \omega_y^2(1-c_\theta) & -\omega_x s_\theta + \omega_y \omega_z(1-c_\theta) \\
-- \omega_y s_\theta + \omega_x \omega_z (1 - c_\theta) & \omega_x s_\theta + \omega_y \omega_z(1-c_\theta) & c_\theta + \omega_z^2(1-c_\theta) 
-\end{array}
-\right]
+ \ - \omega_y s_\theta + \omega_x \omega_z (1 - c_\theta) & \omega_x s_\theta + \omega_y \omega_z ( 1 - c _ \theta) & c _ \theta + \omega _ z ^ 2 ( 1 - c _ \theta) \\
+\end{array} \\
+\right] \\
 \end{array}
 $$
+
 
 From $R \in SO(3)$, find $\omega, \theta$
 ---
