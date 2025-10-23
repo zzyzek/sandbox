@@ -1,4 +1,43 @@
 
+* Take 1000 rotation matrices generated from $R _ j \in SO(3)$, with the each angle chosen to be $\theta _ j \in [0, \lambda \pi)$ ( $\lambda = \frac{1}{8}$ )
+
+| |
+|---|
+| ![3d walk](img/3dwalk.png) |
+
+* Extract the normal vector $w = (\omega _x, \omega _y, \omega _z)$ and angle $\theta$
+* Construct $p = ( \theta \cdot \omega _x, \theta \cdot \omega _y, \theta \cdot \omega _z )$
+* Run $10^6$ of these walks binning $|p|$:
+
+| |
+|---|
+| ![histogram of rotation matrices](img/fig2_1.png) |
+
+* Do the same as above, creating $R _ j$, but now replicate the path and record the distance ( $R _ j \dot R _ j$ )
+
+| |
+|---|
+| ![histograph of rotation matrix squared](img/fig2_2.png) |
+
+For context, here is a random point's distance from origin in the unit sphere:
+
+| |
+|---|
+| ![random point in sphere distance](img/r3bing.png) |
+
+
+For a **single** random walk, $W(\lambda) = \prod _ {j=0}^{T-1} R _ j ^ \lambda$, we can reconstruct figure 3 by
+extracting the $\theta _ 1 (\lambda)$ and for the **same** random walk, extract $\theta _ 2 (\lambda)$ from $W(\lambda) \cdot W(\lambda)$:
+
+| |
+|---|
+| ![theta single and double](img/fig3.png) |
+
+
+
+---
+
+
 Rodrigues Formula
 ---
 
@@ -66,6 +105,6 @@ $$
 References
 ---
 
-* [Wikipedia: Rodrigues Rotation Formula](https://en.wikipedia.org/wiki/Rodrigues'_rotation_formula#Matrix_notation)
 * ["Walks in Rotation Spaces Return Home when Doubled and Scaled" by Jean-Pierre Eckmann and Tsvi Tlustys](https://doi.org/10.1103/xk8y-hycn)
+* [Wikipedia: Rodrigues Rotation Formula](https://en.wikipedia.org/wiki/Rodrigues'_rotation_formula#Matrix_notation)
 * [YT: "The Mystery of Spinors" by Richard Behiel](https://www.youtube.com/watch?v=b7OIbMCIfs4w)
