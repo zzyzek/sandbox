@@ -37,8 +37,8 @@ From $R \in SO(3)$, find $\omega, \theta$
 $$
 \begin{array}{ll}
 Tr(R) & =  3 c_\theta + (\omega_x^2 + \omega_y^2 + \omega_z^2)(1-c_\theta) \\
-  &  = 1 - 2c_\theta \\
-& \to \theta = \arccos(\frac{1-Tr(R)}{2})
+  &  = 1 + 2c_\theta \\
+& \to \theta = \arccos(\frac{Tr(R)-1}{2})
 \end{array}
 $$
 
