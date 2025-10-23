@@ -23,7 +23,7 @@ For context, here is a random point's distance from origin in the unit sphere:
 
 | |
 |---|
-| ![random point in sphere distance](img/r3bing.png) |
+| ![random point in sphere distance](img/r3bin.png) |
 
 
 For a **single** random walk, $W(\lambda) = \prod _ {j=0}^{T-1} R _ j ^ \lambda$, we can reconstruct figure 3 by
