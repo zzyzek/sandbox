@@ -60,6 +60,18 @@ function _rndSO3(lambda) {
   return RodriguesMatrix( nxyz[0], nxyz[1], nxyz[2], theta );
 }
 
+function _gnuplot_sphere(_r,_dr) {
+  _r = ((typeof _r === "undefined") ? Math.PI : _r);
+  _dr = ((typeof _dr === "undefined") ? (1/16) : _dr);
+
+
+  let nxyz = _rnd_sphere2();
+
+  console.log(nxyz[0]*_r, nxyz[1]*_r, nxyz[2]*_r);
+  console.log(nxyz[0]*(_r+_dr), nxyz[1]*(_r+_dr), nxyz[2]*(_r+_dr));
+  console.log("");
+}
+
 function SO3_nw(R) {
 
   let _eps = (1/(1024*1024));
@@ -111,7 +123,7 @@ function ok() {
 
 function SO3_walks(T, n_it) {
 
-  let lambda = 1/128;
+  let lambda = 1/32;
 
   n_it = 1;
 
@@ -138,6 +150,10 @@ function SO3_walks(T, n_it) {
     console.log("\n");
 
   }
+}
+
+for (let i=0; i<100; i++) {
+  _gnuplot_sphere();
 }
 
 SO3_walks(10000,1);
