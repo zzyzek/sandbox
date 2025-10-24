@@ -265,6 +265,17 @@ function _print_grid_info(grid_info) {
   }
   console.log("");
 
+  console.log("Gv.G_idx:");
+  for (let j=(grid_info.Gv.length-1); j>=0; j--) {
+    let _r = [];
+    for (let i=0; i<grid_info.Gv[j].length; i++) {
+      _r.push( _ifmt(grid_info.Gv[j][i].G_idx, 3) );
+      //_r.push( JSON.stringify( grid_info.Gv[j][i] ) );
+    }
+    console.log(_r.join(" "));
+  }
+  console.log("");
+
   console.log("# X (", grid_info.X.length, "):");
   let xs = [];
   for (let i=0; i<grid_info.X.length; i++) {
@@ -2765,6 +2776,44 @@ function _ixykey(p) {
   return p[0].toString() + "," + p[1].toString();
 }
 
+function _to_idir(dv) {
+  if (dv[0] >  0.5) { return 0; }
+  if (dv[0] < -0.5) { return 1; }
+  if (dv[1] >  0.5) { return 2; }
+  if (dv[1] < -0.5) { return 3; }
+  return -1;
+}
+
+function rayBoundary(rprp_info, g, idir, _code) {
+  _code = ((typeof _code === "undefined") ? 'f' : _code);
+  let J = rprp_info.Js;
+  if (_code != 'f') { J = rprp_info.Je; }
+  return J[idir][ g[1] ][ g[0] ];
+}
+
+//WIP!!!
+// return true if ray eminating from p_ij in idir direction is inside
+// 2-cut defined by b_idx_s, b_idxe (fence is ccw).
+//
+function _ij_inside_cut(rprp_info, p_ij, idir, b_idx_s, b_idx_e) {
+  let Gv = rprp_info.Gv;
+  let Gv_bp = rprp_info.Gv_bp;
+  let Sx = rprp_info.Sx;
+  let Sy = rprp_info.Sy;
+
+  let Js = rprp_info.Js;
+  let Je = rprp_info.Je;
+
+  let Gsize = [ Gv[0].length, Gv.length ];
+
+  if (Gv[p_ij[1]][p_ij[0]] < 0) { return false; }
+  if (Js[idir][p_ij[1]][p_ij[0]] < 0) { return false; }
+
+
+
+
+}
+
 // UNTESTED!!!
 // rprp_info
 // g gird origin point
@@ -2778,11 +2827,16 @@ function cleaveGridInside(rprp_info, g, dg) {
   let Sx = rprp_info.Sx;
   let Sy = rprp_info.Sy;
 
+  let Js = rprp_info.Js;
+  let Je = rprp_info.Je;
+
   let Gsize = [ Gv[0].length, Gv.length ];
 
   let g_nei = [ g[0] + dg[0], g[1] + dg[1] ];
 
-  //console.log("cleaveGridInside: g:", g, "dg:", dg, "g_nei:", g_nei, "Gsize:", Gsize);
+  let idir = _to_idir(dg);
+
+  console.log("cleaveGridInside: g:", g, "dg:", dg, "(idir:", idir, ") g_nei:", g_nei, "Gsize:", Gsize);
 
   if ( (g_nei[0] < 0) ||
        (g_nei[1] < 0) ||
@@ -2924,10 +2978,14 @@ function cleaveGridInline(rprp_info, g, dg, h, dh) {
 //     or one of p_s or p_e if a guillotine cut
 // b : bower point defining quarry rectangle R_{a,b}
 //
+// clave profile is (lower right), (lower left) (upper left) (upper right)
+// Recangle is same order.
+//
 function cleaveProfile(rprp_info, p_s, p_e, a, b) {
 
   let Gv = rprp_info.Gv;
   let Gv_bp = rprp_info.Gv_bp;
+  let B2d = rprp_info.B_2d;
 
   let Sx = rprp_info.Sx;
   let Sy = rprp_info.Sy;
@@ -2938,15 +2996,25 @@ function cleaveProfile(rprp_info, p_s, p_e, a, b) {
   let g_a = Gv_bp[ _ixykey(a) ];
   let g_b = Gv_bp[ _ixykey(b) ];
 
+  // boundary start and end index
+  //
+  let b_idx_s = B2d[ g_s[1] ][ g_s[0] ];
+  let b_idx_e = B2d[ g_e[1] ][ g_e[0] ];
+
   console.log("cleaveProfile:");
   console.log("p_s:", p_s, "p_e:", p_e, "a:", a, "b:", b);
   console.log("g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b);
+  console.log("b_idx_[se]: [", b_idx_s, b_idx_e, "]");
+
+  if ((b_idx_s < 0) || (b_idx_e < 0)) { return []; }
 
   let cleave_a = [];
 
   let Rdxy = [ Math.abs(b[0]-a[0]), Math.abs(b[1]-a[1]) ];
   if ((Rdxy[0] == 0) || (Rdxy[1] == 0)) { return []; }
 
+  // point rectangle corners
+  //
   let Rp = [
     [ Math.max( a[0], b[0] ), Math.min( a[1], b[1] ) ],
     [ Math.min( a[0], b[0] ), Math.min( a[1], b[1] ) ],
@@ -2954,6 +3022,8 @@ function cleaveProfile(rprp_info, p_s, p_e, a, b) {
     [ Math.max( a[0], b[0] ), Math.max( a[1], b[1] ) ]
   ];
 
+  // grid rectangle corners
+  //
   let Rg = [
     [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
     [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
@@ -2961,12 +3031,14 @@ function cleaveProfile(rprp_info, p_s, p_e, a, b) {
     [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
   ];
 
+  let cleave_idir = [ 0, 3,  3, 1,  1, 2,  2, 0 ];
   let cleave_dxy = [
     [  1,  0 ], [  0, -1 ],
     [  0, -1 ], [ -1,  0 ],
     [ -1,  0 ], [  0,  1 ],
     [  0,  1 ], [  1,  0 ]
   ];
+
 
   let Gsize = [ Gv[0].length, Gv.length ];
 
@@ -3129,12 +3201,39 @@ function _main_iray_boundary_test() {
   }
 }
 
+function cleave_experiment( ctx, bidx_s, bidx1_e, adit_ij, bower_ij ) {
+
+  console.log("...");
+
+}
+
+function _main_cleave_test() {
+
+  let grid_info = rectilinearGridPoints(pgn_balance);
+  console.log(">>>pgn_balance:");
+
+  _print_grid_info(grid_info);
+  console.log("");
+
+  let boundary_pnt_s = [12,11],
+      boundary_pnt_e = [15,6];
+  let adit_pnt = [ 15, 11 ],
+      bower_pnt = [ 5, 14 ];
+
+  cleaveProfile( grid_info, boundary_pnt_s, boundary_pnt_e, adit_pnt, bower_pnt );
+
+}
+
 function _main_pinwheel1() {
   let grid_info = rectilinearGridPoints(pgn_pinwheel1);
 
   console.log("pgn_pinwheel1:");
   console.log(pgn_pinwheel1);
   console.log("----");
+
+  _print_grid_info(grid_info);
+  console.log("");
+
 
   // test case 0  .c.c....
   //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [6,9]);
@@ -3181,6 +3280,7 @@ if ((typeof require !== "undefined") &&
     (require.main === module)) {
   //_main(process.argv.slice(1));
   //_main_pinwheel1(process.argv.slice(1));
-  _main_iray_boundary_test();
+  //_main_iray_boundary_test();
+  _main_cleave_test();
 }
 
