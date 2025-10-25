@@ -2805,7 +2805,7 @@ function boundary_index_on_fence( b_idx, b_idx_s, b_idx_e ) {
     if ((b_idx >= b_idx_s) && (b_idx <= b_idx_e)) { return true; }
     return false;
   }
-  if ((b_idx >= b_idx_s) && (b_idx <= b_idx_e)) { return false; }
+  if ((b_idx > b_idx_e) && (b_idx < b_idx_s)) { return false; }
   return true;
 }
 
@@ -3043,6 +3043,23 @@ function cleaveProfile(rprp_info, p_s, p_e, a, b) {
     let p = Rp[ Math.floor(i/2) ];
     let g = Rg[ Math.floor(i/2) ];
 
+    let b_c_idx = ray_boundary_intersection(rprp_info, g, cleave_idir[i]);
+
+    console.log("??? i:", i, "g:", g, "b_c_idx:", b_c_idx);
+
+    if (b_c_idx < 0) {
+      cleave_profile[i] = 'x';
+      continue;
+    }
+
+    if (!boundary_index_on_fence( b_c_idx, b_idx_s, b_idx_e )) {
+      cleave_profile[i] = 'X';
+      continue;
+    }
+
+    cleave_profile[i] = '.';
+    continue;
+
     console.log("\n##cleave_dxy[", i, "]:", cleave_dxy[i], "p:", p, "g:", g);
 
     if (!cleaveGridInside(rprp_info, g, cleave_dxy[i])) {
@@ -3252,7 +3269,8 @@ function _main_pinwheel1() {
   //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [4,11]);
 
   // test case 7  .c.cxxxb
-  cleaveProfile(grid_info, [4,6], [9,4], [9,6], [6,15]);
+  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [6,15]);
+  cleaveProfile(grid_info, [9,4], [4,6], [9,6], [6,15]);
 
 }
 
@@ -3274,8 +3292,8 @@ if (typeof module !== "undefined") {
 if ((typeof require !== "undefined") &&
     (require.main === module)) {
   //_main(process.argv.slice(1));
-  //_main_pinwheel1(process.argv.slice(1));
+  _main_pinwheel1(process.argv.slice(1));
   //_main_iray_boundary_test();
-  _main_cleave_test();
+  //_main_cleave_test();
 }
 
