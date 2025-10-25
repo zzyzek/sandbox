@@ -2784,34 +2784,29 @@ function _to_idir(dv) {
   return -1;
 }
 
-function rayBoundary(rprp_info, g, idir, _code) {
+// from grid point g, follow a line out in idir direction until
+// it hits the boundary
+//
+// _code: 
+//   'f' - return first boundary point hit (default)
+//   'l' - return last boundary hit
+//
+// return -1 if g not inside or ray shoots outside of boundary
+//
+function ray_boundary_intersection(rprp_info, g, idir, _code) {
   _code = ((typeof _code === "undefined") ? 'f' : _code);
   let J = rprp_info.Js;
   if (_code != 'f') { J = rprp_info.Je; }
   return J[idir][ g[1] ][ g[0] ];
 }
 
-//WIP!!!
-// return true if ray eminating from p_ij in idir direction is inside
-// 2-cut defined by b_idx_s, b_idxe (fence is ccw).
-//
-function _ij_inside_cut(rprp_info, p_ij, idir, b_idx_s, b_idx_e) {
-  let Gv = rprp_info.Gv;
-  let Gv_bp = rprp_info.Gv_bp;
-  let Sx = rprp_info.Sx;
-  let Sy = rprp_info.Sy;
-
-  let Js = rprp_info.Js;
-  let Je = rprp_info.Je;
-
-  let Gsize = [ Gv[0].length, Gv.length ];
-
-  if (Gv[p_ij[1]][p_ij[0]] < 0) { return false; }
-  if (Js[idir][p_ij[1]][p_ij[0]] < 0) { return false; }
-
-
-
-
+function boundary_index_on_fence( b_idx, b_idx_s, b_idx_e ) {
+  if (b_idx_e > b_idx_s) {
+    if ((b_idx >= b_idx_s) && (b_idx <= b_idx_e)) { return true; }
+    return false;
+  }
+  if ((b_idx >= b_idx_s) && (b_idx <= b_idx_e)) { return false; }
+  return true;
 }
 
 // UNTESTED!!!
