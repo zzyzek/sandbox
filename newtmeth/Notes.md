@@ -24,7 +24,7 @@ $$
 \begin{array}{l}
 \phi(z) = \left( \lim _ {k \to \infty} f^k(z) \right) ^ {1  / d^k} \\
 |\phi(z)| = \left( \lim _ {k \to \infty} |f^k(z) | \right) ^ {1  / d^k} \\
-G _ f (z) = \Biggl\{
+G _ f (z) = \Biggl\\{
  \begin{array}{ll} \log|\phi(z)| & z \notin \mathbf{K} _ f \\
 0 & z \in \mathbf{K} _ f \\
 \end{array} \\
