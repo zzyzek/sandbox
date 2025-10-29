@@ -2809,6 +2809,150 @@ function boundary_index_on_fence( b_idx, b_idx_s, b_idx_e ) {
   return true;
 }
 
+function bidx_in_R( b_idx, b_idx_s, b_idx_e ) {
+  if (b_idx < 0) { return false; }
+  return boundary_index_on_fence( b_idx, b_idx_s, b_idx_e );
+}
+
+//------
+
+// lightly tested
+// ... I'm still al ittle iffy but works for some simple test cases
+//
+// The idea is to extend rays out from the grid point to where they
+// meet the border using the border jump structure (Js).
+// If any of the J[idir] indicies are -1, then the grid point is either
+// completely oustide the rectangle or on the border, so return -1.
+//
+// If the ray in the x line or the ray in the y line both have border
+// indices that are within the region, the point must be within the
+// region.
+// The same logic applies if the x line or y line are outside of
+// the region.
+//
+// The final case is when the border indices on both the x and y lines have
+// one endpoint inside the region and one endpoint outside the region.
+// From the grid point, see which direction (idir) the grid point is from
+// the vertical line and horizontal line implied by the adit point.
+// This determines if the grid point is left or right of vertical cut
+// and up or down from the horizontal cut.
+//
+// If the border index in the horizontal and vertical direction
+// are both within the region, the point is inside (return 1).
+// Otherwise, the point is outside (return 0).
+//
+// For example, if the grid point is to the left of the adit x point
+// and up from the adit y point, and the border index from the ray
+// traced out to the left from the grid point is within the region
+// and the border index from the ray traced out up from the grid
+// point is in the region, the grid point is in the 2-cut region.
+// If either of the border indicies traced out from the grid
+// point in the direction away from the cut line are *not* in
+// the region, the grid point is not within the region.
+//
+// All this might be overkill.
+// I'm trying to get an O(1) operation.
+// As this only uses some simple vector subtraction, border
+// inclusion (bidx_in_R, which does simple range tests) tests and
+// uses the precomputed J (border jump structure), we don't need to
+// walk individual grid points until we hit a boundary, avoiding
+// the potential O(n) blowup.
+//
+// For 1cut, grid_adit should never be used as the grid_pnt rays
+// will have two border indices completely outside or inside
+// in either the vertical or horizontal orientations.
+//
+// Input:
+//
+//   rprp_info    - context
+//   grid_pnt     - [ix,iy] grid point
+//   border_idx0  - index of first border
+//   border_idx1  - index of second border (ccw from idx0 to idx1)
+//   grid_adit    - intersection of 2-cut from border indicies.
+//                  in the case of a 1-cut, grid_adit is unused, so
+//                  can either be left undefined or be one of the two endpoints of
+//                  the 1-cut line.
+//
+// Return:
+//
+//   1 - if grid_pnt within the region defined by the 2-cut or 1-cut border_idx0, border_idx1 and adit grid point
+//   0 - otherwise (outside of region, on border outside of rectangle).
+//
+function ijpoint_inside_cut_region(rprp_info, grid_pnt, border_idx0, border_idx1, grid_adit) {
+
+  let J = rprp_info.Js;
+
+  let jval = [
+    J[0][ grid_pnt[1] ][ grid_pnt[0] ],
+    J[1][ grid_pnt[1] ][ grid_pnt[0] ],
+    J[2][ grid_pnt[1] ][ grid_pnt[0] ],
+    J[3][ grid_pnt[1] ][ grid_pnt[0] ]
+  ];
+
+  let jval_in = [
+    bidx_in_R( jval[0], border_idx0, border_idx1 ),
+    bidx_in_R( jval[1], border_idx0, border_idx1 ),
+    bidx_in_R( jval[2], border_idx0, border_idx1 ),
+    bidx_in_R( jval[3], border_idx0, border_idx1 )
+  ];
+
+  //console.log("\n## p in R 2cut: grid_pnt:", grid_pnt, "border:[", border_idx0, border_idx1, "], adit:", grid_adit);
+  //console.log("g:", grid_pnt, "jval:", jval, "...", jval_in);
+
+  // grid point is completely outside of polygon or is on border
+  //
+  if ((jval[0] < 0) || (jval[1] < 0) ||
+      (jval[2] < 0) || (jval[3] < 0)) {
+    return 0;
+  }
+
+  // x line or y line lies completely in region, so point is inside region
+  //
+  if ( (jval_in[0] && jval_in[1]) ||
+       (jval_in[2] && jval_in[3]) ) {
+    return 1;
+  }
+
+  // x line or y line lies completely outside region, so point is outside region
+  //
+  if ( ((!jval_in[0]) && (!jval_in[1])) ||
+       ((!jval_in[2]) && (!jval_in[3])) ) {
+    return 0;
+  }
+
+  /*
+  let g_B = [
+    rprp_info.B[ jval[0] ].ixy,
+    rprp_info.B[ jval[1] ].ixy,
+    rprp_info.B[ jval[2] ].ixy,
+    rprp_info.B[ jval[3] ].ixy,
+  ];
+  */
+
+  // which side of the cut line is the point on
+  //
+
+  let pnt_idir_cut = [
+    ((grid_pnt[0] > grid_adit[0]) ? 0 : 1),
+    ((grid_pnt[1] > grid_adit[1]) ? 2 : 3)
+  ];
+
+  // If border point in the direction away from the cut line
+  // are both inside region, point is inside region.
+  //
+  if (jval_in[ pnt_idir_cut[0] ] && jval_in[ pnt_idir_cut[1] ]) {
+    return 1;
+  }
+
+  return 0;
+}
+
+function point_on_border(rprp_info, grid_pnt) {
+
+}
+
+//------
+
 // UNTESTED!!!
 // rprp_info
 // g gird origin point
@@ -3245,6 +3389,40 @@ function _main_pinwheel1() {
 
   _print_grid_info(grid_info);
   console.log("");
+
+
+
+  let _gpnt = [3,4];
+  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 16, 11, [2,3]) );
+
+  _gpnt = [3,4];
+  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 11, 16, [2,3]) );
+
+  _gpnt = [2,2];
+  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 16, 11, [2,3]) );
+
+  _gpnt = [0,1];
+  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 16, 11, [2,3]) );
+
+  _gpnt = [1,1];
+  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 16, 11, [2,3]) );
+
+
+
+  _gpnt = [2,3];
+  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 1, 14, [3,2]) );
+
+  _gpnt = [2,3];
+  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 14, 1, [3,2]) );
+
+
+  _gpnt = [2,3];
+  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 1, 11, [4,2]) );
+
+  _gpnt = [2,3];
+  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 14, 1, [4,2]) );
+
+
 
 
   // test case 0  .c.c....
