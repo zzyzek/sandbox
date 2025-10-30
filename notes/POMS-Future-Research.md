@@ -222,6 +222,32 @@ Some things to consider:
 Kintsugi Method (theoretical)
 ---
 
+###### 2025-10-30
+
+A very rough thought but I wanted to get it down:
+
+Instead of keeping whole regions and fuzzing out the
+connective area, grow the whole region and consider
+a bag of tiles probability, using the Gilbert curve (or
+something) to map from source regions to new regions.
+
+How to do this mappping, how to consider the bag of tiles,
+etc, are the important details, but the core idea is
+to not be so strict about keeping already resolved tiles.
+
+In some sense, this is like a histolysis and histogenesis
+step.
+
+So, one basic idea is to take an overlapping square tiling,
+of a fixed block size (that's maybe related to the TACCL),
+and map it to the larger area by converting it to a bag of
+tiles with frequency probability.
+
+I'm getting a little too obsessed with the Gilbert curve.
+Using bounding boxes, inflating them to the new region
+and keeping the bag of tiles probability, encapsulates the
+same basic idea.
+
 ###### 2024-10-03
 
 This is very speculative so it needs to be validated.
