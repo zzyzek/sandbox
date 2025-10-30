@@ -248,6 +248,25 @@ Using bounding boxes, inflating them to the new region
 and keeping the bag of tiles probability, encapsulates the
 same basic idea.
 
+Right, this might work for basic symmetry, where there are regions
+of homogeneity, but if there's a large homogeneous region
+surrounded or split by a fixed constraint, it's not clear
+how to 'grow' the area.
+
+By considering a bag of tiles approach, we can quantize
+the BoT profile.
+This could at least provide a pre-processing step
+to find symmetry.
+
+For example, a fixed frame could have enough similarity
+where the frame edge quantizes to the same value.
+We consider a smaller model in size to hold
+the compressed version, then grow from there.
+Not clear how to ease into the forced boundary,
+but the scaling need not be uniform and maybe
+the middle section can be preferrentially histolysed.
+
+
 ###### 2024-10-03
 
 This is very speculative so it needs to be validated.
