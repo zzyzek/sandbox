@@ -42,7 +42,8 @@ var g_ui = {
   "state_description" : [ "drawing", "idle", "delete" ],
 
   "viz_opt" : {
-    "show_ij": false,
+    "show_xy": true,
+    "show_ij": true,
     "show_Js": true,
     "show_Je": false,
     "show_B": true
@@ -458,16 +459,38 @@ function _draw_rprp_grid() {
   for (let i=0; i<grid_pnt.length; i++) {
     let _c = two.makeCircle( grid_pnt[i][0], grid_pnt[i][1], 3 );
 
-    let _txt = grid_ij[i][0].toString() + "," + grid_ij[i][1].toString();
-    let _txy = [
-      grid_pnt[i][0] + 12,
-      grid_pnt[i][1] + 8
-    ];
-
+    let _txt_ij = grid_ij[i][0].toString() + "," + grid_ij[i][1].toString();
     let _b = [grid_pnt[i][0], grid_pnt[i][1]];
 
+    if (g_ui.viz_opt.show_xy) {
+      let _x = (grid_pnt[i][0] - _oxy[0])/gs;
+      let _y = (grid_pnt[i][1] - _oxy[1])/gs;
+      let _txt_xy = _x.toString() + "," + _y.toString();
+      let _style = {
+        "fill": "rgb(54,54,255)",
+        "size": 8
+      };
+
+      let _txy = [
+        grid_pnt[i][0] + 13,
+        grid_pnt[i][1] - 13
+      ];
+
+      let _t = two.makeText( _txt_xy, _txy[0], _txy[1], _style );
+    }
+
     if (g_ui.viz_opt.show_ij) {
-      let _t = two.makeText( _txt, _txy[0], _txy[1], _style );
+      let _style = {
+        "fill": "rgb(131,0,200)",
+        "size": 9
+      };
+
+      let _txy = [
+        grid_pnt[i][0] + 16,
+        grid_pnt[i][1] + 14
+      ];
+
+      let _t = two.makeText( _txt_ij, _txy[0], _txy[1], _style );
     }
 
   }
@@ -505,12 +528,18 @@ function _draw_rprp_grid() {
   }
 
   if (g_ui.viz_opt.show_B) {
+
+    let _B_style = {
+      "fill": "rgb(220,44,0)",
+      "size": 7
+    };
+
     for (let b_idx=0; b_idx < B.length; b_idx++) {
       let bxy = [
         B[b_idx].xy[0]*gs + _oxy[0],
        -B[b_idx].xy[1]*gs + _oxy[1]
       ];
-      let _tb = two.makeText( b_idx.toString(), bxy[0] + 12, bxy[1] + 8, _style );
+      let _tb = two.makeText( b_idx.toString(), bxy[0] + 7, bxy[1] + 5, _B_style );
     }
   }
 
