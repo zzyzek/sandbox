@@ -266,6 +266,57 @@ Not clear how to ease into the forced boundary,
 but the scaling need not be uniform and maybe
 the middle section can be preferrentially histolysed.
 
+---
+
+Here's an updated idea:
+
+Choose a block size, $B$ .
+From some rolling window, create a bag of tiles (BoT)
+vector for each block considered.
+Collect them in $S$.
+
+For each $u, v \in S$, estimate the probaility
+of realizing a block with $u$ single tile probabilities
+and with frame given by $v$, call it $p ( u | v )$ .
+
+
+Construct the (asymmetric) matrix $A = \[ p ( u _ i | u _ j ) \] _ {i,j}$
+(note $p ( u _ i | u _ i )$ might not be 1).
+Since the matrix is asymetric, a straight forward use of spectral clustering
+won't work, though there may be extensions (if $A$ is non-singular, it still
+is diagonalizable (?) but eigenvalues might be complex).
+
+DBSCAN looks to be able to handle non-symmetric cases out of the box
+(with e.g. `sklearn`).
+
+Whatever the method, the point is to use the clustering to
+label blocks with similar BoT vectors the same.
+
+---
+
+Restating some assumptions:
+
+* The point is not to recreate more complex algorithms (Dijkstra, Ford-Fulkerson),
+  it's to be able to solve the case that *should* be solveable but aren't because
+  the problem is scaled
+  - Constraint propagation works on small scale
+  - Scaled problem makes regions local so they lose sight of ability to connect
+  - Scaling is a type of symmetry can be exploited by being able to reduce run-length-encoded
+    regions or other scaling symmetries
+  - Small scale solutions can be "grown" into larger scales (there's a valid path through the
+    solution space from the small problem to the larger one with solutions at intermediate steps)
+* Bag-of-Tiles (BoT) is a good representation of block regions
+  - the problem is conditioned well enough so that the solver can use the individual tile probability
+    weighting to find a realization
+
+The "grow to find solutions" approach might be interesting and provide extra power but the
+core idea, let alone whether it helps in more general settings, needs to be validated.
+
+I'm confident enough that the BoT idea is sound but this is untested and needs validation.
+
+The above idea is nice in that it's conditioned to the exemplar, tile configuration and solver.
+One can imagine using inermediate solutions to further refine different aspects of the method.
+
 
 ###### 2024-10-03
 
