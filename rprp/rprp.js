@@ -3316,7 +3316,7 @@ function _ivec0(v) {
 //
 //
 
-function valid_cleave_choice(cleave_choice, cleave_border_type) {
+function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_border_type) {
 
   let redux = [];
   for (let i=0; i<cleave_choice.length; i++) {
@@ -3341,12 +3341,48 @@ function valid_cleave_choice(cleave_choice, cleave_border_type) {
   if ((redux[3] == '*') && (redux[4] == '*')) { return false; }
   if ((redux[5] == '*') && (redux[6] == '*')) { return false; }
 
+
   // each corner needs at least one cleave cut
   //
   if ((redux[0] == '-') && (redux[1] == '-')) { return false; }
   if ((redux[2] == '-') && (redux[3] == '-')) { return false; }
   if ((redux[4] == '-') && (redux[5] == '-')) { return false; }
   if ((redux[6] == '-') && (redux[7] == '-')) { return false; }
+
+
+  // bridge tests
+  // cleave line bridges two borders, so is moveable, invalidating choice
+  //
+  // if there's a cleave line that ends on a flat boundary edge
+  // and there's a cleave line going orthogonal, it's a bridge (-> invalid)
+  //
+  if ((redux[0] == '*') && (redux[1] == '*') && (cleave_border_type[0] == 'b')) { return false; }
+  if ((redux[1] == '*') && (redux[0] == '*') && (cleave_border_type[1] == 'b')) { return false; }
+
+  if ((redux[2] == '*') && (redux[3] == '*') && (cleave_border_type[2] == 'b')) { return false; }
+  if ((redux[3] == '*') && (redux[2] == '*') && (cleave_border_type[3] == 'b')) { return false; }
+
+  if ((redux[4] == '*') && (redux[5] == '*') && (cleave_border_type[4] == 'b')) { return false; }
+  if ((redux[5] == '*') && (redux[6] == '*') && (cleave_border_type[5] == 'b')) { return false; }
+
+  if ((redux[6] == '*') && (redux[7] == '*') && (cleave_border_type[6] == 'b')) { return false; }
+  if ((redux[7] == '*') && (redux[6] == '*') && (cleave_border_type[7] == 'b')) { return false; }
+
+  // float tests
+  // at least one end must be on a corner
+  //
+
+  let Js = rprp_info.Js;
+  let R = grid_quarry;
+
+  // uhg...
+  //
+  if ((redux[5] == '*') && (cleave_border_type[5] == 'b') &&
+      (Js[ R[2][1] ][ R[2][0] ] == Js[ R[1][1] ][ R[1][0] ]) &&
+      (((redux[2] == '*') && (cleave_border_type[2] == 'b')) ||
+        (redux[2] == '-'))) {
+    return false;
+  }
 
   return true;
 }
@@ -3468,7 +3504,8 @@ function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
 
     }
 
-    console.log(">>>", bvec, cleave_choice.join(""), valid_cleave_choice( cleave_choice, cleave_border_type ) );
+    console.log(">>>", bvec, cleave_choice.join(""), valid_cleave_choice( rprp_info, Rg, cleave_choice, cleave_border_type ) );
+    //console.log("  ----   ");
     _ivec_incr(bvec);
   } while ( !_ivec0(bvec) );
 
@@ -3668,6 +3705,7 @@ function _ijpoint_inside_spot_test() {
 
 }
 
+
 function _main_pinwheel1() {
   let grid_info = rectilinearGridPoints(pgn_pinwheel1);
 
@@ -3711,7 +3749,8 @@ function _main_pinwheel1() {
   //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [6,15]);
 
   // .cXcxxxb
-  //cleaveProfile(grid_info, [9,4], [4,6], [9,6], [6,15]);
+  //let _cleave_profile = cleaveProfile(grid_info, [9,4], [4,6], [9,6], [6,15]);
+  //enumerateCleaveCut(grid_info, [9,4], [4,6], [9,6], [6,15], _cleave_profile);
 
   // .cXc....
   let _cleave_profile = cleaveProfile(grid_info, [9,4], [4,6], [9,6], [6,9]);
