@@ -3318,6 +3318,26 @@ function _ivec0(v) {
 
 function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_border_type) {
 
+  let Js = rprp_info.Js;
+  let R = grid_quarry;
+
+  let B = rprp_info.B;
+  let B2d = rprp_info.B_2d;
+
+  let quarry_point_type = ['~', '~', '~', '~'];
+
+  for (let i=0; i<4; i++) {
+    let b_id = B2d[ R[i][1] ][ R[i][0] ];
+
+    if (b_id < 0) {
+      quarry_point_type[i] = '.';
+      continue;
+    }
+
+    quarry_point_type[i] = B[b_id].t;
+  }
+
+
   let redux = [];
   for (let i=0; i<cleave_choice.length; i++) {
     let _code = '^';
@@ -3372,16 +3392,47 @@ function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_borde
   // at least one end must be on a corner
   //
 
-  let Js = rprp_info.Js;
-  let R = grid_quarry;
-
   // uhg...
   //
-  if ((redux[5] == '*') && (cleave_border_type[5] == 'b') &&
-      (Js[ R[2][1] ][ R[2][0] ] == Js[ R[1][1] ][ R[1][0] ]) &&
+  // we'll use cleave 5 (upper left corner, pointing upwards) as an example:
+  //
+  // IF   cleave_5 is present and ends on a border (upwards)
+  // AND  opposite of cleave_5 (cleave_2) exists and ends on a border or
+  //        cleave_2 doesn't exist at all
+  // AND  origin point of cleave_5 (quarry_point_2) has the same endpoint as
+  //        origin of clave_2 (quarry_point_1)
+  // AND  cleave_5 doesn't start on an original corner border
+  // THEN cleave cut is floating
+  //
+  // It's verbose but the idea is that if cleave 5 ends on a border
+  // then either there must be a corner butting the quarry rectangle
+  // (determined from the endpoint tests) or the opposive cleave 2 has
+  // to end on a corner.
+  //
+  if ((quarry_point_type[2] != 'c') &&
+      (redux[5] == '*') && (cleave_border_type[5] == 'b') &&
       (((redux[2] == '*') && (cleave_border_type[2] == 'b')) ||
-        (redux[2] == '-'))) {
+        (redux[2] == '-')) &&
+      (Js[ R[2][1] ][ R[2][0] ] == Js[ R[1][1] ][ R[1][0] ])) {
     return false;
+  }
+
+  let oppo_cleave = [ 3, 6, 5, 0,
+                      7, 2, 1, 4 ];
+
+  for (cleave_idx = 0; cleave_idx < 8; cleave_idx++) {
+    let r_idx = Math.floor(cleave_idx/2);
+    let rev_cleave_idx = oppo_cleave[cleave_idx];
+    let rev_r_idx = Math.floor(rev_cleave_idx/2);
+
+    if ((quarry_point_type[r_idx] != 'c') &&
+        (redux[cleave_idx] == '*') && (cleave_border_type[cleave_idx] == 'b') &&
+        (((redux[rev_cleave_idx] == '*') && (cleave_border_type[rev_cleave_idx] == 'b')) ||
+          (redux[rev_cleave_idx] == '-')) &&
+        (Js[ R[r_idx][1] ][ R[r_idx][0] ] == Js[ R[rev_r_idx][1] ][ R[rev_r_idx][0] ])) {
+      return false;
+    }
+
   }
 
   return true;
