@@ -4,7 +4,7 @@ Notes
 * Q: What is the conformal isomorphism between the complement of the Mandelbrot set and the complement of the unit disk, and how is it constructed?
   - no simple closed form exists, so the best we can hope for is to approximate it
 * Bottcher cordinate ([wp](https://en.wikipedia.org/wiki/B%C3%B6ttcher%27s_equation))
-* How to apprximate external rays ([wb](https://en.wikibooks.org/wiki/Fractals%2FIterations_in_the_complex_plane%2FMandelbrotSetExterior%2FParameterExternalRay)
+* How to apprximate external rays ([wb](https://en.wikibooks.org/wiki/Fractals%2FIterations_in_the_complex_plane%2FMandelbrotSetExterior%2FParameterExternalRay))
 * "An introduction to Julia and Fatou sets" by Scott Sutherland
 
 ???
