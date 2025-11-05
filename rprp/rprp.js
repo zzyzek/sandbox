@@ -3168,6 +3168,10 @@ function cleaveProfile(rprp_info, p_s, p_e, a, b) {
   let g_a = Gv_bp[ _ixykey(a) ];
   let g_b = Gv_bp[ _ixykey(b) ];
 
+  return cleaveProfileGrid(rprp_info, g_s, g_e, g_a, g_b);
+
+  /*
+
   // boundary start and end index
   //
   let b_idx_s = B2d[ g_s[1] ][ g_s[0] ];
@@ -3249,11 +3253,70 @@ function cleaveProfile(rprp_info, p_s, p_e, a, b) {
     cleave_profile[i] = '.';
     continue;
 
-    /*
-    console.log("\n##cleave_dxy[", i, "]:", cleave_dxy[i], "p:", p, "g:", g);
+  }
 
-    if (!cleaveGridInside(rprp_info, g, cleave_dxy[i])) {
+  //console.log("");
+  //console.log("cleave_profile:", cleave_profile.join(""));
+  //console.log("");
+
+  return cleave_profile;
+
+  */
+}
+
+function cleaveProfileGrid(rprp_info, g_s, g_e, g_a, g_b) {
+
+  let Gv = rprp_info.Gv;
+  let Gv_bp = rprp_info.Gv_bp;
+  let B2d = rprp_info.B_2d;
+
+  let Sx = rprp_info.Sx;
+  let Sy = rprp_info.Sy;
+
+  // boundary start and end index
+  //
+  let b_idx_s = B2d[ g_s[1] ][ g_s[0] ];
+  let b_idx_e = B2d[ g_e[1] ][ g_e[0] ];
+
+  if ((b_idx_s < 0) || (b_idx_e < 0)) { return []; }
+
+  let cleave_a = [];
+
+  // grid rectangle corners
+  //
+  let Rg = [
+    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
+    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
+  ];
+
+  let cleave_idir = [ 0, 3,  3, 1,  1, 2,  2, 0 ];
+  let cleave_dxy = [
+    [  1,  0 ], [  0, -1 ],
+    [  0, -1 ], [ -1,  0 ],
+    [ -1,  0 ], [  0,  1 ],
+    [  0,  1 ], [  1,  0 ]
+  ];
+
+  let Gsize = [ Gv[0].length, Gv.length ];
+
+  let cleave_profile = [ '~', '~', '~', '~', '~', '~', '~', '~' ];
+
+  for (let i=0; i<cleave_dxy.length; i++) {
+    let g = Rg[ Math.floor(i/2) ];
+
+    let _b_c_idx = ray_boundary_intersection(rprp_info, g, cleave_idir[i]);
+
+    let b_c_idx = rprp_info.Js[ cleave_idir[i] ][ g[1] ][ g[0] ];
+
+    if (b_c_idx < 0) {
       cleave_profile[i] = 'x';
+      continue;
+    }
+
+    if (!boundary_index_on_fence( b_c_idx, b_idx_s, b_idx_e )) {
+      cleave_profile[i] = 'X';
       continue;
     }
 
@@ -3262,25 +3325,15 @@ function cleaveProfile(rprp_info, p_s, p_e, a, b) {
       continue;
     }
 
-    let cl_dxy = [
-      v_delta( v_sub( g_s, g_a ) ),
-      v_delta( v_sub( g_e, g_a ) )
-    ];
-
-    if ( (cleaveGridInline(rprp_info, g, cleave_dxy[i], g_a, cl_dxy[0])) ||
-         (cleaveGridInline(rprp_info, g, cleave_dxy[i], g_a, cl_dxy[1])) ) {
+    if ((b_c_idx == b_idx_s) || (b_c_idx == b_idx_e)) {
       cleave_profile[i] = 'c';
       continue;
     }
 
     cleave_profile[i] = '.';
-    */
+    continue;
 
   }
-
-  //console.log("");
-  //console.log("cleave_profile:", cleave_profile.join(""));
-  //console.log("");
 
   return cleave_profile;
 }
@@ -3318,6 +3371,8 @@ function _ivec0(v) {
 
 function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_border_type) {
 
+  let _debug = false;
+
   let Js = rprp_info.Js;
   let R = grid_quarry;
 
@@ -3325,6 +3380,14 @@ function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_borde
   let B2d = rprp_info.B_2d;
 
   let quarry_point_type = ['~', '~', '~', '~'];
+
+  //DEBUG
+  //DEBUG
+  //if (cleave_choice.join("") == '-c*-*--*') { _debug = true; }
+  //if (cleave_choice.join("") == '-c*--*-*') { _debug = true; }
+  //DEBUG
+  //DEBUG
+
 
   for (let i=0; i<4; i++) {
     let b_id = B2d[ R[i][1] ][ R[i][0] ];
@@ -3337,6 +3400,7 @@ function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_borde
     quarry_point_type[i] = B[b_id].t;
   }
 
+  if (_debug) { console.log("#vcc.cp0"); }
 
   let redux = [];
   for (let i=0; i<cleave_choice.length; i++) {
@@ -3352,15 +3416,34 @@ function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_borde
     redux.push( _code );
   }
 
-  console.log(">>>", redux.join(""), cleave_border_type.join("") );
-
-  // parallel cleave cuts means middle billet is moveable
+  // quarry rectangle edge is 'undocked', not
+  // buffetted by a border perimeter
   //
-  if ((redux[0] == '*') && (redux[7] == '*')) { return false; }
-  if ((redux[1] == '*') && (redux[2] == '*')) { return false; }
-  if ((redux[3] == '*') && (redux[4] == '*')) { return false; }
-  if ((redux[5] == '*') && (redux[6] == '*')) { return false; }
+  let _undock = [ 1, 1, 1, 1 ];
 
+  if ( (Js[0][ R[1][1] ][ R[1][0] ] != Js[0][ R[0][1] ][ R[0][0] ]) ||
+       (Js[1][ R[1][1] ][ R[1][0] ] != Js[1][ R[0][1] ][ R[0][0] ]) ) {
+    _undock[0] = 0;
+  }
+
+  if ( (Js[2][ R[1][1] ][ R[1][0] ] != Js[2][ R[2][1] ][ R[2][0] ]) ||
+       (Js[3][ R[1][1] ][ R[1][0] ] != Js[3][ R[2][1] ][ R[2][0] ]) ) {
+    _undock[1] = 0;
+  }
+
+  if ( (Js[0][ R[2][1] ][ R[2][0] ] != Js[0][ R[3][1] ][ R[3][0] ]) ||
+       (Js[1][ R[2][1] ][ R[2][0] ] != Js[1][ R[3][1] ][ R[3][0] ]) ) {
+    _undock[2] = 0;
+  }
+
+  if ( (Js[2][ R[0][1] ][ R[0][0] ] != Js[2][ R[3][1] ][ R[3][0] ]) ||
+       (Js[3][ R[0][1] ][ R[0][0] ] != Js[3][ R[3][1] ][ R[3][0] ]) ) {
+    _undock[3] = 0;
+  }
+
+
+
+  if (_debug) { console.log("#vcc.cp1:", cleave_choice.join(""), redux.join(""), JSON.stringify(_undock) ); }
 
   // each corner needs at least one cleave cut
   //
@@ -3369,6 +3452,17 @@ function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_borde
   if ((redux[4] == '-') && (redux[5] == '-')) { return false; }
   if ((redux[6] == '-') && (redux[7] == '-')) { return false; }
 
+  if (_debug) { console.log("#vcc.cp2"); }
+
+  // parallel cleave cuts means middle billet is moveable
+  //
+  if ((_undock[3] == 1) && (redux[0] == '*') && (redux[7] == '*')) { return false; }
+  if ((_undock[0] == 1) && (redux[1] == '*') && (redux[2] == '*')) { return false; }
+  if ((_undock[1] == 1) && (redux[3] == '*') && (redux[4] == '*')) { return false; }
+  if ((_undock[2] == 1) && (redux[5] == '*') && (redux[6] == '*')) { return false; }
+
+
+  if (_debug) { console.log("#vcc.cp3"); }
 
   // bridge tests
   // cleave line bridges two borders, so is moveable, invalidating choice
@@ -3383,10 +3477,13 @@ function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_borde
   if ((redux[3] == '*') && (redux[2] == '*') && (cleave_border_type[3] == 'b')) { return false; }
 
   if ((redux[4] == '*') && (redux[5] == '*') && (cleave_border_type[4] == 'b')) { return false; }
-  if ((redux[5] == '*') && (redux[6] == '*') && (cleave_border_type[5] == 'b')) { return false; }
+  if ((redux[5] == '*') && (redux[4] == '*') && (cleave_border_type[5] == 'b')) { return false; }
 
   if ((redux[6] == '*') && (redux[7] == '*') && (cleave_border_type[6] == 'b')) { return false; }
   if ((redux[7] == '*') && (redux[6] == '*') && (cleave_border_type[7] == 'b')) { return false; }
+
+  if (_debug) { console.log("#vcc.cp4"); }
+
 
   // float tests
   // at least one end must be on a corner
@@ -3409,14 +3506,22 @@ function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_borde
   // (determined from the endpoint tests) or the opposive cleave 2 has
   // to end on a corner.
   //
+
+
+  // CRUFT
+  // hand enumeration, cruft, remove when we have some confidence.
+  //
   if ((quarry_point_type[2] != 'c') &&
       (redux[5] == '*') && (cleave_border_type[5] == 'b') &&
       (((redux[2] == '*') && (cleave_border_type[2] == 'b')) ||
         (redux[2] == '-')) &&
-      (Js[ R[2][1] ][ R[2][0] ] == Js[ R[1][1] ][ R[1][0] ])) {
+      (Js[3][ R[2][1] ][ R[2][0] ] == Js[3][ R[1][1] ][ R[1][0] ])) {
     return false;
   }
 
+  if (_debug) { console.log("#vcc.cp5"); }
+
+  let cleave_idir = [ 0, 3,  3, 1,  1, 2,  2, 0 ];
   let oppo_cleave = [ 3, 6, 5, 0,
                       7, 2, 1, 4 ];
 
@@ -3424,25 +3529,60 @@ function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_borde
     let r_idx = Math.floor(cleave_idx/2);
     let rev_cleave_idx = oppo_cleave[cleave_idx];
     let rev_r_idx = Math.floor(rev_cleave_idx/2);
+    let idir = cleave_idir[cleave_idx];
 
     if ((quarry_point_type[r_idx] != 'c') &&
         (redux[cleave_idx] == '*') && (cleave_border_type[cleave_idx] == 'b') &&
         (((redux[rev_cleave_idx] == '*') && (cleave_border_type[rev_cleave_idx] == 'b')) ||
           (redux[rev_cleave_idx] == '-')) &&
-        (Js[ R[r_idx][1] ][ R[r_idx][0] ] == Js[ R[rev_r_idx][1] ][ R[rev_r_idx][0] ])) {
+        (Js[idir][ R[r_idx][1] ][ R[r_idx][0] ] == Js[idir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ])) {
+
+      if (_debug) {
+        console.log("#vcc.cp5.5: cleave_idx:", cleave_idx, r_idx);
+        console.log("qpt[", r_idx, "]:", quarry_point_type[r_idx],
+          "redux[", cleave_idx, "]:", redux[cleave_idx],
+          "cbt[", cleave_idx, "]:", cleave_border_type[cleave_idx],
+          "redux[", rev_cleave_idx, "]:", redux[rev_cleave_idx],
+          "cbt[", rev_cleave_idx, "]:", cleave_border_type[rev_cleave_idx],
+          "js[", idir, "][", R[r_idx][1], "][", R[r_idx][0], "]:", Js[idir][ R[r_idx][1] ][ R[r_idx][0] ],
+          "js[", idir, "][", R[rev_r_idx][1], "][", R[rev_r_idx][0], "]:", Js[idir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ]);
+
+      }
+
       return false;
     }
 
   }
 
+  if (_debug) { console.log("#vcc.cp6"); }
+
   return true;
 }
 
-function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
+// go through all possibilities of cleave cuts from quarry rectangle (end points).
+// Maximum is 2^8 = 256 but this is reduced by only considering cleave cuts for
+// '.' entries of the cleave profile.
+//
+// This function returns a list of cleave cuts that pass tests,
+// where a cleave cut realization can be removed from consideration if it has:
+//
+// * bridges:   cleave cut has endpoints on flat borders, so is moveable
+// * floats:    maximum edge of cleave cut does not end on a primitive convex border point
+// * parallel:  there is another cleave cut parallel to it
+//
+// cleave cuts will also not be chosen the go outside of the region, as defined
+// by the counterclockwise trace of the general border grid point g_s to the general
+// border grid point g_e.
+//
+// This function takes as input grid points, as opposed to `enumerateCleaveCut`, which
+// takes in general points.
+//
+function enumerateCleaveCutGrid(rprp_info, g_s, g_e, g_a, g_b, cleave_profile) {
+
+  let _debug = false;
 
   let Gv = rprp_info.Gv;
   let Gv_bp = rprp_info.Gv_bp;
-
 
   let B = rprp_info.B;
   let B2d = rprp_info.B_2d;
@@ -3452,32 +3592,19 @@ function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
 
   let Js = rprp_info.Js;
 
-  let g_s = Gv_bp[ _ixykey(p_s) ];
-  let g_e = Gv_bp[ _ixykey(p_e) ];
-
-  let g_a = Gv_bp[ _ixykey(a) ];
-  let g_b = Gv_bp[ _ixykey(b) ];
-
   // boundary start and end index
   //
   let b_idx_s = B2d[ g_s[1] ][ g_s[0] ];
   let b_idx_e = B2d[ g_e[1] ][ g_e[0] ];
 
+  if (_debug) {
+
+    console.log(">>>", b_idx_s, b_idx_e, g_s, g_e, g_a, g_b);
+  }
+
   if ((b_idx_s < 0) || (b_idx_e < 0)) { return []; }
 
   let cleave_a = [];
-
-  let Rdxy = [ Math.abs(b[0]-a[0]), Math.abs(b[1]-a[1]) ];
-  if ((Rdxy[0] == 0) || (Rdxy[1] == 0)) { return []; }
-
-  // point rectangle corners
-  //
-  let Rp = [
-    [ Math.max( a[0], b[0] ), Math.min( a[1], b[1] ) ],
-    [ Math.min( a[0], b[0] ), Math.min( a[1], b[1] ) ],
-    [ Math.min( a[0], b[0] ), Math.max( a[1], b[1] ) ],
-    [ Math.max( a[0], b[0] ), Math.max( a[1], b[1] ) ]
-  ];
 
   // grid rectangle corners
   //
@@ -3498,7 +3625,6 @@ function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
 
   let Gsize = [ Gv[0].length, Gv.length ];
 
-
   let bvec = [],
       bvec_idx = [];
   for (let i=0; i<cleave_profile.length; i++) {
@@ -3508,7 +3634,9 @@ function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
     }
   }
 
-  console.log("::>>", cleave_profile.join(""));
+  if (_debug) {
+    console.log("::>>", cleave_profile.join(""));
+  }
 
   let cleave_border_type = [ '~', '~', '~', '~', '~', '~', '~', '~' ];
 
@@ -3542,6 +3670,8 @@ function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
 
   }
 
+  let cleave_cuts = [];
+
   do {
 
     let b_idx = 0;
@@ -3555,10 +3685,40 @@ function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
 
     }
 
-    console.log(">>>", bvec, cleave_choice.join(""), valid_cleave_choice( rprp_info, Rg, cleave_choice, cleave_border_type ) );
-    //console.log("  ----   ");
+    if (_debug) {
+      console.log(">>>", JSON.stringify(bvec), cleave_choice.join(""), valid_cleave_choice( rprp_info, Rg, cleave_choice, cleave_border_type ) );
+    }
+
+    if (valid_cleave_choice( rprp_info, Rg, cleave_choice, cleave_border_type )) {
+      cleave_cuts.push(cleave_choice);
+    }
+
+
     _ivec_incr(bvec);
   } while ( !_ivec0(bvec) );
+
+  return cleave_cuts;
+}
+
+function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
+  let Gv = rprp_info.Gv;
+  let Gv_bp = rprp_info.Gv_bp;
+
+  let B = rprp_info.B;
+  let B2d = rprp_info.B_2d;
+
+  let Sx = rprp_info.Sx;
+  let Sy = rprp_info.Sy;
+
+  let Js = rprp_info.Js;
+
+  let g_s = Gv_bp[ _ixykey(p_s) ];
+  let g_e = Gv_bp[ _ixykey(p_e) ];
+
+  let g_a = Gv_bp[ _ixykey(a) ];
+  let g_b = Gv_bp[ _ixykey(b) ];
+
+  return enumerateCleaveCutGrid(rprp_info, g_s, g_e, g_a, g_b, cleave_profile);
 
 }
 
@@ -3805,11 +3965,49 @@ function _main_pinwheel1() {
 
   // .cXc....
   let _cleave_profile = cleaveProfile(grid_info, [9,4], [4,6], [9,6], [6,9]);
-  enumerateCleaveCut(grid_info, [9,4], [4,6], [9,6], [6,9], _cleave_profile);
+  let _cleave_cuts = enumerateCleaveCut(grid_info, [9,4], [4,6], [9,6], [6,9], _cleave_profile);
 
-  console.log(">>>", _cleave_profile.join(""));
+  _expect( _cleave_cuts, [['-', 'c', 'X', 'c', '-', '*', '-', '*']], 1 );
+
+  console.log(">>>", _cleave_profile.join(""), _cleave_cuts);
 
 }
+
+function _main_checks() {
+
+  let grid_info0 = rectilinearGridPoints(pgn_pinwheel1);
+  let cp0 = cleaveProfile(grid_info0, [9,4], [4,6], [9,6], [6,9]);
+  let cc0 = enumerateCleaveCut(grid_info0, [9,4], [4,6], [9,6], [6,9], cp0);
+  let v0 = _expect( cc0, [['-', 'c', 'X', 'c', '-', '*', '-', '*']], "pgn_pinwheel1" );
+
+
+  let grid_info1 = rectilinearGridPoints(pgn_balance);
+  let cp1 = cleaveProfileGrid(grid_info1, [7,1], [5,4], [7,4], [2,5]);
+  let cc1 = enumerateCleaveCutGrid(grid_info1, [7,1], [5,4], [7,4], [2,5], cp1);
+  let v1 = _expect( cc1, 
+    [ ["-","c","*","-","*","-","*","-"],
+      ["-","c","*","-","*","-","-","*"]],
+    "pgn_balance");
+
+  let grid_info2 = rectilinearGridPoints(pgn_pinwheel1);
+  let cp2 = cleaveProfileGrid(grid_info2, [3,1], [1,2], [3,2], [2,4]);
+  let cc2 = enumerateCleaveCutGrid(grid_info2, [3,1], [1,2], [3,2], [2,4], cp2);
+  let v2 = _expect( cc2, [], "pgn_pinwheel2" );
+
+}
+
+function _expect( q, v, _verbose ) {
+  _verbose = ((typeof _verbose === "undefined") ? "" : _verbose);
+  if (JSON.stringify(q) != JSON.stringify(v)) {
+    if (_verbose.length) { console.log(_verbose + ":", "EXPECT FAILED: got:", JSON.stringify(q), ", expected:", JSON.stringify(v)); }
+    return false;
+  }
+  if (_verbose) { console.log(_verbose + ":", "expect pass"); }
+  return true;
+}
+
+
+function _check_result(inp, f) { return f(inp); }
 
 //_main1();
 //_main_fig11();
@@ -3829,8 +4027,10 @@ if (typeof module !== "undefined") {
 if ((typeof require !== "undefined") &&
     (require.main === module)) {
   //_main(process.argv.slice(1));
-  _main_pinwheel1(process.argv.slice(1));
+  //_main_pinwheel1(process.argv.slice(1));
   //_main_iray_boundary_test();
   //_main_cleave_test();
+
+  _main_checks(process.argv.slice(1));
 }
 
