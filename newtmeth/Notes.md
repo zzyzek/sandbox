@@ -28,7 +28,7 @@ G _ f (z) = \Biggl\\{
  \begin{array}{ll} \log|\phi(z)| & z \notin \mathbf{K} _ f \\
 0 & z \in \mathbf{K} _ f \\
 \end{array} \\
-G _ f(f(z) = d G _ f ( z) \\
+G _ f(f(z)) = d G _ f ( z) \\
 \text{Level curves } \to G _ f (z) = \text{constant } > 0 \\
 \end{array}
 $$
