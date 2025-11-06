@@ -201,6 +201,22 @@ var pgn_clover1 = [
   [3,14], [10,14], [10,10], [0,10],
 ];
 
+var pgn_clover2 = [
+  [0,12], [5,12], [5,9], [2,9],
+  [2,1], [10,1], [10,5], [13,5],
+  [13,0], [20,0], [20,7], [17,7],
+  [17,13], [23,13], [23,19], [15,19],
+  [15,16], [8,16], [8,20], [0,20],
+];
+
+var pgn_double_edge_cut = [
+  [0,9], [5,9], [5,10], [8,10],
+  [8,3], [14,3], [14,0], [19,0],
+  [19,6], [16,6], [16,12], [10,12],
+  [10,17], [8,17], [8,19], [2,19],
+  [2,12], [0,12],
+];
+
 function _write_data(ofn, data) {
   var fs = require("fs");
   return fs.writeFileSync(ofn, JSON.stringify(data, undefined, 2));
@@ -3947,6 +3963,29 @@ function _main_checks() {
     [ ['x','b','X','X','-','b','*','-'],
       ['x','b','X','X','-','b','-','*'] ],
     _sfmt("pgn_clover_5", 16, 'r') );
+
+  let grid_info_6 = rectilinearGridPoints(pgn_clover2);
+  let cp_6 = cleaveProfileGrid(grid_info_6, [4,2], [2,4], [2,2], [7,7]);
+  let cc_6 = enumerateCleaveCutGrid(grid_info_6, [4,2], [2,4], [2,2], [7,7], cp_6);
+  let v_6 = _expect( cc_6,
+    [ ['*','-','X','X','*','-','*','-'],
+      ['-','*','X','X','*','-','*','-'],
+      ['*','-','X','X','-','*','*','-'],
+      ['-','*','X','X','-','*','*','-'],
+      ['*','-','X','X','*','-','-','*'],
+      ['-','*','X','X','*','-','-','*'],
+      ['*','-','X','X','-','*','-','*'],
+      ['-','*','X','X','-','*','-','*'] ],
+    _sfmt("pgn_clover_6", 16, 'r') );
+
+  let grid_info_7 = rectilinearGridPoints(pgn_double_edge_cut);
+  let cp_7 = cleaveProfileGrid(grid_info_7, [6,2], [5,1], [6,1], [3,5]);
+  let cc_7 = enumerateCleaveCutGrid(grid_info_7, [6,2], [5,1], [6,1], [3,5], cp_7);
+  let v_7 = _expect( cc_7,
+    [ ['X','X','x','x','*','-','x','x'],
+      ['X','X','x','x','-','*','x','x'],
+      ['X','X','x','x','*','*','x','x'] ],
+    _sfmt("pgn_clover_7", 16, 'r') );
 
 }
 
