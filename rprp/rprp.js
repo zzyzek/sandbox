@@ -3978,7 +3978,9 @@ function _main_checks() {
   let grid_info0 = rectilinearGridPoints(pgn_pinwheel1);
   let cp0 = cleaveProfile(grid_info0, [9,4], [4,6], [9,6], [6,9]);
   let cc0 = enumerateCleaveCut(grid_info0, [9,4], [4,6], [9,6], [6,9], cp0);
-  let v0 = _expect( cc0, [['-', 'c', 'X', 'c', '-', '*', '-', '*']], "pgn_pinwheel1" );
+  let v0 = _expect( cc0,
+    [ ['-','c','X','c','-','*','-','*'] ],
+    "pgn_pinwheel1" );
 
 
   let grid_info1 = rectilinearGridPoints(pgn_balance);
@@ -3993,6 +3995,14 @@ function _main_checks() {
   let cp2 = cleaveProfileGrid(grid_info2, [3,1], [1,2], [3,2], [2,4]);
   let cc2 = enumerateCleaveCutGrid(grid_info2, [3,1], [1,2], [3,2], [2,4], cp2);
   let v2 = _expect( cc2, [], "pgn_pinwheel2" );
+
+  let grid_info3 = rectilinearGridPoints(pgn_clover);
+  let cp3 = cleaveProfileGrid(grid_info3, [6,5], [5,7], [6,7], [3,3]);
+  let cc3 = enumerateCleaveCutGrid(grid_info3, [6,5], [5,7], [6,7], [3,3], cp3);
+  let v3 = _expect( cc3,
+    [ ['x','X','X','X','X','x','*','-'],
+      ['x','X','X','X','X','x','-','*'] ],
+    "pgn_clover" );
 
 }
 

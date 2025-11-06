@@ -333,6 +333,56 @@ function _draw_rprp_grid() {
 
   let B2d = rprp_info.B_2d;
 
+  let col_B = "rgb(220,44,0)";
+  let col_P = "rgb(54,54,255)";
+  let col_G = "rgb(131,0,200)";
+  let col_J = "rgb(128,64,0)";
+
+
+  // legend
+  //
+
+  let _leg_txt_style = {
+    "size": 12,
+    "linewidth": 0.5,
+    "alignment": 'left'
+  };
+
+  let leg_B = two.makeRectangle( 10, 10, 10, 10 );
+  leg_B.stroke = col_B;
+  leg_B.fill = col_B;
+
+  let leg_B_txt = two.makeText( "border", 20, 10, _leg_txt_style );
+  leg_B_txt.stroke = col_B;
+
+
+  let leg_P = two.makeRectangle( 10, 25, 10, 10 );
+  leg_P.stroke = col_P;
+  leg_P.fill = col_P;
+
+  let leg_P_txt = two.makeText( "point", 20, 25, _leg_txt_style );
+  leg_P_txt.stroke = col_P;
+
+
+  let leg_G = two.makeRectangle( 10, 40, 10, 10 );
+  leg_G.stroke = col_G;
+  leg_G.fill = col_G;
+
+  let leg_G_txt = two.makeText( "grid", 20, 40, _leg_txt_style );
+  leg_G_txt.stroke = col_G;
+
+
+  let leg_J = two.makeRectangle( 10, 55, 10, 10 );
+  leg_J.stroke = col_J;
+  leg_J.fill = col_J;
+
+  let leg_J_txt = two.makeText( "jump", 20, 55, _leg_txt_style );
+  leg_J_txt.stroke = col_J;
+
+
+  //
+  // legend
+
   let _dashes = [4,4];
 
   let _oxy = [px_pgn[0][0], px_pgn[0][1]];
@@ -445,7 +495,8 @@ function _draw_rprp_grid() {
   };
 
   let _style1 = {
-    "fill": "rgb(128,64,0)",
+    //"fill": "rgb(128,64,0)",
+    "fill": col_J,
     "size": 7
   };
 
@@ -467,7 +518,8 @@ function _draw_rprp_grid() {
       let _y = (grid_pnt[i][1] - _oxy[1])/gs;
       let _txt_xy = _x.toString() + "," + _y.toString();
       let _style = {
-        "fill": "rgb(54,54,255)",
+        //"fill": "rgb(54,54,255)",
+        "fill": col_P,
         "size": 8
       };
 
@@ -481,7 +533,8 @@ function _draw_rprp_grid() {
 
     if (g_ui.viz_opt.show_ij) {
       let _style = {
-        "fill": "rgb(131,0,200)",
+        //"fill": "rgb(131,0,200)",
+        "fill": col_G,
         "size": 9
       };
 
@@ -530,7 +583,8 @@ function _draw_rprp_grid() {
   if (g_ui.viz_opt.show_B) {
 
     let _B_style = {
-      "fill": "rgb(220,44,0)",
+      //"fill": "rgb(220,44,0)",
+      "fill": col_B,
       "size": 7
     };
 
