@@ -3684,6 +3684,52 @@ function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
 
 }
 
+//------
+//------
+//------
+
+
+//WIP!!!
+//
+function enumerateQuarrySideRegion(rprp_info, g_s, g_e, g_a, g_b) {
+  let Gv = rprp_info.Gv;
+  let Gv_bp = rprp_info.Gv_bp;
+
+  let B = rprp_info.B;
+  let B2d = rprp_info.B_2d;
+
+  let Js = rprp_info.Js;
+
+  // grid rectangle corners
+  //
+  // ccw
+  //
+  //  2-->--3
+  //  |     |
+  //  ^     v
+  //  |     |
+  //  1--<--0
+  //
+  let Rg = [
+    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
+    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
+  ];
+
+  let Rside_idir = [1,2,0,3];
+
+  for (let r_idx=0; r_idx<Rg.length; r_idx++) {
+    let g_r = Rg[r_idx];
+    let idir = Rside_idir[r_idx];
+
+
+
+
+  }
+
+}
+
 
 //------
 //------
