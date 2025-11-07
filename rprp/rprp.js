@@ -234,6 +234,16 @@ var pgn_left_run = [
   [6,11], [0,11],
 ];
 
+var pgn_bottom_guillotine = [
+  [0,0], [3,0], [3,6], [5,6],
+  [5,4], [7,4], [7,6], [9,6],
+  [9,3], [11,3], [11,6], [13,6],
+  [13,2], [16,2], [16,6], [19,6],
+  [19,4], [21,4], [21,6], [25,6],
+  [25,12], [20,12], [20,15], [14,15],
+  [14,10], [8,10], [8,12], [1,12],
+  [1,4], [0,4],
+];
 
 function _write_data(ofn, data) {
   var fs = require("fs");
@@ -3691,7 +3701,10 @@ function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
 
 //WIP!!!
 //
-function enumerateQuarrySideRegion(rprp_info, g_s, g_e, g_a, g_b) {
+function enumerateQuarrySideRegion(rprp_info, g_s, g_e, g_a, g_b, _debug) {
+
+  _debug = ((typeof _debug === "undefined") ? false : _debug);
+
   let Gv = rprp_info.Gv;
   let Gv_bp = rprp_info.Gv_bp;
 
@@ -3700,9 +3713,7 @@ function enumerateQuarrySideRegion(rprp_info, g_s, g_e, g_a, g_b) {
 
   let Js = rprp_info.Js;
 
-  // grid rectangle corners
-  //
-  // ccw
+  // grid rectangle corners (ccw)
   //
   //  2-->--3
   //  |     |
@@ -3717,14 +3728,76 @@ function enumerateQuarrySideRegion(rprp_info, g_s, g_e, g_a, g_b) {
     [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
   ];
 
-  let Rside_idir = [1,2,0,3];
+  // It's easier for me to think in a consistent 'left to right'
+  // and 'down to up'. So we traverse the quarry rectangle
+  // from left to right for the both the (1,0) line and the (2,3)
+  // line.
+  // This makes the range tests for Rl easier but it means
+  // we have to potentially reverse the order of the guillotine
+  // cut depending on which quarry side we're on.
+  //
+
+  let Rside_idir = [0,2,0,2];
+  let oppo_idir = [ 1,0, 3,2 ];
+
+  // single dimension crossing point
+  //
+  let Rl = [
+    Rg[0][0], Rg[2][1],
+    Rg[3][0], Rg[3][1]
+  ];
+
+  let g_beg = [
+    Rg[1], Rg[1],
+    Rg[2], Rg[0]
+  ];
+
+  let cut_order = [ 1, 0, 0, 1 ];
 
   for (let r_idx=0; r_idx<Rg.length; r_idx++) {
-    let g_r = Rg[r_idx];
+
+    if (_debug) {
+      console.log("");
+    }
+
+    let g_r = g_beg[r_idx];
     let idir = Rside_idir[r_idx];
+    let rdir = oppo_idir[idir];
 
+    let b_jmp = B2d[ g_r[1] ][ g_r[0] ];
+    if (b_jmp < 0) {
+      b_jmp = Js[idir][ g_r[1] ][ g_r[0] ];
+    }
 
+    let g_b = B[b_jmp].ixy;
+    let guillotine_list = [];
+    let ldim = r_idx % 2;
 
+    if (_debug) {
+      console.log("r_idx:", r_idx, "idir:", idir, "rdir:", rdir, "b_idx:", b_jmp, "g_b:", g_b, "ldim:", ldim);
+    }
+
+    while ((b_jmp >= 0) &&
+           (g_b[ldim] <= Rl[r_idx])) {
+
+      let b_jmp_nxt = Js[idir][ g_b[1] ][ g_b[0] ];
+      if (b_jmp_nxt < 0) { break; }
+
+      let g_b_nxt = B[b_jmp_nxt].ixy;
+      if (g_b_nxt[ldim] > Rl[r_idx]) { break; }
+
+      let b_jmp_prv = Js[rdir][ g_b_nxt[1] ][ g_b_nxt[0] ];
+
+      if (cut_order[r_idx]) { guillotine_list.push( [b_jmp_nxt, b_jmp_prv] ); }
+      else                  { guillotine_list.push( [b_jmp_prv, b_jmp_nxt] ); }
+
+      b_jmp = b_jmp_nxt;
+      g_b = g_b_nxt;
+    }
+
+    if (_debug) {
+      console.log("r_idx:", r_idx, "idir:", idir, "::", guillotine_list);
+    }
 
   }
 
@@ -3981,6 +4054,67 @@ function _main_pinwheel1() {
 
 }
 
+function _main_foo() {
+  let grid_info = rectilinearGridPoints(pgn_bottom_guillotine);
+
+  let g_s = [-1,-1], g_e = [-1,-1], g_a = [-1,-1], g_b = [-1, -1];
+  let cp;
+
+  console.log("===");
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [5,5];
+  console.log(g_s, g_e, g_a, g_b);
+
+  cp = cleaveProfileGrid(grid_info, g_s, g_e, g_a, g_b);
+  enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
+
+  console.log("===");
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [4,5];
+  console.log(g_s, g_e, g_a, g_b);
+
+  cp = cleaveProfileGrid(grid_info, g_s, g_e, g_a, g_b);
+  enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
+
+  console.log("===");
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [13,5];
+
+  console.log(g_s, g_e, g_a, g_b);
+
+  cp = cleaveProfileGrid(grid_info, g_s, g_e, g_a, g_b);
+  enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
+
+  console.log("===");
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [12,5];
+  console.log(g_s, g_e, g_a, g_b);
+
+  cp = cleaveProfileGrid(grid_info, g_s, g_e, g_a, g_b);
+  enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
+
+  console.log("===");
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [9,5];
+
+  console.log(g_s, g_e, g_a, g_b);
+
+  cp = cleaveProfileGrid(grid_info, g_s, g_e, g_a, g_b);
+  enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
+
+
+}
+
+function _main_example() {
+  let grid_info = rectilinearGridPoints(pgn_pinwheel1);
+  _print_grid_info(grid_info);
+}
+
 function _main_checks() {
 
   let grid_info_0 = rectilinearGridPoints(pgn_pinwheel1);
@@ -4099,6 +4233,14 @@ if ((typeof require !== "undefined") &&
   //_main_iray_boundary_test();
   //_main_cleave_test();
 
-  _main_checks(process.argv.slice(1));
+  let op = "check";
+
+  if (process.argv.length > 2) {
+    op = process.argv[2];
+  }
+
+  if      (op == 'check')   { _main_checks(process.argv.slice(2)); }
+  else if (op == 'example') { _main_example(process.argv.slice(2)); }
+  else if (op == 'foo')     { _main_foo(); }
 }
 
