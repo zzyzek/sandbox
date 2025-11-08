@@ -3212,19 +3212,10 @@ function cleaveGridInline(rprp_info, g, dg, h, dh) {
 }
 
 
-// WIP!!!
-// return a list of cleave lines
+// Point veresion of cleaveProfile where start, end, adit and bower
+// points are specified in xy point coordinates instead of grid coordinates.
 //
-// p_s : xy point on boundary that starts the region
-// p_e : xy point on boundary that ends the region, counterclockwise from p_s
-// a : adit point, at the intersection of two constructed lines from p_s, p_e
-//     or one of p_s or p_e if a guillotine cut
-// b : bower point defining quarry rectangle R_{a,b}
-//
-// clave profile is (lower right), (lower left) (upper left) (upper right)
-// Recangle is same order.
-//
-function cleaveProfile(rprp_info, p_s, p_e, a, b) {
+function cleaveProfilePoint(rprp_info, p_s, p_e, a, b) {
 
   let Gv = rprp_info.Gv;
   let Gv_bp = rprp_info.Gv_bp;
@@ -3239,17 +3230,48 @@ function cleaveProfile(rprp_info, p_s, p_e, a, b) {
   let g_a = Gv_bp[ _ijkey(a) ];
   let g_b = Gv_bp[ _ijkey(b) ];
 
-  return cleaveProfileGrid(rprp_info, g_s, g_e, g_a, g_b);
+  return cleaveProfile(rprp_info, g_s, g_e, g_a, g_b);
 }
 
-function cleaveProfileGrid(rprp_info, g_s, g_e, g_a, g_b) {
+// Input:
+//
+// rprp_info    - rprp context
+// g_s          - border grid point (ij) start of region (ccw)
+// g_e          - border grid point (ij) end of region
+// g_a          - origin of quarry rectangle (adit)
+// g_b          - end of quarry rectangle (bower)
+//
+//
+// Output:
+//
+// [ q0, q1, ... , q11 ]
+//
+// 12 element array of indicating what type of ray it is:
+//
+// 'x' - out of bounds of the rectilinear polygon
+// 'X' - out of bounds of the region
+// 'c' - corner border point
+// 'b' - flat edge border
+// '.' - open (cleave cut potenteially allowed)
+//
+// The cleave profile is meant to be used in the cleave enumeration step.
+//
+// Create a cleave cut profile, an array of character codes indicating
+// whether a cleave cut off of the quarry rectangle endpoints is possible
+// and, if not, what type of ray it is.
+//
+// Note that if it's a 2-cut, g_a is the intersection point of the lines
+// eminating from g_s and g_e.
+// If it's a 1-cut, then g_a should be g_s or g_e.
+//
+// No checks are done to see if the rectangle is valid, whether g_a
+// is a valid endpoint, etc.
+//
+function cleaveProfile(rprp_info, g_s, g_e, g_a, g_b) {
 
   let Gv = rprp_info.Gv;
   let Gv_bp = rprp_info.Gv_bp;
   let B2d = rprp_info.B_2d;
-
-  let Sx = rprp_info.Sx;
-  let Sy = rprp_info.Sy;
 
   // boundary start and end index
   //
@@ -3339,6 +3361,8 @@ function _ivec0(v) {
   return true;
 }
 
+// Cleave cut index around the quarry rectangle:
+//
 //   5     6
 // 4 ._____. 7
 //   |     |
@@ -3347,6 +3371,40 @@ function _ivec0(v) {
 //
 //
 
+// Input:
+//
+// rprp_info      - rprp context
+// grid_quarry    - grid points of quarry rectangle, in standard order (idx 0 lower right, idx 3 upper right)
+// cleave_choice  - character indicator for each cleave choice (aka cleave profile)
+//                `-` open
+//                `*` cleave cut
+//                `x` invalid direction (out of bounds)
+//                `X` invalid direction (out of bounds in other region)
+// cleave_border_type - character indicator for each cleave choice what type of general grid point it
+//                      ends on for the rectilinear polygon border
+//                      `b` border (flat)
+//                      `*` corner (convex or concave)
+//
+// Output:
+//
+//  true  - cleave_choice is valid
+//  false - otherwise
+//
+// This checks to see if the cleave_choice is valid given a quarry rectangle and current state.
+// The main checks are:
+//
+// Bridge   - make sure a cleave cut isn't in between two lines (it can move otherwise)
+// Float    - make sure each cleave cut, when extended, ends on a convex border corner
+// Parallel - make sure no two cleave cuts are parallel (quarry edge can move otherwise)
+//
+// Parallel tests are easy as it's wholly embedded in the cleave_choice.
+// Bridge tests are easy enough because we can see if the end of the cleave cut
+//   ends on a flat border and if there's a cleave cut perpendicular to where the cleave cut starts.
+// Float tests are harder as we need to look in the other direction, both from potential cleave
+//   cuts shooting off of the quarry rectangle in the other direction or look to see if the border
+//   intersects the quarry rectangle on the side of the cleave cut. See below for a discussion of
+//   the test.
+//
 function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_border_type, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
@@ -3458,8 +3516,6 @@ function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_borde
   // at least one end must be on a corner
   //
 
-  // uhg...
-  //
   // we'll use cleave 5 (upper left corner, pointing upwards) as an example:
   //
   // IF   cleave_5 is present and ends on a border (upwards)
@@ -3476,17 +3532,6 @@ function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_borde
   // to end on a corner.
   //
 
-
-  // CRUFT
-  // hand enumeration, cruft, remove when we have some confidence.
-  //
-  if ((quarry_point_type[2] != 'c') &&
-      (redux[5] == '*') && (cleave_border_type[5] == 'b') &&
-      (((redux[2] == '*') && (cleave_border_type[2] == 'b')) ||
-        (redux[2] == '-')) &&
-      (Js[3][ R[2][1] ][ R[2][0] ] == Js[3][ R[1][1] ][ R[1][0] ])) {
-    return false;
-  }
 
   if (_debug) { console.log("#vcc.cp5"); }
 
@@ -3546,10 +3591,10 @@ function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_borde
 // by the counterclockwise trace of the general border grid point g_s to the general
 // border grid point g_e.
 //
-// This function takes as input grid points, as opposed to `enumerateCleaveCut`, which
+// This function takes as input grid points, as opposed to `enumerateCleaveCutPoint`, which
 // takes in general points.
 //
-function enumerateCleaveCutGrid(rprp_info, g_s, g_e, g_a, g_b, cleave_profile, _debug) {
+function enumerateCleaveCut(rprp_info, g_s, g_e, g_a, g_b, cleave_profile, _debug) {
 
   //let _debug = false;
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
@@ -3658,13 +3703,13 @@ function enumerateCleaveCutGrid(rprp_info, g_s, g_e, g_a, g_b, cleave_profile, _
     }
 
     if (_debug) {
-      console.log(">>>", JSON.stringify(bvec), cleave_choice.join(""), valid_cleave_choice( rprp_info, Rg, cleave_choice, cleave_border_type, _debug ) );
+      console.log(">>>", JSON.stringify(bvec), cleave_choice.join(""),
+        valid_cleave_choice( rprp_info, Rg, cleave_choice, cleave_border_type, _debug ) );
     }
 
     if (valid_cleave_choice( rprp_info, Rg, cleave_choice, cleave_border_type )) {
       cleave_cuts.push(cleave_choice);
     }
-
 
     _ivec_incr(bvec);
   } while ( !_ivec0(bvec) );
@@ -3672,7 +3717,7 @@ function enumerateCleaveCutGrid(rprp_info, g_s, g_e, g_a, g_b, cleave_profile, _
   return cleave_cuts;
 }
 
-function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
+function enumerateCleaveCutPoint(rprp_info, p_s, p_e, a, b, cleave_profile) {
   let Gv = rprp_info.Gv;
   let Gv_bp = rprp_info.Gv_bp;
 
@@ -3690,7 +3735,7 @@ function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
   let g_a = Gv_bp[ _ijkey(a) ];
   let g_b = Gv_bp[ _ijkey(b) ];
 
-  return enumerateCleaveCutGrid(rprp_info, g_s, g_e, g_a, g_b, cleave_profile);
+  return enumerateCleaveCut(rprp_info, g_s, g_e, g_a, g_b, cleave_profile);
 
 }
 
@@ -3699,7 +3744,20 @@ function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
 //------
 
 
-//WIP!!!
+// We want to enumerate boundary pairs that define a tab guillotine cut that
+// are made from the sides of the quarry rectangle.
+// That is, we want to return all boundary regions that starts and end on one side
+// of a quarry rectangle.
+//
+// The cleave cuts will be handled elsewhere.
+//
+// We walk each side of the quarry rectangle, using the `Js` structure in one
+// direction to find the next general boundary point and then using it in the other direction
+// to find the origin general boundary point.
+//
+// Return a list of general boundary index points enumerating the tab guillotine cuts
+// implied by the quarry rectangle.
+// 
 //
 function enumerateQuarrySideRegion(rprp_info, g_s, g_e, g_a, g_b, _debug) {
 
@@ -3812,148 +3870,6 @@ function enumerateQuarrySideRegion(rprp_info, g_s, g_e, g_a, g_b, _debug) {
 //------
 //------
 
-function _ok(P) {
-
-  let all_x_pnt = [],
-      all_y_pnt = [],
-      x_pnt = [],
-      y_pnt = [];
-
-  for (let i=0; i<P.length; i++) {
-    all_x_pnt.push(P[i][0]);
-    all_y_pnt.push(P[i][1]);
-  }
-
-  all_x_pnt.sort( _icmp );
-  all_y_pnt.sort( _icmp );
-
-  x_pnt.push(all_x_pnt[0]);
-  y_pnt.push(all_y_pnt[0]);
-
-  for (let i=1; i<all_x_pnt.length; i++) {
-    if (all_x_pnt[i] != all_x_pnt[i-1]) {
-      x_pnt.push(all_x_pnt[i]);
-    }
-  }
-
-  for (let i=1; i<all_y_pnt.length; i++) {
-    if (all_y_pnt[i] != all_y_pnt[i-1]) {
-      y_pnt.push(all_y_pnt[i]);
-    }
-  }
-
-  for (let i=0; i<x_pnt.length; i++) {
-    for (let j=0; j<y_pnt.length; j++) {
-      console.log("\n\n", x_pnt[i], y_pnt[j]);
-    }
-  }
-
-}
-
-function _main_fig11() {
-
-  let pgn = orderCounterclockwise(pgon_fig11d);
-
-  //let grid_info = rectilinearGridPoints(pgon_fig11);
-  //grid_info = rectilinearGridPoints(pgon_fig11d);
-
-  let grid_info = rectilinearGridPoints(pgn);
-
-  console.log("clockwise(pgn):", clockwise(pgn),
-    "( pgn is", clockwise(pgn) ? "cw" : "ccw", ")");
-
-  //console.log(grid_info);
-
-  _print_grid_info(grid_info);
-
-  console.log(">>>>", _rprp_irect_contain_test(grid_info));
-
-}
-
-function _main1() {
-
-  let grid_info = rectilinearGridPoints(pgon);
-
-  _print_dual(grid_info.dualG, '#');
-  console.log("");
-
-  _print_grid_info(grid_info);
-
-  cataloguePartitions(grid_info);
-  return;
-}
-
-function _main() {
-  let grid_info = rectilinearGridPoints(pgon);
-
-  _print_pgon(pgon, grid_info.Ct);
-
-  let grid_p = grid_info.G;
-  let grid_pt = grid_info.Gt;
-
-  for (let i=0; i<grid_p.length; i++) {
-    console.log("\n#winding:", winding(grid_p[i], pgon), grid_pt[i] );
-    console.log(grid_p[i][0], grid_p[i][1], "\n");
-  }
-
-
-  //console.log(grid_info);
-  //console.log(grid_info.dualG);
-
-  //_ok(pgon);
-}
-
-function _main_iray_boundary_test() {
-  //let grid_info = rectilinearGridPoints(pgn_pinwheel1);
-
-  //let grid_info = rectilinearGridPoints(pgn_spiral1);
-  let grid_info = rectilinearGridPoints(pgn_clover);
-
-  _print_grid_info(grid_info);
-
-  let ny = grid_info.B_2d.length;
-  let nx = grid_info.B_2d[0].length;
-
-  let idir_dxy = [
-    [1,0], [-1,0], [0,1], [0,-1]
-  ];
-
-  for (let j=0; j<ny; j++) {
-    for (let i=0; i<nx; i++) {
-
-      for (let idir=0; idir<idir_dxy.length; idir++) {
-        console.log("s_ij:", i,j, "d_ij:", idir_dxy[idir],
-          "b_idx:", rprp_iray_boundary_intersection_linear(grid_info, [i,j], idir_dxy[idir]),
-          rprp_iray_boundary_intersection(grid_info, [i,j], idir_dxy[idir]) );
-      }
-
-    }
-  }
-}
-
-function cleave_experiment( ctx, bidx_s, bidx1_e, adit_ij, bower_ij ) {
-
-  console.log("...");
-
-}
-
-function _main_cleave_test() {
-
-  let grid_info = rectilinearGridPoints(pgn_balance);
-  console.log(">>>pgn_balance:");
-
-  _print_grid_info(grid_info);
-  console.log("");
-
-  let boundary_pnt_s = [12,11],
-      boundary_pnt_e = [15,6];
-  let adit_pnt = [ 15, 11 ],
-      bower_pnt = [ 5, 14 ];
-
-  cleaveProfile( grid_info, boundary_pnt_s, boundary_pnt_e, adit_pnt, bower_pnt );
-
-}
-
 function _ijpoint_inside_spot_test() {
   let grid_info = rectilinearGridPoints(pgn_pinwheel1);
 
@@ -3997,63 +3913,6 @@ function _ijpoint_inside_spot_test() {
 
 }
 
-
-function _main_pinwheel1() {
-  let grid_info = rectilinearGridPoints(pgn_pinwheel1);
-
-  console.log("pgn_pinwheel1:");
-  console.log(pgn_pinwheel1);
-  console.log("----");
-
-  _print_grid_info(grid_info);
-  console.log("=====");
-
-  // cleaveProfile( info, pnt_s, pnt_e, pnt_a, pnt_b );
-
-  let pnt_B_0 = [9,4];
-  let pnt_B_1 = [4,6];
-  let pnt_adit = [9,6];
-  let pnt_bower = [6,15];
-
-
-  // test case 0  .c.c....
-  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [6,9]);
-
-  // test case 1 .c.....c
-  //cleaveProfile(grid_info, [11,9], [9,4], [9,9], [6,6]);
-
-  // test case 2 xbc...xx
-  //cleaveProfile(grid_info, [11,9], [9,4], [9,9], [14,6]);
-
-  // test case 3 xxb...xx
-  //cleaveProfile(grid_info, [11,9], [9,4], [9,9], [14,4]);
-
-  // test case 4  ..cc..bb
-  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [11,9]);
-
-  // test case 5  .cbb....
-  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [4,9]);
-
-  // test case 6  .cbbbx..
-  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [4,11]);
-
-  // test case 7  .c.cxxxb
-  //cleaveProfile(grid_info, [4,6], [9,4], [9,6], [6,15]);
-
-  // .cXcxxxb
-  //let _cleave_profile = cleaveProfile(grid_info, [9,4], [4,6], [9,6], [6,15]);
-  //enumerateCleaveCut(grid_info, [9,4], [4,6], [9,6], [6,15], _cleave_profile);
-
-  // .cXc....
-  let _cleave_profile = cleaveProfile(grid_info, [9,4], [4,6], [9,6], [6,9]);
-  let _cleave_cuts = enumerateCleaveCut(grid_info, [9,4], [4,6], [9,6], [6,9], _cleave_profile);
-
-  _expect( _cleave_cuts, [['-', 'c', 'X', 'c', '-', '*', '-', '*']], 1 );
-
-  console.log(">>>", _cleave_profile.join(""), _cleave_cuts);
-
-}
-
 function _main_foo() {
   let grid_info = rectilinearGridPoints(pgn_bottom_guillotine);
 
@@ -4066,7 +3925,7 @@ function _main_foo() {
   g_a = [1,4]; g_b = [5,5];
   console.log(g_s, g_e, g_a, g_b);
 
-  cp = cleaveProfileGrid(grid_info, g_s, g_e, g_a, g_b);
+  cp = cleaveProfile(grid_info, g_s, g_e, g_a, g_b);
   enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
 
   console.log("===");
@@ -4075,7 +3934,7 @@ function _main_foo() {
   g_a = [1,4]; g_b = [4,5];
   console.log(g_s, g_e, g_a, g_b);
 
-  cp = cleaveProfileGrid(grid_info, g_s, g_e, g_a, g_b);
+  cp = cleaveProfile(grid_info, g_s, g_e, g_a, g_b);
   enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
 
   console.log("===");
@@ -4085,7 +3944,7 @@ function _main_foo() {
 
   console.log(g_s, g_e, g_a, g_b);
 
-  cp = cleaveProfileGrid(grid_info, g_s, g_e, g_a, g_b);
+  cp = cleaveProfile(grid_info, g_s, g_e, g_a, g_b);
   enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
 
   console.log("===");
@@ -4094,7 +3953,7 @@ function _main_foo() {
   g_a = [1,4]; g_b = [12,5];
   console.log(g_s, g_e, g_a, g_b);
 
-  cp = cleaveProfileGrid(grid_info, g_s, g_e, g_a, g_b);
+  cp = cleaveProfile(grid_info, g_s, g_e, g_a, g_b);
   enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
 
   console.log("===");
@@ -4104,7 +3963,7 @@ function _main_foo() {
 
   console.log(g_s, g_e, g_a, g_b);
 
-  cp = cleaveProfileGrid(grid_info, g_s, g_e, g_a, g_b);
+  cp = cleaveProfile(grid_info, g_s, g_e, g_a, g_b);
   enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
 
 
@@ -4118,36 +3977,36 @@ function _main_example() {
 function _main_checks() {
 
   let grid_info_0 = rectilinearGridPoints(pgn_pinwheel1);
-  let cp_0 = cleaveProfile(grid_info_0, [9,4], [4,6], [9,6], [6,9]);
-  let cc_0 = enumerateCleaveCut(grid_info_0, [9,4], [4,6], [9,6], [6,9], cp_0);
+  let cp_0 = cleaveProfilePoint(grid_info_0, [9,4], [4,6], [9,6], [6,9]);
+  let cc_0 = enumerateCleaveCutPoint(grid_info_0, [9,4], [4,6], [9,6], [6,9], cp_0);
   let v_0 = _expect( cc_0,
     [ ['-','c','X','c','-','*','-','*'] ],
     _sfmt("pgn_pinwheel_0", 16, 'r') );
 
 
   let grid_info_1 = rectilinearGridPoints(pgn_balance);
-  let cp_1 = cleaveProfileGrid(grid_info_1, [7,1], [5,4], [7,4], [2,5]);
-  let cc_1 = enumerateCleaveCutGrid(grid_info_1, [7,1], [5,4], [7,4], [2,5], cp_1);
+  let cp_1 = cleaveProfile(grid_info_1, [7,1], [5,4], [7,4], [2,5]);
+  let cc_1 = enumerateCleaveCut(grid_info_1, [7,1], [5,4], [7,4], [2,5], cp_1);
   let v_1 = _expect( cc_1, 
     [ ["-","c","*","-","*","-","*","-"],
       ["-","c","*","-","*","-","-","*"]],
     _sfmt("pgn_balance_1", 16,'r') );
 
   let grid_info_2 = rectilinearGridPoints(pgn_pinwheel1);
-  let cp_2 = cleaveProfileGrid(grid_info_2, [3,1], [1,2], [3,2], [2,4]);
-  let cc_2 = enumerateCleaveCutGrid(grid_info_2, [3,1], [1,2], [3,2], [2,4], cp_2);
+  let cp_2 = cleaveProfile(grid_info_2, [3,1], [1,2], [3,2], [2,4]);
+  let cc_2 = enumerateCleaveCut(grid_info_2, [3,1], [1,2], [3,2], [2,4], cp_2);
   let v_2 = _expect( cc_2, [], _sfmt("pgn_pinwheel_2", 16, 'r') );
 
   let grid_info_3 = rectilinearGridPoints(pgn_clover);
-  let cp_3 = cleaveProfileGrid(grid_info_3, [5,7], [6,5], [6,7], [3,3]);
-  let cc_3 = enumerateCleaveCutGrid(grid_info_3, [5,7], [6,5], [6,7], [3,3], cp_3);
+  let cp_3 = cleaveProfile(grid_info_3, [5,7], [6,5], [6,7], [3,3]);
+  let cc_3 = enumerateCleaveCut(grid_info_3, [5,7], [6,5], [6,7], [3,3], cp_3);
   let v_3 = _expect( cc_3,
     [ ['x','b','b','-','b','x','X','X'] ],
     _sfmt("pgn_clover_3", 16, 'r') );
 
   let grid_info_4 = rectilinearGridPoints(pgn_clover);
-  let cp_4 = cleaveProfileGrid(grid_info_4, [3,3], [3,4], [3,3], [6,7]);
-  let cc_4 = enumerateCleaveCutGrid(grid_info_4, [3,3], [3,4], [3,3], [6,7], cp_4);
+  let cp_4 = cleaveProfile(grid_info_4, [3,3], [3,4], [3,3], [6,7]);
+  let cc_4 = enumerateCleaveCut(grid_info_4, [3,3], [3,4], [3,3], [6,7], cp_4);
   let v_4 = _expect( cc_4,
     [ ['x','b','X','X','b','x','*','-'],
       ['x','b','X','X','b','x','-','*'] ],
@@ -4155,16 +4014,16 @@ function _main_checks() {
 
 
   let grid_info_5 = rectilinearGridPoints(pgn_clover1);
-  let cp_5 = cleaveProfileGrid(grid_info_5, [2,3], [2,4], [2,3], [5,7]);
-  let cc_5 = enumerateCleaveCutGrid(grid_info_5, [2,3], [2,4], [2,3], [5,7], cp_5);
+  let cp_5 = cleaveProfile(grid_info_5, [2,3], [2,4], [2,3], [5,7]);
+  let cc_5 = enumerateCleaveCut(grid_info_5, [2,3], [2,4], [2,3], [5,7], cp_5);
   let v_5 = _expect( cc_5,
     [ ['x','b','X','X','-','b','*','-'],
       ['x','b','X','X','-','b','-','*'] ],
     _sfmt("pgn_clover_5", 16, 'r') );
 
   let grid_info_6 = rectilinearGridPoints(pgn_clover2);
-  let cp_6 = cleaveProfileGrid(grid_info_6, [4,2], [2,4], [2,2], [7,7]);
-  let cc_6 = enumerateCleaveCutGrid(grid_info_6, [4,2], [2,4], [2,2], [7,7], cp_6);
+  let cp_6 = cleaveProfile(grid_info_6, [4,2], [2,4], [2,2], [7,7]);
+  let cc_6 = enumerateCleaveCut(grid_info_6, [4,2], [2,4], [2,2], [7,7], cp_6);
   let v_6 = _expect( cc_6,
     [ ['*','-','X','X','*','-','*','-'],
       ['-','*','X','X','*','-','*','-'],
@@ -4177,8 +4036,8 @@ function _main_checks() {
     _sfmt("pgn_clover_6", 16, 'r') );
 
   let grid_info_7 = rectilinearGridPoints(pgn_double_edge_cut);
-  let cp_7 = cleaveProfileGrid(grid_info_7, [6,2], [5,1], [6,1], [3,5]);
-  let cc_7 = enumerateCleaveCutGrid(grid_info_7, [6,2], [5,1], [6,1], [3,5], cp_7);
+  let cp_7 = cleaveProfile(grid_info_7, [6,2], [5,1], [6,1], [3,5]);
+  let cc_7 = enumerateCleaveCut(grid_info_7, [6,2], [5,1], [6,1], [3,5], cp_7);
   let v_7 = _expect( cc_7,
     [ ['X','X','x','x','*','-','x','x'],
       ['X','X','x','x','-','*','x','x'],
@@ -4187,13 +4046,13 @@ function _main_checks() {
 
 
   let grid_info_8 = rectilinearGridPoints(pgn_quarry_corner_convex);
-  let cp_8 = cleaveProfileGrid(grid_info_8, [4,2], [3,1], [4,1], [1,4]);
-  let cc_8 = enumerateCleaveCutGrid(grid_info_8, [4,2], [3,1], [4,1], [1,4], cp_8);
+  let cp_8 = cleaveProfile(grid_info_8, [4,2], [3,1], [4,1], [1,4]);
+  let cc_8 = enumerateCleaveCut(grid_info_8, [4,2], [3,1], [4,1], [1,4], cp_8);
   let v_8 = _expect( cc_8, [], _sfmt("pgn_corner_8", 16, 'r') );
 
   let grid_info_9 = rectilinearGridPoints(pgn_left_run);
-  let cp_9 = cleaveProfileGrid(grid_info_9, [6,1], [4,1], [6,1], [3,7]);
-  let cc_9 = enumerateCleaveCutGrid(grid_info_9, [6,1], [4,1], [6,1], [3,7], cp_9);
+  let cp_9 = cleaveProfile(grid_info_9, [6,1], [4,1], [6,1], [3,7]);
+  let cc_9 = enumerateCleaveCut(grid_info_9, [6,1], [4,1], [6,1], [3,7], cp_9);
   let v_9 = _expect( cc_9, [], _sfmt("pgn_corner_9", 16, 'r') );
 
 }
@@ -4208,11 +4067,32 @@ function _expect( q, v, _verbose ) {
   return true;
 }
 
+//       ___ 
+//  ____/ (_)
+// / __/ / / 
+// \__/_/_/  
+//           
 
-function _check_result(inp, f) { return f(inp); }
+if ((typeof require !== "undefined") &&
+    (require.main === module)) {
 
-//_main1();
-//_main_fig11();
+  let op = "check";
+
+  if (process.argv.length > 2) {
+    op = process.argv[2];
+  }
+
+  if      (op == 'check')   { _main_checks(process.argv.slice(2)); }
+  else if (op == 'example') { _main_example(process.argv.slice(2)); }
+  else if (op == 'ijspot')  { _ijpoint_inside_spot_test(); }
+  else if (op == 'foo')     { _main_foo(); }
+}
+
+//                          __    
+//  _____ __ ___  ___  ____/ /____
+// / -_) \ // _ \/ _ \/ __/ __(_-<
+// \__/_\_\/ .__/\___/_/  \__/___/
+//        /_/                     
 
 if (typeof module !== "undefined") {
   let func_name_map = {
@@ -4226,21 +4106,4 @@ if (typeof module !== "undefined") {
   }
 }
 
-if ((typeof require !== "undefined") &&
-    (require.main === module)) {
-  //_main(process.argv.slice(1));
-  //_main_pinwheel1(process.argv.slice(1));
-  //_main_iray_boundary_test();
-  //_main_cleave_test();
-
-  let op = "check";
-
-  if (process.argv.length > 2) {
-    op = process.argv[2];
-  }
-
-  if      (op == 'check')   { _main_checks(process.argv.slice(2)); }
-  else if (op == 'example') { _main_example(process.argv.slice(2)); }
-  else if (op == 'foo')     { _main_foo(); }
-}
 
