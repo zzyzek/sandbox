@@ -23,7 +23,7 @@
 //     note that some combinats of points from X,Y will not be a grid point
 //   dualG: <2D array structures of simple rectangles, including inadmissible rectangles>
 //     {
-//       ixy : x,y index of point
+//       ij : x,y index of point
 //       G_idx: index of point in G array
 //       id : rectangle identifier
 //         >= 0 and unique of rectangle is admissible
@@ -1077,7 +1077,7 @@ function rectilinearGridPoints(_rl_pgon) {
         type_xy.push( _type );
       }
 
-      dualG[j].push( {"ixy":[i,j], "G_idx": g_idx, "id": -1 } );
+      dualG[j].push( {"ij":[i,j], "G_idx": g_idx, "id": -1 } );
     }
   }
 
@@ -1087,16 +1087,16 @@ function rectilinearGridPoints(_rl_pgon) {
     for (let i=0; i< dualG[j].length; i++) {
       let dg = dualG[j][i];
 
-      let ixy = dg.ixy;
+      let ij = dg.ij;
 
-      if ((ixy[0] >= (x_dedup.length-1)) ||
-          (ixy[1] >= (y_dedup.length-1))) { continue; }
+      if ((ij[0] >= (x_dedup.length-1)) ||
+          (ij[1] >= (y_dedup.length-1))) { continue; }
 
       let R = [
-        [ x_dedup[ixy[0]],      y_dedup[ixy[1]] ],
-        [ x_dedup[ixy[0] + 1],  y_dedup[ixy[1]] ],
-        [ x_dedup[ixy[0] + 1],  y_dedup[ixy[1] + 1] ],
-        [ x_dedup[ixy[0]],      y_dedup[ixy[1] + 1] ]
+        [ x_dedup[ij[0]],      y_dedup[ij[1]] ],
+        [ x_dedup[ij[0] + 1],  y_dedup[ij[1]] ],
+        [ x_dedup[ij[0] + 1],  y_dedup[ij[1] + 1] ],
+        [ x_dedup[ij[0]],      y_dedup[ij[1] + 1] ]
       ];
 
       let mp = [0,0];
@@ -1113,7 +1113,7 @@ function rectilinearGridPoints(_rl_pgon) {
       dualG[j][i]["id"] = dualG_ele_idx;
       dualG[j][i]["midpoint"] = mp;
 
-      dualCell.push({"R": R, "midpoint": mp, "ixy": [i,j]});
+      dualCell.push({"R": R, "midpoint": mp, "ij": [i,j]});
 
       dualG_ele_idx++;
     }
@@ -1199,26 +1199,26 @@ function rectilinearGridPoints(_rl_pgon) {
     let c_cur_key = _xyKey(c_cur_xy);
     let c_nxt_key = _xyKey(c_nxt_xy);
 
-    let cur_ixy = Gv_bp[ c_cur_key ];
-    let nxt_ixy = Gv_bp[ c_nxt_key ];
+    let cur_ij = Gv_bp[ c_cur_key ];
+    let nxt_ij = Gv_bp[ c_nxt_key ];
 
 
 
-    let n_m_c_ixy = v_sub(nxt_ixy, cur_ixy);
-    let d = abs_sum_v(n_m_c_ixy );
-    let dxy = v_delta( n_m_c_ixy );
+    let n_m_c_ij = v_sub(nxt_ij, cur_ij);
+    let d = abs_sum_v(n_m_c_ij );
+    let dxy = v_delta( n_m_c_ij );
 
-    let _ixy = [ cur_ixy[0], cur_ixy[1] ];
+    let _ij = [ cur_ij[0], cur_ij[1] ];
     for (i=0; i<d; i++) {
 
-      let g = Gv[ _ixy[1] ][ _ixy[0] ];
+      let g = Gv[ _ij[1] ][ _ij[0] ];
 
-      B.push( { "xy": [ g.xy[0], g.xy[1] ], "ixy": [ _ixy[0], _ixy[1] ], "t": g.t, "b_id": _b_id } );
-      B_2d[ _ixy[1] ][ _ixy[0] ] = _b_id;
+      B.push( { "xy": [ g.xy[0], g.xy[1] ], "ij": [ _ij[0], _ij[1] ], "t": g.t, "b_id": _b_id } );
+      B_2d[ _ij[1] ][ _ij[0] ] = _b_id;
 
       _b_id++;
 
-      _ixy = v_add( _ixy, dxy );
+      _ij = v_add( _ij, dxy );
     }
 
   }
@@ -1271,20 +1271,20 @@ function rectilinearGridPoints(_rl_pgon) {
     let idx_prv = (idx + B.length - 1)%B.length;
     let idx_nxt = (idx + B.length + 1)%B.length;
 
-    let prv_ixy = B[idx_prv].ixy;
-    let cur_ixy = B[idx].ixy;
-    let nxt_ixy = B[idx_nxt].ixy;
+    let prv_ij = B[idx_prv].ij;
+    let cur_ij = B[idx].ij;
+    let nxt_ij = B[idx_nxt].ij;
 
     let prv_xy = B[idx_prv].xy;
     let cur_xy = B[idx].xy;
     let nxt_xy = B[idx_nxt].xy;
 
 
-    let _i = cur_ixy[0];
-    let _j = cur_ixy[1];
+    let _i = cur_ij[0];
+    let _j = cur_ij[1];
 
-    let _u = v_sub( cur_ixy, prv_ixy );
-    let _v = v_sub( nxt_ixy, cur_ixy );
+    let _u = v_sub( cur_ij, prv_ij );
+    let _v = v_sub( nxt_ij, cur_ij );
 
     let _dprv = v_delta(_u);
     let _dnxt = v_delta(_v);
@@ -1525,12 +1525,12 @@ function rectilinearGridPoints(_rl_pgon) {
           if (B_2d[j][i] >= 0) {
 
             let cur_B_idx = B_2d[j][i];
-            let cur_B_ixy = B[cur_B_idx].ixy;
-            let prv_B_ixy = B[(cur_B_idx-1 + B.length) % B.length].ixy;
-            let nxt_B_ixy = B[(cur_B_idx+1) % B.length].ixy;
+            let cur_B_ij = B[cur_B_idx].ij;
+            let prv_B_ij = B[(cur_B_idx-1 + B.length) % B.length].ij;
+            let nxt_B_ij = B[(cur_B_idx+1) % B.length].ij;
 
-            let _dprv = v_sub( cur_B_ixy, prv_B_ixy );
-            let _dnxt = v_sub( nxt_B_ixy, cur_B_ixy );
+            let _dprv = v_sub( cur_B_ij, prv_B_ij );
+            let _dnxt = v_sub( nxt_B_ij, cur_B_ij );
 
             let _idir_prv = dxy2idir( _dprv );
             let _idir_nxt = dxy2idir( _dnxt );
@@ -1575,12 +1575,12 @@ function rectilinearGridPoints(_rl_pgon) {
           if (B_2d[j][i] >= 0) {
 
             let cur_B_idx = B_2d[j][i];
-            let cur_B_ixy = B[cur_B_idx].ixy;
-            let prv_B_ixy = B[(cur_B_idx-1 + B.length) % B.length].ixy;
-            let nxt_B_ixy = B[(cur_B_idx+1) % B.length].ixy;
+            let cur_B_ij = B[cur_B_idx].ij;
+            let prv_B_ij = B[(cur_B_idx-1 + B.length) % B.length].ij;
+            let nxt_B_ij = B[(cur_B_idx+1) % B.length].ij;
 
-            let _dprv = v_sub( cur_B_ixy, prv_B_ixy );
-            let _dnxt = v_sub( nxt_B_ixy, cur_B_ixy );
+            let _dprv = v_sub( cur_B_ij, prv_B_ij );
+            let _dnxt = v_sub( nxt_B_ij, cur_B_ij );
 
             let _idir_prv = dxy2idir( _dprv );
             let _idir_nxt = dxy2idir( _dnxt );
@@ -1627,12 +1627,12 @@ function rectilinearGridPoints(_rl_pgon) {
 
 
         let cur_B_idx = B_2d[j][i];
-        let cur_B_ixy = B[cur_B_idx].ixy;
-        let prv_B_ixy = B[(cur_B_idx-1 + B.length) % B.length].ixy;
-        let nxt_B_ixy = B[(cur_B_idx+1) % B.length].ixy;
+        let cur_B_ij = B[cur_B_idx].ij;
+        let prv_B_ij = B[(cur_B_idx-1 + B.length) % B.length].ij;
+        let nxt_B_ij = B[(cur_B_idx+1) % B.length].ij;
 
-        let _dprv = v_sub( cur_B_ixy, prv_B_ixy );
-        let _dnxt = v_sub( nxt_B_ixy, cur_B_ixy );
+        let _dprv = v_sub( cur_B_ij, prv_B_ij );
+        let _dnxt = v_sub( nxt_B_ij, cur_B_ij );
 
         let _dnp = dot_v( _dnxt, _dprv );
 
@@ -1735,7 +1735,7 @@ function rectilinearGridPoints(_rl_pgon) {
 
 
         //console.log("### cur_B_idx:", cur_B_idx, "prv_B_idx:", prv_B_idx, "nxt_B_idx:", nxt_B_idx);
-        console.log("### cur_B_ixy:", cur_B_ixy, "prv_B_ixy:", prv_B_ixy, "nxt_B_ixy:", nxt_B_ixy);
+        console.log("### cur_B_ij:", cur_B_ij, "prv_B_ij:", prv_B_ij, "nxt_B_ij:", nxt_B_ij);
 
       }
 
@@ -2325,10 +2325,10 @@ function cataloguePartitions( grid_ctx ) {
 
 
     let _key = c_xy[0].toString() + "," + c_xy[1].toString();
-    let src_ixy = Gv_bp[_key];
+    let src_ij = Gv_bp[_key];
 
     if (debug) {
-      console.log(">>> c_idx:", c_idx, c_type, "src_ixy:", src_ixy);
+      console.log(">>> c_idx:", c_idx, c_type, "src_ij:", src_ij);
     }
 
     let l_dxy_choice = [
@@ -2338,9 +2338,9 @@ function cataloguePartitions( grid_ctx ) {
 
     for (let l_dxy_choice_idx=0; l_dxy_choice_idx < l_dxy_choice.length; l_dxy_choice_idx++) {
       let l_dxy = l_dxy_choice[ l_dxy_choice_idx ];
-      let l_ixy = [ src_ixy[0] + l_dxy[0], src_ixy[1] + l_dxy[1] ];
+      let l_ij = [ src_ij[0] + l_dxy[0], src_ij[1] + l_dxy[1] ];
 
-      let ls_g_idx = Gv[ src_ixy[1] ][ src_ixy[0] ].G_idx;
+      let ls_g_idx = Gv[ src_ij[1] ][ src_ij[0] ].G_idx;
 
       let s_dxy_choice = [];
       for (let idir=0; idir < 4; idir++) {
@@ -2348,19 +2348,19 @@ function cataloguePartitions( grid_ctx ) {
         s_dxy_choice.push( idir_dxy[idir] );
       }
 
-      if (debug) { console.log(" __ l_dxy:", l_dxy, "l_ixy", l_ixy); }
+      if (debug) { console.log(" __ l_dxy:", l_dxy, "l_ij", l_ij); }
 
-      while ((l_ixy[1] >= 0) && (l_ixy[1] < Gv.length) &&
-             (l_ixy[0] >= 0) && (l_ixy[1] < Gv[ l_ixy[1] ].length)) {
+      while ((l_ij[1] >= 0) && (l_ij[1] < Gv.length) &&
+             (l_ij[0] >= 0) && (l_ij[1] < Gv[ l_ij[1] ].length)) {
 
-        let l_gv = Gv[ l_ixy[1] ][ l_ixy[0] ];
+        let l_gv = Gv[ l_ij[1] ][ l_ij[0] ];
 
-        if (debug) { console.log("  l_gv:", l_gv, "l_ixy:", l_ixy); }
+        if (debug) { console.log("  l_gv:", l_gv, "l_ij:", l_ij); }
 
         let le_g_idx = l_gv.G_idx;
         if (le_g_idx < 0) { break; }
 
-        let le_g_ixy   = G[ le_g_idx ];
+        let le_g_ij   = G[ le_g_idx ];
         let le_g_type  = Gt[ le_g_idx ];
 
         if (le_g_type == 'b') {
@@ -2394,7 +2394,7 @@ function cataloguePartitions( grid_ctx ) {
 
         if (le_g_type == 'c') {
 
-          if (debug) { console.log("    l>>> src_reflex", src_ixy, "to dst_boundary", le_g_ixy); }
+          if (debug) { console.log("    l>>> src_reflex", src_ij, "to dst_boundary", le_g_ij); }
 
           let grid_pnt_s = G[ls_g_idx];
           let grid_pnt_e = G[le_g_idx];
@@ -2428,19 +2428,19 @@ function cataloguePartitions( grid_ctx ) {
 
           for (let s_dxy_choice_idx=0; s_dxy_choice_idx < s_dxy_choice.length; s_dxy_choice_idx++) {
             let s_dxy = s_dxy_choice[ s_dxy_choice_idx ];
-            let s_ixy = [ l_ixy[0] + s_dxy[0], l_ixy[1] + s_dxy[1] ];
+            let s_ij = [ l_ij[0] + s_dxy[0], l_ij[1] + s_dxy[1] ];
 
-            while ((s_ixy[1] >= 0) && (s_ixy[1] < Gv.length) &&
-                   (s_ixy[0] >= 0) && (s_ixy[1] < Gv[ s_ixy[1] ].length)) {
+            while ((s_ij[1] >= 0) && (s_ij[1] < Gv.length) &&
+                   (s_ij[0] >= 0) && (s_ij[1] < Gv[ s_ij[1] ].length)) {
 
-              let s_gv = Gv[ s_ixy[1] ][ s_ixy[0] ];
+              let s_gv = Gv[ s_ij[1] ][ s_ij[0] ];
 
-              if (debug) { console.log("    s_gv:", s_gv, "s_ixy:", s_ixy); }
+              if (debug) { console.log("    s_gv:", s_gv, "s_ij:", s_ij); }
 
               let se_g_idx = s_gv.G_idx;
               if (se_g_idx < 0) { break; }
 
-              let se_g_ixy   = G[ se_g_idx ];
+              let se_g_ij   = G[ se_g_idx ];
               let se_g_type  = Gt[ se_g_idx ];
 
               if (se_g_type == 'b') {
@@ -2487,7 +2487,7 @@ function cataloguePartitions( grid_ctx ) {
                 break;
               }
 
-              s_ixy = [ s_ixy[0] + s_dxy[0], s_ixy[1] + s_dxy[1] ];
+              s_ij = [ s_ij[0] + s_dxy[0], s_ij[1] + s_dxy[1] ];
             }
 
           }
@@ -2498,7 +2498,7 @@ function cataloguePartitions( grid_ctx ) {
 
         }
 
-        l_ixy = [ l_ixy[0] + l_dxy[0], l_ixy[1] + l_dxy[1] ];
+        l_ij = [ l_ij[0] + l_dxy[0], l_ij[1] + l_dxy[1] ];
       }
 
 
@@ -2657,7 +2657,7 @@ function regionRectCost(grid_ctx, region) {
 
   for (let idx=0; idx<region.length; idx++) {
     let region_id = region[idx];
-    let dual_ij = dualCell[ region_id ].ixy;
+    let dual_ij = dualCell[ region_id ].ij;
 
     if (idx == 0) { _BBInit( iBB, dual_ij[0], dual_ij[1] ); }
     _BBUpdate( iBB, dual_ij[0], dual_ij[1] );
@@ -2672,18 +2672,18 @@ function regionRectCost(grid_ctx, region) {
   let ix = 0,
       iy = 0;
 
-  let cur_dixy = [
+  let cur_dij = [
     [0,0], [0,1],
     [1,0], [0,0]
   ];
 
-  let nei_dixy = [
+  let nei_dij = [
     [1,0], [1,1],
     [1,1], [0,1]
   ];
 
-  let d_ixy = [ [1,0], [1,0], [0,1], [0,1] ];
-  let s_ixy = [
+  let d_ij = [ [1,0], [1,0], [0,1], [0,1] ];
+  let s_ij = [
     [ iBB[0][0], iBB[0][1] ],
     [ iBB[0][0], iBB[1][1] ],
     [ iBB[1][0], iBB[0][1] ],
@@ -2701,7 +2701,7 @@ function regionRectCost(grid_ctx, region) {
 
 
   if (_debug) {
-    console.log("#### s_ixy:", s_ixy, n_idir);
+    console.log("#### s_ij:", s_ij, n_idir);
   }
 
   // for each side of the rectangle, trace out right, left,
@@ -2723,31 +2723,31 @@ function regionRectCost(grid_ctx, region) {
   //
   for (let idir=0; idir<4; idir++) {
 
-    for (let idx_ixy=0; idx_ixy < n_idir[idir]; idx_ixy++) {
+    for (let idx_ij=0; idx_ij < n_idir[idir]; idx_ij++) {
 
-      let ix = s_ixy[idir][0] + (idx_ixy*d_ixy[idir][0]),
-          iy = s_ixy[idir][1] + (idx_ixy*d_ixy[idir][1]);
+      let ix = s_ij[idir][0] + (idx_ij*d_ij[idir][0]),
+          iy = s_ij[idir][1] + (idx_ij*d_ij[idir][1]);
 
-      let nei_ixy = [ ix + nei_dixy[idir][0], iy + nei_dixy[idir][1] ];
-      let cur_ixy = [ ix + cur_dixy[idir][0], iy + cur_dixy[idir][1] ];
+      let nei_ij = [ ix + nei_dij[idir][0], iy + nei_dij[idir][1] ];
+      let cur_ij = [ ix + cur_dij[idir][0], iy + cur_dij[idir][1] ];
 
-      if ((cur_ixy[1] < 0) || (cur_ixy[1] >= Gv.length) ||
-          (cur_ixy[0] < 0) || (cur_ixy[0] >= Gv[ cur_ixy[1] ].length)) {
+      if ((cur_ij[1] < 0) || (cur_ij[1] >= Gv.length) ||
+          (cur_ij[0] < 0) || (cur_ij[0] >= Gv[ cur_ij[1] ].length)) {
         continue;
       }
 
-      if ((nei_ixy[1] < 0) || (nei_ixy[1] >= Gv.length) ||
-          (nei_ixy[0] < 0) || (nei_ixy[0] >= Gv[ nei_ixy[1] ].length)) {
+      if ((nei_ij[1] < 0) || (nei_ij[1] >= Gv.length) ||
+          (nei_ij[0] < 0) || (nei_ij[0] >= Gv[ nei_ij[1] ].length)) {
         continue;
       }
 
-      if (Gv[cur_ixy[1]][cur_ixy[0]].G_idx < 0) { continue; }
+      if (Gv[cur_ij[1]][cur_ij[0]].G_idx < 0) { continue; }
 
-      let b_idx1 = B_2d[ nei_ixy[1] ][ nei_ixy[0] ];
-      let b_idx0 = B_2d[ cur_ixy[1] ][ cur_ixy[0] ];
+      let b_idx1 = B_2d[ nei_ij[1] ][ nei_ij[0] ];
+      let b_idx0 = B_2d[ cur_ij[1] ][ cur_ij[0] ];
 
       if (_debug) {
-        console.log("### idir:", idir, "ixy:", ix, iy, "nei_ixy:", nei_ixy, "cur_ixy:", cur_ixy, "b_idx01:", b_idx0, b_idx1);
+        console.log("### idir:", idir, "ij:", ix, iy, "nei_ij:", nei_ij, "cur_ij:", cur_ij, "b_idx01:", b_idx0, b_idx1);
       }
 
       if ((b_idx1 >= 0) &&
@@ -2758,14 +2758,14 @@ function regionRectCost(grid_ctx, region) {
       }
 
 
-      let g0_info = Gv[ nei_ixy[1] ][ nei_ixy[0] ];
-      let g1_info = Gv[ cur_ixy[1] ][ cur_ixy[0] ];
+      let g0_info = Gv[ nei_ij[1] ][ nei_ij[0] ];
+      let g1_info = Gv[ cur_ij[1] ][ cur_ij[0] ];
       let cur_cost = abs_sum_v( v_sub( g1_info.xy, g0_info.xy ) );
       cost += cur_cost;
       cost4.push(cur_cost);
 
       if (_debug) {
-        console.log("###", "nei_ixy:", nei_ixy, "cur_ixy:", cur_ixy, "ginfo:", g0_info, g1_info, "(", g1_info.xy, g0_info.xy, ")");
+        console.log("###", "nei_ij:", nei_ij, "cur_ij:", cur_ij, "ginfo:", g0_info, g1_info, "(", g1_info.xy, g0_info.xy, ")");
       }
 
     }
@@ -2848,7 +2848,7 @@ function commRegion(a_region, b_region) {
   return comm;
 }
 
-function _ixykey(p) {
+function _ijkey(p) {
   return p[0].toString() + "," + p[1].toString();
 }
 
@@ -2998,10 +2998,10 @@ function ijpoint_inside_cut_region(rprp_info, grid_pnt, border_idx0, border_idx1
 
   /*
   let g_B = [
-    rprp_info.B[ jval[0] ].ixy,
-    rprp_info.B[ jval[1] ].ixy,
-    rprp_info.B[ jval[2] ].ixy,
-    rprp_info.B[ jval[3] ].ixy,
+    rprp_info.B[ jval[0] ].ij,
+    rprp_info.B[ jval[1] ].ij,
+    rprp_info.B[ jval[2] ].ij,
+    rprp_info.B[ jval[3] ].ij,
   ];
   */
 
@@ -3233,11 +3233,11 @@ function cleaveProfile(rprp_info, p_s, p_e, a, b) {
   let Sx = rprp_info.Sx;
   let Sy = rprp_info.Sy;
 
-  let g_s = Gv_bp[ _ixykey(p_s) ];
-  let g_e = Gv_bp[ _ixykey(p_e) ];
+  let g_s = Gv_bp[ _ijkey(p_s) ];
+  let g_e = Gv_bp[ _ijkey(p_e) ];
 
-  let g_a = Gv_bp[ _ixykey(a) ];
-  let g_b = Gv_bp[ _ixykey(b) ];
+  let g_a = Gv_bp[ _ijkey(a) ];
+  let g_b = Gv_bp[ _ijkey(b) ];
 
   return cleaveProfileGrid(rprp_info, g_s, g_e, g_a, g_b);
 }
@@ -3684,11 +3684,11 @@ function enumerateCleaveCut(rprp_info, p_s, p_e, a, b, cleave_profile) {
 
   let Js = rprp_info.Js;
 
-  let g_s = Gv_bp[ _ixykey(p_s) ];
-  let g_e = Gv_bp[ _ixykey(p_e) ];
+  let g_s = Gv_bp[ _ijkey(p_s) ];
+  let g_e = Gv_bp[ _ijkey(p_e) ];
 
-  let g_a = Gv_bp[ _ixykey(a) ];
-  let g_b = Gv_bp[ _ixykey(b) ];
+  let g_a = Gv_bp[ _ijkey(a) ];
+  let g_b = Gv_bp[ _ijkey(b) ];
 
   return enumerateCleaveCutGrid(rprp_info, g_s, g_e, g_a, g_b, cleave_profile);
 
@@ -3769,7 +3769,7 @@ function enumerateQuarrySideRegion(rprp_info, g_s, g_e, g_a, g_b, _debug) {
       b_jmp = Js[idir][ g_r[1] ][ g_r[0] ];
     }
 
-    let g_b = B[b_jmp].ixy;
+    let g_b = B[b_jmp].ij;
     let guillotine_list = [];
     let ldim = r_idx % 2;
 
@@ -3783,7 +3783,7 @@ function enumerateQuarrySideRegion(rprp_info, g_s, g_e, g_a, g_b, _debug) {
       let b_jmp_nxt = Js[idir][ g_b[1] ][ g_b[0] ];
       if (b_jmp_nxt < 0) { break; }
 
-      let g_b_nxt = B[b_jmp_nxt].ixy;
+      let g_b_nxt = B[b_jmp_nxt].ij;
       if (g_b_nxt[ldim] > Rl[r_idx]) { break; }
 
       let b_jmp_prv = Js[rdir][ g_b_nxt[1] ][ g_b_nxt[0] ];
