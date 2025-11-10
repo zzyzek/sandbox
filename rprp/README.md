@@ -746,6 +746,44 @@ function enumerateCleaveCut(rprp_ctx, gb_idx0, gb_idx1, a, b) {
 }
 ```
 
+###### 2025-11-09
+
+Up to some more verification, I think all the components are now in place to implement the core of the algorithm.
+
+Here's a sketch:
+
+```
+    |  MIRP(ctx, b_0, b_1, g_a):
+    |
+    |    if ctx.memoize(b_0, b_1, g_a) !== undefined:
+    |      return ctx.memoize(b_0, b_1, g_a)
+    |
+    |    cost = \infty
+    |
+(gp)|    for g_b in G:
+    |      if Q = Quarry(g_a,g_b) \notin R: continue
+    |      c = ink(Q)
+    |
+(1c)|      for one_cut in enumerateOneCut(ctx, b_0, b_1, g_a, g_b)
+    |        c += MIRP(ctx, one_cut.b_0, one_cut.b_1, one_cut.g_a)
+    |     
+(2c)|      for two_cut in enumerateTwoCut(ctx, b_0, b_1, g_a, g_b)
+    |        c2 = MIRP(ctx, two_cut.b_0, two_cut.b_1, two_cut.g_a)
+    |        if (c + c2) < cost: cost = c + c2
+    |
+    |      if cost == \infty: cost = c
+    |
+    |    ctx.memoize(b_0, b_1, g_a) = cost
+    |    return cost
+```
+
+Line `(gp)` will be $O(n^2)$, line `(1c)` will be $O(n)$, line `(2c)` will be $O(1)$.
+`ctx.memoize` has $O(n^4)$ entries, so that provides an upper bound on run-time and space.
+
+
+
+
+
 References
 ---
 

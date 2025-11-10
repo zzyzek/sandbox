@@ -2574,11 +2574,12 @@ if ((typeof require !== "undefined") &&
     op = process.argv[2];
   }
 
-  if      (op == 'check')   { _main_checks(process.argv.slice(2)); }
-  else if (op == 'example') { _main_example(process.argv.slice(2)); }
-  else if (op == 'ijspot')  { _ijpoint_inside_spot_test(); }
-  else if (op == 'contain') { _main_irect_contain_test(); }
-  else if (op == 'foo')     { _main_foo(); }
+  if      (op == 'check')       { _main_checks(process.argv.slice(2)); }
+  else if (op == 'example')     { _main_example(process.argv.slice(2)); }
+  else if (op == 'ijspot')      { _ijpoint_inside_spot_test(); }
+  else if (op == 'contain')     { _main_irect_contain_test(); }
+  else if (op == 'guillotine')  { _main_guillotine(); }
+  else if (op == 'foo')         { _main_foo(); }
 }
 
 //                          __    
