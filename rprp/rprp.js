@@ -305,6 +305,45 @@ function _print_dual(dualG, pfx) {
   }
 }
 
+function _print1da(A, hdr, ws, line_pfx, fold) {
+  hdr = ((typeof hdr === "undefined") ? "" : hdr);
+  ws = ((typeof ws === "undefined") ? 8 : ws);
+  line_pfx = ((typeof line_pfx === "undefined") ? "" : line_pfx);
+  fold = ((typeof fold === "undefined") ? 12 : fold);
+  console.log(hdr);
+
+  let row_s = [ line_pfx ];
+  for (let i=0; i<A.length; i++) {
+    if (row_s.length == fold) {
+      console.log( row_s.join("") );
+      row_s = [ line_pfx ];
+    }
+
+    let v = _ifmt( JSON.stringify(A[i]), ws );
+    row_s.push(v);
+  }
+  if (row_s.length > 0) {
+    console.log( row_s.join("") );
+  }
+}
+
+function _print2da(A, hdr, ws, line_pfx) {
+  hdr = ((typeof hdr === "undefined") ? "" : hdr);
+  ws = ((typeof ws === "undefined") ? 3 : ws);
+  line_pfx = ((typeof line_pfx === "undefined") ? "  " : line_pfx);
+  console.log(hdr);
+  for (let j=(A.length-1); j>=0; j--) {
+    let row_s = [line_pfx];
+    for (let i=0; i<A[j].length; i++) {
+      let v = _ifmt( JSON.stringify(A[j][i]), ws );
+      let s = ( (v < 0) ? "  ." : _ifmt(v, 3) );
+      row_s.push( s );
+    }
+    console.log(row_s.join(" "));
+  }
+  console.log("");
+}
+
 function _print_grid_info(grid_info) {
   console.log("# C (contour) (", grid_info.C.length, "):");
   for (let i=0; i<grid_info.C.length; i++) {
@@ -718,6 +757,8 @@ function _rprp_irect_contain_test(grid_info, _debug) {
 
 function _rprp_sanity( rl_pgon ) {
 
+  let n = rl_pgon.length;
+
   // sanity
   //
   for (let cur_idx=0; cur_idx<rl_pgon.length; cur_idx++) {
@@ -774,9 +815,9 @@ function RPRPInit( _rl_pgon ) {
     x_dup.push(Cxy[i][0]);
     y_dup.push(Cxy[i][1]);
 
-    let p_prv = [ Cxy[(i+n-1)%n][0], Cxy[(i+n-1)%n][1], 0 ];
+    let p_prv = [ Cxy[(i+Cxy.length-1)%Cxy.length][0], Cxy[(i+Cxy.length-1)%Cxy.length][1], 0 ];
     let p_cur = [ Cxy[i][0], Cxy[i][1], 0 ];
-    let p_nxt = [ Cxy[(i+1)%n][0], Cxy[(i+1)%n][1], 0 ];
+    let p_nxt = [ Cxy[(i+1)%Cxy.length][0], Cxy[(i+1)%Cxy.length][1], 0 ];
 
     let v0 = v_sub( p_prv, p_cur );
     let v1 = v_sub( p_nxt, p_cur );
@@ -812,6 +853,14 @@ function RPRPInit( _rl_pgon ) {
   // init Gij, Bij, Js
   //
 
+  //DEBUG
+  _print1da(Cxy, "\n## Cxy:");
+  _print1da(Ct, "\n## Ct:");
+
+  //console.log("Ct:", Ct);
+  //console.log("Cxy:", Cxy);
+  //DEBUG
+
   for (let j=0; j<Y.length; j++) {
     Gij.push([]);
     Bij.push([]);
@@ -830,15 +879,50 @@ function RPRPInit( _rl_pgon ) {
   // populate Bij
   //
 
-  for (let c_idx=0; c_idx < C.length; c_idx++) {
+  let XY = [ X, Y ];
 
-  }
+  let xy = Cxy[0];
+  let ij = [-1,-1];
 
-  for (let j=0; j<Y.length; j++) {
-    for (let i=0; i<X.length; i++) {
+  for (let i=0; i<X.length; i++) { if (X[i] == xy[0]) { ij[0] = i; } }
+  for (let j=0; j<Y.length; j++) { if (Y[j] == xy[1]) { ij[1] = j; } }
 
+  let b_idx = 0;
+  for (let c_idx=0; c_idx < Cxy.length; c_idx++) {
+    let c_nxt = (c_idx+1)%Cxy.length;
+
+    //DEBUG
+    //console.log("c_idx:", c_idx, "c_nxt:", c_nxt, "Cxy[", c_idx, "]:", Cxy[c_idx], "ij:", ij);
+    //DEBUG
+
+    let dC = v_sub( Cxy[c_nxt], Cxy[c_idx] );
+    let xyd = ( (Math.abs(dC[0]) < _eps) ? 1 : 0 );
+    let dij = v_delta( dC );
+    let d_idx = ( ((dij[0] + dij[1]) > _eps) ? 1 : -1 );
+    for (let idx=ij[xyd]; idx<XY[xyd].length; idx += d_idx) {
+
+      if (Cxy[c_nxt][xyd] == XY[xyd][idx]) { break; }
+
+      Bij[ ij[1] ][ ij[0] ] = b_idx;
+      Bxy.push( [ X[ij[0]], Y[ij[1]] ] );
+      B.push( [ ij[0], ij[1] ] );
+
+      //DEBUG
+      //console.log("----\n  ij:", ij, "dij:", dij, "(xy:", Cxy[c_idx], "->", Cxy[c_nxt], ")");
+      //console.log("  Bij[", ij[1], ij[0], "]:", Bij[ij[1]][ij[0]], "Bxy[", b_idx, "]:", Bxy[b_idx], "B[", b_idx, "]:", B[b_idx], "ij:", ij);
+      //DEBUG
+
+      b_idx++;
+
+      ij = v_add( ij, dij );
     }
+
   }
+
+  _print1da(Bxy, "\n## Bxy:");
+  _print1da(B, "\n## B:");
+  _print2da(Bij, "\n## Bij:");
+
 
 
 
@@ -2697,6 +2781,10 @@ function _expect( q, v, _verbose ) {
   return true;
 }
 
+function _main_rprpinit_test() {
+  RPRPInit( pgn_pinwheel1 );
+}
+
 //       ___ 
 //  ____/ (_)
 // / __/ / / 
@@ -2718,6 +2806,7 @@ if ((typeof require !== "undefined") &&
   else if (op == 'contain')     { _main_irect_contain_test(); }
   else if (op == 'guillotine')  { _main_guillotine(); }
   else if (op == 'foo')         { _main_foo(); }
+  else if (op == 'rprpi')       { _main_rprpinit_test(); }
 }
 
 //                          __    
