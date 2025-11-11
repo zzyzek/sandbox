@@ -798,7 +798,10 @@ function RPRPInit( _rl_pgon ) {
   let X = [],
       Y = [];
 
-  let Js = [ [], [], [], [] ];
+  let Js = [ [], [], [], [] ],
+      Je = [ [], [], [], [] ];
+
+  let idir_dxy = [ [1,0], [-1,0], [0,1], [0,-1] ];
 
   let x_dup = [],
       y_dup = [];
@@ -854,8 +857,10 @@ function RPRPInit( _rl_pgon ) {
   //
 
   //DEBUG
-  _print1da(Cxy, "\n## Cxy:");
-  _print1da(Ct, "\n## Ct:");
+  if (_debug) {
+    _print1da(Cxy, "\n## Cxy:");
+    _print1da(Ct, "\n## Ct:");
+  }
   //DEBUG
 
   for (let j=0; j<Y.length; j++) {
@@ -863,12 +868,14 @@ function RPRPInit( _rl_pgon ) {
     Bij.push([]);
     for (let idir=0; idir<4; idir++) {
       Js[idir].push([]);
+      Je[idir].push([]);
     }
     for (let i=0; i<X.length; i++) {
       Gij[j].push(-1);
       Bij[j].push(-1);
       for (let idir=0; idir<4; idir++) {
         Js[idir][j].push(-1);
+        Je[idir][j].push(-1);
       }
     }
   }
@@ -907,6 +914,7 @@ function RPRPInit( _rl_pgon ) {
       Bij[ ij[1] ][ ij[0] ] = b_idx;
       Bxy.push( [ X[ij[0]], Y[ij[1]] ] );
       B.push( [ ij[0], ij[1] ] );
+      Bt.push( (idx == ij[xyd]) ? Ct[c_idx] : 'b' );
 
       b_idx++;
 
@@ -916,9 +924,12 @@ function RPRPInit( _rl_pgon ) {
   }
 
   //DEBUG
-  _print1da(Bxy,  "\n## Bxy:");
-  _print1da(B,    "\n## B:");
-  _print2da(Bij,  "\n## Bij:");
+  if (_debug) {
+    _print1da(Bxy,  "\n## Bxy:");
+    _print1da(B,    "\n## B:");
+    _print1da(Bt,   "\n## Bt:");
+    _print2da(Bij,  "\n## Bij:");
+  }
   //DEBUG
 
 
@@ -941,13 +952,223 @@ function RPRPInit( _rl_pgon ) {
   // times.
   //
 
-  let v_idir = [ [1,0], [-1,0], [0,1], [0,-1] ];
+  //-----------------------------------------------------
+  // I - interior, a - afar, n - near
+  //
+  //        idir      +x        -x        +y        -y
+  // idx  prv nxt   I  a  n   I  a  n   I  a  n   I  a  n
+  //  0    0   0    .  .  .   .  .  .   0 -1 -1   1  B  B
+  //  1    1   1    .  .  .   .  .  .   1  B  B   0 -1 -1
+  //  2    2   2    1  B  B   0 -1 -1   .  .  .   .  .  .
+  //  3    3   3    0 -1 -1   1  B  B   .  .  .   .  .  .
+  //  4    0   2    1  B  B   0 -1 -1   0 -1 -1   1  B  B
+  //  5    0   3    .  .  .   .  .  B   .  .  .   .  .  B
+  //  6    1   2    .  .  B   .  .  .   .  .  B   .  .  .
+  //  7    1   3    0 -1 -1   1  B  B   1  B  B   0 -1 -1
+  //  8    2   0    .  .  B   .  .  .   .  .  .   .  .  B
+  //  9    2   1    1  B  B   0 -1 -1   1  B  B   0 -1 -1
+  //  10   3   0    0 -1 -1   1  B  B   0 -1 -1   1  B  B
+  //  11   3   1    .  .  .   .  .  B   .  .  B   .  .  .
+  //
+  // Note that the walk is in the opposite direction of the ray,
+  // so +x above is indicating the ray is shooting in the +x direction
+  // but we look at transitions walking from right to left.
+  //
+  // Whenever we change from exterior to interior, we need to update
+  // the near and far saved indices.
+  // There are only a few other cases where the near index needs
+  // to be updated.
+  //
+  // Consider updating the Js structure for the +x direction.
+  // We are walking from right to left, so in the opposite of the +x
+  // Js portion we're filling out.
+  // We start with a near index as -1, representing the outside.
+  // As we walk from right to left, we update the point with
+  // whatever our current near index is.
+  // We update the near index (after the Js entry update) depending on what 
+  // point it is:
+  //   - if it's a border with outside on right and inside on left,
+  //     reset near index to the current border index
+  //   - if it's a a border corner with border on the right and
+  //     interior or non-contiguous border on left, update the near
+  //     index
+  //   - otherwise no change to near index
+  //
+  // In some sense this is a state machine that updates the
+  // near index to populate the Js entries with depending on the
+  // three-point/two-line-segments we see if the current point
+  // is a border.
+  //
+  // The interior state is unused but kept in case we might
+  // want it for the future.
+  //
+  //-----------------------------------------------------
+
+  // idir to lookup
+  //
+  let _idir2lu = [
+    [  0, -1,  4,  5 ],
+    [ -1,  1,  6,  7 ],
+    [  8,  9,  2, -1 ],
+    [ 10, 11, -1,  3 ]
+  ];
+
+  // lookup to Interior, afar, near
+  //
+  let _lu_Ian = [
+
+    // idir prv, idir nxt
+    // e.g. 21 y-up (+y) followed by x-left (-x)
+    // note that the cleave can't go back on itself, so e.g. 01 isn't represented
+    //
+    //  00     11     22     33     02     03     12     13     20     21     30     31
+    //
+    [ "...", "...", "1BB", "0--", "1BB", "...", "..B", "0--", "..B", "1BB", "0--", "..." ],
+    [ "...", "...", "0--", "1BB", "0--", "..B", "...", "1BB", "...", "0--", "1BB", "..B" ],
+
+    [ "0--", "1BB", "...", "...", "0--", "...", "..B", "1BB", "...", "1BB", "0--", "..B" ],
+    [ "1BB", "0--", "...", "...", "1BB", "..B", "...", "0--", "..B", "0--", "1BB", "..." ]
+
+  ];
+
+  // begin, end, delta for X and Y directions
+  //
+  let _ibound = [
+    [ [X.length-1, -1, -1], [0,Y.length,1] ],
+    [ [0, X.length, 1],     [0,Y.length,1] ],
+    [ [0, X.length, 1],     [Y.length-1,-1,-1] ],
+    [ [0, X.length, 1],     [0,Y.length,1] ]
+  ];
 
   for (let idir=0; idir<4; idir++) {
+
+    let _interior = 0;
+    let afar_B_idx = -1,
+        near_B_idx = -1;
+
+    if (idir < 2) {
+
+      for (let j = _ibound[idir][1][0]; j != _ibound[idir][1][1]; j += _ibound[idir][1][2]) {
+
+        afar_B_idx = -1;
+        near_B_idx = -1;
+
+        for (let i = _ibound[idir][0][0]; i != _ibound[idir][0][1]; i += _ibound[idir][0][2]) {
+
+          Je[idir][j][i] = afar_B_idx;
+          Js[idir][j][i] = near_B_idx;
+
+          if (Bij[j][i] >= 0) {
+
+            let cur_B_idx = Bij[j][i];
+            let cur_B_ij = B[cur_B_idx];
+            let prv_B_ij = B[(cur_B_idx-1 + B.length) % B.length];
+            let nxt_B_ij = B[(cur_B_idx+1) % B.length];
+
+            let _dprv = v_sub( cur_B_ij, prv_B_ij );
+            let _dnxt = v_sub( nxt_B_ij, cur_B_ij );
+
+            let _idir_prv = dxy2idir( _dprv );
+            let _idir_nxt = dxy2idir( _dnxt );
+
+            let __c = cur_B_idx;
+            let __p = (cur_B_idx-1 + B.length) % B.length ;
+
+            let _code = _lu_Ian[idir][ _idir2lu[ _idir_prv ][ _idir_nxt ] ];
+
+            if      (_code[0] == '0') { _interior = 0; }
+            else if (_code[0] == '1') { _interior = 1; }
+
+            if      (_code[1] == 'B') { afar_B_idx = cur_B_idx; }
+            else if (_code[1] == '-') { afar_B_idx = -1; }
+
+            if      (_code[2] == 'B') { near_B_idx = cur_B_idx; }
+            else if (_code[2] == '-') { near_B_idx = -1; }
+
+          }
+
+        }
+
+      }
+
+    }
+
+    else {
+
+      for (let i = _ibound[idir][0][0]; i != _ibound[idir][0][1]; i += _ibound[idir][0][2]) {
+
+        afar_B_idx = -1;
+        near_B_idx = -1;
+
+        for (let j = _ibound[idir][1][0]; j != _ibound[idir][1][1]; j += _ibound[idir][1][2]) {
+
+          Je[idir][j][i] = afar_B_idx;
+          Js[idir][j][i] = near_B_idx;
+
+          if (Bij[j][i] >= 0) {
+
+            let cur_B_idx = Bij[j][i];
+            let cur_B_ij = B[cur_B_idx];
+            let prv_B_ij = B[(cur_B_idx-1 + B.length) % B.length];
+            let nxt_B_ij = B[(cur_B_idx+1) % B.length];
+
+            let _dprv = v_sub( cur_B_ij, prv_B_ij );
+            let _dnxt = v_sub( nxt_B_ij, cur_B_ij );
+
+            let _idir_prv = dxy2idir( _dprv );
+            let _idir_nxt = dxy2idir( _dnxt );
+
+            let _code = _lu_Ian[idir][ _idir2lu[ _idir_prv ][ _idir_nxt ] ];
+
+            if      (_code[0] == '0') { _interior = 0; }
+            else if (_code[0] == '1') { _interior = 1; }
+
+            if      (_code[1] == 'B') { afar_B_idx = cur_B_idx; }
+            else if (_code[1] == '-') { afar_B_idx = -1; }
+
+            if      (_code[2] == 'B') { near_B_idx = cur_B_idx; }
+            else if (_code[2] == '-') { near_B_idx = -1; }
+
+          }
+
+        }
+
+      }
+
+    }
+
     
   }
 
+  //DEBUG
+  if (_debug) {
+    let idir_descr = [ "+x", "-x", "+y", "-y" ];
+    for (let idir=0; idir<4; idir++) {
+      _print2da(Js[idir],   "\n## Js[" + idir_descr[idir] + "]:");
+    }
+  }
+  //DEBUG
 
+
+  // RPRP context
+  //
+  return {
+    "Cxy": Cxy,
+    "Ct" : Ct,
+
+    "G"  : G,
+    "Gt" : Gt,
+    "Gij": Gij,
+    "Gxy": Gxy,
+
+    "B"  : B,
+    "Bt" : Bt,
+    "Bxy": Bxy,
+    "Bij": Bij,
+
+    "Js" : Js,
+    "Je" : Je
+  };
 
 
 }
@@ -2806,7 +3027,8 @@ function _expect( q, v, _verbose ) {
 }
 
 function _main_rprpinit_test() {
-  RPRPInit( pgn_pinwheel1 );
+  //RPRPInit( pgn_pinwheel1 );
+  RPRPInit( pgn_spiral1 );
 }
 
 //       ___ 
