@@ -856,9 +856,6 @@ function RPRPInit( _rl_pgon ) {
   //DEBUG
   _print1da(Cxy, "\n## Cxy:");
   _print1da(Ct, "\n## Ct:");
-
-  //console.log("Ct:", Ct);
-  //console.log("Cxy:", Cxy);
   //DEBUG
 
   for (let j=0; j<Y.length; j++) {
@@ -878,6 +875,14 @@ function RPRPInit( _rl_pgon ) {
 
   // populate Bij
   //
+  // Bij is a 2d index grid whose entries hold
+  // the index of the general border points, if they exist (-1 otherwise).
+  // To populate, start at a primitive Cxy border point, map it to the
+  // ij grid, find the direction of change and start walking the ij
+  // grid, populating Bij as we go until we hig the next primitive border point.
+  //
+  // Keep the general border point index to ij and xy mapping in B, Bxy respectively.
+  //
 
   let XY = [ X, Y ];
 
@@ -891,10 +896,6 @@ function RPRPInit( _rl_pgon ) {
   for (let c_idx=0; c_idx < Cxy.length; c_idx++) {
     let c_nxt = (c_idx+1)%Cxy.length;
 
-    //DEBUG
-    //console.log("c_idx:", c_idx, "c_nxt:", c_nxt, "Cxy[", c_idx, "]:", Cxy[c_idx], "ij:", ij);
-    //DEBUG
-
     let dC = v_sub( Cxy[c_nxt], Cxy[c_idx] );
     let xyd = ( (Math.abs(dC[0]) < _eps) ? 1 : 0 );
     let dij = v_delta( dC );
@@ -907,11 +908,6 @@ function RPRPInit( _rl_pgon ) {
       Bxy.push( [ X[ij[0]], Y[ij[1]] ] );
       B.push( [ ij[0], ij[1] ] );
 
-      //DEBUG
-      //console.log("----\n  ij:", ij, "dij:", dij, "(xy:", Cxy[c_idx], "->", Cxy[c_nxt], ")");
-      //console.log("  Bij[", ij[1], ij[0], "]:", Bij[ij[1]][ij[0]], "Bxy[", b_idx, "]:", Bxy[b_idx], "B[", b_idx, "]:", B[b_idx], "ij:", ij);
-      //DEBUG
-
       b_idx++;
 
       ij = v_add( ij, dij );
@@ -919,9 +915,37 @@ function RPRPInit( _rl_pgon ) {
 
   }
 
-  _print1da(Bxy, "\n## Bxy:");
-  _print1da(B, "\n## B:");
-  _print2da(Bij, "\n## Bij:");
+  //DEBUG
+  _print1da(Bxy,  "\n## Bxy:");
+  _print1da(B,    "\n## B:");
+  _print2da(Bij,  "\n## Bij:");
+  //DEBUG
+
+
+  // populate Js ("border jump" structure)
+  //
+  // Js has four 2d entries, one for each idir (0 +x, 1 -x, 2 +y, 3 -y).
+  // Each 2d Js entry holds the index of the first border point
+  // encountered if a ray were to start at the ij point and shoot out
+  // in the entries direction.
+  // If a point starts out of bounds or shoots in a direction that is
+  // out of bounds, the entry is -1.
+  // By convention, if the starting point is on a border and the ray
+  // is in line to the same border, the entry is the index of the
+  // first border point encountered after leaving the in line border
+  // or the concave (inner corner) if the line border doesn't deposit
+  // in an open region.
+  //
+  // For each direction, we shoot a ray until we hit the border.
+  // This should be O(n^2), as we're only touching each entry O(1)
+  // times.
+  //
+
+  let v_idir = [ [1,0], [-1,0], [0,1], [0,-1] ];
+
+  for (let idir=0; idir<4; idir++) {
+    
+  }
 
 
 
