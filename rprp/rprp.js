@@ -716,6 +716,134 @@ function _rprp_irect_contain_test(grid_info, _debug) {
 
 //---
 
+function _rprp_sanity( rl_pgon ) {
+
+  // sanity
+  //
+  for (let cur_idx=0; cur_idx<rl_pgon.length; cur_idx++) {
+    let prv_idx = (cur_idx+n-1)%n;
+    let dxy = v_sub( rl_pgon[cur_idx], rl_pgon[prv_idx] );
+    let adx = Math.abs(dxy[0]);
+    let ady = Math.abs(dxy[1]);
+
+    if (((adx == 0) && (ady == 0)) ||
+        ((adx != 0) && (ady != 0))) { return 1; }
+  }
+  //
+  // sanity
+
+  return 0;
+}
+
+// WIP!!!
+// refactoring...
+//
+function RPRPInit( _rl_pgon ) {
+  let _eps = (1/(1024));
+
+  let Cxy = [],
+      Ct = [];
+
+  let G = [],
+      Gt = [],
+      Gij = [],
+      Gxy = [];
+
+  let B = [],
+      Bt = [],
+      Bij = [],
+      Bxy = [];
+
+  let X = [],
+      Y = [];
+
+  let Js = [ [], [], [], [] ];
+
+  let x_dup = [],
+      y_dup = [];
+
+  let pnt_map = {};
+  let corner_type = [];
+
+  if (_rl_pgon.length == 0) { return []; }
+  Cxy = orderCounterclockwise( _rl_pgon );
+  if ( Cxy.length == 0) { return {}; }
+  if (_rprp_sanity( Cxy )) { return {}; }
+
+  for (let i=0; i<Cxy.length; i++) {
+    x_dup.push(Cxy[i][0]);
+    y_dup.push(Cxy[i][1]);
+
+    let p_prv = [ Cxy[(i+n-1)%n][0], Cxy[(i+n-1)%n][1], 0 ];
+    let p_cur = [ Cxy[i][0], Cxy[i][1], 0 ];
+    let p_nxt = [ Cxy[(i+1)%n][0], Cxy[(i+1)%n][1], 0 ];
+
+    let v0 = v_sub( p_prv, p_cur );
+    let v1 = v_sub( p_nxt, p_cur );
+
+    let _c = cross3( v0, v1 );
+
+    let corner_code = 'X';
+
+    if      (_c[2] < _eps) { corner_code = 'r'; }
+    else if (_c[2] > _eps) { corner_code = 'c'; }
+
+    Ct.push(corner_code);
+  }
+
+  x_dup.sort( _icmp );
+  y_dup.sort( _icmp );
+
+  // X and Y dedup
+  //
+  X.push( x_dup[0] );
+  Y.push( y_dup[0] );
+
+  for (let i=1; i<x_dup.length; i++) {
+    if (x_dup[i] == x_dup[i-1]) { continue; }
+    X.push(x_dup[i]);
+  }
+
+  for (let i=1; i<y_dup.length; i++) {
+    if (y_dup[i] == y_dup[i-1]) { continue; }
+    Y.push(y_dup[i]);
+  }
+
+  // init Gij, Bij, Js
+  //
+
+  for (let j=0; j<Y.length; j++) {
+    Gij.push([]);
+    Bij.push([]);
+    for (let idir=0; idir<4; idir++) {
+      Js[idir].push([]);
+    }
+    for (let i=0; i<X.length; i++) {
+      Gij[j].push(-1);
+      Bij[j].push(-1);
+      for (let idir=0; idir<4; idir++) {
+        Js[idir][j].push(-1);
+      }
+    }
+  }
+
+  // populate Bij
+  //
+
+  for (let c_idx=0; c_idx < C.length; c_idx++) {
+
+  }
+
+  for (let j=0; j<Y.length; j++) {
+    for (let i=0; i<X.length; i++) {
+
+    }
+  }
+
+
+
+}
+
 // Init function to set up all data structures and return
 // the rprp data context.
 //
@@ -2218,6 +2346,16 @@ function enumerateCleaveCutPoint(rprp_info, p_s, p_e, a, b, cleave_profile) {
   let g_b = Gv_bp[ _ijkey(b) ];
 
   return enumerateCleaveCut(rprp_info, g_s, g_e, g_a, g_b, cleave_profile);
+
+}
+
+//WIP!!
+function MIRP(rprp_info, g_s, g_e, g_a) {
+
+  let Gv = rprp_info.Gv;
+
+  let B = rprp_info.B;
+  let B2d = rprp_info.B_2d;
 
 }
 
