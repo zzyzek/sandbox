@@ -779,7 +779,8 @@ function _rprp_sanity( rl_pgon ) {
 // WIP!!!
 // refactoring...
 //
-function RPRPInit( _rl_pgon ) {
+function RPRPInit(_rl_pgon, _debug) {
+  _debug = ((typeof _debug === "undefined") ? 0 : 1);
   let _eps = (1/(1024));
 
   let Cxy = [],
