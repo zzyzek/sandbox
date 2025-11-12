@@ -1632,6 +1632,7 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
 
 //WIP!!
 function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a) {
+  let Bij = ctx.Bij;
   let Js = ctx.Js;
 
   if ((Js[0][ ij[1] ][ ij[0] ] < 0) &&
@@ -1647,7 +1648,23 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a) {
       idx_e = Bij[ g_e[1] ][ g_e[0] ];
   if ((idx_s < 0) || (idx_e < 0)) { return -1; }
 
-  //....
+  //---
+
+  let b_count = 0;
+  for (let idir=0; idir<4; idir++)  {
+    b_count += wrapped_range_contain( Js[0][ g_a[1] ][ g_a[0] ], idx_s, idx_e );
+  }
+
+  if (b_count < 2) { return 0; }
+  if (b_count > 2) { return 1; }
+
+  let sa = v_sub( g_a, g_s );
+  let ae = v_sub( g_e, g_a );
+
+  let zsa = cross3( v_sub( g_a, g_s ), v_sub( ij, g_s ) );
+  let zae = cross3( v_sub( g_e, g_a ), v_sub( ij, g_a ) );
+
+  //????
 
 
 }
