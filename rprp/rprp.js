@@ -353,10 +353,15 @@ function _print_rprp(ctx) {
   _print1da(ctx.Bt,   "\n## Bt:");
   _print2da(ctx.Bij,  "\n## Bij:");
 
- let idir_descr = [ "+x", "-x", "+y", "-y" ];
+  let idir_descr = [ "+x", "-x", "+y", "-y" ];
   for (let idir=0; idir<4; idir++) {
     _print2da(ctx.Js[idir],   "\n## Js[" + idir_descr[idir] + "]:");
   }
+
+  for (let idir=0; idir<4; idir++) {
+    _print2da(ctx.Je[idir],   "\n## Je[" + idir_descr[idir] + "]:");
+  }
+
 }
 
 // helper functions
@@ -1101,7 +1106,9 @@ function RPRPInit(_rl_pgon, _debug) {
     "Bij": Bij,
 
     "Js" : Js,
-    "Je" : Je
+    "Je" : Je,
+
+    "DP" : {}
   };
 
 }
@@ -1661,16 +1668,6 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
 }
 
 
-//WIP!!
-function MIRP(rprp_info, g_s, g_e, g_a) {
-
-  let Gv = rprp_info.Gv;
-
-  let B = rprp_info.B;
-  let B2d = rprp_info.B_2d;
-
-}
-
 //------
 //------
 //------
@@ -1793,6 +1790,71 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
   return guillotine_list;
 }
 
+// UNTESTED
+function RPRP_valid_quarry(ctx, g_a, g_b) {
+  let Je = ctx.Je;
+
+  // 2---3
+  // |   |
+  // 1---0
+  //
+  let Rg = [
+    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
+    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
+  ];
+
+  let pq_idir = [
+    [ 0, 1, 0 ], [ 0, 1, 1 ],
+    [ 1, 2, 2 ], [ 1, 2, 3 ],
+    [ 2, 3, 0 ], [ 2, 3, 1 ],
+    [ 3, 0, 2 ], [ 3, 0, 3 ]
+  ];
+
+  for (let idx=0; idx<pq_idir.length; idx++) {
+    let p = pq_idir[idx][0];
+    let q = pq_idir[idx][1];
+    let idir = pq_idir[idx][2];
+
+    if (Je[idir][ Rg[p][1] ][ Rg[p][0] ] != Je[idir][ Rg[q][1] ][ Rg[q][0] ]) {
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
+//WIP!!
+function RPRP_MIRP(ctx, g_s, g_e, g_a) {
+  let B = ctx.B,
+      Bt = ctx.Bt,
+      Bij = ctx.Bij,
+      Bxy = ctx.Bxy,
+      G = ctx.G,
+      Gt = ctx.Gt,
+      Gij = ctx.Gij,
+      Gxy = ctx.Gxy,
+      X = ctx.X,
+      Y = ctx.Y,
+      Js = ctx.Js;
+
+  if (typeof g_s === "undefined") {
+    g_s = B[0];
+    g_e = B[0];
+    g_a = B[0];
+  }
+
+
+  for (let j=0; j<Y.length; j++) {
+    for (let i=0; i<X.length; i++) {
+
+    }
+  }
+
+
+}
+
 
 
 //------
@@ -1805,7 +1867,8 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
 
 
 function _main_example() {
-  let grid_info = RPRPInit(pgn_pinwheel1);
+  //let grid_info = RPRPInit(pgn_pinwheel1);
+  let grid_info = RPRPInit(pgn_bottom_guillotine);
   _print_rprp(grid_info);
 }
 

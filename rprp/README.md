@@ -710,42 +710,6 @@ that will partition the remaining region into 2-cut or 1-cut regions.
 My current tactic will be to try to first get a cleave profile that tells us which can be rejected outright.
 
 
-WIP:
-
-```
-  For v in $R _ {a,b}$ corners:
-    for vdir:
-      profile[idx] =
-        'x' if (v,vdir) oustide of rectilinear polygon
-        'x' if (v,vdir) not in region
-        'b' if base edges are orthogonal (no corner) (?? check for other intersecting border edge?)
-        ... check for parallel edge on other end of rectangle?
-```
-
-
-WIP:
-
-```
-function enumerateCleaveCut(rprp_ctx, gb_idx0, gb_idx1, a, b) {
-  determine region R
-  construct Rab
-
-  // look at Sx and Sy to determine if Rab wholly in region R
-  if (Rab not in R) { return []; }
-
-  is2cut = gb_idx0 and gb_idx1 are non colinear
-
-
-  if (is2cut) {
-    billet0 = 
-  }
-
-  else {  // 1-cut
-  }
-
-}
-```
-
 ###### 2025-11-09
 
 Up to some more verification, I think all the components are now in place to implement the core of the algorithm.
@@ -780,6 +744,34 @@ Here's a sketch:
 Line `(gp)` will be $O(n^2)$, line `(1c)` will be $O(n)$, line `(2c)` will be $O(1)$.
 `ctx.memoize` has $O(n^4)$ entries, so that provides an upper bound on run-time and space.
 
+
+
+###### 2025-11-11
+
+I've settled on a more standard way of representing data and refactored.
+
+There are now three main structures:
+
+* $B$ - the general border structures
+* $G$ - the grid points
+* $J _ s$ - the border jump structures
+
+The `[BG]t` hold a character 'type' code of what point it is, the `[BG]xy` map the index to
+world coordinates, the `[BG]ij` are 2d arrays that map the `i,j` grid coordinates to an index
+and the `[BG]` arrays map index to `i,j` grid points.
+
+For consistency it should probably be `[BG]ij` that map index to `i,j` with the `[BG]` as 2d
+arrays that map to index, but that's how it's set up for now.
+
+The $J _ s$ structure holds four 2d arrays, one for each `idir`, that map grid points to the
+first general border index point in the cardinal direction.
+
+All 2d arrays have column first so are accessed e.g. `B[j][i]`.
+
+Two auxiliary structures:
+
+* $C$ - the original (primitive) border points and types
+* $X$, $Y$ - arrays that that hold the real world $x$ and $y$ coordinates
 
 
 
