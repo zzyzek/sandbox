@@ -23,6 +23,7 @@
 //     'c' : convex
 //     'r' : reflex
 //     'b' : border
+//   Bxy : <array of border xy points>
 //   Bij : <2d array [j,i]>
 //     values map to B index, -1 if not a border point
 //
@@ -31,6 +32,7 @@
 //     'c' : original boundary point
 //     'b' : point on edge, on boundary but not in C
 //     'i' : interior point
+//   Gxy : <array of grid xy points>
 //   Gij : <2d array [j,i]>
 //      values map to G index, -1 if invalid grid point
 //
@@ -1757,7 +1759,7 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
     }
 
     let g_b = B[b_jmp];
-    let guillotine_list = [];
+    //let guillotine_list = [];
     let ldim = r_idx % 2;
 
     if (_debug) {
@@ -1865,8 +1867,10 @@ function _main_example() {
 }
 
 function _main_guillotine() {
-  let grid_info_0 = RPRPInit(pgn_bottom_guilltine);
-  RPRP_enumerate_quarry_side_region(grid_info_0, [2,4], [1,4], [1,4], [12,5]);
+  let grid_info_0 = RPRPInit(pgn_bottom_guillotine);
+  let cut = RPRP_enumerate_quarry_side_region(grid_info_0, [1,4], [2,4], [1,4], [12,5]);
+
+  console.log(cut);
 }
 
 function _main_checks() {
@@ -1949,6 +1953,59 @@ function _main_checks() {
   let cc_9 = RPRP_cleave_enumerate(grid_info_9, [6,1], [4,1], [6,1], [3,7], cp_9);
   let v_9 = _expect( cc_9, [], _sfmt("pgn_corner_9", 16, 'r') );
 
+  //----
+  // guillotine tests
+  //
+  let grid_info_10 = RPRPInit(pgn_bottom_guillotine);
+
+  let g_s = [-1,-1], g_e = [-1,-1], g_a = [-1,-1], g_b = [-1, -1];
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [5,5];
+
+  let cp_10 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  let cut_10 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
+  let v_10 = _expect( cut_10,
+    [ [ 6, 53 ], [ 10, 7 ], [ 52, 46 ], [46,11] ],
+    _sfmt("pgn_guillotine_10", 16, 'r') );
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [4,5];
+
+  let cp_11 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  let cut_11 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
+  let v_11 = _expect( cut_11,
+    [ [ 6, 53 ], [ 10, 7 ] ],
+    _sfmt("pgn_guillotine_11", 16, 'r') );
+
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [13,5];
+
+  let cp_12  = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  let cut_12 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
+  let v_12 = _expect( cut_12,
+    [ [ 6, 53 ], [ 10, 7 ], [17,12], [26,18], [31,27], [ 52, 46 ] ],
+    _sfmt("pgn_guillotine_12", 16, 'r') );
+
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [12,5];
+
+  let cp_13 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  let cut_13 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
+  let v_13 = _expect( cut_13,
+    [ [ 6, 53 ], [ 10, 7 ], [17,12], [26,18], [ 52, 46 ] ],
+    _sfmt("pgn_guillotine_13", 16, 'r') );
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [9,5];
+
+  let cp_14 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  let cut_14 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
+  let v_14 = _expect( cut_14,
+    [ [ 6, 53 ], [ 10, 7 ], [17,12], [ 52, 46 ] ],
+    _sfmt("pgn_guillotine_14", 16, 'r') );
 
 }
 
