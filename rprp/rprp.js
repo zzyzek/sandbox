@@ -13,37 +13,29 @@
 //   Ct : <array of types of boundary bounts>
 //     'c' : convex (relative inward)
 //     'r' : reflex (concave, relative inward)
+//
+//   X : <array of x coordinates of grid points (domain)>
+//   Y : <array of y coordinates of grid points (domain)>
+//     note that some combinations of points from X,Y will not be valid grid points
+//
+//   B : <array of [i,j] border points>
+//   Bt : <array of border type>
+//     'c' : convex
+//     'r' : reflex
+//     'b' : border
+//   Bij : <2d array [j,i]>
+//     values map to B index, -1 if not a border point
+//
 //   G : <array of grid points>
 //   Gt : <array of grid point types>
 //     'c' : original boundary point
 //     'b' : point on edge, on boundary but not in C
 //     'i' : interior point
-//   X : <array of x coordinates of grid points (domain)>
-//   Y : <array of y coordinates of grid points (domain)>
-//     note that some combinats of points from X,Y will not be a grid point
-//   dualG: <2D array structures of simple rectangles, including inadmissible rectangles>
-//     {
-//       ij : x,y index of point
-//       G_idx: index of point in G array
-//       id : rectangle identifier
-//         >= 0 and unique of rectangle is admissible
-//         -1 if rectangle is inadmissible
-//       R : four x,y points that define the rectangle if rectangle is admissible
-//     }
-// }
+//   Gij : <2d array [j,i]>
+//      values map to G index, -1 if invalid grid point
 //
-// Some auxiliary structures:
-//
-// {
-//   G_idx_bp : <map of xy actual point to grid index>
-//   Gv : <2d array of xy indices to structure>
-//    {
-//      G_idx : <grid index>
-//      xy    : <xy actual point>
-//      t     : <type of grid point>
-//    }
-//   Gv_bp : <map xy actual point to xy index point in Gv>
-//   G_dualG_map : <map of xy actual grid point to xy index point>
+//   Js : <3d array, [idir,j,i]>
+//     entries map to first general border index point, -1 if invalid
 // }
 //
 
@@ -344,139 +336,25 @@ function _print2da(A, hdr, ws, line_pfx) {
   console.log("");
 }
 
-function _print_grid_info(grid_info) {
-  console.log("# C (contour) (", grid_info.C.length, "):");
-  for (let i=0; i<grid_info.C.length; i++) {
-    console.log("C[", i, "]:", grid_info.C[i], "(t:", grid_info.Ct[i], ")");
-  }
-  console.log("");
+function _print_rprp(ctx) {
 
-  console.log("# G (grid) (", grid_info.G.length, "):");
-  for (let i=0; i<grid_info.G.length; i++) {
-    console.log("G[", i, "]:", grid_info.G[i], "(t:", grid_info.Gt[i], ")");
-  }
-  console.log("");
+  _print1da(ctx.Cxy, "\n## Cxy:");
+  _print1da(ctx.Ct, "\n## Ct:");
 
-  console.log("Gv.G_idx:");
-  for (let j=(grid_info.Gv.length-1); j>=0; j--) {
-    let _r = [];
-    for (let i=0; i<grid_info.Gv[j].length; i++) {
-      _r.push( _ifmt(grid_info.Gv[j][i].G_idx, 3) );
-      //_r.push( JSON.stringify( grid_info.Gv[j][i] ) );
-    }
-    console.log(_r.join(" "));
-  }
-  console.log("");
+  _print1da(ctx.Gxy,   "\n## Gxy:");
+  _print1da(ctx.G,  "\n## G:");
+  _print1da(ctx.Gt,    "\n## Gt:");
+  _print2da(ctx.Gij,   "\n## Gij:");
 
-  console.log("# X (", grid_info.X.length, "):");
-  let xs = [];
-  for (let i=0; i<grid_info.X.length; i++) {
-    xs.push( _ifmt(grid_info.X[i], 3) );
-  }
-  console.log(xs.join(" "));
-  console.log("");
+  _print1da(ctx.Bxy,  "\n## Bxy:");
+  _print1da(ctx.B,    "\n## B:");
+  _print1da(ctx.Bt,   "\n## Bt:");
+  _print2da(ctx.Bij,  "\n## Bij:");
 
-  console.log("# Y (", grid_info.Y.length, "):");
-  let ys = [];
-  for (let i=0; i<grid_info.Y.length; i++) {
-    ys.push( _ifmt(grid_info.Y[i], 3) );
-  }
-  console.log(ys.join(" "));
-  console.log("");
-
-  console.log("# dualG[iy][ix]:");
-  for (let j=0; j<grid_info.dualG.length; j++) {
-    for (let i=0; i<grid_info.dualG[j].length; i++) {
-      console.log("dualG[", j, "][", i, "]:", JSON.stringify(grid_info.dualG[j][i]));
-    }
-    console.log("");
-  }
-  console.log("");
-
-  _print_dual(grid_info.dualG);
-  console.log("");
-
-  for (let i=0; i<grid_info.B.length; i++) {
-    console.log("B[", i, "]:", JSON.stringify(grid_info.B[i]));
-  }
-  console.log("");
-
-  console.log("# B2d:");
-  for (let j=(grid_info.B_2d.length-1); j>=0; j--) {
-    let row_s = ["  "];
-    for (let i=0; i<grid_info.B_2d[j].length; i++) {
-      let v = _ifmt( grid_info.B_2d[j][i] );
-      let s = ( (v < 0) ? "  ." : _ifmt(v, 3) );
-      row_s.push( s );
-    }
-    console.log(row_s.join(" "));
-  }
-  console.log("");
-
-  let _sw = 3;
-  let _sp = _sfmt("", _sw);
-
-  let idir_descr = [ "+x", "-x", "+y", "-y" ];
-
-  console.log("# Js Je:");
-
+ let idir_descr = [ "+x", "-x", "+y", "-y" ];
   for (let idir=0; idir<4; idir++) {
-
-    console.log("## Js,Je[", idir_descr[idir], "]");
-
-    for (let j=(grid_info.Gv.length-1); j>=0; j--) {
-      let row_s = [];
-
-      for (let i=0; i<grid_info.Gv[j].length; i++) {
-        let js = grid_info.Js[idir][j][i];
-        let je = grid_info.Je[idir][j][i];
-
-        let a = ( (js < 0) ? _sp : _ifmt(js, _sw) );
-        let b = ( (je < 0) ? _sp : _ifmt(je, _sw) );
-
-        row_s.push( a + "," + b );
-      }
-
-      console.log( row_s.join("   ") );
-    }
-    console.log("");
-
+    _print2da(ctx.Js[idir],   "\n## Js[" + idir_descr[idir] + "]:");
   }
-  console.log("");
-
-
-  console.log("# Sx Sy:");
-  for (let j=(grid_info.Gv.length-1); j>=0; j--) {
-
-    let row_s = [ _ifmt(j, 2) + "," + _ifmt( grid_info.Ly[j], _sw ) + "|"  ];
-
-    for (let i=0; i<grid_info.Gv[j].length; i++) {
-      let sx = grid_info.Sx[j][i];
-      let sy = grid_info.Sy[j][i];
-
-      let a = ( (sx < 0) ? _sp : _ifmt(sx, _sw) );
-      let b = ( (sy < 0) ? _sp : _ifmt(sy, _sw) );
-
-      row_s.push( a + "," + b );
-    }
-
-    console.log( row_s.join("   ") );
-  }
-
-  let ftr = [ "   " + _sfmt("", _sw) + "|" ];
-  for (let i=0; i<grid_info.Lx.length; i++) {
-    ftr.push( "  " + _ifmt(grid_info.Lx[i], _sw) + _sp + " " );
-  }
-
-  let sep_s = [];
-  let sep_len = ftr.join(" ").length;
-  for (let i=0; i<sep_len; i++) {
-    sep_s.push("-");
-  }
-  console.log(sep_s.join(""));
-  console.log(ftr.join(" "));
-
-
 }
 
 // helper functions
@@ -1152,6 +1030,55 @@ function RPRPInit(_rl_pgon, _debug) {
   //DEBUG
 
 
+  // 0000 0001 0010 0011
+  //
+  //   x    ?    ?    =
+  //
+  // 0100 0101 0110 0111
+  //
+  //   ?    L    J   _|_
+  //
+  // 1000 1001 1010 1011
+  //
+  //   ?    r    7   T
+  //
+  // 1100 1101 1110 1111
+  //
+  //   |    F    -|  .
+  //
+
+  let gt_lu = [
+    'x', '?', '?', '=',
+    '?', 'L', 'J', 't',
+    '?', 'r', '7', 'T',
+    '|', 'F', 'd', 'i'
+
+  ];
+
+  let g_idx = 0;
+  for (let j=0; j<Y.length; j++) {
+    for (let i=0; i<X.length; i++) {
+      if ( (Js[0][j][i] < 0) &&
+           (Js[1][j][i] < 0) &&
+           (Js[2][j][i] < 0) &&
+           (Js[3][j][i] < 0) ) { continue; }
+
+      let t =
+        ((Js[0][j][i] < 0) ? 0 : 1) +
+        ((Js[1][j][i] < 0) ? 0 : 2) +
+        ((Js[2][j][i] < 0) ? 0 : 4) +
+        ((Js[3][j][i] < 0) ? 0 : 8);
+
+      G.push( [i,j] );
+      Gxy.push( [X[i], Y[j]] );
+      Gt.push( gt_lu[t] );
+      Gij[j][i] = g_idx;
+
+      g_idx++;
+
+    }
+  }
+
   // RPRP context
   //
   return {
@@ -1175,664 +1102,6 @@ function RPRPInit(_rl_pgon, _debug) {
     "Je" : Je
   };
 
-
-}
-
-// Init function to set up all data structures and return
-// the rprp data context.
-//
-// Return:
-//
-// {
-//  C  : [ ... ]  // Contour array (primitive boundary points)
-//  G  : []       // Grid array
-//  Gv : [][]     // Grid 2d structure (element keys: { G_idx })
-//  X  : []       // unique ordered X point array (asc)
-//  Y  : []       // unique ordered Y point array (asc)
-//  dualG : [][]  // information about each (dual) grid rectangle
-//  B  : []       // general boundary points array
-//  B_2d : [][]   // 2d array,
-//                //  -1 no general boundary point,
-//                //  general boundary index otherwise
-//  Js  : [][]    // border jump structure (start)
-//  Je  : [][]    // border jump structure (end)
-//  Sx  : [][]    // start x structure
-//  Sy  : [][]    // start y structure
-//  Lx  : [][]    // max contig length x structure
-//  Ly  : [][]    // max contig length y structure
-//
-// }
-//
-// All 2d arrays are [Y][X] indexed
-//
-//
-
-function rectilinearGridPoints(_rl_pgon) {
-  let _eps = (1/(1024));
-
-  let x_dup = [],
-      y_dup = [];
-
-  let pnt_map = {};
-  let corner_type = [];
-
-  if (_rl_pgon.length == 0) { return []; }
-
-  let rl_pgon = orderCounterclockwise( _rl_pgon );
-  let n = rl_pgon.length;
-
-  // sanity
-  //
-  for (let cur_idx=0; cur_idx<rl_pgon.length; cur_idx++) {
-    let prv_idx = (cur_idx+n-1)%n;
-    let dxy = v_sub( rl_pgon[cur_idx], rl_pgon[prv_idx] );
-    let adx = Math.abs(dxy[0]);
-    let ady = Math.abs(dxy[1]);
-
-    if (((adx == 0) && (ady == 0)) ||
-        ((adx != 0) && (ady != 0))) { return {}; }
-  }
-  //
-  // sanity
-
-
-  for (let i=0; i<rl_pgon.length; i++) {
-    x_dup.push(rl_pgon[i][0]);
-    y_dup.push(rl_pgon[i][1]);
-
-    let p_prv = [ rl_pgon[(i+n-1)%n][0], rl_pgon[(i+n-1)%n][1], 0 ];
-    let p_cur = [ rl_pgon[i][0], rl_pgon[i][1], 0 ];
-    let p_nxt = [ rl_pgon[(i+1)%n][0], rl_pgon[(i+1)%n][1], 0 ];
-
-    let v0 = v_sub( p_prv, p_cur );
-    let v1 = v_sub( p_nxt, p_cur );
-
-    let _c = cross3( v0, v1 );
-
-    let corner_code = 'X';
-
-    if      (_c[2] < _eps) { corner_code = 'r'; }
-    else if (_c[2] > _eps) { corner_code = 'c'; }
-
-    corner_type.push(corner_code);
-
-    let key = rl_pgon[i][0].toString() + "," + rl_pgon[i][1].toString();
-    pnt_map[key] = corner_code;
-  }
-
-  x_dup.sort( _icmp );
-  y_dup.sort( _icmp );
-
-  let Xinv = {},
-      Yinv = {};
-
-  let x_dedup = [ x_dup[0] ],
-      y_dedup = [ y_dup[0] ];
-
-  Xinv[ x_dup[0].toString() ] = 0;
-  Yinv[ x_dup[1].toString() ] = 0;
-
-  for (let i=1; i<x_dup.length; i++) {
-    if (x_dup[i] == x_dup[i-1]) { continue; }
-
-    Xinv[ x_dup[i].toString() ] = x_dedup.length;
-
-    x_dedup.push(x_dup[i]);
-
-  }
-
-  for (let i=1; i<y_dup.length; i++) {
-    if (y_dup[i] == y_dup[i-1]) { continue; }
-
-    Yinv[ y_dup[i].toString() ] = y_dedup.length;
-
-    y_dedup.push(y_dup[i]);
-  }
-
-  let grid_xy = [];
-  let type_xy = [];
-
-  let dualG = [];
-  let dualCell = [];
-  let g_id = 0;
-
-  // create:
-  //  G - grid flat array (grid_xy)
-  //  Gt - grid flat type (type_xy)
-  //  dualG - 2d dual of graph
-  //
-  for (let j=0; j<y_dedup.length; j++) {
-    dualG.push([]);
-    for (let i=0; i<x_dedup.length; i++) {
-      let g = [ x_dedup[i], y_dedup[j] ] ;
-
-      let _type = 'i';
-      let _key = g[0].toString() + "," + g[1].toString();
-
-      if      ( _key in pnt_map )                       { _type = 'c'; }
-      else if ( onBoundary(g, rl_pgon) )                { _type = 'b'; }
-      else if ( Math.abs(winding(g, rl_pgon)) < _eps )  { _type = 'x'; }
-
-      let g_idx = -1;
-      if (_type != 'x') {
-
-        g_idx = grid_xy.length;
-
-        grid_xy.push( g );
-        type_xy.push( _type );
-      }
-
-      dualG[j].push( {"ij":[i,j], "G_idx": g_idx, "id": -1 } );
-    }
-  }
-
-  let dualG_ele_idx = 0;
-
-  for (let j=0; j<dualG.length; j++) {
-    for (let i=0; i< dualG[j].length; i++) {
-      let dg = dualG[j][i];
-
-      let ij = dg.ij;
-
-      if ((ij[0] >= (x_dedup.length-1)) ||
-          (ij[1] >= (y_dedup.length-1))) { continue; }
-
-      let R = [
-        [ x_dedup[ij[0]],      y_dedup[ij[1]] ],
-        [ x_dedup[ij[0] + 1],  y_dedup[ij[1]] ],
-        [ x_dedup[ij[0] + 1],  y_dedup[ij[1] + 1] ],
-        [ x_dedup[ij[0]],      y_dedup[ij[1] + 1] ]
-      ];
-
-      let mp = [0,0];
-      for (let i=0; i<R.length; i++) {
-        mp[0] += R[i][0];
-        mp[1] += R[i][1];
-      }
-      mp[0] /= R.length;
-      mp[1] /= R.length;
-
-      if ( Math.abs(winding(mp, rl_pgon)) < _eps ) { continue; }
-
-      dualG[j][i]["R"] = R;
-      dualG[j][i]["id"] = dualG_ele_idx;
-      dualG[j][i]["midpoint"] = mp;
-
-      dualCell.push({"R": R, "midpoint": mp, "ij": [i,j]});
-
-      dualG_ele_idx++;
-    }
-  }
-
-  // grid point xy key to grid index map
-  //
-  let G = grid_xy;
-  let Gt = type_xy;
-  let G_idx_bp = {};
-  for (let i=0; i<G.length; i++) {
-    let g = G[i];
-    let key = g[0].toString() + "," + g[1].toString();
-    G_idx_bp[key] = i;
-  }
-  //grid_ctx["G_idx_bp"] = G_idx_bp;
-
-  // grid point (actual) xy key to daul entry
-  // dual entry is lower left hand corner point
-  //
-  let G_dualG_map = {};
-  for (let j=0; j<dualG.length; j++) {
-    for (let i=0; i<dualG[j].length; i++) {
-      let g_idx = dualG[j][i].G_idx;
-      if (g_idx < 0) { continue; }
-      let key = G[g_idx][0].toString() + "," + G[g_idx][1].toString();
-      G_dualG_map[key] = [i,j];
-    }
-  }
-  //grid_ctx["G_dualG_map"] = G_dualG_map;
-
-  // grid index xy to information about grid poitn:
-  // each entry contains:
-  // {
-  //   G_idx  : <grid index>
-  //   xy     : <xy point (actual)>
-  //   t      : <type [cbix], x being invalid>
-  // }
-  //
-  // Gv_bp maps grid xy point (actual) to grid index
-  //
-  let Gv = [];
-  let Gv_bp = {};
-  for (let j=0; j<dualG.length; j++) {
-    Gv.push([]);
-    for (let i=0; i<dualG[j].length; i++) {
-      let dg = dualG[j][i];
-
-      let _xy = [-1,-1];
-      let _type = "x";
-
-      if (dg.G_idx >= 0) {
-        _xy = G[dg.G_idx];
-        _type = Gt[dg.G_idx];
-      }
-
-      Gv[j].push( { "G_idx": dg.G_idx, "xy": _xy, "t": _type } );
-      Gv_bp[ _xy[0].toString() + "," + _xy[1].toString() ] = [i,j];
-
-    }
-  }
-
-  //---
-  //---
-  //---
-
-  let B = [];
-  let B_2d = [];
-
-  let _b_id = 0;
-
-  for (let j=0; j<dualG.length; j++) {
-    B_2d.push([]);
-    for (let i=0; i<dualG[j].length; i++) {
-      B_2d[j].push(-1);
-    }
-  }
-
-  for (let c_idx=0; c_idx < rl_pgon.length; c_idx++) {
-    let c_cur_xy = rl_pgon[c_idx];
-    let c_nxt_xy = rl_pgon[(c_idx+1) % rl_pgon.length];
-
-    let c_cur_key = _xyKey(c_cur_xy);
-    let c_nxt_key = _xyKey(c_nxt_xy);
-
-    let cur_ij = Gv_bp[ c_cur_key ];
-    let nxt_ij = Gv_bp[ c_nxt_key ];
-
-
-
-    let n_m_c_ij = v_sub(nxt_ij, cur_ij);
-    let d = abs_sum_v(n_m_c_ij );
-    let dxy = v_delta( n_m_c_ij );
-
-    let _ij = [ cur_ij[0], cur_ij[1] ];
-    for (i=0; i<d; i++) {
-
-      let g = Gv[ _ij[1] ][ _ij[0] ];
-
-      B.push( { "xy": [ g.xy[0], g.xy[1] ], "ij": [ _ij[0], _ij[1] ], "t": g.t, "b_id": _b_id } );
-      B_2d[ _ij[1] ][ _ij[0] ] = _b_id;
-
-      _b_id++;
-
-      _ij = v_add( _ij, dxy );
-    }
-
-  }
-
-  // Sx Sy Lx and Ly are auxiliary structures to do
-  // quick rectangular inclusion testing
-  //
-  // Sx holds running sum from left to right of longest strip
-  // Sy holds running sum from bottom to top of longest strip
-  // Lx holds running sum of total length from left to right
-  // Ly holds running sum of total length from bottom to top
-  //
-  // All are in grid coordinates
-  //
-  let Sx = [], Sy = [];
-  let Lx = [], Ly = [];
-
-  Lx.push(0);
-  for (let i=1; i<x_dedup.length; i++) {
-    Lx.push( Lx[i-1] + (x_dedup[i] - x_dedup[i-1]) );
-  }
-
-  Ly.push(0);
-  for (let i=1; i<y_dedup.length; i++) {
-    Ly.push( Ly[i-1] + (y_dedup[i] - y_dedup[i-1]) );
-  }
-
-  for (let j=0; j<Gv.length; j++) {
-    Sx.push([]);
-    Sy.push([]);
-    for (let i=0; i<Gv[j].length; i++) {
-      Sx[j].push(-1);
-      Sy[j].push(-1);
-    }
-  }
-
-  // rl_pgon ordered counterclockwise.
-  //
-  // We walk the border structure, initializing
-  // Sx and Sy anywhere the border starts from
-  // left to right or bottom to top.
-  // We keep a previous, current and next
-  // index into the border, and see if
-  // the current vertex is in line or
-  // at a corner.
-  // If it's inline, then
-  //
-
-  for (let idx=0; idx<B.length; idx++) {
-    let idx_prv = (idx + B.length - 1)%B.length;
-    let idx_nxt = (idx + B.length + 1)%B.length;
-
-    let prv_ij = B[idx_prv].ij;
-    let cur_ij = B[idx].ij;
-    let nxt_ij = B[idx_nxt].ij;
-
-    let prv_xy = B[idx_prv].xy;
-    let cur_xy = B[idx].xy;
-    let nxt_xy = B[idx_nxt].xy;
-
-
-    let _i = cur_ij[0];
-    let _j = cur_ij[1];
-
-    let _u = v_sub( cur_ij, prv_ij );
-    let _v = v_sub( nxt_ij, cur_ij );
-
-    let _dprv = v_delta(_u);
-    let _dnxt = v_delta(_v);
-
-    // if we're on the edge of the grid and on
-    // the border, initialize Sx or Sy to 0,
-    // as appropriate.
-    //
-    if (_i == 0) { Sx[ _j ][ _i ] = 0; }
-    if (_j == 0) { Sy[ _j ][ _i ] = 0; }
-
-    // prv-cur-nxt on horizontal line, init Sy to 0
-    // Mark Sx to -2 so that on second pass we
-    // fill in with neighbor value.
-    //
-    if ( (_dprv[0] > 0.5) && (_dnxt[0] > 0.5) ) {
-      Sy[ _j ][ _i ] = 0;
-      //Sx[ _j ][ _i ] = -2;
-    }
-
-    // prv-cur-nxt on vertical line, init Sx to 0.
-    // Mark Sy to -2 so that on second pass we
-    // fill in with neighbor value.
-    //
-    if ( (_dprv[1] < -0.5) && (_dnxt[1] < -0.5) ) {
-      Sx[ _j ][ _i ] = 0;
-      //Sy[ _j ][ _i ] = -2;
-    }
-
-    // cur vertex is at bend point
-    //
-    if ( Math.abs(dot_v( _dnxt, _dprv )) < _eps ) {
-
-      // prv *           cur * <- * prv
-      //     |               |
-      //     v               v
-      // cur * -> * nxt      * nxt
-      //
-      if ( ((_dprv[1] < -0.5) && (_dnxt[0] >  0.5))  ||
-           ((_dprv[0] < -0.5) && (_dnxt[1] < -0.5)) ) {
-        Sx[ _j ][ _i ] = 0;
-      }
-
-      // prv *                      * nxt
-      //     |                      ^
-      //     v                      |
-      // cur * -> * nxt    prv * -> * cur
-      //
-      if ( ((_dprv[1] < -0.5) && (_dnxt[0] > 0.5)) ||
-           ((_dprv[0] >  0.5) && (_dnxt[1] > 0.5)) ) {
-        Sy[ _j ][ _i ] = 0;
-      }
-
-    }
-
-  }
-
-  for (let j=0; j<Gv.length; j++) {
-    let x_start = 0;
-    for (let i=0; i<Gv[j].length; i++) {
-      if (Gv[j][i].G_idx < 0) {
-        x_start = -1;
-        continue;
-      }
-
-      if ((Gv[j][i].G_idx >= 0) &&
-          (x_start < 0)) {
-        x_start = Lx[i];
-      }
-
-      if (Sx[j][i] ==  0) { x_start = Lx[i]; }
-      Sx[j][i] = Lx[i] - x_start;
-    }
-  }
-
-  for (let i=0; i<Lx.length; i++) {
-    let y_start = 0;
-    for (let j=0; j<Ly.length; j++) {
-      if (Gv[j][i].G_idx < 0) {
-        y_start = -1;
-        continue;
-      }
-
-      if ((Gv[j][i].G_idx >= 0) &&
-          (y_start < 0)) {
-        y_start = Ly[j];
-      }
-
-      if (Sy[j][i] ==  0) { y_start = Ly[j]; }
-      Sy[j][i] = Ly[j] - y_start;
-    }
-  }
-
-
-  // Jx Jy structures
-  //
-
-  let Js = [ [], [], [], [] ],
-      Je = [ [], [], [], [] ];
-
-  for (let j=0; j<Gv.length; j++) {
-    for (let i=0; i<Gv[j].length; i++) {
-      for (let idir=0; idir<4; idir++) {
-
-        if (i==0) {
-          Js[idir].push([]);
-          Je[idir].push([]);
-        }
-
-        Js[idir][j].push(-1);
-        Je[idir][j].push(-1);
-      }
-    }
-  }
-
-
-  let idir_dxy = [ [1,0], [-1,0], [0,1], [0,-1] ];
-  let _ibound = [
-    [ [Gv[0].length-1, -1, -1], [0,Gv.length,1] ],
-    [ [0, Gv[0].length, 1], [0,Gv.length,1] ],
-    [ [0, Gv[0].length, 1], [Gv.length-1,-1,-1] ],
-    [ [0, Gv[0].length, 1], [0,Gv.length,1] ]
-  ];
-
-  //-----------------------------------------------------
-  // I - interior, a - afar, n - near
-  //
-  //
-  //        idir      +x        -x        +y        -y
-  // idx  prv nxt   I  a  n   I  a  n   I  a  n   I  a  n
-  //  0    0   0    .  .  .   .  .  .   0 -1 -1   1  B  B
-  //  1    1   1    .  .  .   .  .  .   1  B  B   0 -1 -1
-  //  2    2   2    1  B  B   0 -1 -1   .  .  .   .  .  .
-  //  3    3   3    0 -1 -1   1  B  B   .  .  .   .  .  .
-  //  4    0   2    1  B  B   0 -1 -1   0 -1 -1   1  B  B
-  //  5    0   3    .  .  .   .  .  B   .  .  .   .  .  B
-  //  6    1   2    .  .  B   .  .  .   .  .  B   .  .  .
-  //  7    1   3    0 -1 -1   1  B  B   1  B  B   0 -1 -1
-  //  8    2   0    .  .  B   .  .  .   .  .  .   .  .  B
-  //  9    2   1    1  B  B   0 -1 -1   1  B  B   0 -1 -1
-  //  10   3   0    0 -1 -1   1  B  B   0 -1 -1   1  B  B
-  //  11   3   1    .  .  .   .  .  B   .  .  B   .  .  .
-  //
-  // Note that the walk is in the opposite direction of the ray,
-  // so +x above is indicating the ray is shotting in the +x direction
-  // but we look at transitions walking from right to left.
-  //
-  // Whenever we change from exterior to interior, we need to update
-  // the near and far saved indices.
-  // There are only a few other cases where the near index needs
-  // to be updated.
-  //
-  //-----------------------------------------------------
-
-  let _idir2lu = [
-    [  0, -1,  4,  5 ],
-    [ -1,  1,  6,  7 ],
-    [  8,  9,  2, -1 ],
-    [ 10, 11, -1,  3 ]
-  ];
-
-  let _lu_Ian = [
-
-    // idir prv, idir nxt
-    // e.g. 21 y-up (+y) followed by x-left (-x)
-    // note that the cleave can't go back on itself, so e.g. 01 isn't represented
-    //
-    //  00     11     22     33     02     03     12     13     20     21     30     31
-    //
-    [ "...", "...", "1BB", "0--", "1BB", "...", "..B", "0--", "..B", "1BB", "0--", "..." ],
-    [ "...", "...", "0--", "1BB", "0--", "..B", "...", "1BB", "...", "0--", "1BB", "..B" ],
-
-    [ "0--", "1BB", "...", "...", "0--", "...", "..B", "1BB", "...", "1BB", "0--", "..B" ],
-    [ "1BB", "0--", "...", "...", "1BB", "..B", "...", "0--", "..B", "0--", "1BB", "..." ]
-
-  ];
-
-  for (let idir=0; idir<4; idir++) {
-
-    let _interior = 0;
-    let afar_B_idx = -1,
-        near_B_idx = -1;
-
-    if (idir < 2) {
-
-      for (let j = _ibound[idir][1][0]; j != _ibound[idir][1][1]; j += _ibound[idir][1][2]) {
-
-        afar_B_idx = -1;
-        near_B_idx = -1;
-
-        for (let i = _ibound[idir][0][0]; i != _ibound[idir][0][1]; i += _ibound[idir][0][2]) {
-
-          Je[idir][j][i] = afar_B_idx;
-          Js[idir][j][i] = near_B_idx;
-
-          if (B_2d[j][i] >= 0) {
-
-            let cur_B_idx = B_2d[j][i];
-            let cur_B_ij = B[cur_B_idx].ij;
-            let prv_B_ij = B[(cur_B_idx-1 + B.length) % B.length].ij;
-            let nxt_B_ij = B[(cur_B_idx+1) % B.length].ij;
-
-            let _dprv = v_sub( cur_B_ij, prv_B_ij );
-            let _dnxt = v_sub( nxt_B_ij, cur_B_ij );
-
-            let _idir_prv = dxy2idir( _dprv );
-            let _idir_nxt = dxy2idir( _dnxt );
-
-            let __c = cur_B_idx;
-            let __p = (cur_B_idx-1 + B.length) % B.length ;
-
-            let _code = _lu_Ian[idir][ _idir2lu[ _idir_prv ][ _idir_nxt ] ];
-
-            if      (_code[0] == '0') { _interior = 0; }
-            else if (_code[0] == '1') { _interior = 1; }
-
-            if      (_code[1] == 'B') { afar_B_idx = cur_B_idx; }
-            else if (_code[1] == '-') { afar_B_idx = -1; }
-
-            if      (_code[2] == 'B') { near_B_idx = cur_B_idx; }
-            else if (_code[2] == '-') { near_B_idx = -1; }
-
-          }
-
-        }
-
-      }
-
-    }
-
-    else {
-
-      for (let i = _ibound[idir][0][0]; i != _ibound[idir][0][1]; i += _ibound[idir][0][2]) {
-
-        afar_B_idx = -1;
-        near_B_idx = -1;
-
-        for (let j = _ibound[idir][1][0]; j != _ibound[idir][1][1]; j += _ibound[idir][1][2]) {
-
-          Je[idir][j][i] = afar_B_idx;
-          Js[idir][j][i] = near_B_idx;
-
-          if (B_2d[j][i] >= 0) {
-
-            let cur_B_idx = B_2d[j][i];
-            let cur_B_ij = B[cur_B_idx].ij;
-            let prv_B_ij = B[(cur_B_idx-1 + B.length) % B.length].ij;
-            let nxt_B_ij = B[(cur_B_idx+1) % B.length].ij;
-
-            let _dprv = v_sub( cur_B_ij, prv_B_ij );
-            let _dnxt = v_sub( nxt_B_ij, cur_B_ij );
-
-            let _idir_prv = dxy2idir( _dprv );
-            let _idir_nxt = dxy2idir( _dnxt );
-
-            let _code = _lu_Ian[idir][ _idir2lu[ _idir_prv ][ _idir_nxt ] ];
-
-            if      (_code[0] == '0') { _interior = 0; }
-            else if (_code[0] == '1') { _interior = 1; }
-
-            if      (_code[1] == 'B') { afar_B_idx = cur_B_idx; }
-            else if (_code[1] == '-') { afar_B_idx = -1; }
-
-            if      (_code[2] == 'B') { near_B_idx = cur_B_idx; }
-            else if (_code[2] == '-') { near_B_idx = -1; }
-
-          }
-
-        }
-
-      }
-
-    }
-
-
-  }
-
-
-  return {
-    "C": rl_pgon,
-    "Ct": corner_type,
-    "G": grid_xy, "Gt": type_xy,
-
-    "X": x_dedup, "Y": y_dedup,
-    "Xinv": Xinv, "Yinv": Yinv,
-
-    "dualG" : dualG,
-    "dualCell": dualCell,
-    "G_idx_bp": G_idx_bp,
-    "G_dualG_map": G_dualG_map,
-    "Gv": Gv,
-    "Gv_bp": Gv_bp,
-    "B": B,
-    "B_2d": B_2d,
-
-    "Sx" : Sx,
-    "Sy" : Sy,
-    "Lx" : Lx,
-    "Ly" : Ly,
-
-    "Js": Js,
-    "Je": Je
-  };
 }
 
 // from grid point g, follow a line out in idir direction until
@@ -1885,223 +1154,28 @@ function wrapped_range_contain( idx, idx_s, idx_e ) {
   return 1;
 }
 
-//------
+function _ivec_incr(v,b) {
+  b = ((typeof b === "undefined") ? 2 : b);
+  let carry = 1;
 
-// lightly tested
-// ... I'm still al ittle iffy but works for some simple test cases
-//
-// The idea is to extend rays out from the grid point to where they
-// meet the border using the border jump structure (Js).
-// If any of the J[idir] indicies are -1, then the grid point is either
-// completely oustide the rectangle or on the border, so return -1.
-//
-// If the ray in the x line or the ray in the y line both have border
-// indices that are within the region, the point must be within the
-// region.
-// The same logic applies if the x line or y line are outside of
-// the region.
-//
-// The final case is when the border indices on both the x and y lines have
-// one endpoint inside the region and one endpoint outside the region.
-// From the grid point, see which direction (idir) the grid point is from
-// the vertical line and horizontal line implied by the adit point.
-// This determines if the grid point is left or right of vertical cut
-// and up or down from the horizontal cut.
-//
-// If the border index in the horizontal and vertical direction
-// are both within the region, the point is inside (return 1).
-// Otherwise, the point is outside (return 0).
-//
-// For example, if the grid point is to the left of the adit x point
-// and up from the adit y point, and the border index from the ray
-// traced out to the left from the grid point is within the region
-// and the border index from the ray traced out up from the grid
-// point is in the region, the grid point is in the 2-cut region.
-// If either of the border indicies traced out from the grid
-// point in the direction away from the cut line are *not* in
-// the region, the grid point is not within the region.
-//
-// All this might be overkill.
-// I'm trying to get an O(1) operation.
-// As this only uses some simple vector subtraction, border
-// inclusion (bidx_in_R, which does simple range tests) tests and
-// uses the precomputed J (border jump structure), we don't need to
-// walk individual grid points until we hit a boundary, avoiding
-// the potential O(n) blowup.
-//
-// For 1cut, grid_adit should never be used as the grid_pnt rays
-// will have two border indices completely outside or inside
-// in either the vertical or horizontal orientations.
-//
-// Input:
-//
-//   rprp_info    - context
-//   grid_pnt     - [ix,iy] grid point
-//   border_idx0  - index of first border
-//   border_idx1  - index of second border (ccw from idx0 to idx1)
-//   grid_adit    - intersection of 2-cut from border indicies.
-//                  in the case of a 1-cut, grid_adit is unused, so
-//                  can either be left undefined or be one of the two endpoints of
-//                  the 1-cut line.
-//
-// Return:
-//
-//   1 - if grid_pnt within the region defined by the 2-cut or 1-cut border_idx0, border_idx1 and adit grid point
-//   0 - otherwise (outside of region, on border outside of rectangle).
-//
-function ijpoint_inside_cut_region(rprp_info, grid_pnt, border_idx0, border_idx1, grid_adit) {
-
-  let J = rprp_info.Js;
-
-  let jval = [
-    J[0][ grid_pnt[1] ][ grid_pnt[0] ],
-    J[1][ grid_pnt[1] ][ grid_pnt[0] ],
-    J[2][ grid_pnt[1] ][ grid_pnt[0] ],
-    J[3][ grid_pnt[1] ][ grid_pnt[0] ]
-  ];
-
-  let jval_in = [
-    bidx_in_R( jval[0], border_idx0, border_idx1 ),
-    bidx_in_R( jval[1], border_idx0, border_idx1 ),
-    bidx_in_R( jval[2], border_idx0, border_idx1 ),
-    bidx_in_R( jval[3], border_idx0, border_idx1 )
-  ];
-
-  //console.log("\n## p in R 2cut: grid_pnt:", grid_pnt, "border:[", border_idx0, border_idx1, "], adit:", grid_adit);
-  //console.log("g:", grid_pnt, "jval:", jval, "...", jval_in);
-
-  // grid point is completely outside of polygon or is on border
-  //
-  if ((jval[0] < 0) || (jval[1] < 0) ||
-      (jval[2] < 0) || (jval[3] < 0)) {
-    return 0;
+  for (let i=0; (i<v.length) && (carry > 0); i++) {
+    carry = 0;
+    v[i]++;
+    if (v[i] >= b) {
+      v[i] = 0;
+      carry = 1;
+    }
   }
 
-  // x line or y line lies completely in region, so point is inside region
-  //
-  if ( (jval_in[0] && jval_in[1]) ||
-       (jval_in[2] && jval_in[3]) ) {
-    return 1;
-  }
-
-  // x line or y line lies completely outside region, so point is outside region
-  //
-  if ( ((!jval_in[0]) && (!jval_in[1])) ||
-       ((!jval_in[2]) && (!jval_in[3])) ) {
-    return 0;
-  }
-
-  /*
-  let g_B = [
-    rprp_info.B[ jval[0] ].ij,
-    rprp_info.B[ jval[1] ].ij,
-    rprp_info.B[ jval[2] ].ij,
-    rprp_info.B[ jval[3] ].ij,
-  ];
-  */
-
-  // which side of the cut line is the point on
-  //
-
-  let pnt_idir_cut = [
-    ((grid_pnt[0] > grid_adit[0]) ? 0 : 1),
-    ((grid_pnt[1] > grid_adit[1]) ? 2 : 3)
-  ];
-
-  // If border point in the direction away from the cut line
-  // are both inside region, point is inside region.
-  //
-  if (jval_in[ pnt_idir_cut[0] ] && jval_in[ pnt_idir_cut[1] ]) {
-    return 1;
-  }
-
-  return 0;
+  return carry;
 }
 
-function point_on_border(rprp_info, grid_pnt) {
-
-}
-
-//------
-
-// rprp_info
-// g grid origin point
-// dg axis aligned unit vector direction
-//
-// returns if the cleave cut starts inside the rectangle
-//
-function cleaveGridInside(rprp_info, g, dg) {
-  let Gv = rprp_info.Gv;
-  let Gv_bp = rprp_info.Gv_bp;
-  let Sx = rprp_info.Sx;
-  let Sy = rprp_info.Sy;
-
-  let Js = rprp_info.Js;
-  let Je = rprp_info.Je;
-
-  let Gsize = [ Gv[0].length, Gv.length ];
-
-  let g_nei = [ g[0] + dg[0], g[1] + dg[1] ];
-
-  let idir = _to_idir(dg);
-
-  if ( (g_nei[0] < 0) ||
-       (g_nei[1] < 0) ||
-       (g_nei[0] >= Gsize[0]) ||
-       (g_nei[1] >= Gsize[1]) ) {
-    return false;
+function _ivec0(v) {
+  for (let i=0; i<v.length; i++) {
+    if (v[i] != 0) { return false; }
   }
-
-  let uxy = [
-    Sx[ g[1] ][ g[0] ],
-    Sy[ g[1] ][ g[0] ]
-  ];
-
-  let vxy = [
-    Sx[ g_nei[1] ][ g_nei[0] ],
-    Sy[ g_nei[1] ][ g_nei[0] ]
-  ];
-
-  if ((dg[0] == 1) && (dg[1] == 0)) {
-    if ((uxy[0] < 0) || (vxy[0] < 0)) { return false; }
-    if (Sx[ g[1] ][ g[0] ] > Sx[ g_nei[1] ][ g_nei[0] ]) { return false; }
-  }
-
-  else if ((dg[0] == -1) && (dg[1] == 0)) {
-    if ((uxy[0] < 0) || (vxy[0] < 0)) { return false; }
-    if (Sx[ g_nei[1] ][ g_nei[0] ] > Sx[ g[1] ][ g[0] ]) { return false; }
-  }
-
-  else if ((dg[0] == 0) && (dg[1] == 1)) {
-    if ((uxy[1] < 0) || (vxy[1] < 0)) { return false; }
-    if (Sy[ g[1] ][ g[0] ] > Sy[ g_nei[1] ][ g_nei[0] ]) { return false; }
-  }
-
-  else if ((dg[0] == 0) && (dg[1] == -1)) {
-    if ((uxy[1] < 0) || (vxy[1] < 0)) { return false; }
-    if (Sy[ g_nei[1] ][ g_nei[0] ] > Sy[ g[1] ][ g[0] ]) { return false; }
-  }
-
   return true;
 }
-
-function cleaveGridOnBorder(rprp_info, g, dg) {
-  let B2d = rprp_info.B_2d;
-
-  if (!cleaveGridInside(rprp_info, g, dg)) { return false; }
-  let g_nei = [ g[0] + dg[0], g[1] + dg[1] ];
-
-  let _bb = B2d[g[1]][g[0]]
-  let _be = B2d[g_nei[1]][g_nei[0]]
-
-  if ((_bb < 0) || (_be < 0) ||
-      (Math.abs(_be-_bb) != 1)) {
-    return false;
-  }
-
-  return true;
-}
-
 
 // Test for cleave on border.
 // That is, cleave is inline with a boundary edge.
@@ -2137,27 +1211,40 @@ function RPRP_cleave_border(ctx, g, idir) {
   return 1;
 }
 
-// Point version of cleaveProfile where start, end, adit and bower
-// points are specified in xy point coordinates instead of grid coordinates.
+// Input:
 //
-function cleaveProfilePoint(rprp_info, p_s, p_e, a, b) {
-
-  let Gv = rprp_info.Gv;
-  let Gv_bp = rprp_info.Gv_bp;
-  let B2d = rprp_info.B_2d;
-
-  let Sx = rprp_info.Sx;
-  let Sy = rprp_info.Sy;
-
-  let g_s = Gv_bp[ _ijkey(p_s) ];
-  let g_e = Gv_bp[ _ijkey(p_e) ];
-
-  let g_a = Gv_bp[ _ijkey(a) ];
-  let g_b = Gv_bp[ _ijkey(b) ];
-
-  return cleaveProfile(rprp_info, g_s, g_e, g_a, g_b);
-}
-
+// ctx  - rprp context
+// g_s  - border grid point (ij) start of region (ccw)
+// g_e  - border grid point (ij) end of region
+// g_a  - origin of quarry rectangle (adit)
+// g_b  - end of quarry rectangle (bower)
+//
+//
+// Output:
+//
+// [ q0, q1, ... , q11 ]
+//
+// 12 element array of indicating what type of ray it is:
+//
+// 'x' - out of bounds of the rectilinear polygon
+// 'X' - out of bounds of the region
+// 'c' - corner border point
+// 'b' - flat edge border
+// '.' - open (cleave cut potenteially allowed)
+//
+// The cleave profile is meant to be used in the cleave enumeration step.
+//
+// Create a cleave cut profile, an array of character codes indicating
+// whether a cleave cut off of the quarry rectangle endpoints is possible
+// and, if not, what type of ray it is.
+//
+// Note that if it's a 2-cut, g_a is the intersection point of the lines
+// eminating from g_s and g_e.
+// If it's a 1-cut, then g_a should be g_s or g_e.
+//
+// No checks are done to see if the rectangle is valid, whether g_a
+// is a valid endpoint, etc.
+//
 function RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b) {
   let X = ctx.X,
       Y = ctx.Y;
@@ -2224,134 +1311,6 @@ function RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b) {
   }
 
   return cleave_profile;
-}
-
-// Input:
-//
-// rprp_info    - rprp context
-// g_s          - border grid point (ij) start of region (ccw)
-// g_e          - border grid point (ij) end of region
-// g_a          - origin of quarry rectangle (adit)
-// g_b          - end of quarry rectangle (bower)
-//
-//
-// Output:
-//
-// [ q0, q1, ... , q11 ]
-//
-// 12 element array of indicating what type of ray it is:
-//
-// 'x' - out of bounds of the rectilinear polygon
-// 'X' - out of bounds of the region
-// 'c' - corner border point
-// 'b' - flat edge border
-// '.' - open (cleave cut potenteially allowed)
-//
-// The cleave profile is meant to be used in the cleave enumeration step.
-//
-// Create a cleave cut profile, an array of character codes indicating
-// whether a cleave cut off of the quarry rectangle endpoints is possible
-// and, if not, what type of ray it is.
-//
-// Note that if it's a 2-cut, g_a is the intersection point of the lines
-// eminating from g_s and g_e.
-// If it's a 1-cut, then g_a should be g_s or g_e.
-//
-// No checks are done to see if the rectangle is valid, whether g_a
-// is a valid endpoint, etc.
-//
-function cleaveProfile(rprp_info, g_s, g_e, g_a, g_b) {
-
-  let Gv = rprp_info.Gv;
-  let Gv_bp = rprp_info.Gv_bp;
-  let B2d = rprp_info.B_2d;
-
-  // boundary start and end index
-  //
-  let b_idx_s = B2d[ g_s[1] ][ g_s[0] ];
-  let b_idx_e = B2d[ g_e[1] ][ g_e[0] ];
-
-  if ((b_idx_s < 0) || (b_idx_e < 0)) { return []; }
-
-  let cleave_a = [];
-
-  // grid rectangle corners
-  //
-  let Rg = [
-    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
-    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
-    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
-    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
-  ];
-
-  let cleave_idir = [ 0, 3,  3, 1,  1, 2,  2, 0 ];
-  let cleave_dxy = [
-    [  1,  0 ], [  0, -1 ],
-    [  0, -1 ], [ -1,  0 ],
-    [ -1,  0 ], [  0,  1 ],
-    [  0,  1 ], [  1,  0 ]
-  ];
-
-  let Gsize = [ Gv[0].length, Gv.length ];
-
-  let cleave_profile = [ '~', '~', '~', '~', '~', '~', '~', '~' ];
-
-  for (let i=0; i<cleave_dxy.length; i++) {
-    let g = Rg[ Math.floor(i/2) ];
-
-    let _b_c_idx = ray_boundary_intersection(rprp_info, g, cleave_idir[i]);
-
-    let b_c_idx = rprp_info.Js[ cleave_idir[i] ][ g[1] ][ g[0] ];
-
-    if (b_c_idx < 0) {
-      cleave_profile[i] = 'x';
-      continue;
-    }
-
-    if (!boundary_index_on_fence( b_c_idx, b_idx_s, b_idx_e )) {
-      cleave_profile[i] = 'X';
-      continue;
-    }
-
-    if (cleaveGridOnBorder(rprp_info, g, cleave_dxy[i])) {
-      cleave_profile[i] = 'b';
-      continue;
-    }
-
-    if ((b_c_idx == b_idx_s) || (b_c_idx == b_idx_e)) {
-      cleave_profile[i] = 'c';
-      continue;
-    }
-
-    cleave_profile[i] = '.';
-    continue;
-
-  }
-
-  return cleave_profile;
-}
-
-function _ivec_incr(v,b) {
-  b = ((typeof b === "undefined") ? 2 : b);
-  let carry = 1;
-
-  for (let i=0; (i<v.length) && (carry > 0); i++) {
-    carry = 0;
-    v[i]++;
-    if (v[i] >= b) {
-      v[i] = 0;
-      carry = 1;
-    }
-  }
-
-  return carry;
-}
-
-function _ivec0(v) {
-  for (let i=0; i<v.length; i++) {
-    if (v[i] != 0) { return false; }
-  }
-  return true;
 }
 
 // Cleave cut index around the quarry rectangle:
@@ -2572,222 +1531,6 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
 }
 
 
-
-// Cleave cut index around the quarry rectangle:
-//
-//   5     6
-// 4 ._____. 7
-//   |     |
-// 3 ._____. 0
-//   2     1
-//
-//
-
-// Input:
-//
-// rprp_info      - rprp context
-// grid_quarry    - grid points of quarry rectangle, in standard order (idx 0 lower right, idx 3 upper right)
-// cleave_choice  - character indicator for each cleave choice (aka cleave profile)
-//                `-` open
-//                `*` cleave cut
-//                `x` invalid direction (out of bounds)
-//                `X` invalid direction (out of bounds in other region)
-// cleave_border_type - character indicator for each cleave choice what type of general grid point it
-//                      ends on for the rectilinear polygon border
-//                      `b` border (flat)
-//                      `*` corner (convex or concave)
-//
-// Output:
-//
-//  true  - cleave_choice is valid
-//  false - otherwise
-//
-// This checks to see if the cleave_choice is valid given a quarry rectangle and current state.
-// The main checks are:
-//
-// Bridge   - make sure a cleave cut isn't in between two lines (it can move otherwise)
-// Float    - make sure each cleave cut, when extended, ends on a convex border corner
-// Parallel - make sure no two cleave cuts are parallel (quarry edge can move otherwise)
-//
-// Parallel tests are easy as it's wholly embedded in the cleave_choice.
-// Bridge tests are easy enough because we can see if the end of the cleave cut
-//   ends on a flat border and if there's a cleave cut perpendicular to where the cleave cut starts.
-// Float tests are harder as we need to look in the other direction, both from potential cleave
-//   cuts shooting off of the quarry rectangle in the other direction or look to see if the border
-//   intersects the quarry rectangle on the side of the cleave cut. See below for a discussion of
-//   the test.
-//
-function valid_cleave_choice(rprp_info, grid_quarry, cleave_choice, cleave_border_type, _debug) {
-  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
-
-  let Js = rprp_info.Js;
-  let R = grid_quarry;
-
-  let B = rprp_info.B;
-  let B2d = rprp_info.B_2d;
-
-  let quarry_point_type = ['~', '~', '~', '~'];
-
-  for (let i=0; i<4; i++) {
-    let b_id = B2d[ R[i][1] ][ R[i][0] ];
-
-    if (b_id < 0) {
-      quarry_point_type[i] = '.';
-      continue;
-    }
-
-    quarry_point_type[i] = B[b_id].t;
-  }
-
-  if (_debug) { console.log("#vcc.cp0"); }
-
-  let redux = [];
-  for (let i=0; i<cleave_choice.length; i++) {
-    let _code = '^';
-    if      (cleave_choice[i] == '-') { _code = '-'; }
-    else if (cleave_choice[i] == '*') { _code = '*'; }
-    else if (cleave_choice[i] == 'c') { _code = '*'; }
-    else if (cleave_choice[i] == 'b') { _code = '*'; }
-    else if (cleave_choice[i] == 'x') { _code = 'x'; }
-    else if (cleave_choice[i] == 'X') { _code = 'x'; }
-    //else { console.log("!!!!", i, cleave_choice[i]); }
-
-    redux.push( _code );
-  }
-
-  // quarry rectangle edge is 'undocked', not
-  // buffetted by a border perimeter
-  //
-  let _undock = [ 1, 1, 1, 1 ];
-
-  if ( (Js[0][ R[1][1] ][ R[1][0] ] != Js[0][ R[0][1] ][ R[0][0] ]) ||
-       (Js[1][ R[1][1] ][ R[1][0] ] != Js[1][ R[0][1] ][ R[0][0] ]) ) {
-    _undock[0] = 0;
-  }
-
-  if ( (Js[2][ R[1][1] ][ R[1][0] ] != Js[2][ R[2][1] ][ R[2][0] ]) ||
-       (Js[3][ R[1][1] ][ R[1][0] ] != Js[3][ R[2][1] ][ R[2][0] ]) ) {
-    _undock[1] = 0;
-  }
-
-  if ( (Js[0][ R[2][1] ][ R[2][0] ] != Js[0][ R[3][1] ][ R[3][0] ]) ||
-       (Js[1][ R[2][1] ][ R[2][0] ] != Js[1][ R[3][1] ][ R[3][0] ]) ) {
-    _undock[2] = 0;
-  }
-
-  if ( (Js[2][ R[0][1] ][ R[0][0] ] != Js[2][ R[3][1] ][ R[3][0] ]) ||
-       (Js[3][ R[0][1] ][ R[0][0] ] != Js[3][ R[3][1] ][ R[3][0] ]) ) {
-    _undock[3] = 0;
-  }
-
-
-
-  if (_debug) { console.log("#vcc.cp1:", cleave_choice.join(""), redux.join(""), JSON.stringify(_undock) ); }
-
-  // each corner needs at least one cleave cut
-  //
-  if ((redux[0] == '-') && (redux[1] == '-')) { return false; }
-  if ((redux[2] == '-') && (redux[3] == '-')) { return false; }
-  if ((redux[4] == '-') && (redux[5] == '-')) { return false; }
-  if ((redux[6] == '-') && (redux[7] == '-')) { return false; }
-
-  if (_debug) { console.log("#vcc.cp2"); }
-
-  // parallel cleave cuts means middle billet is moveable
-  //
-  if ((_undock[3] == 1) && (redux[0] == '*') && (redux[7] == '*')) { return false; }
-  if ((_undock[0] == 1) && (redux[1] == '*') && (redux[2] == '*')) { return false; }
-  if ((_undock[1] == 1) && (redux[3] == '*') && (redux[4] == '*')) { return false; }
-  if ((_undock[2] == 1) && (redux[5] == '*') && (redux[6] == '*')) { return false; }
-
-
-  if (_debug) { console.log("#vcc.cp3"); }
-
-  // bridge tests
-  // cleave line bridges two borders, so is moveable, invalidating choice
-  //
-  // if there's a cleave line that ends on a flat boundary edge
-  // and there's a cleave line going orthogonal, it's a bridge (-> invalid)
-  //
-  if ((redux[0] == '*') && (redux[1] == '*') && (cleave_border_type[0] == 'b')) { return false; }
-  if ((redux[1] == '*') && (redux[0] == '*') && (cleave_border_type[1] == 'b')) { return false; }
-
-  if ((redux[2] == '*') && (redux[3] == '*') && (cleave_border_type[2] == 'b')) { return false; }
-  if ((redux[3] == '*') && (redux[2] == '*') && (cleave_border_type[3] == 'b')) { return false; }
-
-  if ((redux[4] == '*') && (redux[5] == '*') && (cleave_border_type[4] == 'b')) { return false; }
-  if ((redux[5] == '*') && (redux[4] == '*') && (cleave_border_type[5] == 'b')) { return false; }
-
-  if ((redux[6] == '*') && (redux[7] == '*') && (cleave_border_type[6] == 'b')) { return false; }
-  if ((redux[7] == '*') && (redux[6] == '*') && (cleave_border_type[7] == 'b')) { return false; }
-
-  if (_debug) { console.log("#vcc.cp4"); }
-
-
-  // float tests
-  // at least one end must be on a corner
-  //
-
-  // we'll use cleave 5 (upper left corner, pointing upwards) as an example:
-  //
-  // IF   cleave_5 is present and ends on a border (upwards)
-  // AND  opposite of cleave_5 (cleave_2) exists and ends on a border or
-  //        cleave_2 doesn't exist at all
-  // AND  origin point of cleave_5 (quarry_point_2) has the same endpoint as
-  //        origin of clave_2 (quarry_point_1)
-  // AND  cleave_5 doesn't start on an original corner border
-  // THEN cleave cut is floating
-  //
-  // It's verbose but the idea is that if cleave 5 ends on a border
-  // then either there must be a corner butting the quarry rectangle
-  // (determined from the endpoint tests) or the opposive cleave 2 has
-  // to end on a corner.
-  //
-
-
-  if (_debug) { console.log("#vcc.cp5"); }
-
-  let cleave_idir = [ 0, 3,  3, 1,  1, 2,  2, 0 ];
-  let oppo_cleave = [ 3, 6, 5, 0,
-                      7, 2, 1, 4 ];
-  let oppo_idir = [ 1,0, 3,2 ];
-
-  for (cleave_idx = 0; cleave_idx < 8; cleave_idx++) {
-    let r_idx = Math.floor(cleave_idx/2);
-    let rev_cleave_idx = oppo_cleave[cleave_idx];
-    let rev_r_idx = Math.floor(rev_cleave_idx/2);
-    let idir = cleave_idir[cleave_idx];
-    let rdir = oppo_idir[idir];
-
-    if ((quarry_point_type[r_idx] != 'c') &&
-        (redux[cleave_idx] == '*') && (cleave_border_type[cleave_idx] == 'b') &&
-        (((redux[rev_cleave_idx] == '*') && (cleave_border_type[rev_cleave_idx] == 'b')) ||
-          (redux[rev_cleave_idx] == '-')) &&
-        (Js[idir][ R[r_idx][1] ][ R[r_idx][0] ] == Js[idir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ]) &&
-        (Js[rdir][ R[r_idx][1] ][ R[r_idx][0] ] == Js[rdir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ])) {
-
-      if (_debug) {
-        console.log("#vcc.cp5.5: cleave_idx:", cleave_idx, "rect_idx:", r_idx);
-        console.log("qpt[", r_idx, "]:", quarry_point_type[r_idx],
-          "redux[", cleave_idx, "]:", redux[cleave_idx],
-          "cbt[", cleave_idx, "]:", cleave_border_type[cleave_idx],
-          "redux[", rev_cleave_idx, "]:", redux[rev_cleave_idx],
-          "cbt[", rev_cleave_idx, "]:", cleave_border_type[rev_cleave_idx],
-          "js[", idir, "][", R[r_idx][1], "][", R[r_idx][0], "]:", Js[idir][ R[r_idx][1] ][ R[r_idx][0] ],
-          "js[", idir, "][", R[rev_r_idx][1], "][", R[rev_r_idx][0], "]:", Js[idir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ]);
-
-      }
-
-      return false;
-    }
-
-  }
-
-  if (_debug) { console.log("#vcc.cp6"); }
-
-  return true;
-}
-
 // go through all possibilities of cleave cuts from quarry rectangle (end points).
 // Maximum is 2^8 = 256 but this is reduced by only considering cleave cuts for
 // '.' entries of the cleave profile.
@@ -2915,170 +1658,6 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
   return cleave_cuts;
 }
 
-
-
-// go through all possibilities of cleave cuts from quarry rectangle (end points).
-// Maximum is 2^8 = 256 but this is reduced by only considering cleave cuts for
-// '.' entries of the cleave profile.
-//
-// This function returns a list of cleave cuts that pass tests,
-// where a cleave cut realization can be removed from consideration if it has:
-//
-// * bridges:   cleave cut has endpoints on flat borders, so is moveable
-// * floats:    maximum edge of cleave cut does not end on a primitive convex border point
-// * parallel:  there is another cleave cut parallel to it
-//
-// cleave cuts will also not be chosen the go outside of the region, as defined
-// by the counterclockwise trace of the general border grid point g_s to the general
-// border grid point g_e.
-//
-// This function takes as input grid points, as opposed to `enumerateCleaveCutPoint`, which
-// takes in general points.
-//
-function enumerateCleaveCut(rprp_info, g_s, g_e, g_a, g_b, cleave_profile, _debug) {
-
-  //let _debug = false;
-  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
-
-  let Gv = rprp_info.Gv;
-  let Gv_bp = rprp_info.Gv_bp;
-
-  let B = rprp_info.B;
-  let B2d = rprp_info.B_2d;
-
-  let Sx = rprp_info.Sx;
-  let Sy = rprp_info.Sy;
-
-  let Js = rprp_info.Js;
-
-  // boundary start and end index
-  //
-  let b_idx_s = B2d[ g_s[1] ][ g_s[0] ];
-  let b_idx_e = B2d[ g_e[1] ][ g_e[0] ];
-
-  if (_debug) {
-    console.log(">>>", b_idx_s, b_idx_e, g_s, g_e, g_a, g_b);
-  }
-
-  if ((b_idx_s < 0) || (b_idx_e < 0)) { return []; }
-
-  let cleave_a = [];
-
-  // grid rectangle corners
-  //
-  let Rg = [
-    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
-    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
-    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
-    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
-  ];
-
-  let cleave_idir = [ 0, 3,  3, 1,  1, 2,  2, 0 ];
-  let cleave_dxy = [
-    [  1,  0 ], [  0, -1 ],
-    [  0, -1 ], [ -1,  0 ],
-    [ -1,  0 ], [  0,  1 ],
-    [  0,  1 ], [  1,  0 ]
-  ];
-
-  let Gsize = [ Gv[0].length, Gv.length ];
-
-  let bvec = [],
-      bvec_idx = [];
-  for (let i=0; i<cleave_profile.length; i++) {
-    if (cleave_profile[i] == '.') {
-      bvec.push(0);
-      bvec_idx.push(i);
-    }
-  }
-
-  if (_debug) {
-    console.log("::>>", cleave_profile.join(""));
-  }
-
-  let cleave_border_type = [ '~', '~', '~', '~', '~', '~', '~', '~' ];
-
-  for (let i=0; i<cleave_profile.length; i++) {
-
-    if ((cleave_profile[i] == 'x') || (cleave_profile[i] == 'X')) {
-      cleave_border_type[i] = 'x';
-      continue;
-    }
-
-    if (cleave_profile[i] == 'b') {
-      cleave_border_type[i] = 'b';
-      continue;
-    }
-
-    if (cleave_profile[i] == 'c') {
-      cleave_border_type[i] = '*';
-      continue;
-    }
-
-    if (cleave_profile[i] == '.') {
-      let r_idx = Math.floor(i/2);
-      let b_idx = Js[ cleave_idir[i] ][ Rg[r_idx][1] ][ Rg[r_idx][0] ];
-
-      let _type = B[b_idx].t;
-      if      (_type == 'b') { cleave_border_type[i] = 'b'; }
-      else if (_type == 'c') { cleave_border_type[i] = '*'; }
-    }
-
-
-
-  }
-
-  let cleave_cuts = [];
-
-  do {
-
-    let b_idx = 0;
-    let cleave_choice = [];
-    for (let i=0; i<cleave_profile.length; i++) {
-      cleave_choice.push( cleave_profile[i] );
-      if (cleave_profile[i] == '.') {
-        cleave_choice[i] = ( bvec[b_idx] ? '*' : '-' );
-        b_idx++;
-      }
-
-    }
-
-    if (_debug) {
-      console.log(">>>", JSON.stringify(bvec), cleave_choice.join(""),
-        valid_cleave_choice( rprp_info, Rg, cleave_choice, cleave_border_type, _debug ) );
-    }
-
-    if (valid_cleave_choice( rprp_info, Rg, cleave_choice, cleave_border_type )) {
-      cleave_cuts.push(cleave_choice);
-    }
-
-    _ivec_incr(bvec);
-  } while ( !_ivec0(bvec) );
-
-  return cleave_cuts;
-}
-
-function enumerateCleaveCutPoint(rprp_info, p_s, p_e, a, b, cleave_profile) {
-  let Gv = rprp_info.Gv;
-  let Gv_bp = rprp_info.Gv_bp;
-
-  let B = rprp_info.B;
-  let B2d = rprp_info.B_2d;
-
-  let Sx = rprp_info.Sx;
-  let Sy = rprp_info.Sy;
-
-  let Js = rprp_info.Js;
-
-  let g_s = Gv_bp[ _ijkey(p_s) ];
-  let g_e = Gv_bp[ _ijkey(p_e) ];
-
-  let g_a = Gv_bp[ _ijkey(a) ];
-  let g_b = Gv_bp[ _ijkey(b) ];
-
-  return enumerateCleaveCut(rprp_info, g_s, g_e, g_a, g_b, cleave_profile);
-
-}
 
 //WIP!!
 function MIRP(rprp_info, g_s, g_e, g_a) {
@@ -3213,123 +1792,6 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
 }
 
 
-// We want to enumerate boundary pairs that define a tab guillotine cut that
-// are made from the sides of the quarry rectangle.
-// That is, we want to return all boundary regions that starts and end on one side
-// of a quarry rectangle.
-//
-// The cleave cuts will be handled elsewhere.
-//
-// We walk each side of the quarry rectangle, using the `Js` structure in one
-// direction to find the next general boundary point and then using it in the other direction
-// to find the origin general boundary point.
-//
-// Return a list of general boundary index points enumerating the tab guillotine cuts
-// implied by the quarry rectangle.
-// 
-//
-function enumerateQuarrySideRegion(rprp_info, g_s, g_e, g_a, g_b, _debug) {
-
-  _debug = ((typeof _debug === "undefined") ? false : _debug);
-
-  let Gv = rprp_info.Gv;
-  let Gv_bp = rprp_info.Gv_bp;
-
-  let B = rprp_info.B;
-  let B2d = rprp_info.B_2d;
-
-  let Js = rprp_info.Js;
-
-  // grid rectangle corners (ccw)
-  //
-  //  2-->--3
-  //  |     |
-  //  ^     v
-  //  |     |
-  //  1--<--0
-  //
-  let Rg = [
-    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
-    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
-    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
-    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
-  ];
-
-  // It's easier for me to think in a consistent 'left to right'
-  // and 'down to up'. So we traverse the quarry rectangle
-  // from left to right for the both the (1,0) line and the (2,3)
-  // line.
-  // This makes the range tests for Rl easier but it means
-  // we have to potentially reverse the order of the guillotine
-  // cut depending on which quarry side we're on.
-  //
-
-  let Rside_idir = [0,2,0,2];
-  let oppo_idir = [ 1,0, 3,2 ];
-
-  // single dimension crossing point
-  //
-  let Rl = [
-    Rg[0][0], Rg[2][1],
-    Rg[3][0], Rg[3][1]
-  ];
-
-  let g_beg = [
-    Rg[1], Rg[1],
-    Rg[2], Rg[0]
-  ];
-
-  let cut_order = [ 1, 0, 0, 1 ];
-
-  for (let r_idx=0; r_idx<Rg.length; r_idx++) {
-
-    if (_debug) {
-      console.log("");
-    }
-
-    let g_r = g_beg[r_idx];
-    let idir = Rside_idir[r_idx];
-    let rdir = oppo_idir[idir];
-
-    let b_jmp = B2d[ g_r[1] ][ g_r[0] ];
-    if (b_jmp < 0) {
-      b_jmp = Js[idir][ g_r[1] ][ g_r[0] ];
-    }
-
-    let g_b = B[b_jmp].ij;
-    let guillotine_list = [];
-    let ldim = r_idx % 2;
-
-    if (_debug) {
-      console.log("r_idx:", r_idx, "idir:", idir, "rdir:", rdir, "b_idx:", b_jmp, "g_b:", g_b, "ldim:", ldim);
-    }
-
-    while ((b_jmp >= 0) &&
-           (g_b[ldim] <= Rl[r_idx])) {
-
-      let b_jmp_nxt = Js[idir][ g_b[1] ][ g_b[0] ];
-      if (b_jmp_nxt < 0) { break; }
-
-      let g_b_nxt = B[b_jmp_nxt].ij;
-      if (g_b_nxt[ldim] > Rl[r_idx]) { break; }
-
-      let b_jmp_prv = Js[rdir][ g_b_nxt[1] ][ g_b_nxt[0] ];
-
-      if (cut_order[r_idx]) { guillotine_list.push( [b_jmp_nxt, b_jmp_prv] ); }
-      else                  { guillotine_list.push( [b_jmp_prv, b_jmp_nxt] ); }
-
-      b_jmp = b_jmp_nxt;
-      g_b = g_b_nxt;
-    }
-
-    if (_debug) {
-      console.log("r_idx:", r_idx, "idir:", idir, "::", guillotine_list);
-    }
-
-  }
-
-}
-
 
 //------
 //------
@@ -3338,49 +1800,6 @@ function enumerateQuarrySideRegion(rprp_info, g_s, g_e, g_a, g_b, _debug) {
 //------
 //------
 //------
-
-function _ijpoint_inside_spot_test() {
-  let grid_info = rectilinearGridPoints(pgn_pinwheel1);
-
-  console.log("pgn_pinwheel1:");
-  console.log(pgn_pinwheel1);
-  console.log("----");
-
-  _print_grid_info(grid_info);
-  console.log("");
-
-
-  let _gpnt = [3,4];
-  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 16, 11, [2,3]) );
-
-  _gpnt = [3,4];
-  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 11, 16, [2,3]) );
-
-  _gpnt = [2,2];
-  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 16, 11, [2,3]) );
-
-  _gpnt = [0,1];
-  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 16, 11, [2,3]) );
-
-  _gpnt = [1,1];
-  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 16, 11, [2,3]) );
-
-
-
-  _gpnt = [2,3];
-  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 1, 14, [3,2]) );
-
-  _gpnt = [2,3];
-  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 14, 1, [3,2]) );
-
-
-  _gpnt = [2,3];
-  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 1, 11, [4,2]) );
-
-  _gpnt = [2,3];
-  console.log("g:", _gpnt, "-->", ijpoint_inside_cut_region(grid_info, _gpnt, 14, 1, [4,2]) );
-
-}
 
 function _main_foo() {
   let grid_info = RPRPInit(pgn_bottom_guillotine);
@@ -3440,81 +1859,14 @@ function _main_foo() {
 
 
 
-function __main_foo() {
-  let grid_info = rectilinearGridPoints(pgn_bottom_guillotine);
-
-  let g_s = [-1,-1], g_e = [-1,-1], g_a = [-1,-1], g_b = [-1, -1];
-  let cp;
-
-  console.log("===");
-
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [5,5];
-  console.log(g_s, g_e, g_a, g_b);
-
-  cp = cleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
-
-  console.log("===");
-
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [4,5];
-  console.log(g_s, g_e, g_a, g_b);
-
-  cp = cleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
-
-  console.log("===");
-
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [13,5];
-
-  console.log(g_s, g_e, g_a, g_b);
-
-  cp = cleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
-
-  console.log("===");
-
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [12,5];
-  console.log(g_s, g_e, g_a, g_b);
-
-  cp = cleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
-
-  console.log("===");
-
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [9,5];
-
-  console.log(g_s, g_e, g_a, g_b);
-
-  cp = cleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  enumerateQuarrySideRegion(grid_info, g_s, g_e, g_a, g_b, true);
-
-
-}
-
 function _main_example() {
-  let grid_info = rectilinearGridPoints(pgn_pinwheel1);
-  _print_grid_info(grid_info);
-}
-
-function _main_irect_contain_test() {
-  let v = false;
-
-  let grid_info_0 = rectilinearGridPoints(pgn_pinwheel1);
-  v = _rprp_irect_contain_test(grid_info_0);
-
-  console.log("pgn_pinwhee_0 contain (slow==fast):", v ? "pass" : "FAIL");
+  let grid_info = RPRPInit(pgn_pinwheel1);
+  _print_rprp(grid_info);
 }
 
 function _main_guillotine() {
-
   let grid_info_0 = RPRPInit(pgn_bottom_guilltine);
   RPRP_enumerate_quarry_side_region(grid_info_0, [2,4], [1,4], [1,4], [12,5]);
-
 }
 
 function _main_checks() {
@@ -3633,8 +1985,6 @@ if ((typeof require !== "undefined") &&
 
   if      (op == 'check')       { _main_checks(process.argv.slice(2)); }
   else if (op == 'example')     { _main_example(process.argv.slice(2)); }
-  else if (op == 'ijspot')      { _ijpoint_inside_spot_test(); }
-  else if (op == 'contain')     { _main_irect_contain_test(); }
   else if (op == 'guillotine')  { _main_guillotine(); }
   else if (op == 'foo')         { _main_foo(); }
   else if (op == 'rprpi')       { _main_rprpinit_test(); }
@@ -3650,7 +2000,7 @@ if (typeof module !== "undefined") {
   let func_name_map = {
     "winding" : winding,
     "windingA" : windingA,
-    "rectilinearGridPoints" : rectilinearGridPoints
+    "init" : RPRPInit
   };
 
   for (let key in func_name_map) {

@@ -314,7 +314,6 @@ function update_textarea(add_to_queue) {
 
 // WIP
 function _draw_rprp_grid() {
-  if (!("Gv" in g_ui.data.rprp_info)) { return; }
   let two = g_ui.two;
 
   let rprp_info = g_ui.data.rprp_info;
@@ -322,22 +321,23 @@ function _draw_rprp_grid() {
   let px_pgn = g_ui.data.pgn;
   let gs = g_ui.data.grid_size;
 
-  let Gv = rprp_info.Gv;
-  let Sx = rprp_info.Sx;
-  let Sy = rprp_info.Sy;
+  let X = rprp_info.X;
+  let Y = rprp_info.Y;
 
-  let Js = rprp_info.Js;
-  let Je = rprp_info.Je;
+  let G = rprp_info.G;
+  let Gxy = rprp_info.Gxy;
+  let Gij = rprp_info.Gij;
 
   let B = rprp_info.B;
+  let Bxy = rprp_info.Bxy;
+  let Bij = rprp_info.Bij;
 
-  let B2d = rprp_info.B_2d;
+  let Js = rprp_info.Js;
 
   let col_B = "rgb(220,44,0)";
   let col_P = "rgb(54,54,255)";
   let col_G = "rgb(131,0,200)";
   let col_J = "rgb(128,64,0)";
-
 
   // legend
   //
@@ -394,65 +394,22 @@ function _draw_rprp_grid() {
   let grid_pnt = [];
   let grid_ij = [];
 
-  for (let iy=1; iy < Gv.length; iy++) {
-    for (let ix=1; ix < Gv[iy].length; ix++) {
-      if (Gv[iy][ix].G_idx < 0) { continue; }
+  for (let iy=0; iy < (Y.length-1); iy++) {
+    for (let ix=0; ix < (X.length-1); ix++) {
+      if (Gij[iy][ix] < 0) { continue; }
 
-      let p_cur = Gv[iy][ix].xy;
+      let p_cur = Gxy[ Gij[iy][ix] ];
 
-      // Sx and Sy hold longest run in x or y direction
-      // (from left to right, down to top)
-      // so we can use it to know if we're inside the polygon.
-      // If we're on a border, we don't want to trace out
-      // the internal grid lines, so we check to see if
-      // either grid point is *not* on the border and
-      // in the case they both *are* on the border, we
-      // check to make sure they're not right next to each other.
-      //
-      // display has y reversed, which is why we do the negation
-      // when making the draw line
-      //
-      if ( (Sy[iy][ix] > 0) &&
-           ((B2d[iy][ix] < 0) || (B2d[iy-1][ix] < 0) ||
-           (Math.abs(B2d[iy][ix] - B2d[iy-1][ix]) > 1)) ) {
-        let p_prv = Gv[iy-1][ix].xy;
+      grid_pnt.push([
+        p_cur[0]*gs + _oxy[0],
+       -p_cur[1]*gs + _oxy[1]
+      ]);
 
-        let lv = two.makeLine(
-           p_cur[0]*gs + _oxy[0],
-          -p_cur[1]*gs + _oxy[1],
-           p_prv[0]*gs + _oxy[0],
-          -p_prv[1]*gs + _oxy[1]
-        );
+      grid_ij.push( [ix, iy] );
 
-        lv.dashes = _dashes;
-        lv.linewidth = 2;
+      if (Js[0][iy][ix] >= 0) {
 
-        if (Sy[iy-1][ix] == 0) {
-          grid_pnt.push([
-           p_prv[0]*gs + _oxy[0],
-          -p_prv[1]*gs + _oxy[1]
-          ]);
-
-          grid_ij.push( [ix, iy-1] );
-        }
-
-        grid_pnt.push([
-          p_cur[0]*gs + _oxy[0],
-         -p_cur[1]*gs + _oxy[1]
-        ]);
-
-        grid_ij.push( [ix, iy] );
-
-      }
-
-      else {
-        //console.log("skipping", ix, iy, "Sy:", Sy[iy][ix], "B2d[iy][ix]:", B2d[iy][ix], "B2d[iy-1][ix]:", B2d[iy-1][ix]);
-      }
-
-      if ( (Sx[iy][ix] > 0) &&
-           ((B2d[iy][ix] < 0) || (B2d[iy][ix-1] < 0) ||
-           (Math.abs(B2d[iy][ix] - B2d[iy][ix-1]) > 1)) ) {
-        let p_prv = Gv[iy][ix-1].xy;
+        let p_prv = Gxy[ Gij[iy][ix+1] ];
 
         let lh = two.makeLine(
            p_cur[0]*gs + _oxy[0],
@@ -464,30 +421,26 @@ function _draw_rprp_grid() {
         lh.dashes = _dashes;
         lh.linewidth = 2;
 
-        if (Sx[iy][ix-1] == 0) {
-          grid_pnt.push([
-            p_prv[0]*gs + _oxy[0],
-           -p_prv[1]*gs + _oxy[1]
-          ]);
 
-          grid_ij.push( [ix-1, iy] );
-        }
-
-        grid_pnt.push([
-          p_cur[0]*gs + _oxy[0],
-         -p_cur[1]*gs + _oxy[1]
-        ]);
-
-        grid_ij.push( [ix, iy] );
       }
 
-      else {
-        //console.log("skipping", ix, iy, "Sx:", Sx[iy][ix], "B2d[iy][ix]:", B2d[iy][ix], "B2d[iy][ix-1]:", B2d[iy][ix-1]);
-      }
+      if (Js[2][iy][ix] >= 0) {
+        let p_prv = Gxy[ Gij[iy+1][ix] ];
 
+        let lv = two.makeLine(
+           p_cur[0]*gs + _oxy[0],
+          -p_cur[1]*gs + _oxy[1],
+           p_prv[0]*gs + _oxy[0],
+          -p_prv[1]*gs + _oxy[1]
+        );
+        lv.dashes = _dashes;
+        lv.linewidth = 2;
+
+      }
 
     }
   }
+
 
   let _style = {
     "fill": "rgb(128,128,0)",
@@ -548,12 +501,12 @@ function _draw_rprp_grid() {
 
   }
 
-  for (let j=0; j<Gv.length; j++) {
-    for (let i=0; i<Gv[j].length; i++) {
+  for (let j=0; j<Y.length; j++) {
+    for (let i=0; i<X.length; i++) {
 
       let _b = [
-        Gv[j][i].xy[0]*gs + _oxy[0],
-       -Gv[j][i].xy[1]*gs + _oxy[1]
+         X[i]*gs + _oxy[0],
+        -Y[j]*gs + _oxy[1]
       ];
 
       if (g_ui.viz_opt.show_Js) {
@@ -589,9 +542,10 @@ function _draw_rprp_grid() {
     };
 
     for (let b_idx=0; b_idx < B.length; b_idx++) {
+
       let bxy = [
-        B[b_idx].xy[0]*gs + _oxy[0],
-       -B[b_idx].xy[1]*gs + _oxy[1]
+        Bxy[b_idx][0]*gs + _oxy[0],
+       -Bxy[b_idx][1]*gs + _oxy[1]
       ];
       let _tb = two.makeText( b_idx.toString(), bxy[0] + 7, bxy[1] + 5, _B_style );
     }
@@ -819,9 +773,7 @@ function redraw() {
   }
 
   else if (g_ui.mode == "grid") {
-
     _draw_rprp_grid();
-
   }
 
   let mode_disp = document.getElementById("ui_mode");
@@ -833,7 +785,7 @@ function redraw() {
 function populate_grid() {
   let data = g_ui.data;
   let pgn = pgn2a(data.pgn);
-  let rprp_info = rprp.rectilinearGridPoints( pgn );
+  let rprp_info = rprp.init( pgn );
   g_ui.data.rprp_info = rprp_info;
 
   g_ui.data.rprp_info_ready = true;
@@ -1238,11 +1190,13 @@ function mouse_click_cut(x,y) {
 
   let border_idx = -1;
 
-  let B = rprp_info.B;
+  //let B = rprp_info.B;
+  let B = rprp_info.Bxy;
 
   let Ba = [];
   for (let i=0; i<B.length; i++) {
-    Ba.push( B[i].xy );
+    //Ba.push( B[i].xy );
+    Ba.push( B[i] );
   }
 
   let tB = a2pgn(Ba);
@@ -1384,7 +1338,7 @@ function mouse_click_rect(x,y) {
 
   let grid_idx = -1;
 
-  let G = rprp_info.G;
+  let G = rprp_info.Gxy;
   let tG = a2pgn(G);
 
   for (let i=0; i<tG.length; i++) {
