@@ -1803,74 +1803,10 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
 //------
 //------
 
-function _main_foo() {
-  let grid_info = RPRPInit(pgn_bottom_guillotine);
-
-  let g_s = [-1,-1], g_e = [-1,-1], g_a = [-1,-1], g_b = [-1, -1];
-  let cp;
-
-  console.log("===");
-
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [5,5];
-  console.log(g_s, g_e, g_a, g_b);
-
-  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
-
-  console.log("===");
-
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [4,5];
-  console.log(g_s, g_e, g_a, g_b);
-
-  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
-
-  console.log("===");
-
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [13,5];
-
-  console.log(g_s, g_e, g_a, g_b);
-
-  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
-
-  console.log("===");
-
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [12,5];
-  console.log(g_s, g_e, g_a, g_b);
-
-  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
-
-  console.log("===");
-
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [9,5];
-
-  console.log(g_s, g_e, g_a, g_b);
-
-  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
-
-
-}
-
-
 
 function _main_example() {
   let grid_info = RPRPInit(pgn_pinwheel1);
   _print_rprp(grid_info);
-}
-
-function _main_guillotine() {
-  let grid_info_0 = RPRPInit(pgn_bottom_guillotine);
-  let cut = RPRP_enumerate_quarry_side_region(grid_info_0, [1,4], [2,4], [1,4], [12,5]);
-
-  console.log(cut);
 }
 
 function _main_checks() {
@@ -2042,8 +1978,6 @@ if ((typeof require !== "undefined") &&
 
   if      (op == 'check')       { _main_checks(process.argv.slice(2)); }
   else if (op == 'example')     { _main_example(process.argv.slice(2)); }
-  else if (op == 'guillotine')  { _main_guillotine(); }
-  else if (op == 'foo')         { _main_foo(); }
   else if (op == 'rprpi')       { _main_rprpinit_test(); }
 }
 
