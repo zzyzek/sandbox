@@ -508,136 +508,6 @@ function onBoundary(p, pgn) {
   return false;
 }
 
-// Test if a rectangle is wholly contained in rectilinear polygon.
-// Assumes structures Sx, Sy, Lx, Ly have been precomputed
-//
-// input:
-//
-// s_ij - xy vector of grid start point
-// l_ij - xy vector of rectangle width/height
-//
-// output:
-//
-// true if rectangle with lower left corner at s_ij and width/height of l_ij
-//      in rectilinear polygon
-// false otherwise
-//
-// precomputed auxiliary structures:
-//
-// Sx holds grid cell running lengths, from left to right, of contiguous region within
-//    rectilinear polygon, resetting to 0 at the beginning of every interior
-//    edge and -1 for exterior points
-// Sy, like Sx, but from bottom to top
-// Lx holds total sum of left to right, regardless of interior/exterior
-// Ly holds total sum of bottom to top, regardless of interior/exterior
-//
-function rprp_irect_contain(grid_info, s_ij, l_ij) {
-  let Lx = grid_info.Lx,
-      Ly = grid_info.Ly,
-      Sx = grid_info.Sx,
-      Sy = grid_info.Sy;
-
-  if ((s_ij[0] < 0) || (s_ij[1] < 0) ||
-      (l_ij[0] < 0) || (l_ij[1] < 0) ||
-      (s_ij[0] >= Lx.length) ||
-      (s_ij[1] >= Ly.length) ||
-      ((s_ij[0] + l_ij[0]) >= Lx.length) ||
-      ((s_ij[1] + l_ij[1]) >= Ly.length)) {
-    return false;
-  }
-
-  let e_ij = [ s_ij[0] + l_ij[0] - 1, s_ij[1] + l_ij[1] - 1 ];
-
-  if ((Sx[s_ij[1]][s_ij[0]] < 0) ||
-      (Sx[s_ij[1]][e_ij[0]] < 0) ||
-      (Sx[e_ij[1]][s_ij[0]] < 0) ||
-      (Sx[e_ij[1]][e_ij[0]] < 0) ||
-
-      (Sy[s_ij[1]][s_ij[0]] < 0) ||
-      (Sy[s_ij[1]][e_ij[0]] < 0) ||
-      (Sy[e_ij[1]][s_ij[0]] < 0) ||
-      (Sy[e_ij[1]][e_ij[0]] < 0)) {
-
-    return false;
-  }
-
-  let len_dx = Lx[ e_ij[0] ] - Lx[ s_ij[0] ];
-  let len_dy = Ly[ e_ij[1] ] - Ly[ s_ij[1] ];
-
-  let dx0 = Sx[s_ij[1]][ e_ij[0] ] - Sx[s_ij[1]][ s_ij[0] ];
-  let dx1 = Sx[e_ij[1]][ e_ij[0] ] - Sx[e_ij[1]][ s_ij[0] ];
-
-  let dy0 = Sy[ e_ij[1] ][s_ij[0]] - Sy[ s_ij[1]][s_ij[0]];
-  let dy1 = Sy[ e_ij[1] ][e_ij[0]] - Sy[ s_ij[1]][e_ij[0]];
-
-  if ((dx0 == len_dx) && (dx1 == len_dx) &&
-      (dy0 == len_dy) && (dy1 == len_dy)) {
-    return true;
-  }
-
-  return false;
-}
-
-//---
-
-// Assumes rectangles (l_ij) are at least 2 wide and hight
-// (in grid points).
-// Assumes start is lower left of rectangle.
-//
-function _rprp_irect_contain_slow(grid_info, s_ij, l_ij) {
-  let Gv = grid_info.Gv;
-  let B_2d = grid_info.B_2d;
-  let dualG = grid_info.dualG;
-
-  if (Gv[s_ij[1]][s_ij[0]].G_idx < 0) { return false; }
-
-  let nx = l_ij[0]-1;
-  let ny = l_ij[1]-1;
-
-  for (let j=s_ij[1]; j<(s_ij[1] + ny); j++) {
-    for (let i=s_ij[0]; i<(s_ij[0] + nx); i++) {
-      if (dualG[j][i].id < 0) { return false; }
-    }
-  }
-  return true;
-}
-
-function _rprp_irect_contain_test(grid_info, _debug) {
-  _debug = ((typeof _debug === "undefined") ? false : _debug);
-
-  let Gv = grid_info.Gv;
-
-  for (let sj=0; sj<Gv.length; sj++) {
-    for (let si=0; si<Gv[sj].length; si++) {
-
-      for (let lj=2; lj<(Gv.length-sj); lj++) {
-        for (let li=2; li<(Gv[lj].length - si); li++) {
-
-          let s_ij = [si, sj];
-          let l_ij = [li, lj];
-
-          let slow = _rprp_irect_contain_slow(grid_info, s_ij, l_ij);
-          let fast = rprp_irect_contain(grid_info, s_ij, l_ij);
-
-          if ( _rprp_irect_contain_slow(grid_info, s_ij, l_ij) !=
-               rprp_irect_contain(grid_info, s_ij, l_ij) ) {
-
-
-            if (_debug) {
-              console.log("!!!!", s_ij, l_ij, slow, fast);
-            }
-
-            return false;
-          }
-        }
-      }
-
-    }
-  }
-
-  return true;
-}
-
 //---
 
 function _rprp_sanity( rl_pgon ) {
@@ -1111,36 +981,6 @@ function RPRPInit(_rl_pgon, _debug) {
     "DP" : {}
   };
 
-}
-
-// from grid point g, follow a line out in idir direction until
-// it hits the boundary
-//
-// _code: 
-//   'f' - return first boundary point hit (default)
-//   'l' - return last boundary hit
-//
-// return -1 if g not inside or ray shoots outside of boundary
-//
-function ray_boundary_intersection(rprp_info, g, idir, _code) {
-  _code = ((typeof _code === "undefined") ? 'f' : _code);
-  let J = rprp_info.Js;
-  if (_code != 'f') { J = rprp_info.Je; }
-  return J[idir][ g[1] ][ g[0] ];
-}
-
-function boundary_index_on_fence( b_idx, b_idx_s, b_idx_e ) {
-  if (b_idx_e > b_idx_s) {
-    if ((b_idx >= b_idx_s) && (b_idx <= b_idx_e)) { return true; }
-    return false;
-  }
-  if ((b_idx > b_idx_e) && (b_idx < b_idx_s)) { return false; }
-  return true;
-}
-
-function bidx_in_R( b_idx, b_idx_s, b_idx_e ) {
-  if (b_idx < 0) { return false; }
-  return boundary_index_on_fence( b_idx, b_idx_s, b_idx_e );
 }
 
 // is idx in the interval [idx_s, idx_e] (inclusive) or,
@@ -1788,6 +1628,28 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
   }
 
   return guillotine_list;
+}
+
+//WIP!!
+function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a) {
+  let Js = ctx.Js;
+
+  if ((Js[0][ ij[1] ][ ij[0] ] < 0) &&
+      (Js[1][ ij[1] ][ ij[0] ] < 0) &&
+      (Js[2][ ij[1] ][ ij[0] ] < 0) &&
+      (Js[3][ ij[1] ][ ij[0] ] < 0)) {
+    return 0;
+  }
+
+  if (typeof g_s === "undefined") { return 1; }
+
+  let idx_s = Bij[ g_s[1] ][ g_s[0] ],
+      idx_e = Bij[ g_e[1] ][ g_e[0] ];
+  if ((idx_s < 0) || (idx_e < 0)) { return -1; }
+
+  //....
+
+
 }
 
 // UNTESTED
