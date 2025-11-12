@@ -3117,7 +3117,9 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
   let Bt = ctx.Bt;
   let Bij = ctx.Bij;
 
-  let Js = rprp_info.Js;
+  let Js = ctx.Js;
+
+  let guillotine_list = [];
 
   // grid rectangle corners (ccw)
   //
@@ -3381,6 +3383,64 @@ function _ijpoint_inside_spot_test() {
 }
 
 function _main_foo() {
+  let grid_info = RPRPInit(pgn_bottom_guillotine);
+
+  let g_s = [-1,-1], g_e = [-1,-1], g_a = [-1,-1], g_b = [-1, -1];
+  let cp;
+
+  console.log("===");
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [5,5];
+  console.log(g_s, g_e, g_a, g_b);
+
+  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
+  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
+
+  console.log("===");
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [4,5];
+  console.log(g_s, g_e, g_a, g_b);
+
+  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
+  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
+
+  console.log("===");
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [13,5];
+
+  console.log(g_s, g_e, g_a, g_b);
+
+  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
+  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
+
+  console.log("===");
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [12,5];
+  console.log(g_s, g_e, g_a, g_b);
+
+  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
+  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
+
+  console.log("===");
+
+  g_s = [1,4]; g_e = [2,4];
+  g_a = [1,4]; g_b = [9,5];
+
+  console.log(g_s, g_e, g_a, g_b);
+
+  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
+  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
+
+
+}
+
+
+
+function __main_foo() {
   let grid_info = rectilinearGridPoints(pgn_bottom_guillotine);
 
   let g_s = [-1,-1], g_e = [-1,-1], g_a = [-1,-1], g_b = [-1, -1];
@@ -3448,6 +3508,13 @@ function _main_irect_contain_test() {
   v = _rprp_irect_contain_test(grid_info_0);
 
   console.log("pgn_pinwhee_0 contain (slow==fast):", v ? "pass" : "FAIL");
+}
+
+function _main_guillotine() {
+
+  let grid_info_0 = RPRPInit(pgn_bottom_guilltine);
+  RPRP_enumerate_quarry_side_region(grid_info_0, [2,4], [1,4], [1,4], [12,5]);
+
 }
 
 function _main_checks() {
@@ -3530,89 +3597,6 @@ function _main_checks() {
   let cc_9 = RPRP_cleave_enumerate(grid_info_9, [6,1], [4,1], [6,1], [3,7], cp_9);
   let v_9 = _expect( cc_9, [], _sfmt("pgn_corner_9", 16, 'r') );
 
-
-}
-
-function __main_checks() {
-
-  let grid_info_0 = rectilinearGridPoints(pgn_pinwheel1);
-  let cp_0 = cleaveProfilePoint(grid_info_0, [9,4], [4,6], [9,6], [6,9]);
-  let cc_0 = enumerateCleaveCutPoint(grid_info_0, [9,4], [4,6], [9,6], [6,9], cp_0);
-  let v_0 = _expect( cc_0,
-    [ ['-','c','X','c','-','*','-','*'] ],
-    _sfmt("pgn_pinwheel_0", 16, 'r') );
-
-
-  let grid_info_1 = rectilinearGridPoints(pgn_balance);
-  let cp_1 = cleaveProfile(grid_info_1, [7,1], [5,4], [7,4], [2,5]);
-  let cc_1 = enumerateCleaveCut(grid_info_1, [7,1], [5,4], [7,4], [2,5], cp_1);
-  let v_1 = _expect( cc_1, 
-    [ ["-","c","*","-","*","-","*","-"],
-      ["-","c","*","-","*","-","-","*"]],
-    _sfmt("pgn_balance_1", 16,'r') );
-
-  let grid_info_2 = rectilinearGridPoints(pgn_pinwheel1);
-  let cp_2 = cleaveProfile(grid_info_2, [3,1], [1,2], [3,2], [2,4]);
-  let cc_2 = enumerateCleaveCut(grid_info_2, [3,1], [1,2], [3,2], [2,4], cp_2);
-  let v_2 = _expect( cc_2, [], _sfmt("pgn_pinwheel_2", 16, 'r') );
-
-  let grid_info_3 = rectilinearGridPoints(pgn_clover);
-  let cp_3 = cleaveProfile(grid_info_3, [5,7], [6,5], [6,7], [3,3]);
-  let cc_3 = enumerateCleaveCut(grid_info_3, [5,7], [6,5], [6,7], [3,3], cp_3);
-  let v_3 = _expect( cc_3,
-    [ ['x','b','b','-','b','x','X','X'] ],
-    _sfmt("pgn_clover_3", 16, 'r') );
-
-  let grid_info_4 = rectilinearGridPoints(pgn_clover);
-  let cp_4 = cleaveProfile(grid_info_4, [3,3], [3,4], [3,3], [6,7]);
-  let cc_4 = enumerateCleaveCut(grid_info_4, [3,3], [3,4], [3,3], [6,7], cp_4);
-  let v_4 = _expect( cc_4,
-    [ ['x','b','X','X','b','x','*','-'],
-      ['x','b','X','X','b','x','-','*'] ],
-    _sfmt("pgn_clover_4", 16, 'r') );
-
-
-  let grid_info_5 = rectilinearGridPoints(pgn_clover1);
-  let cp_5 = cleaveProfile(grid_info_5, [2,3], [2,4], [2,3], [5,7]);
-  let cc_5 = enumerateCleaveCut(grid_info_5, [2,3], [2,4], [2,3], [5,7], cp_5);
-  let v_5 = _expect( cc_5,
-    [ ['x','b','X','X','-','b','*','-'],
-      ['x','b','X','X','-','b','-','*'] ],
-    _sfmt("pgn_clover_5", 16, 'r') );
-
-  let grid_info_6 = rectilinearGridPoints(pgn_clover2);
-  let cp_6 = cleaveProfile(grid_info_6, [4,2], [2,4], [2,2], [7,7]);
-  let cc_6 = enumerateCleaveCut(grid_info_6, [4,2], [2,4], [2,2], [7,7], cp_6);
-  let v_6 = _expect( cc_6,
-    [ ['*','-','X','X','*','-','*','-'],
-      ['-','*','X','X','*','-','*','-'],
-      ['*','-','X','X','-','*','*','-'],
-      ['-','*','X','X','-','*','*','-'],
-      ['*','-','X','X','*','-','-','*'],
-      ['-','*','X','X','*','-','-','*'],
-      ['*','-','X','X','-','*','-','*'],
-      ['-','*','X','X','-','*','-','*'] ],
-    _sfmt("pgn_clover_6", 16, 'r') );
-
-  let grid_info_7 = rectilinearGridPoints(pgn_double_edge_cut);
-  let cp_7 = cleaveProfile(grid_info_7, [6,2], [5,1], [6,1], [3,5]);
-  let cc_7 = enumerateCleaveCut(grid_info_7, [6,2], [5,1], [6,1], [3,5], cp_7);
-  let v_7 = _expect( cc_7,
-    [ ['X','X','x','x','*','-','x','x'],
-      ['X','X','x','x','-','*','x','x'],
-      ['X','X','x','x','*','*','x','x'] ],
-    _sfmt("pgn_clover_7", 16, 'r') );
-
-
-  let grid_info_8 = rectilinearGridPoints(pgn_quarry_corner_convex);
-  let cp_8 = cleaveProfile(grid_info_8, [4,2], [3,1], [4,1], [1,4]);
-  let cc_8 = enumerateCleaveCut(grid_info_8, [4,2], [3,1], [4,1], [1,4], cp_8);
-  let v_8 = _expect( cc_8, [], _sfmt("pgn_corner_8", 16, 'r') );
-
-  let grid_info_9 = rectilinearGridPoints(pgn_left_run);
-  let cp_9 = cleaveProfile(grid_info_9, [6,1], [4,1], [6,1], [3,7]);
-  let cc_9 = enumerateCleaveCut(grid_info_9, [6,1], [4,1], [6,1], [3,7], cp_9);
-  let v_9 = _expect( cc_9, [], _sfmt("pgn_corner_9", 16, 'r') );
 
 }
 
