@@ -239,6 +239,17 @@ var pgn_bottom_guillotine = [
   [1,4], [0,4],
 ];
 
+var pgn_cavity = [
+  [0,11], [6,11], [6,0], [19,0],
+  [19,3], [31,3], [31,26], [20,26],
+  [20,21], [25,21], [25,17], [28,17],
+  [28,13], [24,13], [24,7], [18,7],
+  [18,5], [9,5], [9,8], [7,8],
+  [7,12], [4,12], [4,15], [7,15],
+  [7,18], [9,18], [9,20], [11,20],
+  [11,28], [8,28], [8,21], [0,21]
+];
+
 function _write_data(ofn, data) {
   var fs = require("fs");
   return fs.writeFileSync(ofn, JSON.stringify(data, undefined, 2));
@@ -1705,9 +1716,54 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a) {
   return 0;
 }
 
-// UNTESTED
-function RPRP_valid_quarry(ctx, g_a, g_b) {
+// lightly tested
+//
+// Input
+//   g_a and g_b are grid endpoints of the rectangle R_g (in any order)
+//
+// Return:
+//
+//   1 - if rectangle is wholly contained in the rectilinear polygon
+//   0 - otherwise
+//
+// If the area is 0, we can immediately return 0.
+//
+// Consider two endpoints from a rectangle side, R_g[p] and R_g[q].
+//
+// R_g is ordered clockwise with the first point in the lower right:
+//
+//   2---3
+//   |   |
+//   1---0
+//
+// For a cardinal direction, if R_g[p] and R_g[q] agree on the last
+// general border index point, then they must have an unbroken line
+// segment between them that lies completely within the original polygon.
+//
+// For example, if R_g[0] shoots right and hits the last general border endpoint b,
+// and R_g[1] shoots right to hit the same last general border endpoint b, then
+// there must be a an unbroken line between them.
+// If R_g[1] had a different endpoint, the rectilinear polygon must have had
+// a portion of it's boundary jutting through the area between them.
+//
+// We do this for all neighboring pairs of R_g in each of the appropriate directions.
+//
+// Note that this must be the last endpoint, so using the Je structure and not the Js,
+// beacuse using the first general border endpoint would give corners for borders
+// that are colinear with the R_g side.
+//
+// If the R_g point is the last general border endpoint in the appropriate
+// direction, we lookup the endpoint from the Bij structure instead of the Je.
+// If the point is the last point on the boundary, the Js and Je structures
+// take the ray starting from the point in the cardinal direction which, in
+// this case, goes out of bounds.
+//
+// If all endpoints match up and the area is non-zero, we have a valid rectangle.
+// 
+//
+function RPRP_valid_R(ctx, g_a, g_b) {
   let Je = ctx.Je;
+  let Bij = ctx.Bij;
 
   // 2---3
   // |   |
@@ -1727,14 +1783,76 @@ function RPRP_valid_quarry(ctx, g_a, g_b) {
     [ 3, 0, 2 ], [ 3, 0, 3 ]
   ];
 
+  let area = abs_sum_v( v_sub(Rg[0], Rg[1]) ) * abs_sum_v( v_sub(Rg[1], Rg[2]) );
+  if (area == 0) { return 0; }
+
   for (let idx=0; idx<pq_idir.length; idx++) {
     let p = pq_idir[idx][0];
     let q = pq_idir[idx][1];
     let idir = pq_idir[idx][2];
 
-    if (Je[idir][ Rg[p][1] ][ Rg[p][0] ] != Je[idir][ Rg[q][1] ][ Rg[q][0] ]) {
-      return 0;
-    }
+    // If the ray endpoint is out of bounds, we could be on the
+    // border.
+    // If we aren't on a border, we know it's not a valid rectangle
+    // (we're in a dead-zone).
+    // Otherwise, compare the endpoints to make sure they match up.
+    //
+    let p_b_idx = Je[idir][ Rg[p][1] ][ Rg[p][0] ];
+    if (p_b_idx < 0) { p_b_idx = Bij[ Rg[p][1] ][ Rg[p][0] ]; }
+
+    let q_b_idx = Je[idir][ Rg[q][1] ][ Rg[q][0] ];
+    if (q_b_idx < 0) { q_b_idx = Bij[ Rg[q][1] ][ Rg[q][0] ]; }
+
+    if ((p_b_idx < 0) || (q_b_idx < 0)) { return 0; }
+    if (p_b_idx != q_b_idx) { return 0; }
+  }
+
+  return 1;
+}
+
+
+// WIP!!!
+// still has bug...
+
+// Test for valid quarry rectangle.
+//
+// The rectangle is defined by g_a and g_b, must be wholly contained
+// in the region defined by the 1-cut or 2-cut defined by
+// g_s, g_e, g_a.
+//
+//
+// Input:
+//
+//   g_s - start region point on general border point (counterclockwise order)
+//   g_e - end region point on general border point
+//   g_a - adit point of cut and quarry rectangle
+//   g_b - bower point of quarry rectangle
+//
+// Output:
+//
+//   1 - valid quarry rectangle
+//   0 - otherwise
+//
+// Test for valid rectangle in addition to making sure all endoints of quarry
+// rectangle fall within the region.
+//
+function RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b) {
+
+  if (RPRP_valid_R(ctx, g_a, g_b) == 0) { return 0; }
+
+  // 2---3
+  // |   |
+  // 1---0
+  //
+  let Rg = [
+    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
+    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
+  ];
+
+  for (let i=0; i<Rg.length; i++) {
+    if (RPRP_point_in_region(ctx, Rg[i], g_s, g_e, g_a) == 0) { return 0; }
   }
 
   return 1;
@@ -1763,7 +1881,8 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a) {
   console.log(g_s, g_e, g_a);
 
 
-  for (let j=0; j<Y.length; j++) {
+  //for (let j=0; j<Y.length; j++) {
+  for (let j=(Y.length-1); j>=0; j--) {
 
     let row_s = [];
 
@@ -1771,7 +1890,8 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a) {
 
       let g_b = [i,j];
 
-      row_s.push( RPRP_valid_quarry(ctx, g_a, g_b) ? '*' : '.' );
+      //row_s.push( RPRP_valid_R(ctx, g_a, g_b) ? '*' : '.' );
+      row_s.push( RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b) ? '*' : '.' );
 
 
     }
@@ -1958,6 +2078,7 @@ function _main_pir_test() {
       g_a = ctx.G[0];
 
   console.log("\n");
+  console.log("# g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
   for (let j=(ctx.Y.length-1); j>=0; j--) {
     let row_s = [];
     for (let i=0; i<ctx.X.length; i++) {
@@ -1974,6 +2095,7 @@ function _main_pir_test() {
   g_a = [2,3];
 
   console.log("\n");
+  console.log("# g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
   for (let j=(ctx.Y.length-1); j>=0; j--) {
     let row_s = [];
     for (let i=0; i<ctx.X.length; i++) {
@@ -1989,6 +2111,7 @@ function _main_pir_test() {
   g_a = [1,3];
 
   console.log("\n");
+  console.log("# g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
   for (let j=(ctx.Y.length-1); j>=0; j--) {
     let row_s = [];
     for (let i=0; i<ctx.X.length; i++) {
@@ -2004,6 +2127,7 @@ function _main_pir_test() {
   g_a = [1,3];
 
   console.log("\n");
+  console.log("# g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
   for (let j=(ctx.Y.length-1); j>=0; j--) {
     let row_s = [];
     for (let i=0; i<ctx.X.length; i++) {
@@ -2019,6 +2143,7 @@ function _main_pir_test() {
   g_a = [3,1];
 
   console.log("\n");
+  console.log("# g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
   for (let j=(ctx.Y.length-1); j>=0; j--) {
     let row_s = [];
     for (let i=0; i<ctx.X.length; i++) {
@@ -2034,6 +2159,7 @@ function _main_pir_test() {
   g_a = [1,1];
 
   console.log("\n");
+  console.log("# g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
   for (let j=(ctx.Y.length-1); j>=0; j--) {
     let row_s = [];
     for (let i=0; i<ctx.X.length; i++) {
@@ -2049,6 +2175,12 @@ function _main_pir_test() {
 function _main_mirp_test() {
   let ctx = RPRPInit( pgn_pinwheel1 );
   RPRP_MIRP(ctx);
+
+  let ctx_1 = RPRPInit( pgn_pinwheel1 );
+  RPRP_MIRP(ctx_1, [3,1], [1,2], [3,2]);
+
+  let ctx_2 = RPRPInit( pgn_cavity );
+  RPRP_MIRP(ctx_2, [8,1], [7,2], [7,1]);
 }
 
 //       ___ 
