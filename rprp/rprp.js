@@ -983,7 +983,9 @@ function RPRPInit(_rl_pgon, _debug) {
 
 }
 
-// is idx in the interval [idx_s, idx_e] (inclusive) or,
+// By convention, border indices are in counterclockwise order.
+//
+// Is idx in the interval [idx_s, idx_e] (inclusive) or,
 // if idx_e < idx_s one of the two intervals [0,idx_e] [idx_s, N-1]
 // (inclusive)?
 //
@@ -1630,11 +1632,31 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
   return guillotine_list;
 }
 
-//WIP!!
+// lightly tested
+//
+// ctx - RPRP context
+// ij  - point being tested
+// g_s - grid general border start point (counterclockwise)
+// g_e - grid general border end point
+// g_a - intersection of constructed lines if 2-cut, g_s or g_e if 1-cut
+//
+// If the grid point ij has one or non border jump points within
+//   the border start and end region, it must be outside.
+//
+// If the grid point ij has three or four border jump points within
+//   the border start and end regoin, it must be inside.
+//
+// If the grid point ij has exactly two shared border jump points,
+//   it can be inside or outside but the rays eminating from the origin ij
+//   point must cross the constructed edge cuts.
+//   They further must not be inline
+//
 function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a) {
   let Bij = ctx.Bij;
   let Js = ctx.Js;
 
+  // ij OOB
+  //
   if ((Js[0][ ij[1] ][ ij[0] ] < 0) &&
       (Js[1][ ij[1] ][ ij[0] ] < 0) &&
       (Js[2][ ij[1] ][ ij[0] ] < 0) &&
@@ -1644,16 +1666,27 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a) {
 
   if (typeof g_s === "undefined") { return 1; }
 
+  // sanity
+  //
   let idx_s = Bij[ g_s[1] ][ g_s[0] ],
       idx_e = Bij[ g_e[1] ][ g_e[0] ];
   if ((idx_s < 0) || (idx_e < 0)) { return -1; }
 
   //---
 
+  // If ij is already on border, we can do a wrapped range test
+  //
+  let ij_b_idx = Bij[ ij[1] ][ ij[0] ];
+  if (ij_b_idx >= 0) {
+    return wrapped_range_contain( ij_b_idx, idx_s, idx_e );
+  }
+
   let b_count = 0;
   for (let idir=0; idir<4; idir++)  {
-    b_count += wrapped_range_contain( Js[0][ g_a[1] ][ g_a[0] ], idx_s, idx_e );
+    b_count += wrapped_range_contain( Js[idir][ ij[1] ][ ij[0] ], idx_s, idx_e );
   }
+
+  //console.log(ij, b_count);
 
   if (b_count < 2) { return 0; }
   if (b_count > 2) { return 1; }
@@ -1664,9 +1697,8 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a) {
   let zsa = cross3( v_sub( g_a, g_s ), v_sub( ij, g_s ) );
   let zae = cross3( v_sub( g_e, g_a ), v_sub( ij, g_a ) );
 
-  //????
-
-
+  if ((zsa[2] < 0) && (zae[2] < 0)) { return 1; }
+  return 0;
 }
 
 // UNTESTED
@@ -1903,6 +1935,102 @@ function _main_rprpinit_test() {
   RPRPInit( pgn_balance, 1 );
 }
 
+function _main_pir_test() {
+  let ctx = RPRPInit( pgn_pinwheel1 );
+
+  let g_s = ctx.G[0],
+      g_e = ctx.G[0],
+      g_a = ctx.G[0];
+
+  console.log("\n");
+  for (let j=(ctx.Y.length-1); j>=0; j--) {
+    let row_s = [];
+    for (let i=0; i<ctx.X.length; i++) {
+      let v = RPRP_point_in_region(ctx, [i,j], g_s, g_e, g_a);
+      row_s.push( (v>0) ? '*' : '.' );
+    }
+    console.log(row_s.join(""));
+  }
+
+  console.log("\n");
+
+  g_s = [2,4];
+  g_e = [4,3];
+  g_a = [2,3];
+
+  console.log("\n");
+  for (let j=(ctx.Y.length-1); j>=0; j--) {
+    let row_s = [];
+    for (let i=0; i<ctx.X.length; i++) {
+      let v = RPRP_point_in_region(ctx, [i,j], g_s, g_e, g_a);
+      row_s.push( (v>0) ? '*' : '.' );
+    }
+    console.log(row_s.join(""));
+  }
+  console.log("\n");
+
+  g_s = [1,2];
+  g_e = [4,3];
+  g_a = [1,3];
+
+  console.log("\n");
+  for (let j=(ctx.Y.length-1); j>=0; j--) {
+    let row_s = [];
+    for (let i=0; i<ctx.X.length; i++) {
+      let v = RPRP_point_in_region(ctx, [i,j], g_s, g_e, g_a);
+      row_s.push( (v>0) ? '*' : '.' );
+    }
+    console.log(row_s.join(""));
+  }
+  console.log("\n");
+
+  g_s = [4,3];
+  g_e = [1,2];
+  g_a = [1,3];
+
+  console.log("\n");
+  for (let j=(ctx.Y.length-1); j>=0; j--) {
+    let row_s = [];
+    for (let i=0; i<ctx.X.length; i++) {
+      let v = RPRP_point_in_region(ctx, [i,j], g_s, g_e, g_a);
+      row_s.push( (v>0) ? '*' : '.' );
+    }
+    console.log(row_s.join(""));
+  }
+  console.log("\n");
+
+  g_s = [1,1];
+  g_e = [3,1];
+  g_a = [3,1];
+
+  console.log("\n");
+  for (let j=(ctx.Y.length-1); j>=0; j--) {
+    let row_s = [];
+    for (let i=0; i<ctx.X.length; i++) {
+      let v = RPRP_point_in_region(ctx, [i,j], g_s, g_e, g_a);
+      row_s.push( (v>0) ? '*' : '.' );
+    }
+    console.log(row_s.join(""));
+  }
+  console.log("\n");
+
+  g_s = [3,1];
+  g_e = [1,1];
+  g_a = [1,1];
+
+  console.log("\n");
+  for (let j=(ctx.Y.length-1); j>=0; j--) {
+    let row_s = [];
+    for (let i=0; i<ctx.X.length; i++) {
+      let v = RPRP_point_in_region(ctx, [i,j], g_s, g_e, g_a);
+      row_s.push( (v>0) ? '*' : '.' );
+    }
+    console.log(row_s.join(""));
+  }
+  console.log("\n");
+
+}
+
 //       ___ 
 //  ____/ (_)
 // / __/ / / 
@@ -1918,9 +2046,10 @@ if ((typeof require !== "undefined") &&
     op = process.argv[2];
   }
 
-  if      (op == 'check')       { _main_checks(process.argv.slice(2)); }
-  else if (op == 'example')     { _main_example(process.argv.slice(2)); }
-  else if (op == 'rprpi')       { _main_rprpinit_test(); }
+  if      (op == 'check')   { _main_checks(process.argv.slice(2)); }
+  else if (op == 'example') { _main_example(process.argv.slice(2)); }
+  else if (op == 'rprpi')   { _main_rprpinit_test(); }
+  else if (op == 'pir')     { _main_pir_test(); }
 }
 
 //                          __    
