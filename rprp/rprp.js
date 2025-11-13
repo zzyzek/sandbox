@@ -1686,16 +1686,20 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a) {
     b_count += wrapped_range_contain( Js[idir][ ij[1] ][ ij[0] ], idx_s, idx_e );
   }
 
-  //console.log(ij, b_count);
-
   if (b_count < 2) { return 0; }
   if (b_count > 2) { return 1; }
 
-  let sa = v_sub( g_a, g_s );
-  let ae = v_sub( g_e, g_a );
+  let ij3 = [ ij[0], ij[1], 0 ];
+  let a3 = [ g_a[0], g_a[1], 0 ];
+  let s3 = [ g_s[0], g_s[1], 0 ];
+  let e3 = [ g_e[0], g_e[1], 0 ];
 
-  let zsa = cross3( v_sub( g_a, g_s ), v_sub( ij, g_s ) );
-  let zae = cross3( v_sub( g_e, g_a ), v_sub( ij, g_a ) );
+  // ij to the right of (g_s -> g_a) and (g_a -> g_e)
+  // then inside (return 1)
+  // else outside (return 0)
+  //
+  let zsa = cross3( v_sub( a3, s3 ), v_sub( ij3, s3 ) );
+  let zae = cross3( v_sub( e3, a3 ), v_sub( ij3, a3 ) );
 
   if ((zsa[2] < 0) && (zae[2] < 0)) { return 1; }
   return 0;
@@ -1756,11 +1760,22 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a) {
     g_a = B[0];
   }
 
+  console.log(g_s, g_e, g_a);
+
 
   for (let j=0; j<Y.length; j++) {
+
+    let row_s = [];
+
     for (let i=0; i<X.length; i++) {
 
+      let g_b = [i,j];
+
+      row_s.push( RPRP_valid_quarry(ctx, g_a, g_b) ? '*' : '.' );
+
+
     }
+    console.log( row_s.join("") );
   }
 
 
@@ -2031,6 +2046,11 @@ function _main_pir_test() {
 
 }
 
+function _main_mirp_test() {
+  let ctx = RPRPInit( pgn_pinwheel1 );
+  RPRP_MIRP(ctx);
+}
+
 //       ___ 
 //  ____/ (_)
 // / __/ / / 
@@ -2050,6 +2070,7 @@ if ((typeof require !== "undefined") &&
   else if (op == 'example') { _main_example(process.argv.slice(2)); }
   else if (op == 'rprpi')   { _main_rprpinit_test(); }
   else if (op == 'pir')     { _main_pir_test(); }
+  else if (op == 'mirp')     { _main_mirp_test(); }
 }
 
 //                          __    
