@@ -1662,9 +1662,17 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
 //   point must cross the constructed edge cuts.
 //   They further must not be inline
 //
-function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a) {
+function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a, _debug) {
   let Bij = ctx.Bij;
   let Js = ctx.Js;
+
+  // degenerate
+  //
+  if ( ((ij[0] == g_a[0]) && (ij[1] == g_a[1])) ||
+       ((ij[0] == g_s[0]) && (ij[1] == g_s[1])) ||
+       ((ij[0] == g_e[0]) && (ij[1] == g_e[1])) ) {
+    return 1;
+  }
 
   // ij OOB
   //
@@ -1672,16 +1680,29 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a) {
       (Js[1][ ij[1] ][ ij[0] ] < 0) &&
       (Js[2][ ij[1] ][ ij[0] ] < 0) &&
       (Js[3][ ij[1] ][ ij[0] ] < 0)) {
+
+    if (_debug) { console.log("#pir.0"); }
+
     return 0;
   }
 
-  if (typeof g_s === "undefined") { return 1; }
+  if (typeof g_s === "undefined") {
+ 
+    if (_debug) { console.log("#pir.1 t"); }
+
+    return 1;
+  }
 
   // sanity
   //
   let idx_s = Bij[ g_s[1] ][ g_s[0] ],
       idx_e = Bij[ g_e[1] ][ g_e[0] ];
-  if ((idx_s < 0) || (idx_e < 0)) { return -1; }
+  if ((idx_s < 0) || (idx_e < 0)) {
+
+    if (_debug) { console.log("#pir.2 error"); }
+
+    return -1;
+  }
 
   //---
 
@@ -1689,6 +1710,9 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a) {
   //
   let ij_b_idx = Bij[ ij[1] ][ ij[0] ];
   if (ij_b_idx >= 0) {
+
+    if (_debug) { console.log("#pir.3 boundary"); }
+
     return wrapped_range_contain( ij_b_idx, idx_s, idx_e );
   }
 
@@ -1697,8 +1721,18 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a) {
     b_count += wrapped_range_contain( Js[idir][ ij[1] ][ ij[0] ], idx_s, idx_e );
   }
 
-  if (b_count < 2) { return 0; }
-  if (b_count > 2) { return 1; }
+  if (b_count < 2) {
+
+    if (_debug) { console.log("#pir.4 b_count", b_count); }
+
+    return 0;
+  }
+  if (b_count > 2) {
+
+    if (_debug) { console.log("#pir.5 b_count", b_count); }
+
+    return 1;
+  }
 
   let ij3 = [ ij[0], ij[1], 0 ];
   let a3 = [ g_a[0], g_a[1], 0 ];
@@ -1711,6 +1745,10 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a) {
   //
   let zsa = cross3( v_sub( a3, s3 ), v_sub( ij3, s3 ) );
   let zae = cross3( v_sub( e3, a3 ), v_sub( ij3, a3 ) );
+
+  if (_debug) {
+    console.log("#pir.6 zsa", zsa, "zae", zae);
+  }
 
   if ((zsa[2] < 0) && (zae[2] < 0)) { return 1; }
   return 0;
@@ -1838,7 +1876,12 @@ function RPRP_valid_R(ctx, g_a, g_b) {
 //
 function RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b) {
 
-  if (RPRP_valid_R(ctx, g_a, g_b) == 0) { return 0; }
+  if (RPRP_valid_R(ctx, g_a, g_b) == 0) {
+
+    //console.log("### vq.0:", g_s, g_e, g_a, g_b, " valid_R==0!");
+
+    return 0;
+  }
 
   // 2---3
   // |   |
@@ -1852,7 +1895,12 @@ function RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b) {
   ];
 
   for (let i=0; i<Rg.length; i++) {
-    if (RPRP_point_in_region(ctx, Rg[i], g_s, g_e, g_a) == 0) { return 0; }
+    if (RPRP_point_in_region(ctx, Rg[i], g_s, g_e, g_a) == 0) {
+
+      //console.log("### vq.1:", g_s, g_e, g_a, g_b, "Rg[", i, "]:", Rg[i], " pir==0!");
+
+      return 0;
+    }
   }
 
   return 1;
@@ -2181,6 +2229,22 @@ function _main_mirp_test() {
 
   let ctx_2 = RPRPInit( pgn_cavity );
   RPRP_MIRP(ctx_2, [8,1], [7,2], [7,1]);
+
+  let ctx_3 = RPRPInit( pgn_cavity );
+  RPRP_MIRP(ctx_3, [7,2], [8,1], [7,1]);
+
+  let ctx_4 = RPRPInit( pgn_bottom_guillotine );
+  RPRP_MIRP(ctx_4, [1,4], [2,4], [1,4]);
+
+  let ctx_5 = RPRPInit( pgn_bottom_guillotine );
+  RPRP_MIRP(ctx_5, [2,4], [1,4], [1,4]);
+
+  let ctx_6 = RPRPInit( pgn_bottom_guillotine );
+  RPRP_MIRP(ctx_6, [2,4], [1,4], [2,4]);
+
+  //console.log(">>> 9,2", RPRP_point_in_region( ctx_2, [9,2], [8,1], [7,2], [7,1]  ));
+  //console.log(">>> 7,1", RPRP_point_in_region( ctx_2, [7,1], [8,1], [7,2], [7,1] ,  1) );
+  //console.log(">>> 6,0", RPRP_point_in_region( ctx_2, [6,0], [8,1], [7,2], [7,1]  ));
 }
 
 //       ___ 
