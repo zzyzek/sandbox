@@ -1906,6 +1906,31 @@ function RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b) {
   return 1;
 }
 
+function RPRP_DP_idx(ctx, g_s, g_e, g_a) {
+  let B = ctx.B;
+  let Bij = ctx.Bij;
+
+  let n = B.length;
+
+  let idx_s = Bij[ g_s[1] ][ g_s[0] ];
+  let idx_e = Bij[ g_e[1] ][ g_e[0] ];
+
+  let mM = [
+    [ Math.min(g_s[0], g_e[0]),
+      Math.max(g_s[0], g_e[0]) ],
+    [ Math.min(g_s[1], g_e[1]),
+      Math.max(g_s[1], g_e[1]) ]
+  ];
+
+  //....
+
+  let t = 0;
+
+  let dp_idx = (2*idx_s) + (2*n*idx_e) + t;
+
+  return dp_idx;
+}
+
 //WIP!!
 function RPRP_MIRP(ctx, g_s, g_e, g_a) {
   let B = ctx.B,
