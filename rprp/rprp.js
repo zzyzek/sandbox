@@ -179,6 +179,22 @@ let pgn_custom0 = [
   [7,4], [7,0], [3,0], [3,9]
 ];
 
+/*
+let _pgn_custom1 = [
+  [0,5], [8,5], [8,0], [11,0],
+  [11,2], [15,2], [15,8], [11,8],
+  [11,16], [6,16], [6,19], [0,19],
+  [0,15], [3,15], [3,10], [0,10],
+];
+*/
+
+var pgn_custom1 = [
+    [0,5], [8,5], [8,0], [11,0],
+    [11,2], [15,2], [15,8], [11,8],
+    [11,16], [6,16], [6,19], [0,19],
+    [0,15], [3,15], [3,8], [0,8],
+];
+
 let pgn_clover = [
   [0,2], [10,2], [10,6], [17,6],
   [17,0], [31,0], [31,4], [23,4],
@@ -201,6 +217,14 @@ var pgn_clover2 = [
   [13,0], [20,0], [20,7], [17,7],
   [17,13], [23,13], [23,19], [15,19],
   [15,16], [8,16], [8,20], [0,20],
+];
+
+var pgn_clover3 = [
+    [0,2], [10,2], [10,4], [17,4],
+    [17,0], [31,0], [31,4], [23,4],
+    [23,12], [30,12], [30,27], [20,27],
+    [20,19], [8,19], [8,24], [3,24],
+    [3,14], [10,14], [10,10], [0,10],
 ];
 
 var pgn_double_edge_cut = [
@@ -248,6 +272,16 @@ var pgn_cavity = [
   [7,12], [4,12], [4,15], [7,15],
   [7,18], [9,18], [9,20], [11,20],
   [11,28], [8,28], [8,21], [0,21]
+];
+
+var pgn_dragon = [
+  [0,4], [19,4], [19,0], [27,0],
+  [27,2], [31,2], [31,9], [27,9],
+  [27,17], [24,17], [24,19], [21,19],
+  [21,17], [18,17], [18,19], [15,19],
+  [15,17], [12,17], [12,19], [9,19],
+  [9,17], [6,17], [6,21], [0,21],
+  [0,12], [4,12], [4,9], [0,9],
 ];
 
 function _write_data(ofn, data) {
@@ -967,6 +1001,17 @@ function RPRPInit(_rl_pgon, _debug) {
     }
   }
 
+  let DP_cost = [],
+      DP_partition = [],
+      DP_bower = [],
+      DP_rect = [];
+  for (let i=0; i<(2*B.length*B.length); i++) {
+    DP_cost.push(-1);
+    DP_partition.push("XXXXXXXXXXXX");
+    DP_bower.push(-1);
+    DP_rect.push(-1);
+  }
+
   // RPRP context
   //
   return {
@@ -989,7 +1034,11 @@ function RPRPInit(_rl_pgon, _debug) {
     "Js" : Js,
     "Je" : Je,
 
-    "DP" : {}
+    "DP_partition": DP_partition,
+    "DP_bower": DP_bower,
+    "DP_rect": DP_rect,
+
+    "DP_cost" : DP_cost
   };
 
 }
@@ -1219,6 +1268,12 @@ function RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b) {
 //   intersects the quarry rectangle on the side of the cleave cut. See below for a discussion of
 //   the test.
 //
+
+// STILL WRONG
+// pgc_custom1 is failing for both the cleave enumeration and the side cleave
+// there are more special cases here that we're not taking into account.
+//
+
 function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
@@ -1251,7 +1306,8 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     if      (cleave_choice[i] == '-') { _code = '-'; }
     else if (cleave_choice[i] == '*') { _code = '*'; }
     else if (cleave_choice[i] == 'c') { _code = '*'; }
-    else if (cleave_choice[i] == 'b') { _code = '*'; }
+    //else if (cleave_choice[i] == 'b') { _code = '*'; }
+    else if (cleave_choice[i] == 'b') { _code = 'b'; }
     else if (cleave_choice[i] == 'x') { _code = 'x'; }
     else if (cleave_choice[i] == 'X') { _code = 'x'; }
     //else { console.log("!!!!", i, cleave_choice[i]); }
@@ -1305,7 +1361,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   if ((_undock[2] == 1) && (redux[5] == '*') && (redux[6] == '*')) { return 0; }
 
 
-  if (_debug) { console.log("#vc.cp3"); }
+  if (_debug) { console.log("#vc.cp3, redux:", redux.join(""), "cbt:", cleave_border_type.join("") ); }
 
   // bridge tests
   // cleave line bridges two borders, so is moveable, invalidating choice
@@ -1490,7 +1546,7 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
 
   }
 
-  let cleave_cuts = [];
+  let cleave_choices = [];
 
   do {
 
@@ -1511,14 +1567,66 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
     }
 
     if (RPRP_valid_cleave( ctx, Rg, cleave_choice, cleave_border_type )) {
-      cleave_cuts.push(cleave_choice);
+      cleave_choices.push(cleave_choice);
     }
 
     _ivec_incr(bvec);
   } while ( !_ivec0(bvec) );
 
-  return cleave_cuts;
+  return cleave_choices;
 }
+
+function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b) {
+  let Js = ctx.Js;
+  let Bij = ctx.Bij;
+
+  // 2--3
+  // |  |
+  // 1--0
+  //
+  let Rg = [
+    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
+    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
+  ];
+
+  let cleave_profile = PRRPCleaveProfile( ctx, g_s, g_e, g_a, g_b );
+  let cleave_choices = RPRP_cleave_enumerate( ctx, g_s, g_e, g_a, g_b, cleave_profile );
+
+  let cleave_cuts = [];
+
+  for (let i=0; i < cleave_choices.length; i++) {
+
+    let cc = cleave_choices[i];
+
+    if (cc[0] == '*') {
+      cleave_cuts.push([
+        Js[0][ Rg[0][1] ][ Rg[0][1] ], 
+        Js[2][ Rg[0][1] ][ Rg[0][1] ], 
+        [ Rg[0][0], Rg[0][1] ]
+      ]);
+    }
+
+    if (cc[1] == '*') {
+      if (cc[0] == '*') {
+        cleave_cuts.push([
+          Js[3][ Rg[0][1] ][ Rg[0][1] ], 
+          Js[0][ Rg[0][1] ][ Rg[0][1] ], 
+          [ Rg[0][0], Rg[0][1] ]
+        ]);
+      }
+      else if (cc[0] == 'b') {
+      }
+    }
+
+    for (let j=0; j<cc.length; jj++) {
+    }
+
+  }
+
+
+};
 
 
 //------
@@ -1540,7 +1648,14 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
 // implied by the quarry rectangle.
 // 
 //
-function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
+
+// wrong.
+// what did you expect without taking into account the orientation of the g_s and g_e points?
+// Tests missed it because tests had an orientation preferred.
+// Shame on you for not thinking about it more and shame on you for not testing the cases
+// you told yourself you were going to test.
+//
+function _RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
 
   _debug = ((typeof _debug === "undefined") ? false : _debug);
 
@@ -1619,6 +1734,11 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
     while ((b_jmp >= 0) &&
            (g_b[ldim] <= Rl[r_idx])) {
 
+
+      if (_debug) {
+        console.log("  b_jmp:", b_jmp, "g_b[", ldim, "]:", g_b[ldim], "Rl[", r_idx, "]:", Rl[r_idx]);
+      }
+
       let b_jmp_nxt = Js[idir][ g_b[1] ][ g_b[0] ];
       if (b_jmp_nxt < 0) { break; }
 
@@ -1642,6 +1762,132 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
 
   return guillotine_list;
 }
+
+function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
+
+  _debug = ((typeof _debug === "undefined") ? false : _debug);
+
+  let B = ctx.B;
+  let Bt = ctx.Bt;
+  let Bij = ctx.Bij;
+
+  let Js = ctx.Js;
+
+  let guillotine_list = [];
+
+  // grid rectangle corners (cw)
+  //
+  //  2-->--3
+  //  |     |
+  //  ^     v
+  //  |     |
+  //  1--<--0
+  //
+  let Rg = [
+    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
+    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
+  ];
+
+  let s_idx = Bij[ g_s[1] ][ g_s[0] ];
+  let e_idx = Bij[ g_e[1] ][ g_e[0] ];
+
+  let oppo = [1,0, 3,2];
+  let billet_idir = [ 1, 2, 0, 3 ];
+  let ltgt_f = [ -1, 1, 1, -1 ];
+
+  // We start from Rg_0 (lower right) and go clockwise around.
+  //
+  // From the start point Rg_i, we take the current base point, g_cur,
+  // as the first non interior grid point from Rg_i, where Rg_i
+  // could itself be the first non-interior point.
+  // We then advance to the next border point and then look backwards.
+  // This gives us a candidate 1-cut.
+  // If the candidate 1-cut is within the bounds of the quarry rectangle
+  // side *and* it's advanced past our current base point, we add it
+  // to the guillotine list.
+  //
+  // If we're still within bounds, advance the current base point, g_cur,
+  // to the next border corner (by using the border jump structure, Js)
+  // and continue.
+  //
+  // The quarry rectangle is always ordered in clockwise order so
+  // the order should be correct.
+  // Additional checks need to be done to make sure the 1-cuts
+  // are within the fenced region.
+  //
+
+  for (let r_idx=0; r_idx < Rg.length; r_idx++) {
+
+    let r_nxt = (r_idx + 1) % Rg.length;
+    let idir = billet_idir[r_idx];
+    let rdir = oppo[idir];
+
+    // See if our current base point is on the border already and,
+    // if it is, take it.
+    // If not, we're on an interior point so advance to the first
+    // border point in the appropriate direction.
+    //
+    let b_idx_cur = Bij[ Rg[r_idx][1] ][ Rg[r_idx][0] ];
+    if (b_idx_cur < 0) {
+      b_idx_cur = Js[idir][ Rg[r_idx][1] ][ Rg[r_idx][0] ];
+    }
+
+    let g_cur = [ B[ b_idx_cur ][0], B[ b_idx_cur ][1] ];
+
+    // xy is the axis dimension we're iterating towards.
+    // _c is the factor so that we can do the less than or greater
+    // than tests below.
+    //
+
+    let xy = r_idx % 2;
+    let _c = ltgt_f[r_idx];
+
+    if (_debug) {
+      console.log("\nqsr: Rg:", Rg, "r_idx:", r_idx);
+      console.log("b_idx_cur:", b_idx_cur, "g_cur:", g_cur, "xy:", xy, "_c:", _c, "idir:", idir, "rdir:", rdir);
+    }
+
+    while ((b_idx_cur >= 0) &&
+           ( (_c*(g_cur[ xy ] - Rg[r_nxt][ xy ])) < 0)) {
+
+      // shoot ahead to next border point
+      //
+      let b_idx_nxt = Js[idir][ g_cur[1] ][ g_cur[0] ];
+      if (b_idx_nxt < 0) { break; }
+      let g_nxt = [ B[ b_idx_nxt ][0], B[ b_idx_nxt ][1] ];
+
+      // then look back to see border point behind us
+      //
+      let b_idx_prv = Js[rdir][ g_nxt[1] ][ g_nxt[0] ];
+      let g_prv = [ B[ b_idx_prv ][0], B[ b_idx_prv ][1] ];
+
+      if (_debug) {
+        console.log("  b_idx_[prv|cur|nxt]:", b_idx_prv, b_idx_cur, b_idx_nxt, ", g_[prv|cur|nxt]:", g_prv, g_cur, g_nxt);
+      }
+
+      // make sure 1-cut is within bounds of quarry rectangle side and
+      // has made progress past the current g_cur pointer.
+      //
+      if ( ((_c*(g_prv[xy] - Rg[r_idx][xy])) >= 0) &&
+           ((_c*(g_nxt[xy] - Rg[r_nxt][xy])) <= 0) &&
+           ((_c*(g_prv[xy] - g_cur[xy])) >= 0) ) {
+        guillotine_list.push( [b_idx_nxt, b_idx_prv] );
+      }
+
+      // advance and repeat
+      //
+      g_cur = g_nxt;
+      b_idx_cur = b_idx_nxt;
+
+    }
+
+  }
+
+  return guillotine_list;
+}
+
 
 // lightly tested
 //
@@ -1906,6 +2152,21 @@ function RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b) {
   return 1;
 }
 
+// untested
+//
+//
+// The dynamic programming array is of size |B| x |B| x 2.
+// Here it's giving back a single index, so it's considering
+// a flattened array, but it can be thought of as the
+// first dimension of the start general border point, g_s,
+// the end general border point, g_e, and what corner the
+// adit point, g_a, is on.
+//
+// If a 1-cut, the adit index is 0 if on g_s or 1 if on g_e.
+// For a 2-cut, g_s and g_e are not inline, so the adit
+// index is taken to be 0 if to the right of the (g_s,g_e) line
+// and 1 otherwise.
+//
 function RPRP_DP_idx(ctx, g_s, g_e, g_a) {
   let B = ctx.B;
   let Bij = ctx.Bij;
@@ -1924,11 +2185,34 @@ function RPRP_DP_idx(ctx, g_s, g_e, g_a) {
 
   //....
 
-  let t = 0;
+  let t = -1;
+  if      ((g_a[0] == g_s[0]) && (g_a[1] == g_s[1])) { t=0; }
+  else if ((g_a[0] == g_e[0]) && (g_a[1] == g_e[1])) { t=1; }
+  else {
+
+    let s3 = [g_s[0], g_s[1], 0];
+    let e3 = [g_e[0], g_e[1], 0];
+    let a3 = [g_a[0], g_a[1], 0];
+
+    let v = cross3( v_sub(a3,s3), v_sub(e3,s3) );
+
+    if (v[2] > 0) { t = 0; }
+    else          { t = 1; }
+
+  }
+
+  if (t<0) { return -1; }
 
   let dp_idx = (2*idx_s) + (2*n*idx_e) + t;
 
   return dp_idx;
+}
+
+function _Ink(g_a, g_b) {
+  let dx = (g_b[0] - g_a[0]);
+  let dy = (g_b[1] - g_a[1]);
+
+  return Math.abs(2*dx*dy)
 }
 
 //WIP!!
@@ -1951,7 +2235,34 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a) {
     g_a = B[0];
   }
 
+  let dp_idx = RPRP_DP_idx(ctx, g_s, g_e, g_a);
+  if ( ctx.DP_cost[dp_idx] >= 0 ) { return ctx.DP_cost[dp_idx]; }
+
+  for (let j=0; j<Y.length; j++) {
+    for (let i=0; i<X.length; i++) {
+      let g_b = [i,j];
+      if (!RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b)) { continue; }
+
+      let rect_cost = _Ink(g_a, g_b);
+      let recur_side_cost = 0;
+      let recur_cleave_cost = 0;
+
+      let cleave_side = RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b);
+      for (let k=0; k<cleave_side.length; k++) {
+        recur_side_cost += RPRP_MIRP(ctx, cleave_side[k][0], cleave_side[k][1], cleave_side[k][0]);
+      }
+
+      let cleave_profile = RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b);
+      let cleave_a = RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile);
+
+
+
+
+    }
+  }
+
   console.log(g_s, g_e, g_a);
+  console.log(" 0:", B[0], RPRP_DP_idx(ctx, B[0], B[0], B[0]));
 
 
   //for (let j=0; j<Y.length; j++) {
@@ -1971,6 +2282,7 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a) {
     console.log( row_s.join("") );
   }
 
+  console.log( B.length, B.length*B.length*2, RPRP_DP_idx(ctx, g_s, g_e, g_a) );
 
 }
 
@@ -2020,6 +2332,15 @@ function _main_checks() {
   let v_3 = _expect( cc_3,
     [ ['x','b','b','-','b','x','X','X'] ],
     _sfmt("pgn_clover_3", 16, 'r') );
+
+  /*
+  let grid_info_3a = RPRPInit(pgn_clover3);
+  let cp_3a = RPRPCleaveProfile(grid_info_3a, [5,7], [6,5], [6,7], [3,3]);
+  let cc_3a = RPRP_cleave_enumerate(grid_info_3a, [5,7], [6,5], [6,7], [3,3], cp_3a);
+  let v_3a = _expect( cc_3a,
+    [ ['x','b','b','-','b','x','X','X'] ],
+    _sfmt("pgn_clover_3a", 16, 'r') );
+  */
 
   let grid_info_4 = RPRPInit(pgn_clover);
   let cp_4 = RPRPCleaveProfile(grid_info_4, [3,3], [3,4], [3,3], [6,7]);
@@ -2081,49 +2402,58 @@ function _main_checks() {
   g_s = [1,4]; g_e = [2,4];
   g_a = [1,4]; g_b = [5,5];
 
-  let cp_10 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  //let cp_10 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
   let cut_10 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
   let v_10 = _expect( cut_10,
-    [ [ 6, 53 ], [ 10, 7 ], [ 52, 46 ], [46,11] ],
+     [[7,10],[53,6],[46,52],[11,46]],
     _sfmt("pgn_guillotine_10", 16, 'r') );
 
-  g_s = [1,4]; g_e = [2,4];
+  g_s = [2,4]; g_e = [1,4];
   g_a = [1,4]; g_b = [4,5];
 
-  let cp_11 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  //let cp_11 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
   let cut_11 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
   let v_11 = _expect( cut_11,
-    [ [ 6, 53 ], [ 10, 7 ] ],
+    [[7,10],[53,6]],
     _sfmt("pgn_guillotine_11", 16, 'r') );
 
 
-  g_s = [1,4]; g_e = [2,4];
+  g_s = [2,4]; g_e = [1,4];
   g_a = [1,4]; g_b = [13,5];
 
-  let cp_12  = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  //let cp_12  = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
   let cut_12 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
   let v_12 = _expect( cut_12,
-    [ [ 6, 53 ], [ 10, 7 ], [17,12], [26,18], [31,27], [ 52, 46 ] ],
+    [[27,31],[18,26],[12,17],[7,10],[53,6],[46,52]],
     _sfmt("pgn_guillotine_12", 16, 'r') );
 
 
-  g_s = [1,4]; g_e = [2,4];
+  g_s = [2,4]; g_e = [1,4];
   g_a = [1,4]; g_b = [12,5];
 
-  let cp_13 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  //let cp_13 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
   let cut_13 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
   let v_13 = _expect( cut_13,
-    [ [ 6, 53 ], [ 10, 7 ], [17,12], [26,18], [ 52, 46 ] ],
+    [[18,26],[12,17],[7,10],[53,6],[46,52]],
     _sfmt("pgn_guillotine_13", 16, 'r') );
 
   g_s = [1,4]; g_e = [2,4];
   g_a = [1,4]; g_b = [9,5];
 
-  let cp_14 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  //let cp_14 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
   let cut_14 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
   let v_14 = _expect( cut_14,
-    [ [ 6, 53 ], [ 10, 7 ], [17,12], [ 52, 46 ] ],
+    [[12,17],[7,10],[53,6],[46,52]],
     _sfmt("pgn_guillotine_14", 16, 'r') );
+
+  /*
+  let grid_info_15 = RPRPInit(pgn_clover3);
+  let cp_15 = RPRPCleaveProfile(grid_info_15, [5,7], [6,5], [6,7], [3,3]);
+  let cc_15 = RPRP_cleave_enumerate(grid_info_15, [5,7], [6,5], [6,7], [3,3], cp_15);
+  let v_15 = _expect( cc_15,
+    [ ],
+    _sfmt("pgn_clover_15", 16, 'r') );
+    */
 
 }
 
@@ -2245,6 +2575,66 @@ function _main_pir_test() {
 
 }
 
+function _main_custom() {
+
+  let g_s = [1,4],
+      g_e = [2,5],
+      g_a = [1,5],
+      g_b = [4,3];
+
+  let grid_info_x = RPRPInit(pgn_custom1);
+
+  _print_rprp(grid_info_x);
+
+  let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, 1);
+
+  console.log(cp_x.join(""));
+  for (let i=0; i<cc_x.length; i++) {
+    console.log(cc_x[i].join(""));
+  }
+
+  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, 1);
+
+  console.log(cc_x);
+  console.log(cs_x);
+
+
+  //let v_x = _expect( cc_x, [], _sfmt("pgn_corner_x", 16, 'r') );
+
+
+}
+
+function _main_custom_1() {
+
+  let g_s = [1,4],
+      g_e = [2,5],
+      g_a = [1,5],
+      g_b = [10,3];
+
+  let grid_info_x = RPRPInit(pgn_dragon);
+
+  _print_rprp(grid_info_x);
+
+  let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, 1);
+
+  console.log(cp_x.join(""));
+  for (let i=0; i<cc_x.length; i++) {
+    console.log(cc_x[i].join(""));
+  }
+
+  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, 1);
+
+  console.log(cc_x);
+  console.log(cs_x);
+
+
+  //let v_x = _expect( cc_x, [], _sfmt("pgn_corner_x", 16, 'r') );
+
+
+}
+
 function _main_mirp_test() {
   let ctx = RPRPInit( pgn_pinwheel1 );
   RPRP_MIRP(ctx);
@@ -2291,7 +2681,9 @@ if ((typeof require !== "undefined") &&
   else if (op == 'example') { _main_example(process.argv.slice(2)); }
   else if (op == 'rprpi')   { _main_rprpinit_test(); }
   else if (op == 'pir')     { _main_pir_test(); }
-  else if (op == 'mirp')     { _main_mirp_test(); }
+  else if (op == 'mirp')    { _main_mirp_test(); }
+  else if (op == 'custom')  { _main_custom(); }
+  else if (op == 'custom.1')  { _main_custom_1(); }
 }
 
 //                          __    
