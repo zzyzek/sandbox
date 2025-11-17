@@ -1306,8 +1306,8 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     if      (cleave_choice[i] == '-') { _code = '-'; }
     else if (cleave_choice[i] == '*') { _code = '*'; }
     else if (cleave_choice[i] == 'c') { _code = '*'; }
-    //else if (cleave_choice[i] == 'b') { _code = '*'; }
-    else if (cleave_choice[i] == 'b') { _code = 'b'; }
+    else if (cleave_choice[i] == 'b') { _code = '*'; }
+    //else if (cleave_choice[i] == 'b') { _code = 'b'; }
     else if (cleave_choice[i] == 'x') { _code = 'x'; }
     else if (cleave_choice[i] == 'X') { _code = 'x'; }
     //else { console.log("!!!!", i, cleave_choice[i]); }
@@ -2100,7 +2100,9 @@ function _Ink(g_a, g_b) {
 }
 
 //WIP!!
-function RPRP_MIRP(ctx, g_s, g_e, g_a) {
+function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl) {
+  lvl = ((typeof lvl === "undefined") ? 0 : lvl);
+
   let B = ctx.B,
       Bt = ctx.Bt,
       Bij = ctx.Bij,
@@ -2119,6 +2121,8 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a) {
     g_a = B[0];
   }
 
+  console.log("mirp:", lvl, g_s, g_e, g_a);
+
   let dp_idx = RPRP_DP_idx(ctx, g_s, g_e, g_a);
   if ( ctx.DP_cost[dp_idx] >= 0 ) { return ctx.DP_cost[dp_idx]; }
 
@@ -2133,7 +2137,7 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a) {
 
       let cleave_side = RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b);
       for (let k=0; k<cleave_side.length; k++) {
-        recur_side_cost += RPRP_MIRP(ctx, cleave_side[k][0], cleave_side[k][1], cleave_side[k][0]);
+        recur_side_cost += RPRP_MIRP(ctx, cleave_side[k][0], cleave_side[k][1], cleave_side[k][0], lvl+1);
       }
 
       let cleave_profile = RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b);
