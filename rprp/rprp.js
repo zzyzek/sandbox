@@ -1603,10 +1603,88 @@ function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b) {
     [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
   ];
 
-  let cleave_profile = PRRPCleaveProfile( ctx, g_s, g_e, g_a, g_b );
+  let oppo = [ 1,0, 3,2 ];
+
+  let cleave_sched = [];
+
+  let cleave_profile = RPRPCleaveProfile( ctx, g_s, g_e, g_a, g_b );
   let cleave_choices = RPRP_cleave_enumerate( ctx, g_s, g_e, g_a, g_b, cleave_profile );
 
-  let cleave_cuts = [];
+  let lu_e_idir = [ 0, 3, 1, 2 ];
+  let lu_e_tdir = [ 2, 0, 3, 1 ];
+
+  let lu_o_idir = [ 3, 1, 2, 0 ];
+
+  for (let cci=0; cci < cleave_choices.length; cci++) {
+    let cc = cleave_choices[cci];
+
+    let cleave_cuts = [];
+    for (let i=0; i<4; i++) {
+      let even_cleave_idx = 2*i;
+      let odd_cleave_idx = (2*i)+1;
+
+      let e_idir = lu_e_idir[i];
+      let e_tdir = lu_e_tdir[i];
+
+      let o_idir = lu_o_idir[i];
+
+      if (cc[even_cleave_idx] == '*') {
+        cleave_cuts.push([
+          Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
+          Js[ e_tdir ][ Rg[i][1] ][ Rg[i][0] ],
+          [ Rg[i][0], Rg[i][1] ]
+        ]);
+      }
+
+      if (cc[odd_cleave_idx] == '*') {
+        let endcut_idx = Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ];
+        if (cc[even_cleave_idx] == '*') {
+          endcut_idx = Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ];
+        }
+
+        cleave_cuts.push([
+          Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+          endcut_idx,
+          [ Rg[i][0], Rg[i][1] ]
+        ]);
+      }
+
+    }
+
+    cleave_sched.push( cleave_cuts );
+
+  }
+
+  return cleave_sched;
+
+  // only possibility is that up direction is
+  // a cleave cut, so take the top endpoint using
+  // the lower right quarry endpoint as a base.
+  //
+  if (cc[0] == '*') {
+    cleave_cuts.push([
+      Js[0][ Rg[0][1] ][ Rg[0][1] ], 
+      Js[2][ Rg[0][1] ][ Rg[0][1] ], 
+      [ Rg[0][0], Rg[0][1] ]
+    ]);
+  }
+
+  if (cc[1] == '*') {
+    if (cc[0] == '*') {
+      cleave_cuts.push([
+        Js[3][ Rg[0][1] ][ Rg[0][1] ], 
+        Js[0][ Rg[0][1] ][ Rg[0][1] ], 
+        [ Rg[0][0], Rg[0][1] ]
+      ]);
+    }
+    else {
+      cleave_cuts.push([
+        Js[2][ Rg[0][1] ][ Rg[0][1] ], 
+        Js[0][ Rg[0][1] ][ Rg[0][1] ], 
+        [ Rg[0][0], Rg[0][1] ]
+      ]);
+    }
+  }
 
   for (let i=0; i < cleave_choices.length; i++) {
 
@@ -2108,7 +2186,7 @@ function _Ink(g_a, g_b) {
   let dx = (g_b[0] - g_a[0]);
   let dy = (g_b[1] - g_a[1]);
 
-  return Math.abs(2*dx*dy)
+  return Math.abs(2*(dx+dy))
 }
 
 //WIP!!
@@ -2558,6 +2636,12 @@ function _main_custom_2() {
 
   console.log(cc_x);
   console.log(cs_x);
+
+  let cic = RPRPQuarryCleaveCuts(grid_info_x, g_s, g_e, g_a, g_b);
+
+  for (let i=0; i<cic.length; i++) {
+    console.log( "quarry cleave cut sched[", i, "]:", JSON.stringify(cic[i]));
+  }
 
 
   //let v_x = _expect( cc_x, [], _sfmt("pgn_corner_x", 16, 'r') );
