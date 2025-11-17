@@ -773,6 +773,35 @@ Two auxiliary structures:
 * $C$ - the original (primitive) border points and types
 * $X$, $Y$ - arrays that that hold the real world $x$ and $y$ coordinates
 
+###### 2025-11-17
+
+I'm a little nervouse about some of the case analysis.
+
+One issue is when there's a potential cleave cut but the other corner is a border point.
+See ( $g _ s = (2,5), g _ e = (3,6), g _ a = (2,6), g _ b = (6,3)$ ), where the cleave
+cut goes down at $(6,3)$:
+
+| |
+|---|
+| ![polygon horseshoe](viz/img/pgn_horseshoe.png) |
+
+Some things to note:
+
+* If there's a quarry corner with a potential cleave (open) with the other quarry corner a border,
+  it must be an inside corner
+* If there's a potential cleave, it must terminate at an interior corner ( $(6,3)$ in the picture).
+* If it's to be picked up by the cleave enumeration, the quarry corner on the other side must
+  have two open cleave positions
+  - if none, then it would be picked up by side quarry enumeration
+  - if one the first direction (down), then again side quarry enumeration
+  - if one in the other direction (left), then the cleave down is possible but
+    would still be possible in the sub-region during the recursion
+  - if two, then again picked up by side quarry enumeration
+
+So I think we've convinced ourselves that during a cleave enumeration, if there's a quarry
+corner with one border cleave and one open cleave, the open cleave shouldn't be enumerated.
+It'll either remain open or be picked up by the recursion.
+
 
 
 

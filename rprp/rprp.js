@@ -284,6 +284,18 @@ var pgn_dragon = [
   [0,12], [4,12], [4,9], [0,9],
 ];
 
+// testing cleave enumerating when a quarry corner has a border
+// and open slot available.
+//
+var pgn_horseshoe = [
+  [0,0], [5,0], [5,3], [9,3],
+  [9,5], [13,5], [13,0], [17,0],
+  [17,3], [20,3], [20,8], [17,8],
+  [17,18], [7,18], [7,20], [2,20],
+  [2,15], [5,15], [5,11], [2,11],
+  [2,8], [0,8],
+];
+
 function _write_data(ofn, data) {
   var fs = require("fs");
   return fs.writeFileSync(ofn, JSON.stringify(data, undefined, 2));
@@ -2523,6 +2535,36 @@ function _main_custom_1() {
 
 }
 
+function _main_custom_2() {
+
+  let g_s = [2,5],
+      g_e = [3,6],
+      g_a = [2,6],
+      g_b = [6,3];
+
+  let grid_info_x = RPRPInit(pgn_horseshoe);
+
+  _print_rprp(grid_info_x);
+
+  let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, 1);
+
+  console.log(cp_x.join(""));
+  for (let i=0; i<cc_x.length; i++) {
+    console.log(cc_x[i].join(""));
+  }
+
+  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, 1);
+
+  console.log(cc_x);
+  console.log(cs_x);
+
+
+  //let v_x = _expect( cc_x, [], _sfmt("pgn_corner_x", 16, 'r') );
+
+
+}
+
 function _main_mirp_test() {
   let ctx = RPRPInit( pgn_pinwheel1 );
   RPRP_MIRP(ctx);
@@ -2572,6 +2614,7 @@ if ((typeof require !== "undefined") &&
   else if (op == 'mirp')    { _main_mirp_test(); }
   else if (op == 'custom')  { _main_custom(); }
   else if (op == 'custom.1')  { _main_custom_1(); }
+  else if (op == 'custom.2')  { _main_custom_2(); }
 }
 
 //                          __    
