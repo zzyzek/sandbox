@@ -1867,11 +1867,13 @@ function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b, _debug) {
       cleave_cuts.push( cc );
     }
 
+    if (cleave_cuts.length == 0) { continue; }
 
     // sort and deduplicate
     //
     let dedup_cleave_cuts = [];
     cleave_cuts.sort( _cleave_cmp );
+
     dedup_cleave_cuts.push( cleave_cuts[0] );
     for (let i=1; i<cleave_cuts.length; i++) {
       if (cleave_cuts[i-1][0] != cleave_cuts[i][0]) {
@@ -2015,10 +2017,14 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
       if ( ((_c*(g_prv[xy] - Rg[r_idx][xy])) >= 0) &&
            ((_c*(g_nxt[xy] - Rg[r_nxt][xy])) <= 0) &&
            ((_c*(g_prv[xy] - g_cur[xy])) >= 0) ) {
-        guillotine_list.push( [b_idx_nxt, b_idx_prv] );
 
-        if (_debug) {
-          console.log("  +++:", b_idx_nxt, b_idx_prv);
+        let _d = abs_sum_v( B[b_idx_prv], B[b_idx_nxt] );
+        if (_d != Math.abs(b_idx_nxt - b_idx_prv)) {
+          guillotine_list.push( [b_idx_nxt, b_idx_prv] );
+
+          if (_debug) {
+            console.log("  +++:", b_idx_nxt, b_idx_prv);
+          }
         }
 
 
@@ -2218,6 +2224,9 @@ function RPRP_valid_R(ctx, g_a, g_b) {
   ];
 
   let area = abs_sum_v( v_sub(Rg[0], Rg[1]) ) * abs_sum_v( v_sub(Rg[1], Rg[2]) );
+
+  //console.log("## valid_R area =", area, "g_a:", g_a, "g_b:", g_b);
+
   if (area == 0) { return 0; }
 
   for (let idx=0; idx<pq_idir.length; idx++) {
@@ -2365,6 +2374,15 @@ function _Ink(g_a, g_b) {
   return Math.abs(2*(dx+dy))
 }
 
+function _ws(n, s, pfx) {
+  n = ((typeof n === "undefined") ? 0 : n);
+  s = ((typeof s === "undefined") ? ' ' : s);
+  pfx = ((typeof pfx === "undefined") ? "" : pfx);
+  let a = [];
+  for (let i=0; i<n; i++) { a.push(s); }
+  return pfx + a.join("");
+}
+
 //WIP!!
 function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl) {
   lvl = ((typeof lvl === "undefined") ? 0 : lvl);
@@ -2387,7 +2405,7 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl) {
     g_a = B[0];
   }
 
-  console.log("\nmirp" + lvl.toString() + ":", "g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
+  console.log("\n" + _ws(2*lvl), "mirp" + lvl.toString() + ":", "g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
 
   let dp_idx = RPRP_DP_idx(ctx, g_s, g_e, g_a);
   if ( ctx.DP_cost[dp_idx] >= 0 ) { return ctx.DP_cost[dp_idx]; }
@@ -2402,13 +2420,14 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl) {
       let g_b = [i,j];
       if (!RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b)) { continue; }
 
-      console.log("  mirp." + lvl.toString() + ":", "g_b:", g_b);
+      console.log( _ws(2*lvl), "mirp." + lvl.toString() + ":", "g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b);
+      //console.log( _ws(2*lvl), "mirp." + lvl.toString() + ":", "g_a:", g_a, "g_b:", g_b);
 
       let rect_cost = _Ink(g_a, g_b);
 
       let cut_sched = RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b);
 
-      console.log("  mirp." + lvl.toString() + ":", "cut_sched:", cut_sched);
+      console.log(_ws(2*lvl), "mirp." + lvl.toString() + ":", "cut_sched:", cut_sched);
 
       if (cut_sched.length == 0) {
         if (_min_cost < 0) { _min_cost = rect_cost; }
@@ -2450,6 +2469,8 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl) {
     console.log("DPCOST!", _min_cost, _min_rect, _min_bower, _min_partition);
 
   }
+
+  console.log( _ws(2*lvl), "mirp." + lvl.toString(), "<<<");
 
   return _min_cost;
 
