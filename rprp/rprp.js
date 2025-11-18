@@ -421,6 +421,16 @@ function _print_rprp(ctx) {
 
 }
 
+function _print_cleave(cleave) {
+
+  let g = [];
+  for (let i=0; i<cleave.length; i+=2) {
+    g.push( cleave[i] + cleave[i+1] );
+  }
+  return g.join(" ");
+
+}
+
 // helper functions
 //
 
@@ -1588,13 +1598,79 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
   return cleave_choices;
 }
 
-function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b) {
+function _cleave_cmp(a,b) {
+  if (a[0] < b[0]) { return -1; }
+  if (a[0] > b[0]) { return  1; }
+  return 0;
+}
+
+// return an array of arrays representing the available cuts
+// for the quarry rectangle.
+//
+// Example:
+//
+// [
+//   [[3,15,[2,3]],[28,3,[2,3]]],
+//   [[28,30,[2,3]],[30,15,[2,3]]],
+//   [[3,15,[2,3]],[28,30,[2,3]],[30,3,[2,3]]]
+// ]
+//
+// * Find the cleave profile
+// * Use the cleave profile to enumerate valid cleave choices
+// * Find border points implied by clave choices to create cut
+//   schedule
+//
+// Finding fence portions for the cuts can get a little complicated
+// so it's easier to add two cuts per cleave in the cleave enumeration
+// and remove duplicates at the end.
+//
+// In more detail:
+//
+// w.l.o.g., consider the bottom right endpoint of Rg (Rg_0).
+// We say the 'even' cleave, if it exists, is the one shooting out to the right
+// and the 'odd' cleave, if it exists, is the one shooting down.
+//
+// If the even cleave exists, add the two-cut (Js[0][Rg_0], Js[2][Rg_0], Rg_0).
+// If the odd cleave cut next to it (clockwise) exists, add an additional
+// two-cut of (Js[0][Rg_0], Js[3][Rg_0], Rg_0), otherwise add a 1-cut
+// (Js[0][Rg_0], Js[1][Rg_0], Rg_0).
+//
+// If the odd cleave cut exists, add the two-cut of (Js[3][Rg_0], Js[1][Rg_0], Rg_0).
+// If the previouse (counterclockwise) even cleave exists, add the two-cut
+// (Js[0][Rg_0], Js[3][Rg_0], Rg_0), otherwise add the one-cut (Js[3][Rg_0], Js[2][Rg_0], Rg_0).
+//
+// Do this for all endpoints around Rg, rotating the idirs etc clockwise by pi/2 at endpoint
+// location.
+//
+// ---
+//
+// At the end, remove duplicate one-cut and two-cuts and put them in a cleave cut schedule.
+//
+// ---
+//
+// Discussion:
+//
+// All one-cut and two-cuts should be non-overlapping (besides shared endpoints), so the
+// deduplication sort that orders by first border index should be sufficient.
+//
+// Cleave cuts should only ever be on quarry rectangle (Rg) endpoints that are proper interior grid points.
+// If a quarry rectangle endpoint has an open grid line in one direction and a border edge in the other,
+// it is an error (I believe) for a cleave cut to be present on the open grid line.
+// Should the minimum cut involve a cleave cut at this grid line, the cleave will be discovered
+// during the recursion when processing the sub-region.
+//
+//
+function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b, _debug) {
+  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
   let Js = ctx.Js;
   let Bij = ctx.Bij;
 
-  // 2--3
-  // |  |
-  // 1--0
+  //
+  //  5    6    7
+  //     2---3
+  //  4  |   |  0
+  //     1---0
+  //  3    2    1
   //
   let Rg = [
     [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
@@ -1607,9 +1683,23 @@ function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b) {
 
   let cleave_sched = [];
 
+  // Cleave profile is the pattern (e.g. b...XXxx),
+  // Cleave choice is an enumeration of those patterns, choosing a cleave if valid
+  //   (e.g. b-*-XXxx, b--*XXxx, b-**XXxx)
+  // Side cleave cuts are guillotine cuts that are shaved off of the quarry rectangle
+  //   side whose regions don't include the quarry rectangle endpoints..
+  //
+  // The cleave_choices is the one we use to create the actual two-cut border points and
+  // quarry adit point.
+  // For every cleave_choice (deduplicated) realization, we add all the side_cleve_cuts to it
+  //   and put it in the schedule.
+  //
   let cleave_profile = RPRPCleaveProfile( ctx, g_s, g_e, g_a, g_b );
   let cleave_choices = RPRP_cleave_enumerate( ctx, g_s, g_e, g_a, g_b, cleave_profile );
+  let side_cleave_cuts = RPRP_enumerate_quarry_side_region( ctx, g_s, g_e, g_a, g_b );
 
+  // lookup tables for even/odd idirs along with their perpendicular directions.
+  //
   let lu_e_idir = [ 0, 3, 1, 2 ];
   let lu_e_tdir = [ 2, 0, 3, 1 ];
 
@@ -1617,6 +1707,8 @@ function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b) {
 
   for (let cci=0; cci < cleave_choices.length; cci++) {
     let cc = cleave_choices[cci];
+
+    if (_debug) { console.log("qcc"); }
 
     let cleave_cuts = [];
     for (let i=0; i<4; i++) {
@@ -1627,95 +1719,115 @@ function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b) {
       let e_tdir = lu_e_tdir[i];
 
       let o_idir = lu_o_idir[i];
+      let o_tdir = oppo[e_idir];
 
+      // An even cleave cut implies at least one two-cut with one cut in
+      // the even cleave direction and another in the orthogonal direction
+      // counterclockwise.
+      //
       if (cc[even_cleave_idx] == '*') {
         cleave_cuts.push([
           Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
           Js[ e_tdir ][ Rg[i][1] ][ Rg[i][0] ],
           [ Rg[i][0], Rg[i][1] ]
         ]);
-      }
 
-      if (cc[odd_cleave_idx] == '*') {
-        let endcut_idx = Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ];
-        if (cc[even_cleave_idx] == '*') {
-          endcut_idx = Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ];
+        if (_debug) { console.log("qcc: cci:", cci, "i:", i, "e.0:", cleave_cuts[ cleave_cuts.length-1] ); }
+
+        // if the clockwise neighbor (the 'odd' cleave cut) exists,
+        // add another two-cut.
+        //
+        if (cc[odd_cleave_idx] == '*') {
+          cleave_cuts.push([
+            Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            [ Rg[i][0], Rg[i][1] ]
+          ]);
+
+          if (_debug) { console.log("qcc: cci:", cci, "i:", i, "e.1a:", cleave_cuts[ cleave_cuts.length-1] ); }
         }
 
+        // Otherwise add a one-cut in-line with the quarry edge and the even cleave line.
+        //
+        else {
+          cleave_cuts.push([
+            Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ],
+            Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            [ Rg[i][0], Rg[i][1] ]
+          ]);
+
+          if (_debug) { console.log("qcc: cci:", cci, "i:", i, "e.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+        }
+
+      }
+
+      // An odd cleave cut implies at least one two-cut with one constructed
+      // line in the direction of the odd cleave cut and the other in orthogonal
+      // direction clockwise.
+      //
+      if (cc[odd_cleave_idx] == '*') {
+
         cleave_cuts.push([
+          Js[ o_tdir ][ Rg[i][1] ][ Rg[i][0] ],
           Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
-          endcut_idx,
           [ Rg[i][0], Rg[i][1] ]
         ]);
+
+        if (_debug) { console.log("qcc: cci:", cci, "i:", i, "o.0:", cleave_cuts[ cleave_cuts.length-1] ); }
+
+        // if the previous counterclockwise neighbor (the 'even' cleave cut) exists,
+        // add another two cut with both the even and odd constructed lines.
+        //
+        if (cc[even_cleave_idx] == '*') {
+          cleave_cuts.push([
+            Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            [ Rg[i][0], Rg[i][1] ]
+          ]);
+
+          if (_debug) { console.log("qcc: cci:", cci, "i:", i, "o.1a:", cleave_cuts[ cleave_cuts.length-1] ); }
+
+        }
+
+        // Otherwise add a one-cut in-line with the Rectangle edge and odd cleave cut
+        //
+        else {
+          cleave_cuts.push([
+            Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ],
+            [ Rg[i][0], Rg[i][1] ]
+          ]);
+
+          if (_debug) { console.log("qcc: cci:", cci, "i:", i, "o.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+        }
+
       }
 
     }
 
-    cleave_sched.push( cleave_cuts );
+    // add side cleave cuts
+    //
+    for (let i=0; i<side_cleave_cuts.length; i++) {
+      cleave_cuts.push( side_cleave_cuts[i] );
+    }
+
+
+    // sort and deduplicate
+    //
+    let dedup_cleave_cuts = [];
+    cleave_cuts.sort( _cleave_cmp );
+    dedup_cleave_cuts.push( cleave_cuts[0] );
+    for (let i=1; i<cleave_cuts.length; i++) {
+      if (cleave_cuts[i-1][0] != cleave_cuts[i][0]) {
+        dedup_cleave_cuts.push( cleave_cuts[i] );
+      }
+    }
+
+    cleave_sched.push( dedup_cleave_cuts );
 
   }
 
   return cleave_sched;
-
-  // only possibility is that up direction is
-  // a cleave cut, so take the top endpoint using
-  // the lower right quarry endpoint as a base.
-  //
-  if (cc[0] == '*') {
-    cleave_cuts.push([
-      Js[0][ Rg[0][1] ][ Rg[0][1] ], 
-      Js[2][ Rg[0][1] ][ Rg[0][1] ], 
-      [ Rg[0][0], Rg[0][1] ]
-    ]);
-  }
-
-  if (cc[1] == '*') {
-    if (cc[0] == '*') {
-      cleave_cuts.push([
-        Js[3][ Rg[0][1] ][ Rg[0][1] ], 
-        Js[0][ Rg[0][1] ][ Rg[0][1] ], 
-        [ Rg[0][0], Rg[0][1] ]
-      ]);
-    }
-    else {
-      cleave_cuts.push([
-        Js[2][ Rg[0][1] ][ Rg[0][1] ], 
-        Js[0][ Rg[0][1] ][ Rg[0][1] ], 
-        [ Rg[0][0], Rg[0][1] ]
-      ]);
-    }
-  }
-
-  for (let i=0; i < cleave_choices.length; i++) {
-
-    let cc = cleave_choices[i];
-
-    if (cc[0] == '*') {
-      cleave_cuts.push([
-        Js[0][ Rg[0][1] ][ Rg[0][1] ], 
-        Js[2][ Rg[0][1] ][ Rg[0][1] ], 
-        [ Rg[0][0], Rg[0][1] ]
-      ]);
-    }
-
-    if (cc[1] == '*') {
-      if (cc[0] == '*') {
-        cleave_cuts.push([
-          Js[3][ Rg[0][1] ][ Rg[0][1] ], 
-          Js[0][ Rg[0][1] ][ Rg[0][1] ], 
-          [ Rg[0][0], Rg[0][1] ]
-        ]);
-      }
-      else if (cc[0] == 'b') {
-      }
-    }
-
-    for (let j=0; j<cc.length; jj++) {
-    }
-
-  }
-
-
 };
 
 
@@ -2614,6 +2726,7 @@ function _main_custom_1() {
 }
 
 function _main_custom_2() {
+  let _debug = 0;
 
   let g_s = [2,5],
       g_e = [3,6],
@@ -2625,22 +2738,20 @@ function _main_custom_2() {
   _print_rprp(grid_info_x);
 
   let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
-  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, 1);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, _debug);
 
-  console.log(cp_x.join(""));
-  for (let i=0; i<cc_x.length; i++) {
-    console.log(cc_x[i].join(""));
-  }
+  //console.log(cp_x.join(""));
+  //for (let i=0; i<cc_x.length; i++) { console.log(cc_x[i].join("")); }
 
-  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, 1);
+  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, _debug);
 
-  console.log(cc_x);
-  console.log(cs_x);
+  //console.log(cc_x);
+  //console.log(cs_x);
 
   let cic = RPRPQuarryCleaveCuts(grid_info_x, g_s, g_e, g_a, g_b);
 
   for (let i=0; i<cic.length; i++) {
-    console.log( "quarry cleave cut sched[", i, "]:", JSON.stringify(cic[i]));
+    console.log( "cleave_sched[", i, "]:", _print_cleave(cc_x[i]), JSON.stringify(cic[i]));
   }
 
 
