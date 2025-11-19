@@ -833,6 +833,19 @@ Summary:
     + fenced region check was invalid
     + need to make sure orientation of source cut is correct
 
+---
+
+I'm fussing with a condition in `CleaveProfile` where there are parallel `b` quarry
+endpoints.
+I think maybe letting these through might be ok.
+
+Consider a straight well down, then it's clear the constructed edge that bridges them is redundant.
+But if the well isn't a well, but a foot, with a cavity beneath, then there are two options.
+You don't know whether the bridge cleave cut would be valid without looking ahead.
+
+This only applies if at least one of the `b` end points is a corner.
+If they're both true `b` flat points, then it's clear the guillotine cut would be redundant.
+
 References
 ---
 
