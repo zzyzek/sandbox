@@ -827,8 +827,11 @@ Summary:
 * review order from side cut function and others to make sure the cuts it's giving are consistent
 * at least think about how to determine whether a quarry rectangle is valid and account for the
   abstraction leak to back out if it's determined the quarry rectangle is invalid later
-* fix or review the side cut function to figure out if/why it's not giving cuts under some conditions
-  (potential bug)
+* ~fix or review the side cut function to figure out if/why it's not giving cuts under some conditions
+  (potential bug)~
+  - fixed (hopefully):
+    + fenced region check was invalid
+    + need to make sure orientation of source cut is correct
 
 References
 ---
