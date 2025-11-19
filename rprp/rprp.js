@@ -2018,19 +2018,36 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
            ((_c*(g_nxt[xy] - Rg[r_nxt][xy])) <= 0) &&
            ((_c*(g_prv[xy] - g_cur[xy])) >= 0) ) {
 
-        let _d = abs_sum_v( B[b_idx_prv], B[b_idx_nxt] );
-        if (_d != Math.abs(b_idx_nxt - b_idx_prv)) {
+        let se = [
+          Math.min(s_idx, e_idx),
+          Math.max(s_idx, e_idx)
+        ];
+
+        let np = [
+          Math.min(b_idx_prv, b_idx_nxt),
+          Math.max(b_idx_prv, b_idx_nxt)
+        ];
+
+        // We don't take sides that are borders and
+        // we dont' want to go where we came from
+        //
+        let _d = abs_sum_v( v_sub(B[b_idx_prv], B[b_idx_nxt]) );
+        if ((_d != Math.abs(b_idx_nxt - b_idx_prv)) &&
+            ( ((se[0] != np[0]) || (se[1] != np[1])) ) &&
+            wrapped_range_contain( b_idx_nxt, e_idx, s_idx ) &&
+            wrapped_range_contain( b_idx_prv, e_idx, s_idx ) ) {
           guillotine_list.push( [b_idx_nxt, b_idx_prv] );
 
           if (_debug) {
-            console.log("  +++:", b_idx_nxt, b_idx_prv);
+            console.log("  +++:", b_idx_nxt, b_idx_prv, "(se:", s_idx, e_idx,
+              "contain(i,e,s):",
+              wrapped_range_contain( b_idx_nxt, e_idx, s_idx ),
+              wrapped_range_contain( b_idx_prv, e_idx, s_idx ));
           }
+
         }
 
-
       }
-
-
 
       // advance and repeat
       //
@@ -2904,6 +2921,8 @@ function _main_custom_3() {
 // BUG
 // degenerate error where thinks there's a 1-cut that falls out of bounds (1,0) (3,0) line
 //
+// fixed?
+//
 function _main_custom_4() {
   let _debug = 1;
 
@@ -2911,6 +2930,29 @@ function _main_custom_4() {
       g_e = [3,1],
       g_a = [1,1],
       g_b = [3,0];
+
+  let grid_info_x = RPRPInit(pgn_pinwheel1);
+  _print_rprp(grid_info_x);
+
+  let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, _debug);
+  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, _debug);
+
+  console.log("profile:", cp_x);
+  console.log("cleave_enum:", cc_x);
+  console.log("cleave_side:", cs_x);
+
+}
+
+//
+//
+function _main_custom_5() {
+  let _debug = 1;
+
+  let g_s = [3,0],
+      g_e = [3,0],
+      g_a = [3,0],
+      g_b = [1,1];
 
   let grid_info_x = RPRPInit(pgn_pinwheel1);
   _print_rprp(grid_info_x);
@@ -2980,6 +3022,7 @@ if ((typeof require !== "undefined") &&
   else if (op == 'custom.2')  { _main_custom_2(); }
   else if (op == 'custom.3')  { _main_custom_3(); }
   else if (op == 'custom.4')  { _main_custom_4(); }
+  else if (op == 'custom.5')  { _main_custom_5(); }
 }
 
 //                          __    
