@@ -803,7 +803,32 @@ corner with one border cleave and one open cleave, the open cleave shouldn't be 
 It'll either remain open or be picked up by the recursion.
 
 
+###### 2025-11-18
 
+Guillotine cuts will have to be treated separately.
+The adit point can be chosen as either end of the guillotine cut, so batching them into
+a single cut to be processed in the MIRP recursion will lead to a combinatorial explosion.
+
+Further, I've flubbed the order on some of the cut function, in particular the quarry side region,
+so this will need to be made more consistent.
+
+During the MIRP recursion, determining whether it's a valid quarry rectangle leaks into finding
+the cleave cuts and such.
+For example, a cleave profile of `bxbxXXXb` is invalid as there's a bridge side of the quarry rectangle
+(rightmost edge) but this had been passing the `...valid_R` and snuck past the other enumerations.
+
+That one in particular, even though it's an invalid quarry, fails to create the appropriate side cuts,
+which I'll need to investigate further.
+
+Summary:
+
+* MIRP needs to consider guillotine cuts independently instead of grouping them, and then recur
+  on *two* choices for the adit point, at either end of the guillotine cut
+* review order from side cut function and others to make sure the cuts it's giving are consistent
+* at least think about how to determine whether a quarry rectangle is valid and account for the
+  abstraction leak to back out if it's determined the quarry rectangle is invalid later
+* fix or review the side cut function to figure out if/why it's not giving cuts under some conditions
+  (potential bug)
 
 References
 ---

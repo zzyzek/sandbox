@@ -1719,6 +1719,7 @@ function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
   let Js = ctx.Js;
   let Bij = ctx.Bij;
+  let B = ctx.B;
 
   //
   //  5    6    7
@@ -1802,13 +1803,18 @@ function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b, _debug) {
           if (_debug) { console.log("qcc: cci:", cci, "i:", i, "e.1a:", cleave_cuts[ cleave_cuts.length-1] ); }
         }
 
-        // Otherwise add a one-cut in-line with the quarry edge and the even cleave line.
+        // Otherwise add a one-cut in-line with the quarry edge and the even cleave line,
+        // taking the adit point as one of the 1-cut endpoints.
         //
         else {
+
+          let _a = B[ Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ] ];
+
           cleave_cuts.push([
             Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ],
             Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
-            [ Rg[i][0], Rg[i][1] ]
+            [ _a[0], _a[1] ]
+            //[ Rg[i][0], Rg[i][1] ]
           ]);
 
           if (_debug) { console.log("qcc: cci:", cci, "i:", i, "e.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
@@ -1844,13 +1850,17 @@ function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b, _debug) {
 
         }
 
-        // Otherwise add a one-cut in-line with the Rectangle edge and odd cleave cut
+        // Otherwise add a one-cut in-line with the Rectangle edge and odd cleave cut,
+        // taking the adit poitn as one of the endpoints.
         //
         else {
+          let _a = B[ Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ] ];
+
           cleave_cuts.push([
             Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
             Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ],
-            [ Rg[i][0], Rg[i][1] ]
+            [ _a[0], _a[1] ]
+            //[ Rg[i][0], Rg[i][1] ]
           ]);
 
           if (_debug) { console.log("qcc: cci:", cci, "i:", i, "o.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
@@ -2032,10 +2042,19 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
         // we dont' want to go where we came from
         //
         let _d = abs_sum_v( v_sub(B[b_idx_prv], B[b_idx_nxt]) );
+
+        if (_debug) {
+          console.log("    _d:", _d, "|d idx|:", Math.abs(b_idx_nxt - b_idx_prv),
+            "se:", se, "np:", np, "wrc:",
+            wrapped_range_contain( b_idx_nxt, e_idx, s_idx ),
+            wrapped_range_contain( b_idx_prv, e_idx, s_idx ));
+
+        }
+
         if ((_d != Math.abs(b_idx_nxt - b_idx_prv)) &&
             ( ((se[0] != np[0]) || (se[1] != np[1])) ) &&
-            wrapped_range_contain( b_idx_nxt, e_idx, s_idx ) &&
-            wrapped_range_contain( b_idx_prv, e_idx, s_idx ) ) {
+            wrapped_range_contain( b_idx_nxt, s_idx, e_idx ) &&
+            wrapped_range_contain( b_idx_prv, s_idx, e_idx ) ) {
           guillotine_list.push( [b_idx_nxt, b_idx_prv] );
 
           if (_debug) {
@@ -2325,6 +2344,13 @@ function RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b) {
     }
   }
 
+  let cleave_profile = RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b);
+  
+  if ((cleave_profile[0] == 'b') && (cleave_profile[7] == 'b')) { return 0; }
+  if ((cleave_profile[1] == 'b') && (cleave_profile[2] == 'b')) { return 0; }
+  if ((cleave_profile[3] == 'b') && (cleave_profile[4] == 'b')) { return 0; }
+  if ((cleave_profile[5] == 'b') && (cleave_profile[6] == 'b')) { return 0; }
+
   return 1;
 }
 
@@ -2401,8 +2427,15 @@ function _ws(n, s, pfx) {
 }
 
 //WIP!!
-function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl) {
+function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
+  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
   lvl = ((typeof lvl === "undefined") ? 0 : lvl);
+
+  //DEBUG
+  //DEBUG
+  _debug = 1;
+  //DEBUG
+  //DEBUG
 
   let B = ctx.B,
       Bt = ctx.Bt,
@@ -2422,7 +2455,15 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl) {
     g_a = B[0];
   }
 
-  console.log("\n" + _ws(2*lvl), "mirp" + lvl.toString() + ":", "g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
+  let b_s = Bij[ g_s[1] ][ g_s[0] ];
+  let b_e = Bij[ g_e[1] ][ g_e[0] ];
+
+  if (_debug) {
+    console.log("\n" + _ws(2*lvl), "mirp." + lvl.toString() + ".beg:",
+      "g_s:", JSON.stringify(g_s), "(" + b_s.toString() + ")",
+      "g_e:", JSON.stringify(g_e), "(" + b_e.toString() + ")",
+      "g_a:", g_a);
+  }
 
   let dp_idx = RPRP_DP_idx(ctx, g_s, g_e, g_a);
   if ( ctx.DP_cost[dp_idx] >= 0 ) { return ctx.DP_cost[dp_idx]; }
@@ -2437,14 +2478,18 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl) {
       let g_b = [i,j];
       if (!RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b)) { continue; }
 
-      console.log( _ws(2*lvl), "mirp." + lvl.toString() + ":", "g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b);
-      //console.log( _ws(2*lvl), "mirp." + lvl.toString() + ":", "g_a:", g_a, "g_b:", g_b);
+      if (_debug) {
+        console.log( _ws(2*lvl), "mirp." + lvl.toString() + ".qry:", "g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b);
+        //console.log( _ws(2*lvl), "mirp." + lvl.toString() + ":", "g_a:", g_a, "g_b:", g_b);
+      }
 
       let rect_cost = _Ink(g_a, g_b);
 
       let cut_sched = RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b);
 
-      console.log(_ws(2*lvl), "mirp." + lvl.toString() + ":", "cut_sched:", cut_sched);
+      if (_debug) {
+        console.log(_ws(2*lvl), "mirp." + lvl.toString() + ":", "cut_sched:", JSON.stringify(cut_sched));
+      }
 
       if (cut_sched.length == 0) {
         if (_min_cost < 0) { _min_cost = rect_cost; }
@@ -2453,6 +2498,21 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl) {
 
       for (let sched_idx=0; sched_idx < cut_sched.length; sched_idx++) {
         let cuts = cut_sched[sched_idx];
+
+        if (_debug) {
+          let _str_sched = [];
+          for (let _i=0; _i<cuts.length; _i++) {
+            _str_sched.push( "s:" +
+              "[" + B[cuts[_i][0]][0].toString() + "," + B[cuts[_i][0]][1].toString() + "]" +
+              "(" + cuts[_i][0].toString() +")" +
+              " e:" +
+              "[" + B[cuts[_i][1]][0].toString() + "," + B[cuts[_i][1]][1].toString() + "]" +
+              "(" + cuts[_i][1].toString() +")" + 
+              " a:[" + cuts[_i][2][0].toString() + "," + cuts[_i][2][1].toString() + "]"
+            );
+          }
+          console.log(_ws(2*lvl), "mirp." + lvl.toString() + ":", "cut_sched[", sched_idx, "]:{", _str_sched.join(" , ") + "}");
+        }
 
         let _cur_cost = rect_cost;
         for (let cut_idx=0; cut_idx < cuts.length; cut_idx++) {
@@ -2631,13 +2691,14 @@ function _main_checks() {
 
   let g_s = [-1,-1], g_e = [-1,-1], g_a = [-1,-1], g_b = [-1, -1];
 
-  g_s = [1,4]; g_e = [2,4];
+  g_s = [2,4]; g_e = [1,4];
   g_a = [1,4]; g_b = [5,5];
 
   //let cp_10 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
   let cut_10 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
   let v_10 = _expect( cut_10,
-     [[7,10],[53,6],[46,52],[11,46]],
+     //[[7,10],[53,6],[46,52],[11,46]],
+     [[7,10],[46,52],[11,46]],
     _sfmt("pgn_guillotine_10", 16, 'r') );
 
   g_s = [2,4]; g_e = [1,4];
@@ -2646,7 +2707,8 @@ function _main_checks() {
   //let cp_11 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
   let cut_11 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
   let v_11 = _expect( cut_11,
-    [[7,10],[53,6]],
+    //[[7,10],[53,6]],
+    [[7,10]],
     _sfmt("pgn_guillotine_11", 16, 'r') );
 
 
@@ -2656,7 +2718,8 @@ function _main_checks() {
   //let cp_12  = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
   let cut_12 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
   let v_12 = _expect( cut_12,
-    [[27,31],[18,26],[12,17],[7,10],[53,6],[46,52]],
+    //[[27,31],[18,26],[12,17],[7,10],[53,6],[46,52]],
+    [[27,31],[18,26],[12,17],[7,10],[46,52]],
     _sfmt("pgn_guillotine_12", 16, 'r') );
 
 
@@ -2666,16 +2729,18 @@ function _main_checks() {
   //let cp_13 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
   let cut_13 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
   let v_13 = _expect( cut_13,
-    [[18,26],[12,17],[7,10],[53,6],[46,52]],
+    //[[18,26],[12,17],[7,10],[53,6],[46,52]],
+    [[18,26],[12,17],[7,10],[46,52]],
     _sfmt("pgn_guillotine_13", 16, 'r') );
 
-  g_s = [1,4]; g_e = [2,4];
+  g_s = [2,4]; g_e = [1,4];
   g_a = [1,4]; g_b = [9,5];
 
   //let cp_14 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
   let cut_14 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
   let v_14 = _expect( cut_14,
-    [[12,17],[7,10],[53,6],[46,52]],
+    //[[12,17],[7,10],[53,6],[46,52]],
+    [[12,17],[7,10],[46,52]],
     _sfmt("pgn_guillotine_14", 16, 'r') );
 
   /*
@@ -2967,6 +3032,29 @@ function _main_custom_5() {
 
 }
 
+//
+//
+function _main_custom_6() {
+  let _debug = 1;
+
+  let g_s = [1,2],
+      g_e = [4,3],
+      g_a = [1,3],
+      g_b = [4,1];
+
+  let grid_info_x = RPRPInit(pgn_pinwheel1);
+  _print_rprp(grid_info_x);
+
+  let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, _debug);
+  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, _debug);
+
+  console.log("profile:", cp_x);
+  console.log("cleave_enum:", cc_x);
+  console.log("cleave_side:", cs_x);
+
+}
+
 function _main_mirp_test() {
   let ctx = RPRPInit( pgn_pinwheel1 );
   let v = RPRP_MIRP(ctx);
@@ -3023,6 +3111,7 @@ if ((typeof require !== "undefined") &&
   else if (op == 'custom.3')  { _main_custom_3(); }
   else if (op == 'custom.4')  { _main_custom_4(); }
   else if (op == 'custom.5')  { _main_custom_5(); }
+  else if (op == 'custom.6')  { _main_custom_6(); }
 }
 
 //                          __    
