@@ -2924,21 +2924,9 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
           console.log (_ws(2*lvl), "cur_two_cut_cost:", cur_two_cut_cost, "(sched_idx:", sched_idx, ")");
         }
 
-        //let _cur_cost = quarry_rect_cost + cut_side_cost + two_cut_cost;
-
-        //if ((_min_cost < 0) ||
         if ((sched_idx==0) ||
             (cur_two_cut_cost < _min_two_cut_cost)) {
-
           _min_two_cut_cost = cur_two_cut_cost;
-
-          /*
-          _min_cost = _cur_cost;
-
-          //_min_partition = cut_sched[sched_idx];
-          _min_bower = [ g_b[0], g_b[1] ];
-          _min_rect = [ [g_a[0], g_a[1]], [g_b[0], g_b[1]] ];
-          */
         }
 
       }
@@ -2950,6 +2938,8 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
       if ((_min_cost < 0) ||
           ((quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost) < _min_cost) ) {
         _min_cost = quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost;
+        _min_rect = [ [ g_a[0], g_a[1] ], [ g_b[0], g_b[1] ] ];
+        //_min_partition = [ min_one_cuts, min_two_cuts ];
       }
 
       if (_debug) {
@@ -2958,65 +2948,6 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
       }
 
 
-      /*
-      if (!RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b)) { continue; }
-
-      if (_debug) {
-        console.log( _ws(2*lvl), "mirp." + lvl.toString() + ".qry:", "g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b);
-        //console.log( _ws(2*lvl), "mirp." + lvl.toString() + ":", "g_a:", g_a, "g_b:", g_b);
-      }
-
-      let rect_cost = _Ink(g_a, g_b);
-
-      let cut_sched = RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b);
-
-      if (_debug) {
-        console.log(_ws(2*lvl), "mirp." + lvl.toString() + ":", "cut_sched:", JSON.stringify(cut_sched));
-      }
-
-      if (cut_sched.length == 0) {
-        if (_min_cost < 0) { _min_cost = rect_cost; }
-        continue;
-      }
-
-      for (let sched_idx=0; sched_idx < cut_sched.length; sched_idx++) {
-        let cuts = cut_sched[sched_idx];
-
-        if (_debug) {
-          let _str_sched = [];
-          for (let _i=0; _i<cuts.length; _i++) {
-            _str_sched.push( "s:" +
-              "[" + B[cuts[_i][0]][0].toString() + "," + B[cuts[_i][0]][1].toString() + "]" +
-              "(" + cuts[_i][0].toString() +")" +
-              " e:" +
-              "[" + B[cuts[_i][1]][0].toString() + "," + B[cuts[_i][1]][1].toString() + "]" +
-              "(" + cuts[_i][1].toString() +")" + 
-              " a:[" + cuts[_i][2][0].toString() + "," + cuts[_i][2][1].toString() + "]"
-            );
-          }
-          console.log(_ws(2*lvl), "mirp." + lvl.toString() + ":", "cut_sched[", sched_idx, "]:{", _str_sched.join(" , ") + "}");
-        }
-
-        let _cur_cost = rect_cost;
-        for (let cut_idx=0; cut_idx < cuts.length; cut_idx++) {
-
-          let _c = RPRP_MIRP(ctx, B[cuts[cut_idx][0]], B[cuts[cut_idx][1]], cuts[cut_idx][2], lvl+1);
-          if (_c < 0) { _cur_cost = -1; break; }
-
-          _cur_cost += _c;
-        }
-
-        if ((_min_cost < 0) ||
-            (_cur_cost < _min_cost)) {
-          _min_cost = _cur_cost;
-
-          _min_partition = cut_sched[sched_idx];
-          _min_bower = [ g_b[0], g_b[1] ];
-          _min_rect = [ [g_a[0], g_a[1]], [g_b[0], g_b[1]] ];
-        }
-
-      }
-      */
     }
   }
 
@@ -3034,32 +2965,6 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
   console.log( _ws(2*lvl), "mirp." + lvl.toString(), "<<<");
 
   return _min_cost;
-
-  /*
-  console.log(g_s, g_e, g_a);
-  console.log(" 0:", B[0], RPRP_DP_idx(ctx, B[0], B[0], B[0]));
-
-
-  //for (let j=0; j<Y.length; j++) {
-  for (let j=(Y.length-1); j>=0; j--) {
-
-    let row_s = [];
-
-    for (let i=0; i<X.length; i++) {
-
-      let g_b = [i,j];
-
-      //row_s.push( RPRP_valid_R(ctx, g_a, g_b) ? '*' : '.' );
-      row_s.push( RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b) ? '*' : '.' );
-
-
-    }
-    console.log( row_s.join("") );
-  }
-
-  console.log( B.length, B.length*B.length*2, RPRP_DP_idx(ctx, g_s, g_e, g_a) );
-  */
-
 }
 
 
