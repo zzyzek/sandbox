@@ -2684,7 +2684,7 @@ function RPRP_DPidx2b(ctx, dp_idx) {
   return [ idx_s, idx_e, t ];
 }
 
-// WIP...
+// lightly tested
 //
 function RPRP_DPidx2g(ctx, dp_idx) {
 
@@ -2711,7 +2711,6 @@ function RPRP_DPidx2g(ctx, dp_idx) {
     }
 
     return [ g_s, g_e, g_a ];
-
   }
 
   // g_s diagonal to g-e
@@ -2865,7 +2864,8 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
       }
 
       if (_debug) {
-        console.log( _ws(2*lvl), "considering: g_b:", g_b, "(#1c:", qi.one_cuts.length, "#2c:", qi.two_cuts.length, ")");
+        console.log( _ws(2*lvl), "considering:", "(g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b, ")",
+          "(#1c:", qi.one_cuts.length, "#2c:", qi.two_cuts.length, ")");
         console.log( _ws(2*lvl), "1cut:", JSON.stringify(qi.one_cuts));
       }
 
@@ -2889,14 +2889,25 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
         let one_cut_cost = 0;
         for (let ci=0; ci<one_cut.length; ci++) {
           let cut = one_cut[ci];
-          _cost = RPRP_MIRP(ctx, B[cut[0]], B[cut[1]], cut[2], lvl+1, _debug);
-          if ( ((sched_idx==0) && (ci==0)) ||
+          let _cost = RPRP_MIRP(ctx, B[cut[0]], B[cut[1]], cut[2], lvl+1, _debug);
+          if ( (ci==0) ||
                (_cost < one_cut_cost) ) {
             one_cut_cost = _cost;
           }
+
+          if (_debug) {
+            console.log( _ws(2*lvl), "1cuts[", sched_idx, "][", ci, "]", "_cost:", _cost, "one_cut_cost:", one_cut_cost);
+          }
+
+
         }
 
         _min_one_cut_cost += one_cut_cost;
+
+        if (_debug) {
+          console.log( _ws(2*lvl), "1cuts[", sched_idx, "] (#", one_cut.length, "):", one_cut_cost, ", _min_one_cut_cost:", _min_one_cut_cost);
+        }
+
       }
 
       // take min of sched....
@@ -2904,31 +2915,48 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
       for (let sched_idx=0; sched_idx<qi.two_cuts.length; sched_idx++) {
         let two_cut = qi.two_cuts[sched_idx];
 
-        let two_cut_cost = 0;
+        let cur_two_cut_cost = 0;
         for (let ci=0; ci<two_cut.length; ci++) {
-          two_cut_cost += RPRP_MIRP(ctx, B[two_cut[ci][0]], B[two_cut[ci][1]], two_cut[ci][2], lvl+1, _debug);
+          cur_two_cut_cost += RPRP_MIRP(ctx, B[two_cut[ci][0]], B[two_cut[ci][1]], two_cut[ci][2], lvl+1, _debug);
         }
 
+        if (_debug) {
+          console.log (_ws(2*lvl), "cur_two_cut_cost:", cur_two_cut_cost, "(sched_idx:", sched_idx, ")");
+        }
 
-        let _cur_cost = quarry_rect_cost + cut_side_cost + two_cut_cost;
+        //let _cur_cost = quarry_rect_cost + cut_side_cost + two_cut_cost;
 
         //if ((_min_cost < 0) ||
         if ((sched_idx==0) ||
-            (_cur_cost < _min_cost)) {
+            (cur_two_cut_cost < _min_two_cut_cost)) {
+
+          _min_two_cut_cost = cur_two_cut_cost;
+
+          /*
           _min_cost = _cur_cost;
 
           //_min_partition = cut_sched[sched_idx];
           _min_bower = [ g_b[0], g_b[1] ];
           _min_rect = [ [g_a[0], g_a[1]], [g_b[0], g_b[1]] ];
+          */
         }
 
       }
 
+
+
       // degenerate
       //
-      if (_min_cost < 0) {
+      if ((_min_cost < 0) ||
+          ((quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost) < _min_cost) ) {
         _min_cost = quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost;
       }
+
+      if (_debug) {
+        console.log( _ws(2*lvl), "_min_cost:", _min_cost, "scost:", quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost,
+        "(", quarry_rect_cost, "+", _min_one_cut_cost, "+", _min_two_cut_cost, ")");
+      }
+
 
       /*
       if (!RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b)) { continue; }
@@ -3610,6 +3638,24 @@ function _main_custom_10() {
   console.log(RPRP_DPidx2g(grid_info_x, l_idx), RPRP_DPidx2g(grid_info_x, r_idx));
 }
 
+function _main_custom_11() {
+  let _debug = 1;
+
+  let g_s = [0,0],
+      g_e = [0,0],
+      g_a = [0,0],
+      g_b = [1,1];
+
+
+  let ctx = RPRPInit(pgn_ell);
+  _print_rprp(ctx);
+
+  let qi = RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b);
+
+  console.log(JSON.stringify(qi, undefined, 2));
+
+}
+
 function _main_mirp_test() {
 
 
@@ -3689,6 +3735,7 @@ if ((typeof require !== "undefined") &&
   else if (op == 'custom.8')  { _main_custom_8(); }
   else if (op == 'custom.9')  { _main_custom_9(); }
   else if (op == 'custom.10')  { _main_custom_10(); }
+  else if (op == 'custom.11')  { _main_custom_11(); }
 }
 
 //                          __    
