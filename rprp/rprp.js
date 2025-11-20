@@ -304,6 +304,17 @@ var pgn_bb_test = [
   [5,17], [0,17]
 ];
 
+
+// testing bridge in well
+//
+var pgn_bb_test1= [
+  [0,8], [3,8], [3,0], [8,0],
+  [8,8], [12,8], [12,11], [15,11],
+  [15,2], [17,2], [17,13], [12,13],
+  [12,16], [6,16], [6,20], [0,20],
+  [0,14], [3,14], [3,11], [0,11],
+];
+
 function _write_data(ofn, data) {
   var fs = require("fs");
   return fs.writeFileSync(ofn, JSON.stringify(data, undefined, 2));
@@ -1939,10 +1950,11 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   let quarry_info = {
     "valid": 0,
     "one_cut": [],
-    "two_cut": [],
+    "two_cuts": [],
     "b_s" : -1,   "b_e" : -1,
     "g_s" : g_s,  "g_e" : g_e,
-    "g_a" : g_a,  "g_b" : g_b
+    "g_a" : g_a,  "g_b" : g_b,
+    "comment": ""
   };
 
   let Js = ctx.Js;
@@ -1963,8 +1975,10 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
   ];
 
-  if (!RPRP_valid_R(ctx, g_a, g_b)) { return quarry_info; }
-
+  if (!RPRP_valid_R(ctx, g_a, g_b)) {
+    quarry_info.comment = "invalid quarry rectangle";
+    return quarry_info;
+  }
 
   // quarry rectangle could be wholly contained in the rectilinear polygon
   // but not contained in the region we're considering.
@@ -1973,10 +1987,10 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   //
   for (let i=0; i<Rg.length; i++) {
     if (RPRP_point_in_region(ctx, Rg[i], g_s, g_e, g_a) == 0) {
+      quarry_info.comment = "endpoint outside of fenced region";
       return quarry_info;
     }
   }
-
 
   let oppo = [ 1,0, 3,2 ];
 
@@ -1994,17 +2008,21 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   //   and put it in the schedule.
   //
   let cleave_profile = RPRPCleaveProfile( ctx, g_s, g_e, g_a, g_b );
-
-  // 
-  if ((cleave_profile[0] == 'b') && (cleave_profile[7] == 'b')) { return 0; }
-  if ((cleave_profile[1] == 'b') && (cleave_profile[2] == 'b')) { return 0; }
-  if ((cleave_profile[3] == 'b') && (cleave_profile[4] == 'b')) { return 0; }
-  if ((cleave_profile[5] == 'b') && (cleave_profile[6] == 'b')) { return 0; }
-
-
-
   let cleave_choices = RPRP_cleave_enumerate( ctx, g_s, g_e, g_a, g_b, cleave_profile );
   let side_cleave_cuts = RPRP_enumerate_quarry_side_region( ctx, g_s, g_e, g_a, g_b );
+
+  let forced_corner = false;
+  for (let r_idx=0; r_idx<4; r_idx++) {
+    if ((cleave_profile[2*r_idx] == '.') &&
+        (cleave_profile[2*r_idx+1] == '.')) {
+      forced_corner = true;
+    }
+  }
+
+  if (forced_corner && (cleave_choices.length == 0)) {
+    quarry_info.comment = "forced corner but no possible cleave cuts";
+    return quarry_info;
+  }
 
   // lookup tables for even/odd idirs along with their perpendicular directions.
   //
@@ -2016,7 +2034,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   for (let cci=0; cci < cleave_choices.length; cci++) {
     let cc = cleave_choices[cci];
 
-    if (_debug) { console.log("qcc"); }
+    if (_debug) { console.log("qci"); }
 
     let cleave_cuts = [];
     for (let i=0; i<4; i++) {
@@ -2040,7 +2058,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
           [ Rg[i][0], Rg[i][1] ]
         ]);
 
-        if (_debug) { console.log("qcc: cci:", cci, "i:", i, "e.0:", cleave_cuts[ cleave_cuts.length-1] ); }
+        if (_debug) { console.log("qci: cci:", cci, "i:", i, "e.0:", cleave_cuts[ cleave_cuts.length-1] ); }
 
         // if the clockwise neighbor (the 'odd' cleave cut) exists,
         // add another two-cut.
@@ -2052,7 +2070,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
             [ Rg[i][0], Rg[i][1] ]
           ]);
 
-          if (_debug) { console.log("qcc: cci:", cci, "i:", i, "e.1a:", cleave_cuts[ cleave_cuts.length-1] ); }
+          if (_debug) { console.log("qci: cci:", cci, "i:", i, "e.1a:", cleave_cuts[ cleave_cuts.length-1] ); }
         }
 
         // Otherwise add a one-cut in-line with the quarry edge and the even cleave line,
@@ -2069,7 +2087,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
             //[ Rg[i][0], Rg[i][1] ]
           ]);
 
-          if (_debug) { console.log("qcc: cci:", cci, "i:", i, "e.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+          if (_debug) { console.log("qci: cci:", cci, "i:", i, "e.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
         }
 
       }
@@ -2086,7 +2104,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
           [ Rg[i][0], Rg[i][1] ]
         ]);
 
-        if (_debug) { console.log("qcc: cci:", cci, "i:", i, "o.0:", cleave_cuts[ cleave_cuts.length-1] ); }
+        if (_debug) { console.log("qci: cci:", cci, "i:", i, "o.0:", cleave_cuts[ cleave_cuts.length-1] ); }
 
         // if the previous counterclockwise neighbor (the 'even' cleave cut) exists,
         // add another two cut with both the even and odd constructed lines.
@@ -2098,7 +2116,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
             [ Rg[i][0], Rg[i][1] ]
           ]);
 
-          if (_debug) { console.log("qcc: cci:", cci, "i:", i, "o.1a:", cleave_cuts[ cleave_cuts.length-1] ); }
+          if (_debug) { console.log("qci: cci:", cci, "i:", i, "o.1a:", cleave_cuts[ cleave_cuts.length-1] ); }
 
         }
 
@@ -2115,18 +2133,11 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
             //[ Rg[i][0], Rg[i][1] ]
           ]);
 
-          if (_debug) { console.log("qcc: cci:", cci, "i:", i, "o.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+          if (_debug) { console.log("qci: cci:", cci, "i:", i, "o.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
         }
 
       }
 
-    }
-
-    // add side cleave cuts
-    //
-    for (let i=0; i<side_cleave_cuts.length; i++) {
-      let cc = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], ctx.B[side_cleave_cuts[i][0]] ];
-      cleave_cuts.push( cc );
     }
 
     if (cleave_cuts.length == 0) { continue; }
@@ -2143,11 +2154,22 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
       }
     }
 
-    cleave_sched.push( dedup_cleave_cuts );
+    quarry_info.two_cuts.push( dedup_cleave_cuts );
 
   }
 
-  return cleave_sched;
+  // add side cleave cuts
+  //
+  for (let i=0; i<side_cleave_cuts.length; i++) {
+    let cc0 = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], ctx.B[side_cleave_cuts[i][0]] ];
+    quarry_info.one_cut.push( cc0 );
+
+    let cc1 = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], ctx.B[side_cleave_cuts[i][1]] ];
+    quarry_info.one_cut.push( cc1 );
+  }
+
+  quarry_info.valid = 1;
+  return quarry_info;
 };
 
 
@@ -2733,7 +2755,47 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
       let g_b = [i,j];
 
       let qi = RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b);
+      if (qi.valid == 0) {
 
+        if (_debug) {
+          console.log( _ws(2*lvl), "skipping", g_s, g_e, g_a, g_b, "(", qi.comment, ")");
+        }
+
+        continue;
+      }
+
+      let quarry_rect_cost = _Ink(g_a, g_b);
+
+      let cut_side_cost = 0;
+
+      for (let ci=0; ci<qi.one_cut.length; ci++) {
+        let cut = qi.one_cut[ci];
+        cut_side_cost += RPRP_MIRP(ctx, B[cut[0]], B[cut[1]], cut[2], lvl+1, _debug);
+      }
+
+      for (let sched_idx=0; sched_idx<qi.two_cuts.length; sched_idx++) {
+        let two_cut = qi.two_cuts[sched_idx];
+
+        let two_cut_cost = 0;
+        for (let ci=0; ci<two_cut.length; ci++) {
+          two_cut_cost += RPRP_MIRP(ctx, B[two_cut[ci][0]], B[two_cut[ci][1]], two_cut[ci][2], lvl+1, _debug);
+        }
+
+
+        let _cur_cost = quarry_rect_cost + cut_side_cost + two_cut_cost;
+
+        if ((_min_cost < 0) ||
+            (_cur_cost < _min_cost)) {
+          _min_cost = _cur_cost;
+
+          //_min_partition = cut_sched[sched_idx];
+          _min_bower = [ g_b[0], g_b[1] ];
+          _min_rect = [ [g_a[0], g_a[1]], [g_b[0], g_b[1]] ];
+        }
+
+      }
+
+      /*
       if (!RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b)) { continue; }
 
       if (_debug) {
@@ -2791,6 +2853,7 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
         }
 
       }
+      */
     }
   }
 
@@ -3338,6 +3401,55 @@ function _main_custom_7() {
 
 }
 
+//
+//
+function _main_custom_8() {
+  let _debug = 1;
+
+  let g_s = [1,5],
+      g_e = [2,6],
+      g_a = [1,6],
+      g_b = [3,2];
+
+  let grid_info_x = RPRPInit(pgn_bb_test1);
+  _print_rprp(grid_info_x);
+
+  let qi = RPRPQuarryInfo(grid_info_x, g_s, g_e, g_a, g_b);
+  console.log("valid:", qi.valid, "(", qi.comment,")");
+  console.log("one_cut:", JSON.stringify(qi.one_cut));
+  console.log("two_cuts:", JSON.stringify(qi.two_cuts));
+
+}
+
+// This has a bridge ([1,1] to [3,1])
+// but we've decided to let it go.
+// It's a special case that should get subsumed by
+// the recursion.
+// It's not an error to recur from this quarry rectangle
+// but it means the calculation won't be optimal.
+//
+// Intead of mkaing a special heuristic to optimize away
+// this case, we let it be and know that if the recursion
+// is working properly, it won't be considered as optimal.
+//
+function _main_custom_9() {
+  let _debug = 1;
+
+  let g_s = [1,5],
+      g_e = [2,6],
+      g_a = [1,6],
+      g_b = [3,1];
+
+  let grid_info_x = RPRPInit(pgn_bb_test1);
+  _print_rprp(grid_info_x);
+
+  let qi = RPRPQuarryInfo(grid_info_x, g_s, g_e, g_a, g_b);
+  console.log("valid:", qi.valid, "(", qi.comment,")");
+  console.log("one_cut:", JSON.stringify(qi.one_cut));
+  console.log("two_cuts:", JSON.stringify(qi.two_cuts));
+
+}
+
 function _main_mirp_test() {
   let ctx = RPRPInit( pgn_pinwheel1 );
   let v = RPRP_MIRP(ctx);
@@ -3396,6 +3508,8 @@ if ((typeof require !== "undefined") &&
   else if (op == 'custom.5')  { _main_custom_5(); }
   else if (op == 'custom.6')  { _main_custom_6(); }
   else if (op == 'custom.7')  { _main_custom_7(); }
+  else if (op == 'custom.8')  { _main_custom_8(); }
+  else if (op == 'custom.9')  { _main_custom_9(); }
 }
 
 //                          __    
