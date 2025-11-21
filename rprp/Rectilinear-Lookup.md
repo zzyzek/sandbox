@@ -6,7 +6,7 @@ A common task for rectilinear polygon subdivision is to test if a rectangle
 is fully contained within the a rectilinear polygon.
 
 Kim, Lee and Ahn offer a method but I'm having trouble understanding what it is
-and they dont' provide any reference implementation.
+and they don't' provide any reference implementation.
 
 The problem is a bit trivial but a fun programming exercise.
 This post details a solution without regard to how novel it is.
@@ -49,58 +49,40 @@ and holds a point.
 ### Distance Encoding
 
 We create eight auxiliary 2D arrays naming them $J _ {s,d}$ and $J _ {e,d}$ for $d$ encoding the
-cardianl direction ( $d \in \\{0,1,2,3\\}$ , 0 right, 1 left, 2 up , 3 down).
+cardinal direction ( $d \in \\{0,1,2,3\\}$ , 0 right, 1 left, 2 up , 3 down).
 Each $J _ s$ and $J _ e$ are of the same size as $G$ ( $N^2$ ).
 
-To fill the $J _ {s,0}$ we start from the right of $G$ and sweep left.
+To fill the $J _ {s,0}$ ( $x+$ ) we start from the right of $G$ and sweep left.
 If $G$ holds an exterior point, we mark the entry as $-1$.
 
-!!!! WIP
+If we see a border point at grid point, $b _ k = G(i,j)$, we look at the next and previous
+grid points, $b _ {k+1}$, $b _ {k-1}$.
 
-If the left neighbor of $G$ is an exterior point, we set the value to $0$ in $S _ x$.
-Otherwise we add the difference of the current point in $G$ to it's left neighbor in $G$
-to the value of the left neighbor in $S _ x$.
+Depending on how the $(b _ {k-1}, b _ k, b _ {k+1}$ line segment appears in the grid,
+the current start value can be updated.
+The boundary is encoded as a counterclockwise direction, giving us an idea of whether
+there's a transition from outside to in, inside to out, remain inside or remain outside
+for the $b _ k$ point in question.
 
-We do the same for $S _ y$ but go from the bottom up, using the bottom neighbor instead of the
-left neighbor.
+Whenever there's a bend or an inside-out transition, we update the nearest pointer.
+Whenever there's a straight line, we update the far pointer.
 
-Here is an example (taken from Fig. 11 of Kim, Lee and Ahn):
+A transition from inside to out results in the indicator value `-1`.
+Any start updates the indicator value to 0, with the start jump current value
+being updated whenever a bend is encountered to update it to it's nearest.
 
-`[[0,0],[0,3],[3,3],[3,5],[5,5],[5,8],[7,8],[7,4],[8,4],[8,6],[10,6],[10,0],[6,0],[6,1],[1,1],[1,0]]`
-
-```
--1 -1 
-```
-
-Additionally, we keep two additional linear arrays holding the maximum distance in the $x$ and $y$ directions,
-which we'll call $L _ x$ and $L _ y$.
+Each of the $J _ {s,d}$ and $J _ {e,d}$ are populated from the sweeps.
 
 
 ### Constant Time Inclusion Testing
 
-To test for for rectangle inclusion, we compare the four endpoints of the rectangle to the entries
-in $S _ x$ and $S _ y$.
-We compare the difference of the top pair with the bottom pair and make sure they're both equal
-to the maximum distance in $L _ x$.
-We then compare the difference of the left pair with the right pair, make sure they're equal
-and hold the value of the maximum distaance stored in $L _ y$.
+To test for rectangle inclusion, take the far jump pointer, $J _ e$, for each of the endpoints and,
+for each pair of endpoints in-line, confirm they're identical.
 
-If they're unequal, this means the boundary has crept into the rectangle.
-If they're equal to each other but not equal to the maximum distance, this means the rectangle has been
-cleaved into separate parts.
+### Cleave Line Query
 
-No holes are allowed, by construction, so the only way an exterior region could be in the body
-of the rectangle is if it originated from the boundary, so testing the boundary for maximum
-length is all that needs to be done.
-
-Since we only test a finite number of points, the lookup is $O(1)$.
-
-This assumes rectangle lookup is being done along grid lines, either through knowledge
-of mapping source points to the integer grid or feeding the integer grid point locations
-explicitely.
-
-To do arbitrary Euclidean rectangle testing, I don't see how to avoid the $O(\lg(N))$ lookup
-to convert from Euclidean space to index space for the $G, S _ x, S _ y, L _ x, L _ y$ lookups.
+The $J _ s$ provides a facility to know what the nearest corner border point is for any
+point on the interior of the polygon.
 
 ### Conclusion
 
