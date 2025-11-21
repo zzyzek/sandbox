@@ -15,7 +15,6 @@ I claim no new insight here.
 This algorithm might be well known or my solution might be a trivial
 alteration or a verbatim construction.
 
-
 ---
 
 > Given a rectilinear 2D polygon without holes, $P$, with $P$ given as a list of
@@ -23,11 +22,12 @@ alteration or a verbatim construction.
 > using an $O(N^2)$ preprocessing step and $O(N^2)$ space, we can test for
 > rectangle inclusion in $O(1)$ time.
 
+The idea is to construct a lookup table in each of the four cardinal directions (*right, left, up, down*)
+that stores the nearest visible border point and the farthest visible border point.
+The initial construction requires a pass for each cardinal direction and each point, yielding an $O(N^2)$
+pre-processing setup cost.
 
-The idea is to construct two $O(N^2)$ arrays that hold the runs of contiguous lines from left to right and
-bottom to top.
-
-I'm mostly concerned with doing rectangle inclusion in the implied grid, so the focus will be on that,
+The concern is mostly with doing rectangle inclusion in the implied grid, so the focus will be on that,
 but a small modification will allow for arbitrary rectangle inclusion testing while still keeping the $O(1)$
 test.
 
@@ -48,10 +48,15 @@ and holds a point.
 
 ### Distance Encoding
 
-We create two auxiliary 2D arrays naming them $S _ x$ and $S _ y$ both of the same size as $G$.
+We create eight auxiliary 2D arrays naming them $J _ {s,d}$ and $J _ {e,d}$ for $d$ encoding the
+cardianl direction ( $d \in \\{0,1,2,3\\}$ , 0 right, 1 left, 2 up , 3 down).
+Each $J _ s$ and $J _ e$ are of the same size as $G$ ( $N^2$ ).
 
-To fill the $S _ x$ we start from the left of $G$ and sweep right.
+To fill the $J _ {s,0}$ we start from the right of $G$ and sweep left.
 If $G$ holds an exterior point, we mark the entry as $-1$.
+
+!!!! WIP
+
 If the left neighbor of $G$ is an exterior point, we set the value to $0$ in $S _ x$.
 Otherwise we add the difference of the current point in $G$ to it's left neighbor in $G$
 to the value of the left neighbor in $S _ x$.
