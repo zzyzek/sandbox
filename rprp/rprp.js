@@ -3674,11 +3674,47 @@ function _main_mirp_test() {
   //console.log(">>> 6,0", RPRP_point_in_region( ctx_2, [6,0], [8,1], [7,2], [7,1]  ));
 }
 
+
 //       ___ 
 //  ____/ (_)
 // / __/ / / 
 // \__/_/_/  
 //           
+
+function _main_cli(argv) {
+  let pgn_a = JSON.parse(argv[0]);
+  //let g_s = JSON.parse(argv[1]);
+  //let g_e = JSON.parse(argv[2]);
+  //let g_a = JSON.parse(argv[3]);
+  //let g_b = JSON.parse(argv[4]);
+
+  let ctx = RPRPInit( pgn_a );
+  _print_rprp(ctx);
+
+}
+
+async function _main_data(argv) {
+
+  let data = "";
+  for await (let chunk of process.stdin) {
+    data += chunk;
+  }
+
+  let data_info = JSON.parse(data);
+
+  if (data_info.op == "QuarryInfo") {
+
+    let ctx = RPRPInit(data_info.C);
+    let qi = RPRPQuarryInfo( ctx,
+                             data_info.g_s, 
+                             data_info.g_e, 
+                             data_info.g_a, 
+                             data_info.g_b);
+    console.log( JSON.stringify(qi, undefined, 2) );
+  }
+
+}
+
 
 if ((typeof require !== "undefined") &&
     (require.main === module)) {
@@ -3698,6 +3734,9 @@ if ((typeof require !== "undefined") &&
   else if (op == 'mirp.sq')    { _main_mirp_square(); }
   else if (op == 'mirp.L')    { _main_mirp_L(); }
   else if (op == 'mirp.z')    { _main_mirp_z(); }
+
+  else if (op == "cli") { _main_cli(process.argv.slice(3)); }
+  else if (op == "data") { _main_data(process.argv.slice(3)); }
 
   else if (op == 'custom')  { _main_custom(); }
   else if (op == 'custom.1')  { _main_custom_1(); }
