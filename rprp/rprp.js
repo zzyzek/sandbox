@@ -42,6 +42,7 @@
 //
 
 var fasslib = require("./fasslib.js");
+var fw = require("./4w.js");
 
 var norm2_v = fasslib.norm2_v;
 var v_sub = fasslib.v_sub;
@@ -60,6 +61,11 @@ var pgon = [
 var pgn_ell = [
   [0,0], [12,0], [12,3], [4,3],
   [4,13], [0,13],
+];
+
+var pgn_z = [
+  [0,0], [7,0], [7,6], [12,6],
+  [12,9], [1,9], [1,2], [0,2],
 ];
 
 var pgon_pinwheel = [
@@ -325,6 +331,32 @@ function _write_data(ofn, data) {
   return fs.writeFileSync(ofn, JSON.stringify(data, undefined, 2));
 }
 
+function _debid() {
+  let n = 2;
+
+  let m = fw.word.length;
+
+  let a = [];
+  for (let i=0; i<n; i++) {
+    let idx = Math.floor( Math.random()*m );
+    a.push( fw.word[idx] );
+  }
+  return a.join("-");
+}
+
+function __debid() {
+  let lu = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let n = 8;
+
+
+  let a = [];
+  for (let i=0; i<n; i++) {
+    if ((i>0) && ((i%4)==0)) { a.push( '-' ); }
+    a.push( lu[ Math.floor(Math.random()*lu.length) ] );
+  }
+  return a.join("");
+}
+
 function _ifmt(v, s) {
   s = ((typeof s === "undefined") ? 0 : s);
   let t = v.toString();
@@ -384,11 +416,16 @@ function _print_dp(ctx) {
   let X = ctx.X;
   let Y = ctx.Y;
 
+
   for (let dp_idx=0; dp_idx < ctx.DP_cost.length; dp_idx++) {
     if (ctx.DP_cost[dp_idx] >= 0) {
       console.log( dp_idx, ":", ctx.DP_cost[dp_idx]);
+      console.log("  R:", JSON.stringify(ctx.DP_rect[dp_idx][0]), JSON.stringify(ctx.DP_rect[dp_idx][1]));
+      console.log("  P.1cut:", JSON.stringify(ctx.DP_partition[dp_idx][0]));
+      console.log("  P.2cut:", JSON.stringify(ctx.DP_partition[dp_idx][1]));
     }
   }
+
 }
 
 function _print1da(A, hdr, ws, line_pfx, fold) {
@@ -2050,7 +2087,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   for (let cci=0; cci < cleave_choices.length; cci++) {
     let cc = cleave_choices[cci];
 
-    if (_debug) { console.log("##qci"); }
+    //if (_debug) { console.log("##qci"); }
 
     let cleave_cuts = [];
     for (let i=0; i<4; i++) {
@@ -2803,9 +2840,15 @@ function _ws(n, s, pfx) {
 }
 
 //WIP!!
-function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
+function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+  _debug_str = ((typeof _debug_str === "undefined") ? "" : _debug_str);
   lvl = ((typeof lvl === "undefined") ? 0 : lvl);
+
+  let _debug_id = _debid();
+  let _pfx = _ws(2*lvl) + "mirp." + lvl.toString() + "(" + _debug_str + " -> " + _debug_id + ")";
+  _debug_str = _debug_id;
+
 
   //DEBUG
   //DEBUG
@@ -2835,7 +2878,8 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
   let b_e = Bij[ g_e[1] ][ g_e[0] ];
 
   if (_debug) {
-    console.log("\n" + _ws(2*lvl), "mirp." + lvl.toString() + ".beg:",
+    //console.log("\n" + _ws(2*lvl), "mirp." + lvl.toString() + ".beg:",
+    console.log("\n" + _pfx + ".beg:",
       "g_s:", JSON.stringify(g_s), "(" + b_s.toString() + ")",
       "g_e:", JSON.stringify(g_e), "(" + b_e.toString() + ")",
       "g_a:", g_a);
@@ -2856,17 +2900,15 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
       let qi = RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug);
       if (qi.valid == 0) {
 
-        if (_debug) {
-          console.log( _ws(2*lvl), "skipping", g_s, g_e, g_a, g_b, "(", qi.comment, ")");
-        }
+        //if (_debug) { console.log( _ws(2*lvl), "skipping", g_s, g_e, g_a, g_b, "(", qi.comment, ")"); }
 
         continue;
       }
 
       if (_debug) {
-        console.log( _ws(2*lvl), "considering:", "(g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b, ")",
+        console.log( _pfx, "considering:", "(g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b, ")",
           "(#1c:", qi.one_cuts.length, "#2c:", qi.two_cuts.length, ")");
-        console.log( _ws(2*lvl), "1cut:", JSON.stringify(qi.one_cuts));
+        console.log( _pfx, "1cut:", JSON.stringify(qi.one_cuts));
       }
 
       let a_pnt = Gxy[ Gij[ g_a[1] ][ g_a[0] ] ];
@@ -2874,41 +2916,52 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
 
       let quarry_rect_cost = _Ink(a_pnt, b_pnt);
 
-      console.log(">>>ink:", quarry_rect_cost, _Ink(a_pnt, b_pnt), "(g_ab:", g_a, g_b, "ab_pnt:", a_pnt, b_pnt, ")");
+      console.log( _pfx, "mirp." + lvl.toString(),
+        "ink:", quarry_rect_cost, _Ink(a_pnt, b_pnt), "(g_ab:", g_a, g_b, "ab_pnt:", a_pnt, b_pnt, ")");
 
       let cut_side_cost = 0;
 
       let _min_one_cut_cost = 0;
       let _min_two_cut_cost = 0;
 
+      let _min_one_cut = [];
+
       for (let sched_idx=0; sched_idx < qi.one_cuts.length; sched_idx++) {
         let one_cut = qi.one_cuts[sched_idx];
+
+        let _min_idx = -1;
 
         // one or the other here..
         //
         let one_cut_cost = 0;
         for (let ci=0; ci<one_cut.length; ci++) {
           let cut = one_cut[ci];
-          let _cost = RPRP_MIRP(ctx, B[cut[0]], B[cut[1]], cut[2], lvl+1, _debug);
+          let _cost = RPRP_MIRP(ctx, B[cut[0]], B[cut[1]], cut[2], lvl+1, _debug, _debug_str);
           if ( (ci==0) ||
                (_cost < one_cut_cost) ) {
             one_cut_cost = _cost;
+            _min_idx = ci;
           }
 
           if (_debug) {
-            console.log( _ws(2*lvl), "1cuts[", sched_idx, "][", ci, "]", "_cost:", _cost, "one_cut_cost:", one_cut_cost);
+            console.log( _pfx, "1cuts[", sched_idx, "][", ci, "]", "_cost:", _cost, "one_cut_cost:", one_cut_cost);
           }
 
 
         }
 
         _min_one_cut_cost += one_cut_cost;
+        if (_min_idx >= 0) {
+          _min_one_cut.push( one_cut[_min_idx] );
+        }
 
         if (_debug) {
-          console.log( _ws(2*lvl), "1cuts[", sched_idx, "] (#", one_cut.length, "):", one_cut_cost, ", _min_one_cut_cost:", _min_one_cut_cost);
+          console.log( _pfx, "1cuts[", sched_idx, "] (#", one_cut.length, "):", one_cut_cost, ", _min_one_cut_cost:", _min_one_cut_cost);
         }
 
       }
+
+      let _min_two_cut_sched = -1;
 
       // take min of sched....
       //
@@ -2917,16 +2970,17 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
 
         let cur_two_cut_cost = 0;
         for (let ci=0; ci<two_cut.length; ci++) {
-          cur_two_cut_cost += RPRP_MIRP(ctx, B[two_cut[ci][0]], B[two_cut[ci][1]], two_cut[ci][2], lvl+1, _debug);
+          cur_two_cut_cost += RPRP_MIRP(ctx, B[two_cut[ci][0]], B[two_cut[ci][1]], two_cut[ci][2], lvl+1, _debug, _debug_str);
         }
 
         if (_debug) {
-          console.log (_ws(2*lvl), "cur_two_cut_cost:", cur_two_cut_cost, "(sched_idx:", sched_idx, ")");
+          console.log( _pfx, "cur_two_cut_cost:", cur_two_cut_cost, "(sched_idx:", sched_idx, ")");
         }
 
         if ((sched_idx==0) ||
             (cur_two_cut_cost < _min_two_cut_cost)) {
           _min_two_cut_cost = cur_two_cut_cost;
+          _min_two_cut_sched = sched_idx;
         }
 
       }
@@ -2937,8 +2991,13 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug) {
       //
       if ((_min_cost < 0) ||
           ((quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost) < _min_cost) ) {
+
+        let tc = [];
+        if (_min_two_cut_sched >= 0) { tc = qi.two_cuts[_min_two_cut_sched]; }
+
         _min_cost = quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost;
         _min_rect = [ [ g_a[0], g_a[1] ], [ g_b[0], g_b[1] ] ];
+        _min_partition = [ _min_one_cut, tc ];
         //_min_partition = [ min_one_cuts, min_two_cuts ];
       }
 
@@ -3561,25 +3620,31 @@ function _main_custom_11() {
 
 }
 
-function _main_mirp_test() {
-
-
-
-  let ctx_L = RPRPInit( pgn_ell );
-  let v_L = RPRP_MIRP(ctx_L);
-
-
-  _print_dp(ctx_L);
-
-
-  console.log("mirp.L:", v_L);
-  return;
-
+function _main_mirp_square() {
   let ctx_sq = RPRPInit( [[0,0], [10,0], [10,10], [0,10]] );
   let v_sq = RPRP_MIRP(ctx_sq);
   console.log("mirp.sq:", v_sq);
   return;
+}
 
+
+function _main_mirp_L() {
+  let ctx_L = RPRPInit( pgn_ell );
+  let v_L = RPRP_MIRP(ctx_L);
+  _print_dp(ctx_L);
+  console.log("mirp.L:", v_L);
+  return;
+}
+
+function _main_mirp_z() {
+  let ctx_z = RPRPInit( pgn_z );
+  let v_z = RPRP_MIRP(ctx_z);
+  _print_dp(ctx_z);
+  console.log("mirp.z:", v_z);
+  return;
+}
+
+function _main_mirp_test() {
   let ctx = RPRPInit( pgn_pinwheel1 );
   let v = RPRP_MIRP(ctx);
 
@@ -3628,7 +3693,12 @@ if ((typeof require !== "undefined") &&
   else if (op == 'example') { _main_example(process.argv.slice(2)); }
   else if (op == 'rprpi')   { _main_rprpinit_test(); }
   else if (op == 'pir')     { _main_pir_test(); }
+
   else if (op == 'mirp')    { _main_mirp_test(); }
+  else if (op == 'mirp.sq')    { _main_mirp_square(); }
+  else if (op == 'mirp.L')    { _main_mirp_L(); }
+  else if (op == 'mirp.z')    { _main_mirp_z(); }
+
   else if (op == 'custom')  { _main_custom(); }
   else if (op == 'custom.1')  { _main_custom_1(); }
   else if (op == 'custom.2')  { _main_custom_2(); }
