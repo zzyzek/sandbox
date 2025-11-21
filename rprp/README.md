@@ -846,6 +846,47 @@ You don't know whether the bridge cleave cut would be valid without looking ahea
 This only applies if at least one of the `b` end points is a corner.
 If they're both true `b` flat points, then it's clear the guillotine cut would be redundant.
 
+---
+
+There's some subtlety in how to do the recursion so we don't get into an infinite loop.
+The current version has a bug where this happens.
+
+The bug is as follows:
+
+* There's a 1-cut, partitioning off an upper region
+* In the upper region, we start looking for a quarry rectangle
+* One choice is choose the adit point on the right most 1-cut endpoint
+  and start by looking at bower points to the right
+* There's a bower point found, with a 1-cut to the left
+* Now the recursion has a 1-cut to the left where it didn't come from
+* stack overflow
+
+This can be seen in a `z` polygon.
+
+There are bower points excluded by the Ahn paper which I mostly ignored because I either considered
+them as optimizations or because I hoped they would be caught by the cleave enumeration.
+It looks like they might be necessary in making sure the recursion works correctly.
+
+These are from *Lemma 3*:
+
+* For a $2C$ cut with adit $a$, kitty-corner rectangle $R _ {a, \kappa}$, either the bower point $b \notin R _ {a, \kappa}$ 
+  or the quarry rectangle $R _ {a,b}$ shares a non-degenerate boundary with $\partial P$
+* For a $2R$ cut with adit $a$, kitty-corner point $\kappa$, then either the bower point $b$ isn't in quadrent `I` or `III`
+  of origin $a$ relative to $\kappa$ or the quarry rectangle $R _ {a,b}$ shares a non-degenerate boundary with
+  $\partial P$
+* For a 1-cut with adit $a$ and bower $b$, the quarry rectangle $R _ {a,b}$ shares a non-degenerate boundary with the cut
+
+The first condition isn't handled but I don't think this does anything other than create more work by recurring
+on sub-optimal solutions.
+
+The second condition is handled by the cleave cut enumeration.
+
+The third condition isn't handled and is causing the stack overflow.
+The fix should be to add an additional check in the `QuarryInfo` function to notice when the adit and bower point
+are in-line and to exclude bower points that are too far to the left or right of the 1-cut line segment.
+
+
+
 References
 ---
 

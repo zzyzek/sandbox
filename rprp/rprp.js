@@ -1999,6 +1999,11 @@ function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b, _debug) {
 //
 function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+  let oppo = [ 1,0, 3,2 ];
+
+  let B = ctx.B;
+  let Js = ctx.Js;
+  let Bij = ctx.Bij;
 
   let quarry_info = {
     "valid": 0,
@@ -2009,10 +2014,6 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     "g_a" : g_a,  "g_b" : g_b,
     "comment": ""
   };
-
-  let Js = ctx.Js;
-  let Bij = ctx.Bij;
-  let B = ctx.B;
 
   //
   //  5    6    7
@@ -2045,7 +2046,67 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     }
   }
 
-  let oppo = [ 1,0, 3,2 ];
+
+  // if it's a 1cut,
+  // make sure the quarry rectangle shares a non-degenerate edge
+  // with the cut.
+  //
+
+  //!!!!!
+  //MAKE SURE G_S AND G_E ARE NON-DEGENERATE!!!!
+
+  if ( ((g_s[0] == g_e[0]) ||
+        (g_s[1] == g_e[1])) &&
+       ((g_s[0] != g_e[0]) ||
+        (g_s[1] != g_e[1])) ) {
+
+    // free dimension for 1cut
+    //
+    let c_xy = ((g_s[0] == g_e[0]) ? 1 : 0);
+
+    let cut_ls = [
+      [ Math.min(g_s[0], g_e[0]), Math.min(g_s[1], g_e[1]) ],
+      [ Math.max(g_s[0], g_e[0]), Math.max(g_s[1], g_e[1]) ]
+    ];
+
+
+    let overlap = false;
+
+    for (let r_idx=0; r_idx<Rg.length; r_idx++) {
+
+      // free dimension for Rg line segment
+      //
+      let rl_xy = ((r_idx%2) ? 1 : 0);
+      if (rl_xy != c_xy) { continue; }
+
+      let r0 = Rg[r_idx];
+      let r1 = Rg[(r_idx+1)%Rg.length];
+
+      let R_l = [
+        [ Math.min(r0[0], r1[0]), Math.min(r0[1], r1[1]) ],
+        [ Math.max(r0[0], r1[0]), Math.max(r0[1], r1[1]) ]
+      ];
+
+
+      // doesn't non-degeneratiely intersect, skip
+      //
+      if ( (cut_ls[0][c_xy] >= R_l[1][rl_xy]) ||
+           (R_l[0][rl_xy] >= cut_ls[1][c_xy]) ) {
+        continue;
+      }
+
+      overlap = true;
+      break;
+    }
+
+    if (!overlap) {
+      quarry_info.comment = "quarry doesn't share non-degenerate 1cut edge";
+      return quarry_info;
+    }
+
+  }
+
+  //---
 
   let cleave_sched = [];
 
@@ -2900,7 +2961,7 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       let qi = RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug);
       if (qi.valid == 0) {
 
-        //if (_debug) { console.log( _ws(2*lvl), "skipping", g_s, g_e, g_a, g_b, "(", qi.comment, ")"); }
+        if (_debug) { console.log( _ws(2*lvl), "skipping", g_s, g_e, g_a, g_b, "(", qi.comment, ")"); }
 
         continue;
       }
