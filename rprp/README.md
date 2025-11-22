@@ -907,10 +907,10 @@ I don't know how to avoid this special case nightmare.
 
 When recurring on one-cuts, it gets worse than considering either side of the constructed
 line partition as the quarry rectangle side can be larger than the partition line.
-This is Figure 5. in Kim et al.'s paper.
+See Figure 5. in Kim et al.'s paper.
 
 Here is an example that illustrates the issue, assuming the start of the recursion happens
-at `[0,2]`:
+at `[2,0]`:
 
 | |
 |---|
