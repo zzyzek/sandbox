@@ -322,30 +322,18 @@ function _write_data(ofn, data) {
   return fs.writeFileSync(ofn, JSON.stringify(data, undefined, 2));
 }
 
+// human readable debug identifiers
+// 'four character words' js with array of 4 character words
+//
 function _debid() {
   let n = 2;
-
   let m = fw.word.length;
-
   let a = [];
   for (let i=0; i<n; i++) {
     let idx = Math.floor( Math.random()*m );
     a.push( fw.word[idx] );
   }
   return a.join("-");
-}
-
-function __debid() {
-  let lu = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let n = 8;
-
-
-  let a = [];
-  for (let i=0; i<n; i++) {
-    if ((i>0) && ((i%4)==0)) { a.push( '-' ); }
-    a.push( lu[ Math.floor(Math.random()*lu.length) ] );
-  }
-  return a.join("");
 }
 
 function _ifmt(v, s) {
@@ -387,6 +375,7 @@ function _print_pgon(p, pt) {
   }
 }
 
+/*
 function _print_dual(dualG, pfx) {
   pfx = ((typeof pfx === "undefined") ? "" : pfx);
   for (let j=(dualG.length-1); j>=0; j--) {
@@ -402,6 +391,7 @@ function _print_dual(dualG, pfx) {
     console.log( pfx + pl.join(" ") );
   }
 }
+*/
 
 function _print_dp(ctx) {
   let X = ctx.X;
@@ -1059,7 +1049,6 @@ function RPRPInit(_rl_pgon, _debug) {
     '?', 'L', 'J', 't',
     '?', 'r', '7', 'T',
     '|', 'F', 'd', 'i'
-
   ];
 
   let g_idx = 0;
@@ -1357,6 +1346,15 @@ function RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b) {
 function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
+  //DEBUG
+  //DEBUG
+  //DEBUG
+  _debug = 1;
+  //DEBUG
+  //DEBUG
+  //DEBUG
+
+
   let R = quarry;
 
   let Js = ctx.Js;
@@ -1453,30 +1451,6 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     _undock[3] = 0;
   }
 
-  /*
-  if ( (Js[0][ R[1][1] ][ R[1][0] ] != Js[0][ R[0][1] ][ R[0][0] ]) ||
-       (Js[1][ R[1][1] ][ R[1][0] ] != Js[1][ R[0][1] ][ R[0][0] ]) ) {
-    _undock[0] = 0;
-  }
-
-  if ( (Js[2][ R[1][1] ][ R[1][0] ] != Js[2][ R[2][1] ][ R[2][0] ]) ||
-       (Js[3][ R[1][1] ][ R[1][0] ] != Js[3][ R[2][1] ][ R[2][0] ]) ) {
-    _undock[1] = 0;
-  }
-
-  if ( (Js[0][ R[2][1] ][ R[2][0] ] != Js[0][ R[3][1] ][ R[3][0] ]) ||
-       (Js[1][ R[2][1] ][ R[2][0] ] != Js[1][ R[3][1] ][ R[3][0] ]) ) {
-    _undock[2] = 0;
-  }
-
-  if ( (Js[2][ R[0][1] ][ R[0][0] ] != Js[2][ R[3][1] ][ R[3][0] ]) ||
-       (Js[3][ R[0][1] ][ R[0][0] ] != Js[3][ R[3][1] ][ R[3][0] ]) ) {
-    _undock[3] = 0;
-  }
-  */
-
-
-
   if (_debug) { console.log("#vc.cp1:", cleave_choice.join(""), redux.join(""), JSON.stringify(_undock) ); }
 
   // each corner needs at least one cleave cut
@@ -1525,7 +1499,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
 
   // we'll use cleave 5 (upper left corner, pointing upwards) as an example:
   //
-  // IF   cleave_5 is present and ends on a border (upwards)
+  // IF   cleave_5 is present and ends on a border (upwards) (that is, it doesn't end on a corner)
   // AND  opposite of cleave_5 (cleave_2) exists and ends on a border or
   //        cleave_2 doesn't exist at all
   // AND  origin point of cleave_5 (quarry_point_2) has the same endpoint as
@@ -1557,7 +1531,8 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     if ((quarry_point_type[r_idx] != 'c') &&
         (redux[cleave_idx] == '*') && (cleave_border_type[cleave_idx] == 'b') &&
         (((redux[rev_cleave_idx] == '*') && (cleave_border_type[rev_cleave_idx] == 'b')) ||
-          (redux[rev_cleave_idx] == '-')) &&
+          (redux[rev_cleave_idx] == '-') ||
+          (cleave_border_type[rev_cleave_idx] == 'x')) &&
         (Js[idir][ R[r_idx][1] ][ R[r_idx][0] ] == Js[idir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ]) &&
         (Js[rdir][ R[r_idx][1] ][ R[r_idx][0] ] == Js[rdir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ])) {
 
@@ -1607,6 +1582,14 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
   //let _debug = false;
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
+  //DEBUG
+  //DEBUG
+  //DEBUG
+  _debug=1;
+  //DEBUG
+  //DEBUG
+  //DEBUG
+
   let B = ctx.B;
   let Bt = ctx.Bt;
   let Bij = ctx.Bij;
@@ -1635,6 +1618,8 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
     [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
   ];
 
+  let cleave_nei = [ 1,0, 3,2, 5,4, 7,6 ];
+
   let cleave_idir = [ 0, 3,  3, 1,  1, 2,  2, 0 ];
 
   let bvec = [],
@@ -1656,6 +1641,20 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
 
     if ((cleave_profile[i] == 'x') || (cleave_profile[i] == 'X')) {
       cleave_border_type[i] = 'x';
+
+      /*
+      let j = cleave_nei[i];
+      console.log("???", i, j, cleave_profile[i], cleave_profile[j]);
+      if ((cleave_profile[j] == 'x') || (cleave_profile[j] == 'X')) {
+        console.log(" !!");
+        cleave_border_type[i] = 'x';
+      }
+      else {
+        console.log(" bb");
+        cleave_border_type[i] = 'b';
+      }
+      */
+
       continue;
     }
 
@@ -1692,6 +1691,9 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
       if (cleave_profile[i] == '.') {
         cleave_choice[i] = ( bvec[b_idx] ? '*' : '-' );
         b_idx++;
+      }
+      else if (cleave_profile[i] == 'c') {
+        cleave_choice[i] = '*';
       }
 
     }
@@ -1773,6 +1775,7 @@ function _cleave_cmp(a,b) {
 // during the recursion when processing the sub-region.
 //
 //
+/*
 function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
   let Js = ctx.Js;
@@ -1955,6 +1958,7 @@ function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b, _debug) {
 
   return cleave_sched;
 };
+*/
 
 // next attempt at doing the validation and getting relevant information
 // for quarry choice
@@ -2199,11 +2203,19 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
 
           //sloppy...
           //
-          let _s = Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ];
-          let _e = Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ];
+          //yeah, no, this absolutely shouldn't be here.
+          //If we're adding a region whose fence is out of range, that is
+          //and outright error. We shouldn't be adding it in in the first
+          //place. If we do need to add in some weird fence, we need
+          //to make sure the logic is sound.
+          //doing it this way is chasing bugs symptoms without addressing
+          //the underlying issue.
+          //
+          //let _s = Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ];
+          //let _e = Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ];
 
-          if ( wrapped_range_contain(_s, idx_s, idx_e) &&
-               wrapped_range_contain(_e, idx_s, idx_e) ) {
+          //if ( wrapped_range_contain(_s, idx_s, idx_e) &&
+          //     wrapped_range_contain(_e, idx_s, idx_e) ) {
 
           cleave_cuts.push([
               Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ],
@@ -2212,8 +2224,8 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
               //[ Rg[i][0], Rg[i][1] ]
             ]);
 
-            if (_debug) { console.log("qci: cci:", cci, "i:", i, "e.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
-          }
+          if (_debug) { console.log("qci: cci:", cci, "i:", i, "e.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+          //}
 
         }
 
@@ -2255,21 +2267,23 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
 
           //sloppy...
           //
-          let _s = Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ];
-          let _e = Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ];
+          //see above.
+          //
+          //let _s = Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ];
+          //let _e = Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ];
 
-          if ( wrapped_range_contain(_s, idx_s, idx_e) &&
-               wrapped_range_contain(_e, idx_s, idx_e) ) {
+          //if ( wrapped_range_contain(_s, idx_s, idx_e) &&
+          //     wrapped_range_contain(_e, idx_s, idx_e) ) {
 
-            cleave_cuts.push([
-              Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
-              Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ],
-              [ _a[0], _a[1] ]
-              //[ Rg[i][0], Rg[i][1] ]
-            ]);
+          cleave_cuts.push([
+            Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ],
+            [ _a[0], _a[1] ]
+            //[ Rg[i][0], Rg[i][1] ]
+          ]);
 
-            if (_debug) { console.log("qci: cci:", cci, "i:", i, "o.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
-          }
+          if (_debug) { console.log("qci: cci:", cci, "i:", i, "o.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+          //}
         }
 
       }
@@ -2277,6 +2291,16 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     }
 
     if (cleave_cuts.length == 0) { continue; }
+
+    if (_debug) {
+      // we should put a sanity here to make sure the
+      // deduplication is removing actual duplicates...
+      //
+      console.log("dup cleave cut(", cleave_cuts.length, ")");
+      for (let _i=0; _i<cleave_cuts.length; _i++) {
+        console.log("  [", _i, "]:", cleave_cuts[_i]);
+      }
+    }
 
     // sort and deduplicate
     //
@@ -2932,13 +2956,6 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
   let _pfx = _ws(2*lvl) + "mirp." + lvl.toString() + "(" + _debug_str + " -> " + _debug_id + ")";
   _debug_str = _debug_id;
 
-
-  //DEBUG
-  //DEBUG
-  _debug = 1;
-  //DEBUG
-  //DEBUG
-
   let B = ctx.B,
       Bt = ctx.Bt,
       Bij = ctx.Bij,
@@ -3467,6 +3484,10 @@ function _main_custom_1() {
 }
 
 function _main_custom_2() {
+
+  console.log("NO");
+
+  /*
   let _debug = 0;
 
   let g_s = [2,5],
@@ -3497,6 +3518,7 @@ function _main_custom_2() {
 
 
   //let v_x = _expect( cc_x, [], _sfmt("pgn_corner_x", 16, 'r') );
+  */
 
 
 }
@@ -3798,7 +3820,37 @@ async function _main_data(argv) {
                              data_info.g_e, 
                              data_info.g_a, 
                              data_info.g_b, _debug);
-    console.log( JSON.stringify(qi, undefined, 2) );
+    //console.log( JSON.stringify(qi, undefined, 2) );
+
+    console.log("{");
+    console.log('  "valid":', qi.valid, ",");
+
+    if (qi.one_cuts.length == 0) { console.log('  "one_cuts": [],'); }
+    else {
+      console.log('  "one_cuts": [');
+      for (let i=0; i<qi.one_cuts.length; i++) {
+        let sfx = ((i == (qi.one_cuts.length-1)) ? "" : ",");
+        console.log( JSON.stringify(qi.one_cuts[i]) + sfx );
+      }
+      console.log('  ],');
+    }
+
+    if (qi.two_cuts.length == 0) { console.log('  "two_cuts": [],'); }
+    else {
+      console.log('  "two_cuts": [');
+      for (let i=0; i<qi.two_cuts.length; i++) {
+        let sfx = ((i == (qi.two_cuts.length-1)) ? "" : ",");
+        console.log( "    " + JSON.stringify(qi.two_cuts[i]) + sfx );
+      }
+      console.log('  ],');
+    }
+
+    console.log('  "b_s": ' + JSON.stringify(qi.b_s) + ', "b_e": ' + JSON.stringify(qi.b_e) + ',');
+    console.log('  "g_s": ' + JSON.stringify(qi.g_s) + ', "g_e": ' + JSON.stringify(qi.g_e) + ',');
+    console.log('  "g_a": ' + JSON.stringify(qi.g_a) + ', "g_b": ' + JSON.stringify(qi.g_b) + ',');
+    console.log('  "comment": ' + JSON.stringify(qi.comment) );
+
+    console.log("}");
   }
 
 }

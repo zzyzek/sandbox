@@ -11,6 +11,6 @@
   "g_a": [0,2],
   "g_b": [2,3],
 
-  "expect" : [],
+  "expect" : { "valid": 0 },
   "reason" : "cleave cut right creates bridge from (R_0,R_3) edge, cleave cut down is itself a bridge because of (R_2,R_3) edge -> invalid quarry"
 }

@@ -8,5 +8,7 @@
   "g_s": [0,3],
   "g_e": [4,3],
   "g_a": [0,3],
-  "g_b": [2,2]
+  "g_b": [2,2],
+  "expect": { "valid":0 },
+  "comment": "no cleave cuts are available because of bridge tests. Currently this is giving a valid cleave cut that's whacko"
 }
