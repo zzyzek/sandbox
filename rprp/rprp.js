@@ -190,15 +190,6 @@ let pgn_custom0 = [
   [7,4], [7,0], [3,0], [3,9]
 ];
 
-/*
-let _pgn_custom1 = [
-  [0,5], [8,5], [8,0], [11,0],
-  [11,2], [15,2], [15,8], [11,8],
-  [11,16], [6,16], [6,19], [0,19],
-  [0,15], [3,15], [3,10], [0,10],
-];
-*/
-
 var pgn_custom1 = [
     [0,5], [8,5], [8,0], [11,0],
     [11,2], [15,2], [15,8], [11,8],
@@ -1363,11 +1354,6 @@ function RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b) {
 //   the test.
 //
 
-// STILL WRONG
-// pgc_custom1 is failing for both the cleave enumeration and the side cleave
-// there are more special cases here that we're not taking into account.
-//
-
 function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
@@ -2047,14 +2033,12 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   }
 
 
-  // if it's a 1cut,
+  // If it's a 1cut,
   // make sure the quarry rectangle shares a non-degenerate edge
   // with the cut.
+  // Exclude the special case when g_s == g_e, which should only
+  // happen for the initial pick.
   //
-
-  //!!!!!
-  //MAKE SURE G_S AND G_E ARE NON-DEGENERATE!!!!
-
   if ( ((g_s[0] == g_e[0]) ||
         (g_s[1] == g_e[1])) &&
        ((g_s[0] != g_e[0]) ||
@@ -2064,6 +2048,8 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     //
     let c_xy = ((g_s[0] == g_e[0]) ? 1 : 0);
 
+    // order (g_s, g_e) line segment
+    //
     let cut_ls = [
       [ Math.min(g_s[0], g_e[0]), Math.min(g_s[1], g_e[1]) ],
       [ Math.max(g_s[0], g_e[0]), Math.max(g_s[1], g_e[1]) ]
@@ -2082,13 +2068,18 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
       let r0 = Rg[r_idx];
       let r1 = Rg[(r_idx+1)%Rg.length];
 
+      // order edge Rg line segment
+      //
       let R_l = [
         [ Math.min(r0[0], r1[0]), Math.min(r0[1], r1[1]) ],
         [ Math.max(r0[0], r1[0]), Math.max(r0[1], r1[1]) ]
       ];
 
-
-      // doesn't non-degeneratiely intersect, skip
+      // if line segments don't non-degeneratiely intersect, skip
+      //
+      // if ( A _ right <= B _ left ) or
+      //    ( B _ right <= A _ left ) then
+      //   line segments non-overlapping
       //
       if ( (cut_ls[0][c_xy] >= R_l[1][rl_xy]) ||
            (R_l[0][rl_xy] >= cut_ls[1][c_xy]) ) {
@@ -2099,6 +2090,9 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
       break;
     }
 
+    // if it's a 1-cut and the quarry edge doesn't non-degenerately share 
+    // an edge with the cut, invalid choice, early return.
+    //
     if (!overlap) {
       quarry_info.comment = "quarry doesn't share non-degenerate 1cut edge";
       return quarry_info;
@@ -2107,6 +2101,9 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   }
 
   //---
+
+  let idx_s = Bij[ g_s[1] ][ g_s[0] ];
+  let idx_e = Bij[ g_e[1] ][ g_e[0] ];
 
   let cleave_sched = [];
 
@@ -2124,6 +2121,12 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   let cleave_profile = RPRPCleaveProfile( ctx, g_s, g_e, g_a, g_b );
   let cleave_choices = RPRP_cleave_enumerate( ctx, g_s, g_e, g_a, g_b, cleave_profile );
   let side_cleave_cuts = RPRP_enumerate_quarry_side_region( ctx, g_s, g_e, g_a, g_b );
+
+  if (_debug) {
+    console.log("qci: profile:", cleave_profile.join(""));
+    console.log("qci: cc:", JSON.stringify(cleave_choices));
+    console.log("qci: scc:", JSON.stringify(side_cleave_cuts));
+  }
 
   let forced_corner = false;
   for (let r_idx=0; r_idx<4; r_idx++) {
@@ -2194,14 +2197,24 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
 
           let _a = B[ Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ] ];
 
-          cleave_cuts.push([
-            Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ],
-            Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
-            [ _a[0], _a[1] ]
-            //[ Rg[i][0], Rg[i][1] ]
-          ]);
+          //sloppy...
+          //
+          let _s = Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ];
+          let _e = Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ];
 
-          if (_debug) { console.log("qci: cci:", cci, "i:", i, "e.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+          if ( wrapped_range_contain(_s, idx_s, idx_e) &&
+               wrapped_range_contain(_e, idx_s, idx_e) ) {
+
+          cleave_cuts.push([
+              Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ],
+              Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
+              [ _a[0], _a[1] ]
+              //[ Rg[i][0], Rg[i][1] ]
+            ]);
+
+            if (_debug) { console.log("qci: cci:", cci, "i:", i, "e.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+          }
+
         }
 
       }
@@ -2240,14 +2253,23 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
         else {
           let _a = B[ Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ] ];
 
-          cleave_cuts.push([
-            Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
-            Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ],
-            [ _a[0], _a[1] ]
-            //[ Rg[i][0], Rg[i][1] ]
-          ]);
+          //sloppy...
+          //
+          let _s = Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ];
+          let _e = Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ];
 
-          if (_debug) { console.log("qci: cci:", cci, "i:", i, "o.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+          if ( wrapped_range_contain(_s, idx_s, idx_e) &&
+               wrapped_range_contain(_e, idx_s, idx_e) ) {
+
+            cleave_cuts.push([
+              Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+              Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ],
+              [ _a[0], _a[1] ]
+              //[ Rg[i][0], Rg[i][1] ]
+            ]);
+
+            if (_debug) { console.log("qci: cci:", cci, "i:", i, "o.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+          }
         }
 
       }
@@ -2961,7 +2983,9 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       let qi = RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug);
       if (qi.valid == 0) {
 
-        if (_debug) { console.log( _ws(2*lvl), "skipping", g_s, g_e, g_a, g_b, "(", qi.comment, ")"); }
+        if (_debug > 1) {
+          console.log( _ws(2*lvl), "skipping", g_s, g_e, g_a, g_b, "(", qi.comment, ")");
+        }
 
         continue;
       }
@@ -2969,7 +2993,8 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       if (_debug) {
         console.log( _pfx, "considering:", "(g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b, ")",
           "(#1c:", qi.one_cuts.length, "#2c:", qi.two_cuts.length, ")");
-        console.log( _pfx, "1cut:", JSON.stringify(qi.one_cuts));
+        console.log( _pfx, "1cuts:", JSON.stringify(qi.one_cuts));
+        console.log( _pfx, "2cuts:", JSON.stringify(qi.two_cuts));
       }
 
       let a_pnt = Gxy[ Gij[ g_a[1] ][ g_a[0] ] ];
@@ -3756,6 +3781,8 @@ function _main_cli(argv) {
 
 async function _main_data(argv) {
 
+  let _debug = 1;
+
   let data = "";
   for await (let chunk of process.stdin) {
     data += chunk;
@@ -3770,7 +3797,7 @@ async function _main_data(argv) {
                              data_info.g_s, 
                              data_info.g_e, 
                              data_info.g_a, 
-                             data_info.g_b);
+                             data_info.g_b, _debug);
     console.log( JSON.stringify(qi, undefined, 2) );
   }
 
