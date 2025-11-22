@@ -1,0 +1,14 @@
+{
+  "op": "MIRP",
+  "C": [
+    [0,7], [9,7], [9,4], [6,4],
+    [6,0], [14,0], [14,4], [11,4],
+    [11,7], [16,7], [16,11], [2,11],
+    [2,9], [0,9]
+  ],
+  "g_s" : [2,0],
+  "g_e" : [2,0],
+  "g_a" : [2,0],
+  "expect" : { "valid": 1 },
+  "comment" : "quarry rectangles have to be handled differently after 1-cuts, this is an example of a special case where taking the quarry rectangle on one or the other corner of a 1-cut won't find the optimal partition"
+}

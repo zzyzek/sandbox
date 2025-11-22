@@ -2171,6 +2171,9 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
       // An even cleave cut implies at least one two-cut with one cut in
       // the even cleave direction and another in the orthogonal direction
       // counterclockwise.
+      // We know the orthogonal direction must be a cut, either a quarry edge
+      // that runs into a border or a quarry edge that turns into a cleave cut,
+      // otherwise it wouldn't be a valid cleave choice.
       //
       if (cc[even_cleave_idx] == '*') {
         cleave_cuts.push([
@@ -2201,6 +2204,25 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
 
           let _a = B[ Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ] ];
 
+          let ipp = (even_cleave_idx + 2) % 8;
+          let ip3 = (even_cleave_idx + 3) % 8;
+
+          let is_one_cut = false;
+
+          if ( (cc[ipp] != '*') &&
+               (cleave_profile[ip3] != 'X') ) {
+            is_one_cut = true;
+          }
+
+          let cw_i = (i+1)%4;
+
+          if ( Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ] !=
+               Js[ oppo[e_idir] ][ Rg[cw_i][1] ][ Rg[cw_i][0] ] ) {
+            is_one_cut = true;
+          }
+
+
+
           //sloppy...
           //
           //yeah, no, this absolutely shouldn't be here.
@@ -2217,6 +2239,8 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
           //if ( wrapped_range_contain(_s, idx_s, idx_e) &&
           //     wrapped_range_contain(_e, idx_s, idx_e) ) {
 
+          if (is_one_cut) {
+
           cleave_cuts.push([
               Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ],
               Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
@@ -2227,13 +2251,22 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
           if (_debug) { console.log("qci: cci:", cci, "i:", i, "e.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
           //}
 
+          }
         }
 
       }
 
-      // An odd cleave cut implies at least one two-cut with one constructed
-      // line in the direction of the odd cleave cut and the other in orthogonal
-      // direction clockwise.
+      // An odd cleave cut implies at least one two-cut with one constructed line.
+      // If a cleave cut exists in an odd direction, 90 deg. clockwise has a
+      // quarry boundary, so makes up the other constructed line cut of a 2-cut.
+      //
+      // If the even cleave cut exists (in the counterclockwise 90 deg. direction),
+      // then we adda nother 2-cut.
+      //
+      // If the even cleave cut doesn't exist, we have a 1-cut in the counterclockwise
+      // 180 deg. direction.
+      //
+      //
       //
       if (cc[odd_cleave_idx] == '*') {
 
@@ -2265,6 +2298,23 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
         else {
           let _a = B[ Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ] ];
 
+          let imm = (odd_cleave_idx + 8 - 2) % 8;
+          let im3 = (odd_cleave_idx + 8 - 3) % 8;
+
+          let is_one_cut = false;
+
+          if ( (cc[imm] != '*') &&
+               (cleave_profile[im3] != 'X') ) {
+            is_one_cut = true;
+          }
+
+          let cc_i = (i+4-1)%4;
+
+          if ( Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ] !=
+               Js[ oppo[o_idir] ][ Rg[cc_i][1] ][ Rg[cc_i][0] ] ) {
+            is_one_cut = true;
+          }
+
           //sloppy...
           //
           //see above.
@@ -2275,6 +2325,8 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
           //if ( wrapped_range_contain(_s, idx_s, idx_e) &&
           //     wrapped_range_contain(_e, idx_s, idx_e) ) {
 
+          if (is_one_cut) {
+
           cleave_cuts.push([
             Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
             Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ],
@@ -2284,6 +2336,8 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
 
           if (_debug) { console.log("qci: cci:", cci, "i:", i, "o.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
           //}
+        }
+
         }
 
       }
@@ -2306,6 +2360,42 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     //
     let dedup_cleave_cuts = [];
     cleave_cuts.sort( _cleave_cmp );
+
+    // hack for now, remove cleave cut that has whole exterior range
+    //
+    let _cleave_cuts = [];
+    for (let i=0; i<cleave_cuts.length; i++) {
+      let cc = cleave_cuts[i];
+      if (((cc[0] == idx_e) && (cc[1] == idx_s)) ) { continue; }
+      _cleave_cuts.push( cleave_cuts[i] );
+    }
+    cleave_cuts = _cleave_cuts;
+
+    // sanity checks
+    //
+
+    for (let i=0; i<cleave_cuts.length; i++) {
+
+      let cc = cleave_cuts[i];
+
+      if ( (wrapped_range_contain( cc[0], idx_s, idx_e ) == 0) ||
+           (wrapped_range_contain( cc[1], idx_s, idx_e ) == 0) ||
+           ((cc[0] == idx_e) && (cc[1] == idx_s)) ) {
+        quarry_info.valid = -1;
+        quarry_info.comment = "SANITY ERROR: nonsense cleave cut:" + cc.toString();
+        return quarry_info;
+      }
+
+      if (i>0) {
+        if ( (cleave_cuts[i-1][0] == cc[0]) &&
+             (cleave_cuts[i-1][1] != cc[1]) ) {
+          quarry_info.valid = -1;
+          quarry_info.comment = "SANITY ERROR: nonsense cleave cut:" + cleave_cuts[i-1].toString() + " " + cc.toString();
+          return quarry_info;
+        }
+      }
+
+    }
 
     dedup_cleave_cuts.push( cleave_cuts[0] );
     for (let i=1; i<cleave_cuts.length; i++) {
