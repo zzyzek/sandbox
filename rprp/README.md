@@ -885,6 +885,49 @@ The third condition isn't handled and is causing the stack overflow.
 The fix should be to add an additional check in the `QuarryInfo` function to notice when the adit and bower point
 are in-line and to exclude bower points that are too far to the left or right of the 1-cut line segment.
 
+###### 2025-11-22
+
+I've hacked together some extra tests for the two-cut enumeration.
+I'm not sure they're correct but the idea is:
+
+* Take a candidate cleave enumeration, `cc` (8 total potential cleave cuts)
+* For each cleave of `cc`, if it's even, add the counterclockwise two-cut,
+  if it's odd, take the clockwise two-cut
+* Look in the opposite direction to see if there's a neighboring cleave cut and,
+  if so, add that two-cut
+* If not, there's a potential 1-cut:
+  - if there's no cleave cut two cleave indices away and the cleave direction
+    three indices away doesn't spill over into the non-considered region
+  - OR there's a border buffetting the side of the quarry rectangle
+  - THEN it's a one cut and add it
+
+I don't know how to avoid this special case nightmare.
+
+---
+
+When recurring on one-cuts, it gets worse than considering either side of the constructed
+line partition as the quarry rectangle side can be larger than the partition line.
+This is Figure 5. in Kim et al.'s paper.
+
+Here is an example that illustrates the issue, assuming the start of the recursion happens
+at `[0,2]`:
+
+| |
+|---|
+| ![One-cut pathology](viz/img/onecut_patho.png) |
+
+The one-cut from `[4,2]` to `[3,2]` (general border index `(12,3)`) needs to choose a quarry rectangle
+from `[1,2]` to `[6,3]`, say, in order to be optimal.
+
+From Ahn et al. it looks like O'Rourke and Tewari threw up their hands and settled on $O(n^5)$ (though
+maybe this is because they're using "thick" partitions, aka t-partitions), which comes from
+trying all combinations of adit and bower points for the quarry rectangle that share a non-degnerate
+line segment with the one-cut ( $O(n)$ adit points in-line with the cut, $O(n^4)$ bower grid points).
+
+It looks like Ahn et al. bound the number of sub-polygons (potential quarry rectangles?) by $O(n^3)$,
+staying under their global $O(n^3)$ run-time goal (Section 4.1.3, Lemmas 9, 10, 11, 12).
+
+
 
 
 References
