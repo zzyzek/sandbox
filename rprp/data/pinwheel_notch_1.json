@@ -1,0 +1,16 @@
+{
+  "op": "QuarryInfo",
+  "C": [
+    [0,5], [3,5], [3,0], [10,0],
+    [10,3], [17,3], [17,7], [6,7],
+    [6,9], [17,9], [17,11], [12,11],
+    [12,16], [6,16], [6,13], [0,13]
+  ],
+  "g_s": [0,2],
+  "g_e": [0,2],
+  "g_a": [0,2],
+  "g_b": [2,3],
+
+  "expect" : [],
+  "reason" : "cleave cut right creates bridge from (R_0,R_3) edge, cleave cut down is itself a bridge because of (R_2,R_3) edge -> invalid quarry"
+}
