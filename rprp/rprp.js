@@ -2412,12 +2412,13 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   //
   for (let i=0; i<side_cleave_cuts.length; i++) {
     let cc0 = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], ctx.B[side_cleave_cuts[i][0]] ];
-    let cc1 = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], ctx.B[side_cleave_cuts[i][1]] ];
+    //let cc1 = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], ctx.B[side_cleave_cuts[i][1]] ];
 
     //quarry_info.one_cut.push( cc0 );
     //quarry_info.one_cut.push( cc1 );
 
-    quarry_info.one_cuts.push( [ cc0, cc1 ] );
+    //quarry_info.one_cuts.push( [ cc0, cc1 ] );
+    quarry_info.one_cuts.push( [ cc0 ] );
   }
 
   quarry_info.valid = 1;
@@ -3845,6 +3846,8 @@ function _main_mirp_z() {
 function _main_mirp_test() {
   let ctx = RPRPInit( pgn_pinwheel1 );
   let v = RPRP_MIRP(ctx);
+
+  _print_dp(ctx);
 
   console.log("mirp:", v);
   return;
