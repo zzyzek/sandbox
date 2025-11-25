@@ -394,8 +394,10 @@ function _draw_rprp_grid() {
   let grid_pnt = [];
   let grid_ij = [];
 
-  for (let iy=0; iy < (Y.length-1); iy++) {
-    for (let ix=0; ix < (X.length-1); ix++) {
+  //for (let iy=0; iy < (Y.length-1); iy++) {
+    //for (let ix=0; ix < (X.length-1); ix++) {
+  for (let iy=0; iy < (Y.length); iy++) {
+    for (let ix=0; ix < (X.length); ix++) {
       if (Gij[iy][ix] < 0) { continue; }
 
       let p_cur = Gxy[ Gij[iy][ix] ];
@@ -407,7 +409,8 @@ function _draw_rprp_grid() {
 
       grid_ij.push( [ix, iy] );
 
-      if (Js[0][iy][ix] >= 0) {
+      if ((Js[0][iy][ix] >= 0) &&
+          (ix < (X.length-1))) {
 
         let p_prv = Gxy[ Gij[iy][ix+1] ];
 
@@ -424,7 +427,8 @@ function _draw_rprp_grid() {
 
       }
 
-      if (Js[2][iy][ix] >= 0) {
+      if ((Js[2][iy][ix] >= 0) &&
+          (iy < (Y.length-1))) {
         let p_prv = Gxy[ Gij[iy+1][ix] ];
 
         let lv = two.makeLine(
