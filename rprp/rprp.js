@@ -73,9 +73,17 @@ var pgon_pinwheel = [
   [4,6], [4,3], [5,3], [5,0], [3,0], [3,-1],
 ];
 
+// optn 96 (w/ double counting)
+//
 var pgn_pinwheel1 = [
   [0,6], [4,6], [4,0], [9,0],
   [9,4], [14,4], [14,9], [11,9],
+  [11,15], [6,15], [6,11], [0,11]
+];
+
+var pgn_pinwheel_sym = [
+  [0,6], [4,6], [4,0], [9,0],
+  [9,4], [15,4], [15,9], [11,9],
   [11,15], [6,15], [6,11], [0,11]
 ];
 
@@ -393,7 +401,52 @@ function _print_dual(dualG, pfx) {
 }
 */
 
+function cmp_dp_key(_a,_b) {
+
+  let v_a = _a.split(";");
+  let v_b = _b.split(";");
+
+  let a_se = v_a[0].split(":");
+  let b_se = v_b[0].split(":");
+
+  let a_adit = v_b[1].split(",");
+  let b_adit = v_b[1].split(",");
+
+  if ( parseInt(a_se[0]) < parseInt(b_se[0])) { return -1; }
+  if ( parseInt(a_se[0]) > parseInt(b_se[0])) { return  1; }
+  if ( parseInt(a_se[1]) < parseInt(b_se[1])) { return -1; }
+  if ( parseInt(a_se[1]) > parseInt(b_se[1])) { return  1; }
+
+  if ( parseInt(a_adit[0]) < parseInt(b_adit[0])) { return -1; }
+  if ( parseInt(a_adit[0]) > parseInt(b_adit[0])) { return  1; }
+
+  if ( parseInt(a_adit[1]) < parseInt(b_adit[1])) { return -1; }
+  if ( parseInt(a_adit[1]) > parseInt(b_adit[1])) { return  1; }
+
+  return 0;
+}
+
 function _print_dp(ctx) {
+  let X = ctx.X;
+  let Y = ctx.Y;
+
+  let key_a = [];
+  for (let key in ctx.DP_cost) { key_a.push(key); }
+  key_a.sort( cmp_dp_key );
+
+  for (let i=0; i<key_a.length; i++) {
+    let dp_idx = key_a[i];
+    if (ctx.DP_cost[dp_idx] >= 0) {
+      console.log( dp_idx, ":", ctx.DP_cost[dp_idx]);
+      console.log("  R:", JSON.stringify(ctx.DP_rect[dp_idx][0]), JSON.stringify(ctx.DP_rect[dp_idx][1]));
+      console.log("  P.1cut:", JSON.stringify(ctx.DP_partition[dp_idx][0]));
+      console.log("  P.2cut:", JSON.stringify(ctx.DP_partition[dp_idx][1]));
+    }
+  }
+
+}
+
+function __print_dp(ctx) {
   let X = ctx.X;
   let Y = ctx.Y;
 
@@ -733,12 +786,10 @@ function RPRPInit(_rl_pgon, _debug) {
   // init Gij, Bij, Js
   //
 
-  //DEBUG
   if (_debug) {
     _print1da(Cxy, "\n## Cxy:");
     _print1da(Ct, "\n## Ct:");
   }
-  //DEBUG
 
   for (let j=0; j<Y.length; j++) {
     Gij.push([]);
@@ -800,14 +851,12 @@ function RPRPInit(_rl_pgon, _debug) {
 
   }
 
-  //DEBUG
   if (_debug) {
     _print1da(Bxy,  "\n## Bxy:");
     _print1da(B,    "\n## B:");
     _print1da(Bt,   "\n## Bt:");
     _print2da(Bij,  "\n## Bij:");
   }
-  //DEBUG
 
 
   // populate Js ("border jump" structure)
@@ -1017,14 +1066,12 @@ function RPRPInit(_rl_pgon, _debug) {
     
   }
 
-  //DEBUG
   if (_debug) {
     let idir_descr = [ "+x", "-x", "+y", "-y" ];
     for (let idir=0; idir<4; idir++) {
       _print2da(Js[idir],   "\n## Js[" + idir_descr[idir] + "]:");
     }
   }
-  //DEBUG
 
 
   // 0000 0001 0010 0011
@@ -1075,16 +1122,25 @@ function RPRPInit(_rl_pgon, _debug) {
     }
   }
 
+
+  let DP_cost = {},
+      DP_partition = {},
+      DP_bower = {},
+      DP_rect = {};
+
+  /*
   let DP_cost = [],
       DP_partition = [],
       DP_bower = [],
       DP_rect = [];
+
   for (let i=0; i<(2*B.length*B.length); i++) {
     DP_cost.push(-1);
     DP_partition.push("XXXXXXXXXXXX");
     DP_bower.push(-1);
     DP_rect.push(-1);
   }
+  */
 
   // RPRP context
   //
@@ -1349,7 +1405,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   //DEBUG
   //DEBUG
   //DEBUG
-  _debug = 1;
+  //_debug = 1;
   //DEBUG
   //DEBUG
   //DEBUG
@@ -1376,7 +1432,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     quarry_point_type[i] = Bt[b_id];
   }
 
-  if (_debug) { console.log("#vc.cp0"); }
+  if (_debug > 1) { console.log("#vc.cp0"); }
 
   let redux = [];
   for (let i=0; i<cleave_choice.length; i++) {
@@ -1451,7 +1507,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     _undock[3] = 0;
   }
 
-  if (_debug) { console.log("#vc.cp1:", cleave_choice.join(""), redux.join(""), JSON.stringify(_undock) ); }
+  if (_debug > 1) { console.log("#vc.cp1:", cleave_choice.join(""), redux.join(""), JSON.stringify(_undock) ); }
 
   // each corner needs at least one cleave cut
   //
@@ -1460,7 +1516,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   if ((redux[4] == '-') && (redux[5] == '-')) { return 0; }
   if ((redux[6] == '-') && (redux[7] == '-')) { return 0; }
 
-  if (_debug) { console.log("#vc.cp2"); }
+  if (_debug > 1) { console.log("#vc.cp2"); }
 
   // parallel cleave cuts means middle billet is moveable
   //
@@ -1470,7 +1526,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   if ((_undock[2] == 1) && (redux[5] == '*') && (redux[6] == '*')) { return 0; }
 
 
-  if (_debug) { console.log("#vc.cp3, redux:", redux.join(""), "cbt:", cleave_border_type.join("") ); }
+  if (_debug > 1) { console.log("#vc.cp3, redux:", redux.join(""), "cbt:", cleave_border_type.join("") ); }
 
   // bridge tests
   // cleave line bridges two borders, so is moveable, invalidating choice
@@ -1490,7 +1546,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   if ((redux[6] == '*') && (redux[7] == '*') && (cleave_border_type[6] == 'b')) { return 0; }
   if ((redux[7] == '*') && (redux[6] == '*') && (cleave_border_type[7] == 'b')) { return 0; }
 
-  if (_debug) { console.log("#vc.cp4, redux:", redux.join(""), "cbt:", cleave_border_type.join("") ); }
+  if (_debug > 1) { console.log("#vc.cp4, redux:", redux.join(""), "cbt:", cleave_border_type.join("") ); }
 
 
   // float tests
@@ -1514,7 +1570,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   //
 
 
-  if (_debug) { console.log("#cc.cp5"); }
+  if (_debug > 1) { console.log("#vc.cp5"); }
 
   //let cleave_idir = [ 0, 3,  3, 1,  1, 2,  2, 0 ];
   let oppo_cleave = [ 3, 6, 5, 0,
@@ -1536,7 +1592,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
         (Js[idir][ R[r_idx][1] ][ R[r_idx][0] ] == Js[idir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ]) &&
         (Js[rdir][ R[r_idx][1] ][ R[r_idx][0] ] == Js[rdir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ])) {
 
-      if (_debug) {
+      if (_debug > 1) {
         console.log("#vc.cp5.5: cleave_idx:", cleave_idx, "rect_idx:", r_idx);
         console.log("qpt[", r_idx, "]:", quarry_point_type[r_idx],
           "redux[", cleave_idx, "]:", redux[cleave_idx],
@@ -1553,7 +1609,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
 
   }
 
-  if (_debug) { console.log("#vc.cp6"); }
+  if (_debug > 1) { console.log("#vc.cp6"); }
 
   return 1;
 }
@@ -1585,7 +1641,7 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
   //DEBUG
   //DEBUG
   //DEBUG
-  _debug=1;
+  //_debug=1;
   //DEBUG
   //DEBUG
   //DEBUG
@@ -1601,8 +1657,8 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
   let b_idx_s = Bij[ g_s[1] ][ g_s[0] ];
   let b_idx_e = Bij[ g_e[1] ][ g_e[0] ];
 
-  if (_debug) {
-    console.log(">>>", b_idx_s, b_idx_e, g_s, g_e, g_a, g_b);
+  if (_debug > 1) {
+    console.log("#ce.beg:s,e,g_s,g_e,g_a,g_b:", b_idx_s, b_idx_e, g_s, g_e, g_a, g_b);
   }
 
   if ((b_idx_s < 0) || (b_idx_e < 0)) { return []; }
@@ -1631,8 +1687,8 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
     }
   }
 
-  if (_debug) {
-    console.log("::>>", cleave_profile.join(""));
+  if (_debug > 1) {
+    console.log("#ce.profile:", cleave_profile.join(""));
   }
 
   let cleave_border_type = [ '~', '~', '~', '~', '~', '~', '~', '~' ];
@@ -1698,8 +1754,8 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
 
     }
 
-    if (_debug) {
-      console.log(">>>", JSON.stringify(bvec), cleave_choice.join(""),
+    if (_debug > 1) {
+      console.log("#ce.enum:bvec,cc,valid:", JSON.stringify(bvec), cleave_choice.join(""),
         RPRP_valid_cleave( ctx, Rg, cleave_choice, cleave_border_type, _debug ) );
     }
 
@@ -2030,8 +2086,8 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   // to be in the region.
   //
   for (let i=0; i<Rg.length; i++) {
-    if (RPRP_point_in_region(ctx, Rg[i], g_s, g_e, g_a) == 0) {
-      quarry_info.comment = "endpoint outside of fenced region";
+    if (RPRP_point_in_region(ctx, Rg[i], g_s, g_e, g_a, _debug) == 0) {
+      quarry_info.comment = "endpoint outside of fenced region (Rg[" + i.toString() + ":" + JSON.stringify(Rg[i]) + ")";
       return quarry_info;
     }
   }
@@ -2122,9 +2178,26 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   // For every cleave_choice (deduplicated) realization, we add all the side_cleve_cuts to it
   //   and put it in the schedule.
   //
-  let cleave_profile = RPRPCleaveProfile( ctx, g_s, g_e, g_a, g_b );
-  let cleave_choices = RPRP_cleave_enumerate( ctx, g_s, g_e, g_a, g_b, cleave_profile );
-  let side_cleave_cuts = RPRP_enumerate_quarry_side_region( ctx, g_s, g_e, g_a, g_b );
+  let cleave_profile = RPRPCleaveProfile( ctx, g_s, g_e, g_a, g_b, _debug );
+
+  for (let i=0; i<cleave_profile.length; i++) {
+    let cur_tok = cleave_profile[i];
+    let nei_tok = ((i%2) ? cleave_profile[(i+1)%8] : cleave_profile[(i+8-1)%8]);
+
+    //if (_debug > 2) {
+    //  let nei_i = ((i%2) ?  ((i+1)%8) : ((i+8-1)%8));
+    //  console.log("  qi.cleave_profile.bridge: i:", i, "nei_i:", nei_i, "cur_tok:", cur_tok, "nei_tok:", nei_tok);
+    //}
+
+    if (((cur_tok == 'b') || (cur_tok == 'c') || (cur_tok == '*')) &&
+        ((nei_tok == 'b') || (nei_tok == 'c') || (nei_tok == '*'))) {
+      quarry_info.comment = "cleave profile has bridge";
+      return quarry_info;
+    }
+  }
+
+  let cleave_choices = RPRP_cleave_enumerate( ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug );
+  let side_cleave_cuts = RPRP_enumerate_quarry_side_region( ctx, g_s, g_e, g_a, g_b, _debug );
 
   if (_debug) {
     console.log("qci: profile:", cleave_profile.join(""));
@@ -2591,7 +2664,7 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
         if (border_diff < 0) { border_diff += B.length; }
         //if (__e < __s) { border_diff = __e + B.length - __s; }
 
-        if (_debug) {
+        if (_debug > 1) {
           console.log(">>>>border_diff:", border_diff, "(prv:", b_idx_prv, "nxt:", b_idx_nxt, ")");
         }
 
@@ -2716,6 +2789,27 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a, _debug) {
 
     return 1;
   }
+
+  // degenerate if ij is on (g_s, g_a) or (g_a, g_e) constructed
+  // line.
+  //
+  for (let xy=0; xy<2; xy++) {
+    let yx = 1-xy;
+    if ((ij[xy] == g_s[xy]) && (ij[xy] == g_a[xy])) {
+      let mM = [ Math.min(g_s[yx], g_a[yx]), Math.max(g_s[yx], g_a[yx]) ];
+      if ( (ij[yx] >= mM[0]) && (ij[yx] <= mM[1]) ) {
+        return 1;
+      }
+    }
+
+    if ((ij[xy] == g_a[xy]) && (ij[xy] == g_e[xy])) {
+      let mM = [ Math.min(g_a[yx], g_e[yx]), Math.max(g_a[yx], g_e[yx]) ];
+      if ( (ij[yx] >= mM[0]) && (ij[yx] <= mM[1]) ) {
+        return 1;
+      }
+    }
+  }
+
 
   let ij3 = [ ij[0], ij[1], 0 ];
   let a3 = [ g_a[0], g_a[1], 0 ];
@@ -2972,9 +3066,25 @@ function RPRP_DPidx2g(ctx, dp_idx) {
   return [ g_s, g_e, g_a ];
 }
 
-// untested
+// The one-cuts need to take the adit point in-line with
+// the cut line, exploding the number of adit points
+// available for the DP array.
+// Instead, we use a DP hash with a custom key.
 //
-//
+function RPRP_DP_idx(ctx, g_s, g_e, g_a) {
+  let B = ctx.B;
+  let Bij = ctx.Bij;
+
+  let idx_s = Bij[ g_s[1] ][ g_s[0] ];
+  let idx_e = Bij[ g_e[1] ][ g_e[0] ];
+
+  let key = idx_s.toString() + ":" +
+            idx_e.toString() + ";" +
+            g_a[0].toString() + "," + g_a[1].toString();
+
+  return key;
+}
+
 // The dynamic programming array is of size |B| x |B| x 2.
 // Here it's giving back a single index, so it's considering
 // a flattened array, but it can be thought of as the
@@ -2987,7 +3097,7 @@ function RPRP_DPidx2g(ctx, dp_idx) {
 // index is taken to be 0 if to the right of the (g_s,g_e) line
 // and 1 otherwise.
 //
-function RPRP_DP_idx(ctx, g_s, g_e, g_a) {
+function _RPRP_DP_idx(ctx, g_s, g_e, g_a) {
   let B = ctx.B;
   let Bij = ctx.Bij;
 
@@ -3037,6 +3147,26 @@ function _ws(n, s, pfx) {
   return pfx + a.join("");
 }
 
+// try to separate out bower list for future optimizations.
+//
+//
+function RPRP_candidate_bower(ctx, g_s, g_e, g_a, _debug) {
+  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+
+  let X = ctx.X,
+      Y = ctx.Y;
+
+  let candidate_bower = [];
+
+  for (let j=0; j<Y.length; j++) {
+    for (let i=0; i<X.length; i++) {
+      candidate_bower.push([i,j]);
+    }
+  }
+  
+  return candidate_bower;
+}
+
 //WIP!!
 function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
@@ -3069,7 +3199,6 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
   let b_e = Bij[ g_e[1] ][ g_e[0] ];
 
   if (_debug) {
-    //console.log("\n" + _ws(2*lvl), "mirp." + lvl.toString() + ".beg:",
     console.log("\n" + _pfx + ".beg:",
       "g_s:", JSON.stringify(g_s), "(" + b_s.toString() + ")",
       "g_e:", JSON.stringify(g_e), "(" + b_e.toString() + ")",
@@ -3077,131 +3206,135 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
   }
 
   let dp_idx = RPRP_DP_idx(ctx, g_s, g_e, g_a);
-  if ( ctx.DP_cost[dp_idx] >= 0 ) { return ctx.DP_cost[dp_idx]; }
+  //if ( ctx.DP_cost[dp_idx] >= 0 ) { return ctx.DP_cost[dp_idx]; }
+  if ( (dp_idx in ctx.DP_cost) && (ctx.DP_cost[dp_idx] >= 0) ) {
+
+    if (_debug) {
+      console.log( _pfx + ".memz: DP_cost[", dp_idx, "] ->", ctx.DP_cost[dp_idx],
+        "(g_s:", JSON.stringify(g_s), "g_e:", JSON.stringify(g_e), "g_a:", JSON.stringify(g_a), ")");
+    }
+
+    return ctx.DP_cost[dp_idx];
+  }
 
   let _min_cost = -1,
       _min_partition = [],
       _min_bower = [-1,-1],
       _min_rect = [];
 
-  for (let j=0; j<Y.length; j++) {
-    for (let i=0; i<X.length; i++) {
-      let g_b = [i,j];
+  let candidate_bower = RPRP_candidate_bower(ctx, g_s, g_e, g_a);
+  for (let bower_idx = 0; bower_idx < candidate_bower.length; bower_idx++) {
+    let g_b = candidate_bower[bower_idx];
 
-      let qi = RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug);
-      if (qi.valid == 0) {
+    let qi = RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug);
+    if (qi.valid == 0) {
 
-        if (_debug > 1) {
-          console.log( _ws(2*lvl), "skipping", g_s, g_e, g_a, g_b, "(", qi.comment, ")");
-        }
-
-        continue;
+      if (_debug > 1) {
+        console.log( _ws(2*lvl), "skipping", g_s, g_e, g_a, g_b, "(", qi.comment, ")");
       }
 
-      if (_debug) {
-        console.log( _pfx, "considering:", "(g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b, ")",
-          "(#1c:", qi.one_cuts.length, "#2c:", qi.two_cuts.length, ")");
-        console.log( _pfx, "1cuts:", JSON.stringify(qi.one_cuts));
-        console.log( _pfx, "2cuts:", JSON.stringify(qi.two_cuts));
-      }
+      continue;
+    }
 
-      let a_pnt = Gxy[ Gij[ g_a[1] ][ g_a[0] ] ];
-      let b_pnt = Gxy[ Gij[ g_b[1] ][ g_b[0] ] ];
+    let a_pnt = Gxy[ Gij[ g_a[1] ][ g_a[0] ] ];
+    let b_pnt = Gxy[ Gij[ g_b[1] ][ g_b[0] ] ];
 
-      let quarry_rect_cost = _Ink(a_pnt, b_pnt);
+    let quarry_rect_cost = _Ink(a_pnt, b_pnt);
 
+    let _min_two_cut_cost = 0;
+    let _min_two_cut_sched_idx = -1;
+
+    let _min_one_cut_cost = 0;
+    let _min_one_cut = [];
+
+    if (_debug) {
+      console.log( _pfx, "considering:", "(g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b, ")",
+        "(#1c:", qi.one_cuts.length, "#2c:", qi.two_cuts.length, ")");
+      console.log( _pfx, "1cuts:", JSON.stringify(qi.one_cuts));
+      console.log( _pfx, "2cuts:", JSON.stringify(qi.two_cuts));
       console.log( _pfx, "mirp." + lvl.toString(),
         "ink:", quarry_rect_cost, _Ink(a_pnt, b_pnt), "(g_ab:", g_a, g_b, "ab_pnt:", a_pnt, b_pnt, ")");
+    }
 
-      let cut_side_cost = 0;
+    for (let sched_idx=0; sched_idx < qi.one_cuts.length; sched_idx++) {
+      let one_cut = qi.one_cuts[sched_idx];
 
-      let _min_one_cut_cost = 0;
-      let _min_two_cut_cost = 0;
+      let _min_idx = -1;
 
-      let _min_one_cut = [];
-
-      for (let sched_idx=0; sched_idx < qi.one_cuts.length; sched_idx++) {
-        let one_cut = qi.one_cuts[sched_idx];
-
-        let _min_idx = -1;
-
-        // one or the other here..
-        //
-        let one_cut_cost = 0;
-        for (let ci=0; ci<one_cut.length; ci++) {
-          let cut = one_cut[ci];
-          let _cost = RPRP_MIRP(ctx, B[cut[0]], B[cut[1]], cut[2], lvl+1, _debug, _debug_str);
-          if ( (ci==0) ||
-               (_cost < one_cut_cost) ) {
-            one_cut_cost = _cost;
-            _min_idx = ci;
-          }
-
-          if (_debug) {
-            console.log( _pfx, "1cuts[", sched_idx, "][", ci, "]", "_cost:", _cost, "one_cut_cost:", one_cut_cost);
-          }
-
-
-        }
-
-        _min_one_cut_cost += one_cut_cost;
-        if (_min_idx >= 0) {
-          _min_one_cut.push( one_cut[_min_idx] );
+      // one or the other here..
+      //
+      let one_cut_cost = 0;
+      for (let ci=0; ci<one_cut.length; ci++) {
+        let cut = one_cut[ci];
+        let _cost = RPRP_MIRP(ctx, B[cut[0]], B[cut[1]], cut[2], lvl+1, _debug, _debug_str);
+        if ( (ci==0) ||
+             (_cost < one_cut_cost) ) {
+          one_cut_cost = _cost;
+          _min_idx = ci;
         }
 
         if (_debug) {
-          console.log( _pfx, "1cuts[", sched_idx, "] (#", one_cut.length, "):", one_cut_cost, ", _min_one_cut_cost:", _min_one_cut_cost);
+          console.log( _pfx, "1cuts[", sched_idx, "][", ci, "]", "_cost:", _cost, "one_cut_cost:", one_cut_cost);
         }
+
 
       }
 
-      let _min_two_cut_sched = -1;
-
-      // take min of sched....
-      //
-      for (let sched_idx=0; sched_idx<qi.two_cuts.length; sched_idx++) {
-        let two_cut = qi.two_cuts[sched_idx];
-
-        let cur_two_cut_cost = 0;
-        for (let ci=0; ci<two_cut.length; ci++) {
-          cur_two_cut_cost += RPRP_MIRP(ctx, B[two_cut[ci][0]], B[two_cut[ci][1]], two_cut[ci][2], lvl+1, _debug, _debug_str);
-        }
-
-        if (_debug) {
-          console.log( _pfx, "cur_two_cut_cost:", cur_two_cut_cost, "(sched_idx:", sched_idx, ")");
-        }
-
-        if ((sched_idx==0) ||
-            (cur_two_cut_cost < _min_two_cut_cost)) {
-          _min_two_cut_cost = cur_two_cut_cost;
-          _min_two_cut_sched = sched_idx;
-        }
-
-      }
-
-
-
-      // degenerate
-      //
-      if ((_min_cost < 0) ||
-          ((quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost) < _min_cost) ) {
-
-        let tc = [];
-        if (_min_two_cut_sched >= 0) { tc = qi.two_cuts[_min_two_cut_sched]; }
-
-        _min_cost = quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost;
-        _min_rect = [ [ g_a[0], g_a[1] ], [ g_b[0], g_b[1] ] ];
-        _min_partition = [ _min_one_cut, tc ];
-        //_min_partition = [ min_one_cuts, min_two_cuts ];
+      _min_one_cut_cost += one_cut_cost;
+      if (_min_idx >= 0) {
+        _min_one_cut.push( one_cut[_min_idx] );
       }
 
       if (_debug) {
-        console.log( _ws(2*lvl), "_min_cost:", _min_cost, "scost:", quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost,
-        "(", quarry_rect_cost, "+", _min_one_cut_cost, "+", _min_two_cut_cost, ")");
+        console.log( _pfx, "1cuts[", sched_idx, "] (#", one_cut.length, "):", one_cut_cost, ", _min_one_cut_cost:", _min_one_cut_cost);
       }
 
+    }
+
+
+    // take min of sched....
+    //
+    for (let sched_idx=0; sched_idx<qi.two_cuts.length; sched_idx++) {
+      let two_cut = qi.two_cuts[sched_idx];
+
+      let cur_two_cut_cost = 0;
+      for (let ci=0; ci<two_cut.length; ci++) {
+        cur_two_cut_cost += RPRP_MIRP(ctx, B[two_cut[ci][0]], B[two_cut[ci][1]], two_cut[ci][2], lvl+1, _debug, _debug_str);
+      }
+
+      if (_debug) {
+        console.log( _pfx, "cur_two_cut_cost:", cur_two_cut_cost, "(sched_idx:", sched_idx, ")");
+      }
+
+      if ((sched_idx==0) ||
+          (cur_two_cut_cost < _min_two_cut_cost)) {
+        _min_two_cut_cost = cur_two_cut_cost;
+        _min_two_cut_sched_idx = sched_idx;
+      }
 
     }
+
+
+
+    // degenerate
+    //
+    if ((_min_cost < 0) ||
+        ((quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost) < _min_cost) ) {
+
+      let tc = [];
+      if (_min_two_cut_sched_idx >= 0) { tc = qi.two_cuts[_min_two_cut_sched_idx]; }
+
+      _min_cost = quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost;
+      _min_rect = [ [ g_a[0], g_a[1] ], [ g_b[0], g_b[1] ] ];
+      _min_partition = [ _min_one_cut, tc ];
+      //_min_partition = [ min_one_cuts, min_two_cuts ];
+    }
+
+    if (_debug) {
+      console.log( _ws(2*lvl), "_min_cost:", _min_cost, "scost:", quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost,
+      "(", quarry_rect_cost, "+", _min_one_cut_cost, "+", _min_two_cut_cost, ")");
+    }
+
   }
 
   if (_min_cost >= 0) {
@@ -3211,7 +3344,7 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
     ctx.DP_partition[dp_idx]  = _min_partition;
 
 
-    console.log("DPCOST[", dp_idx, "]:", _min_cost, _min_rect, _min_bower, _min_partition);
+    console.log("DPCOST[", dp_idx, "]:", _min_cost, JSON.stringify(_min_rect), JSON.stringify(_min_bower), JSON.stringify(_min_partition));
 
   }
 
@@ -3248,7 +3381,8 @@ function _main_checks() {
   let cp_1 = RPRPCleaveProfile(grid_info_1, [3,1], [1,2], [3,2], [2,3]);
   let cc_1 = RPRP_cleave_enumerate(grid_info_1,  [3,1], [1,2], [3,2], [2,3], cp_1);
   let v_1 = _expect( cc_1,
-    [ ['-','c','X','c','-','*','-','*'] ],
+    //[ ['-','c','X','c','-','*','-','*'] ],
+    [ ['-','*','X','*','-','*','-','*'] ],
     _sfmt("pgn_pinwheel_1", 16, 'r') );
 
 
@@ -3256,8 +3390,10 @@ function _main_checks() {
   let cp_2 = RPRPCleaveProfile(grid_info_2, [7,1], [5,4], [7,4], [2,5]);
   let cc_2 = RPRP_cleave_enumerate(grid_info_2, [7,1], [5,4], [7,4], [2,5], cp_2);
   let v_2 = _expect( cc_2, 
-    [ ["-","c","*","-","*","-","*","-"],
-      ["-","c","*","-","*","-","-","*"]],
+    //[ ["-","c","*","-","*","-","*","-"],
+    //  ["-","c","*","-","*","-","-","*"]],
+    [ ["-","*","*","-","*","-","*","-"],
+      ["-","*","*","-","*","-","-","*"]],
     _sfmt("pgn_balance_2", 16,'r') );
 
   let grid_info_3 = RPRPInit(pgn_clover);
@@ -3844,8 +3980,22 @@ function _main_mirp_z() {
 }
 
 function _main_mirp_test() {
+  let ctx = RPRPInit( pgn_pinwheel_sym );
+  let _u = undefined;
+  let v = RPRP_MIRP(ctx, _u, _u, _u, 0, 2);
+
+  _print_dp(ctx);
+
+  console.log("mirp:", v);
+  return;
+
+}
+
+function _main_mirp_pinwheel1() {
+
   let ctx = RPRPInit( pgn_pinwheel1 );
-  let v = RPRP_MIRP(ctx);
+  let _u = undefined;
+  let v = RPRP_MIRP(ctx, _u, _u, _u, 0, 2);
 
   _print_dp(ctx);
 
