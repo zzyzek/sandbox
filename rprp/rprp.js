@@ -77,6 +77,8 @@ var pgn_ell = [
   [4,13], [0,13],
 ];
 
+// opt. 52
+//
 var pgn_z = [
   [0,0], [7,0], [7,6], [12,6],
   [12,9], [1,9], [1,2], [0,2],
@@ -343,6 +345,10 @@ var pgn_bb_test1= [
 function _write_data(ofn, data) {
   var fs = require("fs");
   return fs.writeFileSync(ofn, JSON.stringify(data, undefined, 2));
+}
+
+function _ERROR(s) {
+  console.log("ERROR:", s);
 }
 
 // human readable debug identifiers
@@ -2497,18 +2503,35 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
 
   }
 
-  // WIP!!!
-  //
-  // we're trying to add in all the potential adit points here so that the
+  // We're trying to add in all the potential adit points here so that the
   // MIRP function can recur on the 1cut with adit.
   //
-  // Something's not right, so this needs debugging (2025-11-25)
+  // Here, we're creating an array of arrays.
+  // Each array entry is a group of 1-cuts with the same cut endpoints (g_s, g_e)
+  // but different adit point.
+  // Only one choice from each "batch" should be taken, representing the minimum
+  // choice for (g_s,g_e) and adit point.
+  // 
+  // This section is only prepping the choices to be fed into the recursion
+  // at a level down.
   //
+  // lightly tested, some weak confidence this is working as expected.
   //
-  // add side cleave cuts
+  // Some things todo:
+  //
+  //  * we're being pretty cavalier about adding adit points, this can
+  //    be restricted better
+  //  * not here, but elsewhere we can further restrict bower points
+  //    for consideration, especially if they're being enumerated
+  //    for a 1-cut
   //
   for (let i=0; i<side_cleave_cuts.length; i++) {
+    let side_cut_batch = [];
 
+    // Take 1-cut endpoints (necessarily in-line and on the boundary),
+    // extend them out to the furthest grid points and walk the line,
+    // adding adit points along the way.
+    //
     let g_cc0 = ctx.B[ side_cleave_cuts[i][0] ];
     let g_cc1 = ctx.B[ side_cleave_cuts[i][1] ];
 
@@ -2528,15 +2551,23 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     if (b_M >= 0) { g_M = B[b_M]; }
     if (b_m >= 0) { g_m = B[b_m]; }
 
-    for (let cur_ij = [ g_m[0], g_m[1] ]; (cmp_v(cur_ij, g_M) != 0) ; cur_ij = v_add(cur_ij, dij )) {
-      let scc = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], [cur_ij[0], cur_ij[1]] ];
-      quarry_info.one_cuts.push( [ scc ] );
+    // If we have a 1-cut, we know there's going to be at least one adit point at either
+    // end of the 1-cut to consider.
+    // So we can add it and then iterate through the rest.
+    //
+    let cur_ij = [ g_m[0], g_m[1] ]; 
+    side_cut_batch.push( [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], [cur_ij[0], cur_ij[1]] ] );
+    do {
+      cur_ij = v_add(cur_ij, dij );
 
+      let scc = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], [cur_ij[0], cur_ij[1]] ];
+      side_cut_batch.push(scc);
+    } while (cmp_v(cur_ij, g_M) != 0);
+
+    if (side_cut_batch.length > 0) {
+      quarry_info.one_cuts.push(side_cut_batch);
     }
 
-
-    //let cc0 = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], ctx.B[side_cleave_cuts[i][0]] ];
-    //quarry_info.one_cuts.push( [ cc0 ] );
   }
 
   quarry_info.valid = 1;
@@ -3309,10 +3340,21 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       for (let ci=0; ci<one_cut.length; ci++) {
         let cut = one_cut[ci];
         let _cost = RPRP_MIRP(ctx, B[cut[0]], B[cut[1]], cut[2], lvl+1, _debug, _debug_str);
-        if ( (ci==0) ||
-             (_cost < one_cut_cost) ) {
+
+        if (_debug) {
+          console.log( _pfx, "cost of ", cut[0], cut[1], cut[2], ":", _cost);
+        }
+
+        if ( (_cost > 0) &&
+             ((_min_idx < 0) ||
+              (_cost < one_cut_cost)) ) {
           one_cut_cost = _cost;
           _min_idx = ci;
+
+          if (_debug) {
+            console.log( _pfx, "updating min cost (", _cost, ", _min_idx:", ci, ")");
+          }
+
         }
 
         if (_debug) {
@@ -3322,10 +3364,15 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
 
       }
 
-      _min_one_cut_cost += one_cut_cost;
-      if (_min_idx >= 0) {
-        _min_one_cut.push( one_cut[_min_idx] );
+      //ERROR
+      if (_min_idx < 0) {
+        _ERROR("MIRP" + lvl.toString() + ": no valid 1cut found: " +
+               "sched[" + sched_idx.toString() + "]: " + JSON.stringify(qi.one_cuts[sched_idx]));
+        return -1;
       }
+
+      _min_one_cut_cost += one_cut_cost;
+      _min_one_cut.push( one_cut[_min_idx] );
 
       if (_debug) {
         console.log( _pfx, "1cuts[", sched_idx, "] (#", one_cut.length, "):", one_cut_cost, ", _min_one_cut_cost:", _min_one_cut_cost);
@@ -4051,7 +4098,11 @@ function _main_mirp_L() {
 
 function _main_mirp_z() {
   let ctx_z = RPRPInit( pgn_z );
-  let v_z = RPRP_MIRP(ctx_z);
+
+  //let v_z = RPRP_MIRP(ctx_z);
+  let _u = undefined;
+  let v_z = RPRP_MIRP(ctx_z, _u, _u, _u, 0, 2);
+
   _print_dp(ctx_z);
   console.log("mirp.z:", v_z);
   return;
