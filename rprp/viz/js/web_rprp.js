@@ -1,4 +1,3162 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.rprp = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+//LICENSE: CC0
+//
+
+var four_words = [
+"abby",
+"abel",
+"acts",
+"adam",
+"adan",
+"adar",
+"aden",
+"afro",
+"agni",
+"agra",
+"ahab",
+"aida",
+"ainu",
+"ajax",
+"alan",
+"alar",
+"alba",
+"aldo",
+"alec",
+"alex",
+"alma",
+"alpo",
+"alps",
+"alta",
+"alva",
+"amie",
+"amos",
+"amur",
+"andy",
+"anna",
+"anne",
+"apia",
+"arab",
+"aral",
+"ares",
+"argo",
+"ariz",
+"arno",
+"aron",
+"ashe",
+"asia",
+"audi",
+"avis",
+"avon",
+"axum",
+"azov",
+"baal",
+"bach",
+"baez",
+"baku",
+"bali",
+"ball",
+"barr",
+"bart",
+"bass",
+"batu",
+"baum",
+"bean",
+"beau",
+"beck",
+"bede",
+"bela",
+"bell",
+"benz",
+"berg",
+"bern",
+"bert",
+"bess",
+"best",
+"beth",
+"biko",
+"bill",
+"bird",
+"biro",
+"blvd",
+"boas",
+"boer",
+"bohr",
+"bond",
+"bonn",
+"bono",
+"borg",
+"bork",
+"born",
+"boru",
+"bose",
+"boyd",
+"brad",
+"bran",
+"bray",
+"bret",
+"brie",
+"brit",
+"brno",
+"brut",
+"buck",
+"burl",
+"burr",
+"burt",
+"bush",
+"byrd",
+"cage",
+"cain",
+"cali",
+"caph",
+"capt",
+"cara",
+"carl",
+"carr",
+"cary",
+"case",
+"cash",
+"cato",
+"catt",
+"cebu",
+"celt",
+"cerf",
+"chad",
+"chan",
+"chen",
+"chou",
+"clay",
+"clem",
+"cleo",
+"clio",
+"cobb",
+"cody",
+"coke",
+"cole",
+"colo",
+"colt",
+"como",
+"cong",
+"conn",
+"cook",
+"cora",
+"cory",
+"cote",
+"cray",
+"cree",
+"crux",
+"cruz",
+"cuba",
+"curt",
+"dada",
+"dale",
+"dali",
+"dana",
+"dane",
+"dare",
+"dave",
+"davy",
+"dawn",
+"dean",
+"debs",
+"dell",
+"dena",
+"deng",
+"deon",
+"depp",
+"devi",
+"dial",
+"diaz",
+"dido",
+"diem",
+"dina",
+"dino",
+"dion",
+"dior",
+"dirk",
+"doha",
+"dole",
+"dona",
+"donn",
+"dora",
+"doug",
+"drew",
+"duke",
+"dunn",
+"duse",
+"dyer",
+"earl",
+"earp",
+"east",
+"eben",
+"ebro",
+"edam",
+"edda",
+"eddy",
+"eden",
+"edna",
+"eggo",
+"eire",
+"elam",
+"elba",
+"elbe",
+"ella",
+"elma",
+"elmo",
+"eloy",
+"elsa",
+"elul",
+"elva",
+"emil",
+"emma",
+"emmy",
+"enid",
+"enif",
+"enos",
+"eric",
+"erie",
+"erik",
+"erin",
+"eris",
+"erma",
+"erna",
+"eros",
+"erse",
+"esau",
+"etna",
+"eton",
+"etta",
+"eula",
+"evan",
+"eyck",
+"eyre",
+"ezra",
+"fnma",
+"fahd",
+"faye",
+"feds",
+"fern",
+"fiat",
+"fido",
+"fiji",
+"finn",
+"fisk",
+"foch",
+"ford",
+"fran",
+"fred",
+"frey",
+"frye",
+"fuji",
+"gaea",
+"gael",
+"gage",
+"gail",
+"gale",
+"gall",
+"gary",
+"gaul",
+"gaza",
+"gena",
+"gene",
+"gere",
+"gide",
+"gila",
+"gill",
+"gina",
+"gino",
+"gish",
+"giza",
+"glen",
+"gobi",
+"goff",
+"good",
+"gore",
+"goth",
+"goya",
+"gray",
+"greg",
+"grey",
+"gris",
+"grus",
+"guam",
+"gwen",
+"gwyn",
+"hsbc",
+"haas",
+"hahn",
+"hale",
+"hall",
+"hals",
+"hank",
+"hans",
+"hart",
+"hays",
+"head",
+"heep",
+"hell",
+"hera",
+"hess",
+"hill",
+"hiss",
+"hoff",
+"holt",
+"hood",
+"hope",
+"hopi",
+"horn",
+"howe",
+"huck",
+"huey",
+"huff",
+"hugh",
+"hugo",
+"hull",
+"hume",
+"hung",
+"huns",
+"hunt",
+"hutu",
+"hyde",
+"iago",
+"igor",
+"ikea",
+"imus",
+"inca",
+"indy",
+"ines",
+"inez",
+"inge",
+"iowa",
+"iran",
+"iraq",
+"iris",
+"irma",
+"isis",
+"ivan",
+"ives",
+"iyar",
+"izod",
+"jack",
+"jain",
+"jake",
+"jame",
+"jami",
+"jana",
+"jane",
+"java",
+"jean",
+"jedi",
+"jeep",
+"jeff",
+"jeri",
+"jess",
+"jews",
+"jill",
+"joan",
+"jobs",
+"jock",
+"jodi",
+"jody",
+"joel",
+"joey",
+"john",
+"joni",
+"jose",
+"josh",
+"jove",
+"juan",
+"judd",
+"jude",
+"judy",
+"july",
+"june",
+"jung",
+"juno",
+"kalb",
+"kali",
+"kama",
+"kane",
+"kano",
+"kans",
+"kant",
+"kara",
+"kari",
+"karl",
+"karo",
+"kate",
+"katy",
+"kaye",
+"keck",
+"kemp",
+"kent",
+"keri",
+"kern",
+"kerr",
+"khan",
+"kidd",
+"kiel",
+"kiev",
+"king",
+"kirk",
+"klan",
+"klee",
+"knox",
+"kobe",
+"koch",
+"kohl",
+"kong",
+"kory",
+"kris",
+"kroc",
+"kuhn",
+"kurd",
+"kurt",
+"kwan",
+"kyle",
+"lacy",
+"lamb",
+"lana",
+"land",
+"lane",
+"lang",
+"laos",
+"lapp",
+"lara",
+"lars",
+"laud",
+"laue",
+"leah",
+"lean",
+"lear",
+"leda",
+"left",
+"lego",
+"leif",
+"lela",
+"lena",
+"leno",
+"lent",
+"leon",
+"leos",
+"lesa",
+"leta",
+"levi",
+"levy",
+"lila",
+"lily",
+"lima",
+"lina",
+"lind",
+"lisa",
+"livy",
+"liza",
+"lodz",
+"lois",
+"loki",
+"lola",
+"lome",
+"long",
+"lora",
+"lord",
+"lori",
+"lott",
+"love",
+"lowe",
+"loyd",
+"luce",
+"lucy",
+"luis",
+"luke",
+"lula",
+"lulu",
+"luna",
+"lupe",
+"luvs",
+"lvov",
+"lyle",
+"lyly",
+"lyme",
+"lynn",
+"lyon",
+"lyra",
+"mace",
+"mach",
+"mack",
+"macy",
+"magi",
+"male",
+"mali",
+"mani",
+"mann",
+"manx",
+"mara",
+"marc",
+"mari",
+"mark",
+"mars",
+"marx",
+"mary",
+"mass",
+"matt",
+"maud",
+"maui",
+"maya",
+"mayo",
+"mays",
+"mead",
+"meir",
+"mesa",
+"mich",
+"mick",
+"mike",
+"mill",
+"milo",
+"mimi",
+"ming",
+"minn",
+"mira",
+"miro",
+"miss",
+"moet",
+"moho",
+"moll",
+"mona",
+"monk",
+"mons",
+"mont",
+"moog",
+"moon",
+"moor",
+"more",
+"moro",
+"mort",
+"moss",
+"mott",
+"muir",
+"muse",
+"myra",
+"myst",
+"nagy",
+"nair",
+"nash",
+"nate",
+"nazi",
+"neal",
+"neil",
+"nell",
+"nerf",
+"nero",
+"neva",
+"nice",
+"nick",
+"nike",
+"nile",
+"nina",
+"nita",
+"noah",
+"noel",
+"nola",
+"nome",
+"nona",
+"nora",
+"nova",
+"ohsa",
+"oahu",
+"oder",
+"odin",
+"odis",
+"odom",
+"ohio",
+"oise",
+"okla",
+"olaf",
+"olav",
+"olen",
+"olga",
+"olin",
+"oman",
+"omar",
+"omsk",
+"oort",
+"opal",
+"opel",
+"oran",
+"oreo",
+"orin",
+"orly",
+"oslo",
+"otis",
+"otto",
+"ovid",
+"owen",
+"oxus",
+"paar",
+"pace",
+"page",
+"park",
+"parr",
+"pate",
+"paul",
+"peck",
+"peel",
+"pele",
+"pena",
+"penn",
+"perl",
+"perm",
+"peru",
+"pete",
+"phil",
+"piaf",
+"pict",
+"pike",
+"pisa",
+"pitt",
+"pius",
+"pkwy",
+"pogo",
+"pole",
+"polk",
+"polo",
+"pooh",
+"pope",
+"post",
+"pres",
+"prof",
+"prut",
+"ptah",
+"puck",
+"pugh",
+"puzo",
+"pyle",
+"rama",
+"rand",
+"raul",
+"reba",
+"reed",
+"reid",
+"rena",
+"rene",
+"reno",
+"reva",
+"rhea",
+"rhee",
+"rice",
+"rich",
+"rick",
+"rico",
+"ride",
+"riel",
+"riga",
+"rios",
+"rita",
+"ritz",
+"robt",
+"rock",
+"roeg",
+"roku",
+"rome",
+"root",
+"rory",
+"rosa",
+"rose",
+"ross",
+"roth",
+"rove",
+"rowe",
+"roxy",
+"ruby",
+"rudy",
+"ruhr",
+"ruiz",
+"rush",
+"russ",
+"ruth",
+"ryan",
+"sars",
+"saab",
+"saar",
+"sade",
+"sadr",
+"saki",
+"saks",
+"salk",
+"sana",
+"sand",
+"sang",
+"sara",
+"saul",
+"scot",
+"scud",
+"sean",
+"sega",
+"sept",
+"serb",
+"seth",
+"shaw",
+"shea",
+"siam",
+"sian",
+"sikh",
+"sims",
+"siva",
+"skye",
+"slav",
+"snow",
+"soho",
+"sony",
+"sosa",
+"soto",
+"spam",
+"stan",
+"styx",
+"suez",
+"sufi",
+"sung",
+"suva",
+"suzy",
+"sven",
+"taft",
+"tami",
+"tara",
+"tass",
+"tate",
+"tell",
+"teri",
+"terr",
+"tess",
+"thad",
+"thai",
+"thar",
+"thea",
+"thor",
+"thur",
+"tide",
+"tina",
+"ting",
+"tito",
+"toby",
+"todd",
+"togo",
+"tojo",
+"toni",
+"tony",
+"tory",
+"toto",
+"tran",
+"trey",
+"troy",
+"tues",
+"tull",
+"tums",
+"tupi",
+"turk",
+"tutu",
+"tyre",
+"ucla",
+"ural",
+"urdu",
+"urey",
+"uris",
+"ursa",
+"utah",
+"vang",
+"veda",
+"vega",
+"vela",
+"venn",
+"vera",
+"vern",
+"vila",
+"visa",
+"vito",
+"vlad",
+"waco",
+"wade",
+"wake",
+"wald",
+"wall",
+"walt",
+"wang",
+"ward",
+"ware",
+"wash",
+"wasp",
+"watt",
+"webb",
+"west",
+"whig",
+"will",
+"wise",
+"witt",
+"wolf",
+"wong",
+"wood",
+"wren",
+"wynn",
+"xmas",
+"yacc",
+"yale",
+"yalu",
+"yang",
+"yank",
+"ymir",
+"yoda",
+"yoko",
+"yong",
+"york",
+"yuan",
+"yugo",
+"yule",
+"yuri",
+"yves",
+"zane",
+"zara",
+"zeke",
+"zeno",
+"zens",
+"zest",
+"zeus",
+"zibo",
+"zion",
+"zola",
+"zorn",
+"zulu",
+"zuni",
+"abed",
+"abet",
+"able",
+"ably",
+"abut",
+"aced",
+"aces",
+"ache",
+"achy",
+"acid",
+"acme",
+"acne",
+"acre",
+"acts",
+"adds",
+"adze",
+"aeon",
+"aery",
+"afar",
+"agar",
+"aged",
+"ages",
+"agog",
+"ague",
+"ahem",
+"ahoy",
+"aide",
+"aids",
+"ails",
+"aims",
+"airs",
+"airy",
+"ajar",
+"akin",
+"alas",
+"albs",
+"ales",
+"alga",
+"alit",
+"ally",
+"alms",
+"aloe",
+"also",
+"alto",
+"alum",
+"amen",
+"amid",
+"amir",
+"ammo",
+"amok",
+"amps",
+"anal",
+"anew",
+"ankh",
+"anon",
+"ante",
+"anti",
+"ants",
+"anus",
+"aped",
+"apes",
+"apex",
+"apse",
+"aqua",
+"arch",
+"arcs",
+"area",
+"ares",
+"aria",
+"arid",
+"arks",
+"arms",
+"army",
+"arts",
+"arty",
+"ashy",
+"asks",
+"asps",
+"atom",
+"atop",
+"auks",
+"aunt",
+"aura",
+"auto",
+"aver",
+"avid",
+"avow",
+"away",
+"awed",
+"awes",
+"awls",
+"awol",
+"awry",
+"axed",
+"axes",
+"axis",
+"axle",
+"axon",
+"ayes",
+"baas",
+"babe",
+"baby",
+"back",
+"bade",
+"bags",
+"bail",
+"bait",
+"bake",
+"bald",
+"bale",
+"balk",
+"ball",
+"balm",
+"band",
+"bane",
+"bang",
+"bani",
+"bank",
+"bans",
+"barb",
+"bard",
+"bare",
+"barf",
+"bark",
+"barn",
+"bars",
+"base",
+"bash",
+"bask",
+"bass",
+"bast",
+"bate",
+"bath",
+"bats",
+"baud",
+"bawl",
+"bays",
+"bead",
+"beak",
+"beam",
+"bean",
+"bear",
+"beat",
+"beau",
+"beck",
+"beds",
+"beef",
+"been",
+"beep",
+"beer",
+"bees",
+"beet",
+"begs",
+"bell",
+"belt",
+"bend",
+"bent",
+"berg",
+"berm",
+"best",
+"beta",
+"bets",
+"bevy",
+"bias",
+"bibs",
+"bide",
+"bids",
+"bier",
+"bike",
+"bile",
+"bilk",
+"bill",
+"bind",
+"bins",
+"bird",
+"bite",
+"bits",
+"blab",
+"blah",
+"bled",
+"blew",
+"blip",
+"blob",
+"bloc",
+"blog",
+"blot",
+"blow",
+"blue",
+"blur",
+"boar",
+"boas",
+"boat",
+"bobs",
+"bode",
+"body",
+"bogs",
+"bogy",
+"boil",
+"bola",
+"bold",
+"bole",
+"boll",
+"bolt",
+"bomb",
+"bond",
+"bone",
+"bong",
+"bony",
+"book",
+"boom",
+"boon",
+"boor",
+"boos",
+"boot",
+"bops",
+"bore",
+"born",
+"bosh",
+"boss",
+"both",
+"bout",
+"bowl",
+"bows",
+"boys",
+"bozo",
+"brad",
+"brag",
+"bran",
+"bras",
+"brat",
+"bray",
+"bred",
+"brew",
+"brig",
+"brim",
+"brow",
+"buck",
+"buds",
+"buff",
+"bugs",
+"bulb",
+"bulk",
+"bull",
+"bump",
+"bums",
+"bung",
+"bunk",
+"buns",
+"bunt",
+"buoy",
+"burg",
+"burn",
+"burp",
+"burr",
+"burs",
+"bury",
+"bush",
+"buss",
+"bust",
+"busy",
+"buts",
+"butt",
+"buys",
+"buzz",
+"byes",
+"byte",
+"cabs",
+"cads",
+"cage",
+"cagy",
+"cake",
+"calf",
+"calk",
+"call",
+"calm",
+"came",
+"camp",
+"cams",
+"cane",
+"cans",
+"cant",
+"cape",
+"caps",
+"card",
+"care",
+"carp",
+"cars",
+"cart",
+"case",
+"cash",
+"cask",
+"cast",
+"cats",
+"cave",
+"caws",
+"cede",
+"cell",
+"cent",
+"chap",
+"char",
+"chat",
+"chef",
+"chew",
+"chic",
+"chid",
+"chin",
+"chip",
+"chit",
+"chop",
+"chow",
+"chug",
+"chum",
+"cite",
+"city",
+"clad",
+"clam",
+"clan",
+"clap",
+"claw",
+"clay",
+"clef",
+"clew",
+"clip",
+"clod",
+"clog",
+"clop",
+"clot",
+"cloy",
+"club",
+"clue",
+"coal",
+"coat",
+"coax",
+"cobs",
+"coda",
+"code",
+"cods",
+"coed",
+"cogs",
+"coif",
+"coil",
+"coin",
+"coke",
+"cola",
+"cold",
+"cols",
+"colt",
+"coma",
+"comb",
+"come",
+"cone",
+"conk",
+"cons",
+"cook",
+"cool",
+"coop",
+"coos",
+"coot",
+"cope",
+"cops",
+"copy",
+"cord",
+"core",
+"cork",
+"corm",
+"corn",
+"cost",
+"cosy",
+"cote",
+"cots",
+"coup",
+"cove",
+"cowl",
+"cows",
+"cozy",
+"crab",
+"crag",
+"cram",
+"crap",
+"craw",
+"crew",
+"crib",
+"crop",
+"crow",
+"crud",
+"crux",
+"cube",
+"cubs",
+"cuds",
+"cued",
+"cues",
+"cuff",
+"cull",
+"cult",
+"cums",
+"cups",
+"curb",
+"curd",
+"cure",
+"curl",
+"curs",
+"curt",
+"cusp",
+"cuss",
+"cute",
+"cuts",
+"cyst",
+"czar",
+"dabs",
+"dado",
+"dads",
+"daft",
+"dais",
+"dale",
+"dame",
+"damn",
+"damp",
+"dams",
+"dank",
+"dare",
+"dark",
+"darn",
+"dart",
+"dash",
+"data",
+"date",
+"daub",
+"dawn",
+"days",
+"daze",
+"dead",
+"deaf",
+"deal",
+"dean",
+"dear",
+"debs",
+"debt",
+"deck",
+"deed",
+"deem",
+"deep",
+"deer",
+"deft",
+"defy",
+"deli",
+"dell",
+"demo",
+"dens",
+"dent",
+"deny",
+"desk",
+"dewy",
+"dial",
+"dice",
+"died",
+"dies",
+"diet",
+"digs",
+"dike",
+"dill",
+"dime",
+"dims",
+"dine",
+"ding",
+"dins",
+"dint",
+"dips",
+"dire",
+"dirk",
+"dirt",
+"disc",
+"dish",
+"disk",
+"diss",
+"diva",
+"dive",
+"dock",
+"docs",
+"dodo",
+"doer",
+"does",
+"doff",
+"dogs",
+"dole",
+"doll",
+"dolt",
+"dome",
+"done",
+"dons",
+"doom",
+"door",
+"dope",
+"dopy",
+"dork",
+"dorm",
+"dory",
+"dose",
+"dote",
+"doth",
+"dots",
+"dour",
+"dove",
+"down",
+"doze",
+"drab",
+"drag",
+"dram",
+"draw",
+"dray",
+"drew",
+"drip",
+"drop",
+"drub",
+"drug",
+"drum",
+"drys",
+"dual",
+"dubs",
+"duck",
+"duct",
+"dude",
+"duds",
+"duel",
+"dues",
+"duet",
+"duff",
+"duke",
+"dull",
+"duly",
+"dumb",
+"dump",
+"dune",
+"dung",
+"dunk",
+"duns",
+"duos",
+"dupe",
+"dusk",
+"dust",
+"duty",
+"dyed",
+"dyer",
+"dyes",
+"dyke",
+"ebay",
+"each",
+"earl",
+"earn",
+"ears",
+"ease",
+"east",
+"easy",
+"eats",
+"eave",
+"ebbs",
+"echo",
+"ecru",
+"eddy",
+"edge",
+"edgy",
+"edit",
+"eels",
+"eery",
+"eggs",
+"egis",
+"egos",
+"eked",
+"ekes",
+"elks",
+"ells",
+"elms",
+"else",
+"emir",
+"emit",
+"emus",
+"ends",
+"envy",
+"eons",
+"epic",
+"eras",
+"ergo",
+"ergs",
+"errs",
+"espy",
+"etch",
+"euro",
+"even",
+"ever",
+"eves",
+"evil",
+"ewer",
+"ewes",
+"exam",
+"exec",
+"exes",
+"exit",
+"expo",
+"eyed",
+"eyes",
+"face",
+"fact",
+"fade",
+"fads",
+"fags",
+"fail",
+"fain",
+"fair",
+"fake",
+"fall",
+"fame",
+"fang",
+"fans",
+"fare",
+"farm",
+"fart",
+"fast",
+"fate",
+"fats",
+"faun",
+"fawn",
+"faze",
+"fear",
+"feat",
+"feds",
+"feed",
+"feel",
+"fees",
+"feet",
+"fell",
+"felt",
+"fend",
+"fens",
+"fern",
+"fest",
+"feta",
+"feud",
+"fiat",
+"fibs",
+"fief",
+"fife",
+"figs",
+"file",
+"fill",
+"film",
+"find",
+"fine",
+"fink",
+"fins",
+"fire",
+"firm",
+"firs",
+"fish",
+"fist",
+"fits",
+"five",
+"fizz",
+"flab",
+"flag",
+"flak",
+"flan",
+"flap",
+"flat",
+"flaw",
+"flax",
+"flay",
+"flea",
+"fled",
+"flee",
+"flew",
+"flex",
+"flip",
+"flit",
+"floe",
+"flog",
+"flop",
+"flow",
+"flub",
+"flue",
+"flux",
+"foal",
+"foam",
+"fobs",
+"foci",
+"foes",
+"fogs",
+"fogy",
+"foil",
+"fold",
+"folk",
+"fond",
+"font",
+"food",
+"fool",
+"foot",
+"fops",
+"fora",
+"ford",
+"fore",
+"fork",
+"form",
+"fort",
+"foul",
+"four",
+"fowl",
+"foxy",
+"frat",
+"fray",
+"free",
+"fret",
+"frog",
+"from",
+"fuel",
+"full",
+"fume",
+"fund",
+"funk",
+"furl",
+"furs",
+"fury",
+"fuse",
+"fuss",
+"futz",
+"fuze",
+"fuzz",
+"gabs",
+"gads",
+"gaff",
+"gage",
+"gags",
+"gain",
+"gait",
+"gala",
+"gale",
+"gall",
+"gals",
+"game",
+"gamy",
+"gang",
+"gape",
+"gaps",
+"garb",
+"gash",
+"gasp",
+"gate",
+"gave",
+"gawk",
+"gays",
+"gaze",
+"gear",
+"geed",
+"geek",
+"gees",
+"geez",
+"geld",
+"gels",
+"gelt",
+"gems",
+"gene",
+"gent",
+"germ",
+"gets",
+"gibe",
+"gift",
+"gigs",
+"gild",
+"gill",
+"gilt",
+"gins",
+"gird",
+"girl",
+"girt",
+"gist",
+"give",
+"glad",
+"glee",
+"glen",
+"glib",
+"glob",
+"glop",
+"glow",
+"glue",
+"glum",
+"glut",
+"gnat",
+"gnaw",
+"gnus",
+"goad",
+"goal",
+"goat",
+"gobs",
+"gods",
+"goes",
+"gold",
+"golf",
+"gone",
+"gong",
+"good",
+"goof",
+"goon",
+"goop",
+"gore",
+"gory",
+"gosh",
+"gout",
+"gown",
+"grab",
+"grad",
+"gram",
+"gray",
+"grew",
+"grey",
+"grid",
+"grim",
+"grin",
+"grip",
+"grit",
+"grog",
+"grow",
+"grub",
+"guff",
+"gulf",
+"gull",
+"gulp",
+"gums",
+"gunk",
+"guns",
+"guru",
+"gush",
+"gust",
+"guts",
+"guys",
+"gybe",
+"gyms",
+"gyro",
+"hack",
+"haft",
+"hags",
+"hail",
+"hair",
+"hake",
+"hale",
+"half",
+"hall",
+"halo",
+"halt",
+"hams",
+"hand",
+"hang",
+"hank",
+"hard",
+"hare",
+"hark",
+"harm",
+"harp",
+"hart",
+"hash",
+"hasp",
+"hate",
+"hath",
+"hats",
+"haul",
+"have",
+"hawk",
+"haws",
+"hays",
+"haze",
+"hazy",
+"head",
+"heal",
+"heap",
+"hear",
+"heat",
+"heck",
+"heed",
+"heel",
+"heft",
+"heir",
+"held",
+"hell",
+"helm",
+"help",
+"hemp",
+"hems",
+"hens",
+"herb",
+"herd",
+"here",
+"hero",
+"hers",
+"hewn",
+"hews",
+"hick",
+"hide",
+"hied",
+"hies",
+"high",
+"hike",
+"hill",
+"hilt",
+"hims",
+"hind",
+"hint",
+"hips",
+"hire",
+"hiss",
+"hits",
+"hive",
+"hoax",
+"hobo",
+"hobs",
+"hock",
+"hods",
+"hoed",
+"hoes",
+"hogs",
+"hold",
+"hole",
+"holy",
+"home",
+"homy",
+"hone",
+"honk",
+"hood",
+"hoof",
+"hook",
+"hoop",
+"hoot",
+"hope",
+"hops",
+"horn",
+"hose",
+"host",
+"hour",
+"hove",
+"howl",
+"hows",
+"hubs",
+"hued",
+"hues",
+"huff",
+"huge",
+"hugs",
+"hula",
+"hulk",
+"hull",
+"hump",
+"hums",
+"hung",
+"hunk",
+"hunt",
+"hurl",
+"hurt",
+"hush",
+"husk",
+"huts",
+"hymn",
+"hype",
+"hypo",
+"ipad",
+"ipod",
+"iamb",
+"ibex",
+"ibis",
+"iced",
+"ices",
+"icky",
+"icon",
+"idea",
+"ides",
+"idle",
+"idly",
+"idol",
+"idyl",
+"iffy",
+"ikon",
+"ilks",
+"ills",
+"imam",
+"imps",
+"inch",
+"info",
+"inks",
+"inky",
+"inns",
+"into",
+"ions",
+"iota",
+"iris",
+"irks",
+"iron",
+"isle",
+"isms",
+"itch",
+"item",
+"jabs",
+"jack",
+"jade",
+"jags",
+"jail",
+"jamb",
+"jams",
+"jape",
+"jars",
+"jaws",
+"jays",
+"jazz",
+"jeep",
+"jeer",
+"jeez",
+"jell",
+"jerk",
+"jest",
+"jets",
+"jibe",
+"jibs",
+"jigs",
+"jilt",
+"jinn",
+"jinx",
+"jive",
+"jobs",
+"jock",
+"jogs",
+"john",
+"join",
+"joke",
+"jolt",
+"josh",
+"jots",
+"jowl",
+"joys",
+"judo",
+"jugs",
+"jump",
+"junk",
+"jury",
+"just",
+"jute",
+"juts",
+"kale",
+"keel",
+"keen",
+"keep",
+"kegs",
+"kelp",
+"kens",
+"kept",
+"keys",
+"khan",
+"kick",
+"kids",
+"kill",
+"kiln",
+"kilo",
+"kilt",
+"kind",
+"king",
+"kink",
+"kiss",
+"kite",
+"kith",
+"kits",
+"kiwi",
+"knee",
+"knew",
+"knit",
+"knob",
+"knot",
+"know",
+"kook",
+"labs",
+"lace",
+"lack",
+"lacy",
+"lade",
+"lads",
+"lady",
+"lags",
+"laid",
+"lain",
+"lair",
+"lake",
+"lama",
+"lamb",
+"lame",
+"lamp",
+"lams",
+"land",
+"lane",
+"lank",
+"laps",
+"lard",
+"lark",
+"lash",
+"lass",
+"last",
+"late",
+"lath",
+"lats",
+"laud",
+"lava",
+"lawn",
+"laws",
+"lays",
+"laze",
+"lazy",
+"lead",
+"leaf",
+"leak",
+"lean",
+"leap",
+"leas",
+"leek",
+"leer",
+"lees",
+"left",
+"legs",
+"leis",
+"lend",
+"lens",
+"lent",
+"lept",
+"less",
+"lest",
+"lets",
+"levy",
+"lewd",
+"liar",
+"lice",
+"lick",
+"lids",
+"lied",
+"lief",
+"lien",
+"lies",
+"lieu",
+"life",
+"lift",
+"like",
+"lilt",
+"lily",
+"limb",
+"lime",
+"limn",
+"limo",
+"limp",
+"limy",
+"line",
+"link",
+"lint",
+"lion",
+"lips",
+"lira",
+"lire",
+"lisp",
+"list",
+"lite",
+"live",
+"load",
+"loaf",
+"loam",
+"loan",
+"lobe",
+"lobs",
+"loci",
+"lock",
+"loco",
+"lode",
+"loft",
+"loge",
+"logo",
+"logs",
+"loin",
+"loll",
+"lone",
+"long",
+"look",
+"loom",
+"loon",
+"loop",
+"loot",
+"lope",
+"lops",
+"lord",
+"lore",
+"lorn",
+"lose",
+"loss",
+"lost",
+"loth",
+"lots",
+"loud",
+"lout",
+"love",
+"lows",
+"luau",
+"lube",
+"luck",
+"lugs",
+"lull",
+"lump",
+"lung",
+"lure",
+"lurk",
+"lush",
+"lust",
+"lute",
+"lynx",
+"lyre",
+"mace",
+"made",
+"mads",
+"maid",
+"mail",
+"maim",
+"main",
+"make",
+"male",
+"mall",
+"malt",
+"mama",
+"mane",
+"mans",
+"many",
+"maps",
+"mare",
+"mark",
+"mars",
+"mart",
+"mash",
+"mask",
+"mass",
+"mast",
+"mate",
+"math",
+"mats",
+"matt",
+"maul",
+"maws",
+"mayo",
+"maze",
+"mead",
+"meal",
+"mean",
+"meat",
+"meek",
+"meet",
+"megs",
+"meld",
+"melt",
+"memo",
+"mend",
+"menu",
+"meow",
+"mere",
+"mesa",
+"mesh",
+"mess",
+"mete",
+"mewl",
+"mews",
+"mica",
+"mice",
+"mien",
+"miff",
+"mike",
+"mild",
+"mile",
+"milk",
+"mill",
+"mils",
+"mime",
+"mind",
+"mine",
+"mini",
+"mink",
+"mint",
+"minx",
+"mire",
+"miss",
+"mist",
+"mite",
+"mitt",
+"moan",
+"moat",
+"mobs",
+"mock",
+"mode",
+"mods",
+"mold",
+"mole",
+"moll",
+"molt",
+"moms",
+"monk",
+"mono",
+"mood",
+"moon",
+"moor",
+"moos",
+"moot",
+"mope",
+"mops",
+"more",
+"morn",
+"moss",
+"most",
+"mote",
+"moth",
+"move",
+"mown",
+"mows",
+"much",
+"muck",
+"muff",
+"mugs",
+"mule",
+"mull",
+"mums",
+"murk",
+"muse",
+"mush",
+"musk",
+"muss",
+"must",
+"mute",
+"mutt",
+"myna",
+"myth",
+"nabs",
+"nags",
+"nail",
+"name",
+"nape",
+"naps",
+"narc",
+"nark",
+"nary",
+"nave",
+"navy",
+"nays",
+"near",
+"neat",
+"neck",
+"need",
+"neon",
+"nerd",
+"nest",
+"nets",
+"news",
+"newt",
+"next",
+"nibs",
+"nice",
+"nick",
+"nigh",
+"nine",
+"nips",
+"nite",
+"nits",
+"node",
+"nods",
+"noel",
+"noes",
+"none",
+"nook",
+"noon",
+"nope",
+"norm",
+"nose",
+"nosh",
+"nosy",
+"note",
+"noun",
+"nous",
+"nova",
+"nubs",
+"nude",
+"nuke",
+"null",
+"numb",
+"nuns",
+"nuts",
+"oafs",
+"oaks",
+"oars",
+"oath",
+"oats",
+"obey",
+"obit",
+"oboe",
+"odds",
+"odes",
+"odor",
+"offs",
+"ogle",
+"ogre",
+"ohms",
+"oils",
+"oily",
+"oink",
+"okay",
+"okra",
+"oleo",
+"omen",
+"omit",
+"once",
+"ones",
+"only",
+"onto",
+"onus",
+"onyx",
+"oops",
+"ooze",
+"opal",
+"open",
+"opts",
+"opus",
+"oral",
+"orbs",
+"ores",
+"orgy",
+"ouch",
+"ours",
+"oust",
+"outs",
+"oval",
+"oven",
+"over",
+"ovum",
+"owed",
+"owes",
+"owls",
+"owns",
+"oxen",
+"pace",
+"pack",
+"pact",
+"pads",
+"page",
+"paid",
+"pail",
+"pain",
+"pair",
+"pale",
+"pall",
+"palm",
+"pals",
+"pane",
+"pang",
+"pans",
+"pant",
+"papa",
+"paps",
+"pare",
+"park",
+"pars",
+"part",
+"pass",
+"past",
+"pate",
+"path",
+"pats",
+"pave",
+"pawl",
+"pawn",
+"paws",
+"pays",
+"peak",
+"peal",
+"pear",
+"peas",
+"peat",
+"peck",
+"peed",
+"peek",
+"peel",
+"peep",
+"peer",
+"pees",
+"pegs",
+"pelt",
+"pens",
+"pent",
+"peon",
+"peps",
+"perk",
+"perm",
+"pert",
+"peso",
+"pest",
+"pets",
+"pews",
+"pica",
+"pick",
+"pied",
+"pier",
+"pies",
+"pigs",
+"pike",
+"pile",
+"pill",
+"pimp",
+"pine",
+"ping",
+"pink",
+"pins",
+"pint",
+"pipe",
+"pips",
+"pita",
+"pith",
+"pits",
+"pity",
+"pixy",
+"plan",
+"play",
+"plea",
+"pled",
+"plod",
+"plop",
+"plot",
+"plow",
+"ploy",
+"plug",
+"plum",
+"plus",
+"pock",
+"pods",
+"poem",
+"poet",
+"poke",
+"poky",
+"pole",
+"poll",
+"polo",
+"pols",
+"pomp",
+"pond",
+"pone",
+"pony",
+"pooh",
+"pool",
+"poor",
+"pope",
+"pops",
+"pore",
+"pork",
+"porn",
+"port",
+"pose",
+"posh",
+"post",
+"posy",
+"pots",
+"pour",
+"pout",
+"pram",
+"pray",
+"prep",
+"prey",
+"prig",
+"prim",
+"prod",
+"prof",
+"prom",
+"prop",
+"pros",
+"prow",
+"psst",
+"pubs",
+"puck",
+"puff",
+"pugs",
+"puke",
+"pull",
+"pulp",
+"puma",
+"pump",
+"punk",
+"puns",
+"punt",
+"puny",
+"pupa",
+"pups",
+"pure",
+"purl",
+"purr",
+"push",
+"puss",
+"puts",
+"putt",
+"pyre",
+"quad",
+"quay",
+"quid",
+"quip",
+"quit",
+"quiz",
+"race",
+"rack",
+"racy",
+"raft",
+"raga",
+"rage",
+"rags",
+"raid",
+"rail",
+"rain",
+"raja",
+"rake",
+"ramp",
+"rams",
+"rang",
+"rank",
+"rant",
+"rape",
+"raps",
+"rapt",
+"rare",
+"rash",
+"rasp",
+"rate",
+"rats",
+"rave",
+"rays",
+"raze",
+"razz",
+"read",
+"real",
+"ream",
+"reap",
+"rear",
+"redo",
+"reds",
+"reed",
+"reef",
+"reek",
+"reel",
+"refs",
+"rein",
+"reis",
+"rely",
+"rend",
+"rent",
+"reps",
+"rest",
+"revs",
+"rhea",
+"ribs",
+"rice",
+"rich",
+"rick",
+"ride",
+"rids",
+"rife",
+"riff",
+"rift",
+"rigs",
+"rile",
+"rill",
+"rime",
+"rims",
+"rind",
+"ring",
+"rink",
+"riot",
+"ripe",
+"rips",
+"rise",
+"risk",
+"rite",
+"road",
+"roam",
+"roan",
+"roar",
+"robe",
+"robs",
+"rock",
+"rode",
+"rods",
+"roes",
+"roil",
+"role",
+"roll",
+"romp",
+"rood",
+"roof",
+"rook",
+"room",
+"root",
+"rope",
+"rose",
+"rosy",
+"rote",
+"rots",
+"rout",
+"rove",
+"rows",
+"rube",
+"rubs",
+"ruby",
+"rude",
+"rued",
+"rues",
+"ruff",
+"rugs",
+"ruin",
+"rule",
+"rump",
+"rums",
+"rune",
+"rung",
+"runs",
+"runt",
+"ruse",
+"rush",
+"rusk",
+"rust",
+"ruts",
+"sack",
+"sacs",
+"safe",
+"saga",
+"sage",
+"sago",
+"sags",
+"said",
+"sail",
+"sake",
+"saki",
+"sale",
+"salt",
+"same",
+"sand",
+"sane",
+"sang",
+"sank",
+"sans",
+"saps",
+"sari",
+"sash",
+"sass",
+"sate",
+"save",
+"sawn",
+"saws",
+"says",
+"scab",
+"scad",
+"scam",
+"scan",
+"scar",
+"scat",
+"scow",
+"scud",
+"scum",
+"seal",
+"seam",
+"sear",
+"seas",
+"seat",
+"secs",
+"sect",
+"seed",
+"seek",
+"seem",
+"seen",
+"seep",
+"seer",
+"sees",
+"self",
+"sell",
+"semi",
+"send",
+"sent",
+"sera",
+"sere",
+"serf",
+"sets",
+"sewn",
+"sews",
+"sexy",
+"shad",
+"shag",
+"shah",
+"sham",
+"shat",
+"shed",
+"shes",
+"shim",
+"shin",
+"ship",
+"shod",
+"shoe",
+"shoo",
+"shop",
+"shot",
+"show",
+"shun",
+"shut",
+"sick",
+"sics",
+"side",
+"sift",
+"sigh",
+"sign",
+"silk",
+"sill",
+"silo",
+"silt",
+"sine",
+"sing",
+"sink",
+"sins",
+"sips",
+"sire",
+"sirs",
+"site",
+"sits",
+"size",
+"skew",
+"skid",
+"skim",
+"skin",
+"skip",
+"skis",
+"skit",
+"slab",
+"slag",
+"slam",
+"slap",
+"slat",
+"slaw",
+"slay",
+"sled",
+"slew",
+"slid",
+"slim",
+"slip",
+"slit",
+"slob",
+"sloe",
+"slog",
+"slop",
+"slot",
+"slow",
+"slue",
+"slug",
+"slum",
+"slur",
+"smit",
+"smog",
+"smug",
+"smut",
+"snag",
+"snap",
+"snip",
+"snit",
+"snob",
+"snot",
+"snow",
+"snub",
+"snug",
+"soak",
+"soap",
+"soar",
+"sobs",
+"sock",
+"soda",
+"sods",
+"sofa",
+"soft",
+"soil",
+"sold",
+"sole",
+"soli",
+"solo",
+"sols",
+"some",
+"song",
+"sons",
+"soon",
+"soot",
+"sops",
+"sore",
+"sort",
+"sots",
+"soul",
+"soup",
+"sour",
+"sown",
+"sows",
+"soya",
+"span",
+"spar",
+"spas",
+"spat",
+"spay",
+"spec",
+"sped",
+"spew",
+"spin",
+"spit",
+"spot",
+"spry",
+"spud",
+"spun",
+"spur",
+"stab",
+"stag",
+"star",
+"stay",
+"stem",
+"step",
+"stew",
+"stir",
+"stop",
+"stow",
+"stub",
+"stud",
+"stun",
+"stye",
+"subs",
+"such",
+"suck",
+"suds",
+"sued",
+"sues",
+"suet",
+"suit",
+"sulk",
+"sumo",
+"sump",
+"sums",
+"sung",
+"sunk",
+"suns",
+"sups",
+"sure",
+"surf",
+"swab",
+"swag",
+"swam",
+"swan",
+"swap",
+"swat",
+"sway",
+"swig",
+"swim",
+"swop",
+"swum",
+"sync",
+"tabs",
+"tabu",
+"tack",
+"taco",
+"tact",
+"tads",
+"tags",
+"tail",
+"take",
+"talc",
+"tale",
+"talk",
+"tall",
+"tame",
+"tamp",
+"tams",
+"tang",
+"tank",
+"tans",
+"tape",
+"taps",
+"tare",
+"taro",
+"tarp",
+"tars",
+"tart",
+"task",
+"tats",
+"taut",
+"taxi",
+"teak",
+"teal",
+"team",
+"tear",
+"teas",
+"teat",
+"teed",
+"teem",
+"teen",
+"tees",
+"tell",
+"temp",
+"tend",
+"tens",
+"tent",
+"term",
+"tern",
+"test",
+"text",
+"than",
+"that",
+"thaw",
+"thee",
+"them",
+"then",
+"they",
+"thin",
+"this",
+"thou",
+"thru",
+"thud",
+"thug",
+"thus",
+"tick",
+"tics",
+"tide",
+"tidy",
+"tied",
+"tier",
+"ties",
+"tiff",
+"tike",
+"tile",
+"till",
+"tilt",
+"time",
+"tine",
+"ting",
+"tins",
+"tint",
+"tiny",
+"tipi",
+"tips",
+"tire",
+"tiro",
+"toad",
+"toed",
+"toes",
+"tofu",
+"toga",
+"togs",
+"toil",
+"toke",
+"told",
+"toll",
+"tomb",
+"tome",
+"toms",
+"tone",
+"tong",
+"tons",
+"tony",
+"took",
+"tool",
+"toot",
+"tops",
+"tore",
+"torn",
+"tors",
+"tort",
+"toss",
+"tost",
+"tote",
+"tots",
+"tour",
+"tout",
+"town",
+"tows",
+"toys",
+"tram",
+"trap",
+"tray",
+"tree",
+"trek",
+"trig",
+"trim",
+"trio",
+"trip",
+"trod",
+"trot",
+"troy",
+"true",
+"tsar",
+"tuba",
+"tube",
+"tubs",
+"tuck",
+"tuft",
+"tugs",
+"tuna",
+"tune",
+"tuns",
+"turd",
+"turf",
+"turn",
+"tush",
+"tusk",
+"tutu",
+"twee",
+"twig",
+"twin",
+"twit",
+"twos",
+"tyke",
+"type",
+"typo",
+"tyro",
+"tzar",
+"ugly",
+"ulna",
+"umps",
+"undo",
+"unit",
+"unto",
+"upon",
+"urea",
+"urge",
+"uric",
+"urns",
+"used",
+"user",
+"uses",
+"vain",
+"vale",
+"vamp",
+"vane",
+"vans",
+"vary",
+"vase",
+"vast",
+"vats",
+"veal",
+"veep",
+"veer",
+"veil",
+"vein",
+"veld",
+"vend",
+"vent",
+"verb",
+"very",
+"vest",
+"veto",
+"vets",
+"vial",
+"vibe",
+"vice",
+"vied",
+"vies",
+"view",
+"vile",
+"vine",
+"viol",
+"visa",
+"vise",
+"viva",
+"void",
+"vole",
+"volt",
+"vote",
+"vows",
+"wade",
+"wadi",
+"wads",
+"waft",
+"wage",
+"wags",
+"waif",
+"wail",
+"wait",
+"wake",
+"wale",
+"walk",
+"wall",
+"wand",
+"wane",
+"want",
+"ward",
+"ware",
+"warm",
+"warn",
+"warp",
+"wars",
+"wart",
+"wary",
+"wash",
+"wasp",
+"watt",
+"wave",
+"wavy",
+"waxy",
+"ways",
+"weak",
+"weal",
+"wean",
+"wear",
+"webs",
+"weds",
+"weed",
+"week",
+"weep",
+"weer",
+"wees",
+"weft",
+"weir",
+"weld",
+"well",
+"welt",
+"wend",
+"wens",
+"went",
+"wept",
+"were",
+"west",
+"wets",
+"wham",
+"what",
+"when",
+"whet",
+"whew",
+"whey",
+"whim",
+"whip",
+"whir",
+"whit",
+"whiz",
+"whoa",
+"whom",
+"whys",
+"wick",
+"wide",
+"wife",
+"wigs",
+"wiki",
+"wild",
+"wile",
+"will",
+"wilt",
+"wily",
+"wimp",
+"wind",
+"wine",
+"wing",
+"wink",
+"wino",
+"wins",
+"wipe",
+"wire",
+"wiry",
+"wise",
+"wish",
+"wisp",
+"wist",
+"with",
+"wits",
+"wive",
+"woes",
+"woke",
+"woks",
+"wolf",
+"womb",
+"wont",
+"wood",
+"woof",
+"wool",
+"woos",
+"word",
+"wore",
+"work",
+"worm",
+"worn",
+"wove",
+"wows",
+"wrap",
+"wren",
+"writ",
+"wuss",
+"yack",
+"yaks",
+"yams",
+"yank",
+"yaps",
+"yard",
+"yarn",
+"yawl",
+"yawn",
+"yaws",
+"yeah",
+"year",
+"yeas",
+"yell",
+"yelp",
+"yens",
+"yeps",
+"yest",
+"yeti",
+"yews",
+"yips",
+"yock",
+"yoga",
+"yogi",
+"yoke",
+"yolk",
+"yore",
+"your",
+"yous",
+"yowl",
+"yuck",
+"yuks",
+"yule",
+"yups",
+"zany",
+"zaps",
+"zeal",
+"zebu",
+"zeds",
+"zero",
+"zest",
+"zeta",
+"zinc",
+"zing",
+"zips",
+"zits",
+"zone",
+"zoom",
+"zoos"
+];
+
+module.exports["word"] = four_words;
+
+},{}],2:[function(require,module,exports){
 (function (process){(function (){
 // To the extent possible under law, the person who associated CC0 with
 // this project has waived all copyright and related or neighboring rights
@@ -25,6 +3183,7 @@
 //     'c' : convex
 //     'r' : reflex
 //     'b' : border
+//   Bxy : <array of border xy points>
 //   Bij : <2d array [j,i]>
 //     values map to B index, -1 if not a border point
 //
@@ -33,6 +3192,7 @@
 //     'c' : original boundary point
 //     'b' : point on edge, on boundary but not in C
 //     'i' : interior point
+//   Gxy : <array of grid xy points>
 //   Gij : <2d array [j,i]>
 //      values map to G index, -1 if invalid grid point
 //
@@ -41,7 +3201,21 @@
 // }
 //
 
+// Currently, the scoring function tallies the perimeter of each
+// rectangle. This double counts the inteior edges but only
+// single counts the exterior.
+// Some numbers below are using this double counting.
+//
+// To get the real value:
+//
+// * Call the (singly counted) perimeter $S_P$
+// * Call the (double interior) counted total $S_R$
+// * To get the actual ink value:
+//   - $S_I = (S_R - S_P)/2 + S_P = (S_P + S_R) / 2$
+//
+
 var fasslib = require("./fasslib.js");
+var fw = require("./4w.js");
 
 var norm2_v = fasslib.norm2_v;
 var v_sub = fasslib.v_sub;
@@ -51,10 +3225,23 @@ var dot_v = fasslib.dot_v;
 var cross3 = fasslib.cross3;
 var v_delta = fasslib.v_delta;
 var abs_sum_v = fasslib.abs_sum_v;
+var cmp_v = fasslib.cmp_v;
 
 var pgon = [
   [0,0], [0,2], [1,2], [1,3], [3,3],
   [3,1], [2,1], [2,0]
+];
+
+var pgn_ell = [
+  [0,0], [12,0], [12,3], [4,3],
+  [4,13], [0,13],
+];
+
+// opt. 52
+//
+var pgn_z = [
+  [0,0], [7,0], [7,6], [12,6],
+  [12,9], [1,9], [1,2], [0,2],
 ];
 
 var pgon_pinwheel = [
@@ -62,9 +3249,18 @@ var pgon_pinwheel = [
   [4,6], [4,3], [5,3], [5,0], [3,0], [3,-1],
 ];
 
+// opt. 96 (w/ double counting)
+//
 var pgn_pinwheel1 = [
   [0,6], [4,6], [4,0], [9,0],
   [9,4], [14,4], [14,9], [11,9],
+  [11,15], [6,15], [6,11], [0,11]
+];
+
+// opt. 98
+var pgn_pinwheel_sym = [
+  [0,6], [4,6], [4,0], [9,0],
+  [9,4], [15,4], [15,9], [11,9],
   [11,15], [6,15], [6,11], [0,11]
 ];
 
@@ -179,6 +3375,13 @@ let pgn_custom0 = [
   [7,4], [7,0], [3,0], [3,9]
 ];
 
+var pgn_custom1 = [
+    [0,5], [8,5], [8,0], [11,0],
+    [11,2], [15,2], [15,8], [11,8],
+    [11,16], [6,16], [6,19], [0,19],
+    [0,15], [3,15], [3,8], [0,8],
+];
+
 let pgn_clover = [
   [0,2], [10,2], [10,6], [17,6],
   [17,0], [31,0], [31,4], [23,4],
@@ -201,6 +3404,14 @@ var pgn_clover2 = [
   [13,0], [20,0], [20,7], [17,7],
   [17,13], [23,13], [23,19], [15,19],
   [15,16], [8,16], [8,20], [0,20],
+];
+
+var pgn_clover3 = [
+    [0,2], [10,2], [10,4], [17,4],
+    [17,0], [31,0], [31,4], [23,4],
+    [23,12], [30,12], [30,27], [20,27],
+    [20,19], [8,19], [8,24], [3,24],
+    [3,14], [10,14], [10,10], [0,10],
 ];
 
 var pgn_double_edge_cut = [
@@ -239,9 +3450,79 @@ var pgn_bottom_guillotine = [
   [1,4], [0,4],
 ];
 
+var pgn_cavity = [
+  [0,11], [6,11], [6,0], [19,0],
+  [19,3], [31,3], [31,26], [20,26],
+  [20,21], [25,21], [25,17], [28,17],
+  [28,13], [24,13], [24,7], [18,7],
+  [18,5], [9,5], [9,8], [7,8],
+  [7,12], [4,12], [4,15], [7,15],
+  [7,18], [9,18], [9,20], [11,20],
+  [11,28], [8,28], [8,21], [0,21]
+];
+
+var pgn_dragon = [
+  [0,4], [19,4], [19,0], [27,0],
+  [27,2], [31,2], [31,9], [27,9],
+  [27,17], [24,17], [24,19], [21,19],
+  [21,17], [18,17], [18,19], [15,19],
+  [15,17], [12,17], [12,19], [9,19],
+  [9,17], [6,17], [6,21], [0,21],
+  [0,12], [4,12], [4,9], [0,9],
+];
+
+// testing cleave enumerating when a quarry corner has a border
+// and open slot available.
+//
+var pgn_horseshoe = [
+  [0,0], [5,0], [5,3], [9,3],
+  [9,5], [13,5], [13,0], [17,0],
+  [17,3], [20,3], [20,8], [17,8],
+  [17,18], [7,18], [7,20], [2,20],
+  [2,15], [5,15], [5,11], [2,11],
+  [2,8], [0,8],
+];
+
+var pgn_bb_test = [
+  [0,13], [2,13], [2,9], [1,9],
+  [1,7], [3,7], [3,0], [11,0],
+  [11,7], [16,7], [16,13], [13,13],
+  [13,16], [8,16], [8,15], [5,15],
+  [5,17], [0,17]
+];
+
+
+// testing bridge in well
+//
+var pgn_bb_test1= [
+  [0,8], [3,8], [3,0], [8,0],
+  [8,8], [12,8], [12,11], [15,11],
+  [15,2], [17,2], [17,13], [12,13],
+  [12,16], [6,16], [6,20], [0,20],
+  [0,14], [3,14], [3,11], [0,11],
+];
+
 function _write_data(ofn, data) {
   var fs = require("fs");
   return fs.writeFileSync(ofn, JSON.stringify(data, undefined, 2));
+}
+
+function _ERROR(s) {
+  console.log("ERROR:", s);
+}
+
+// human readable debug identifiers
+// 'four character words' js with array of 4 character words
+//
+function _debid() {
+  let n = 2;
+  let m = fw.word.length;
+  let a = [];
+  for (let i=0; i<n; i++) {
+    let idx = Math.floor( Math.random()*m );
+    a.push( fw.word[idx] );
+  }
+  return a.join("-");
 }
 
 function _ifmt(v, s) {
@@ -283,6 +3564,7 @@ function _print_pgon(p, pt) {
   }
 }
 
+/*
 function _print_dual(dualG, pfx) {
   pfx = ((typeof pfx === "undefined") ? "" : pfx);
   for (let j=(dualG.length-1); j>=0; j--) {
@@ -297,6 +3579,68 @@ function _print_dual(dualG, pfx) {
     }
     console.log( pfx + pl.join(" ") );
   }
+}
+*/
+
+function cmp_dp_key(_a,_b) {
+
+  let v_a = _a.split(";");
+  let v_b = _b.split(";");
+
+  let a_se = v_a[0].split(":");
+  let b_se = v_b[0].split(":");
+
+  let a_adit = v_b[1].split(",");
+  let b_adit = v_b[1].split(",");
+
+  if ( parseInt(a_se[0]) < parseInt(b_se[0])) { return -1; }
+  if ( parseInt(a_se[0]) > parseInt(b_se[0])) { return  1; }
+  if ( parseInt(a_se[1]) < parseInt(b_se[1])) { return -1; }
+  if ( parseInt(a_se[1]) > parseInt(b_se[1])) { return  1; }
+
+  if ( parseInt(a_adit[0]) < parseInt(b_adit[0])) { return -1; }
+  if ( parseInt(a_adit[0]) > parseInt(b_adit[0])) { return  1; }
+
+  if ( parseInt(a_adit[1]) < parseInt(b_adit[1])) { return -1; }
+  if ( parseInt(a_adit[1]) > parseInt(b_adit[1])) { return  1; }
+
+  return 0;
+}
+
+function _print_dp(ctx) {
+  let X = ctx.X;
+  let Y = ctx.Y;
+
+  let key_a = [];
+  for (let key in ctx.DP_cost) { key_a.push(key); }
+  key_a.sort( cmp_dp_key );
+
+  for (let i=0; i<key_a.length; i++) {
+    let dp_idx = key_a[i];
+    if (ctx.DP_cost[dp_idx] >= 0) {
+      console.log( dp_idx, ":", ctx.DP_cost[dp_idx]);
+      console.log("  R:", JSON.stringify(ctx.DP_rect[dp_idx][0]), JSON.stringify(ctx.DP_rect[dp_idx][1]));
+      console.log("  P.1cut:", JSON.stringify(ctx.DP_partition[dp_idx][0]));
+      console.log("  P.2cut:", JSON.stringify(ctx.DP_partition[dp_idx][1]));
+    }
+  }
+
+}
+
+function __print_dp(ctx) {
+  let X = ctx.X;
+  let Y = ctx.Y;
+
+
+  for (let dp_idx=0; dp_idx < ctx.DP_cost.length; dp_idx++) {
+    if (ctx.DP_cost[dp_idx] >= 0) {
+      console.log( dp_idx, ":", ctx.DP_cost[dp_idx]);
+      console.log("  R:", JSON.stringify(ctx.DP_rect[dp_idx][0]), JSON.stringify(ctx.DP_rect[dp_idx][1]));
+      console.log("  P.1cut:", JSON.stringify(ctx.DP_partition[dp_idx][0]));
+      console.log("  P.2cut:", JSON.stringify(ctx.DP_partition[dp_idx][1]));
+    }
+  }
+
 }
 
 function _print1da(A, hdr, ws, line_pfx, fold) {
@@ -353,10 +3697,25 @@ function _print_rprp(ctx) {
   _print1da(ctx.Bt,   "\n## Bt:");
   _print2da(ctx.Bij,  "\n## Bij:");
 
- let idir_descr = [ "+x", "-x", "+y", "-y" ];
+  let idir_descr = [ "+x", "-x", "+y", "-y" ];
   for (let idir=0; idir<4; idir++) {
     _print2da(ctx.Js[idir],   "\n## Js[" + idir_descr[idir] + "]:");
   }
+
+  for (let idir=0; idir<4; idir++) {
+    _print2da(ctx.Je[idir],   "\n## Je[" + idir_descr[idir] + "]:");
+  }
+
+}
+
+function _print_cleave(cleave) {
+
+  let g = [];
+  for (let i=0; i<cleave.length; i+=2) {
+    g.push( cleave[i] + cleave[i+1] );
+  }
+  return g.join(" ");
+
 }
 
 // helper functions
@@ -503,136 +3862,6 @@ function onBoundary(p, pgn) {
   return false;
 }
 
-// Test if a rectangle is wholly contained in rectilinear polygon.
-// Assumes structures Sx, Sy, Lx, Ly have been precomputed
-//
-// input:
-//
-// s_ij - xy vector of grid start point
-// l_ij - xy vector of rectangle width/height
-//
-// output:
-//
-// true if rectangle with lower left corner at s_ij and width/height of l_ij
-//      in rectilinear polygon
-// false otherwise
-//
-// precomputed auxiliary structures:
-//
-// Sx holds grid cell running lengths, from left to right, of contiguous region within
-//    rectilinear polygon, resetting to 0 at the beginning of every interior
-//    edge and -1 for exterior points
-// Sy, like Sx, but from bottom to top
-// Lx holds total sum of left to right, regardless of interior/exterior
-// Ly holds total sum of bottom to top, regardless of interior/exterior
-//
-function rprp_irect_contain(grid_info, s_ij, l_ij) {
-  let Lx = grid_info.Lx,
-      Ly = grid_info.Ly,
-      Sx = grid_info.Sx,
-      Sy = grid_info.Sy;
-
-  if ((s_ij[0] < 0) || (s_ij[1] < 0) ||
-      (l_ij[0] < 0) || (l_ij[1] < 0) ||
-      (s_ij[0] >= Lx.length) ||
-      (s_ij[1] >= Ly.length) ||
-      ((s_ij[0] + l_ij[0]) >= Lx.length) ||
-      ((s_ij[1] + l_ij[1]) >= Ly.length)) {
-    return false;
-  }
-
-  let e_ij = [ s_ij[0] + l_ij[0] - 1, s_ij[1] + l_ij[1] - 1 ];
-
-  if ((Sx[s_ij[1]][s_ij[0]] < 0) ||
-      (Sx[s_ij[1]][e_ij[0]] < 0) ||
-      (Sx[e_ij[1]][s_ij[0]] < 0) ||
-      (Sx[e_ij[1]][e_ij[0]] < 0) ||
-
-      (Sy[s_ij[1]][s_ij[0]] < 0) ||
-      (Sy[s_ij[1]][e_ij[0]] < 0) ||
-      (Sy[e_ij[1]][s_ij[0]] < 0) ||
-      (Sy[e_ij[1]][e_ij[0]] < 0)) {
-
-    return false;
-  }
-
-  let len_dx = Lx[ e_ij[0] ] - Lx[ s_ij[0] ];
-  let len_dy = Ly[ e_ij[1] ] - Ly[ s_ij[1] ];
-
-  let dx0 = Sx[s_ij[1]][ e_ij[0] ] - Sx[s_ij[1]][ s_ij[0] ];
-  let dx1 = Sx[e_ij[1]][ e_ij[0] ] - Sx[e_ij[1]][ s_ij[0] ];
-
-  let dy0 = Sy[ e_ij[1] ][s_ij[0]] - Sy[ s_ij[1]][s_ij[0]];
-  let dy1 = Sy[ e_ij[1] ][e_ij[0]] - Sy[ s_ij[1]][e_ij[0]];
-
-  if ((dx0 == len_dx) && (dx1 == len_dx) &&
-      (dy0 == len_dy) && (dy1 == len_dy)) {
-    return true;
-  }
-
-  return false;
-}
-
-//---
-
-// Assumes rectangles (l_ij) are at least 2 wide and hight
-// (in grid points).
-// Assumes start is lower left of rectangle.
-//
-function _rprp_irect_contain_slow(grid_info, s_ij, l_ij) {
-  let Gv = grid_info.Gv;
-  let B_2d = grid_info.B_2d;
-  let dualG = grid_info.dualG;
-
-  if (Gv[s_ij[1]][s_ij[0]].G_idx < 0) { return false; }
-
-  let nx = l_ij[0]-1;
-  let ny = l_ij[1]-1;
-
-  for (let j=s_ij[1]; j<(s_ij[1] + ny); j++) {
-    for (let i=s_ij[0]; i<(s_ij[0] + nx); i++) {
-      if (dualG[j][i].id < 0) { return false; }
-    }
-  }
-  return true;
-}
-
-function _rprp_irect_contain_test(grid_info, _debug) {
-  _debug = ((typeof _debug === "undefined") ? false : _debug);
-
-  let Gv = grid_info.Gv;
-
-  for (let sj=0; sj<Gv.length; sj++) {
-    for (let si=0; si<Gv[sj].length; si++) {
-
-      for (let lj=2; lj<(Gv.length-sj); lj++) {
-        for (let li=2; li<(Gv[lj].length - si); li++) {
-
-          let s_ij = [si, sj];
-          let l_ij = [li, lj];
-
-          let slow = _rprp_irect_contain_slow(grid_info, s_ij, l_ij);
-          let fast = rprp_irect_contain(grid_info, s_ij, l_ij);
-
-          if ( _rprp_irect_contain_slow(grid_info, s_ij, l_ij) !=
-               rprp_irect_contain(grid_info, s_ij, l_ij) ) {
-
-
-            if (_debug) {
-              console.log("!!!!", s_ij, l_ij, slow, fast);
-            }
-
-            return false;
-          }
-        }
-      }
-
-    }
-  }
-
-  return true;
-}
-
 //---
 
 function _rprp_sanity( rl_pgon ) {
@@ -738,12 +3967,10 @@ function RPRPInit(_rl_pgon, _debug) {
   // init Gij, Bij, Js
   //
 
-  //DEBUG
   if (_debug) {
     _print1da(Cxy, "\n## Cxy:");
     _print1da(Ct, "\n## Ct:");
   }
-  //DEBUG
 
   for (let j=0; j<Y.length; j++) {
     Gij.push([]);
@@ -805,14 +4032,12 @@ function RPRPInit(_rl_pgon, _debug) {
 
   }
 
-  //DEBUG
   if (_debug) {
     _print1da(Bxy,  "\n## Bxy:");
     _print1da(B,    "\n## B:");
     _print1da(Bt,   "\n## Bt:");
     _print2da(Bij,  "\n## Bij:");
   }
-  //DEBUG
 
 
   // populate Js ("border jump" structure)
@@ -1022,14 +4247,12 @@ function RPRPInit(_rl_pgon, _debug) {
     
   }
 
-  //DEBUG
   if (_debug) {
     let idir_descr = [ "+x", "-x", "+y", "-y" ];
     for (let idir=0; idir<4; idir++) {
       _print2da(Js[idir],   "\n## Js[" + idir_descr[idir] + "]:");
     }
   }
-  //DEBUG
 
 
   // 0000 0001 0010 0011
@@ -1054,7 +4277,6 @@ function RPRPInit(_rl_pgon, _debug) {
     '?', 'L', 'J', 't',
     '?', 'r', '7', 'T',
     '|', 'F', 'd', 'i'
-
   ];
 
   let g_idx = 0;
@@ -1081,6 +4303,26 @@ function RPRPInit(_rl_pgon, _debug) {
     }
   }
 
+
+  let DP_cost = {},
+      DP_partition = {},
+      DP_bower = {},
+      DP_rect = {};
+
+  /*
+  let DP_cost = [],
+      DP_partition = [],
+      DP_bower = [],
+      DP_rect = [];
+
+  for (let i=0; i<(2*B.length*B.length); i++) {
+    DP_cost.push(-1);
+    DP_partition.push("XXXXXXXXXXXX");
+    DP_bower.push(-1);
+    DP_rect.push(-1);
+  }
+  */
+
   // RPRP context
   //
   return {
@@ -1101,42 +4343,20 @@ function RPRPInit(_rl_pgon, _debug) {
     "Bij": Bij,
 
     "Js" : Js,
-    "Je" : Je
+    "Je" : Je,
+
+    "DP_partition": DP_partition,
+    "DP_bower": DP_bower,
+    "DP_rect": DP_rect,
+
+    "DP_cost" : DP_cost
   };
 
 }
 
-// from grid point g, follow a line out in idir direction until
-// it hits the boundary
+// By convention, border indices are in counterclockwise order.
 //
-// _code: 
-//   'f' - return first boundary point hit (default)
-//   'l' - return last boundary hit
-//
-// return -1 if g not inside or ray shoots outside of boundary
-//
-function ray_boundary_intersection(rprp_info, g, idir, _code) {
-  _code = ((typeof _code === "undefined") ? 'f' : _code);
-  let J = rprp_info.Js;
-  if (_code != 'f') { J = rprp_info.Je; }
-  return J[idir][ g[1] ][ g[0] ];
-}
-
-function boundary_index_on_fence( b_idx, b_idx_s, b_idx_e ) {
-  if (b_idx_e > b_idx_s) {
-    if ((b_idx >= b_idx_s) && (b_idx <= b_idx_e)) { return true; }
-    return false;
-  }
-  if ((b_idx > b_idx_e) && (b_idx < b_idx_s)) { return false; }
-  return true;
-}
-
-function bidx_in_R( b_idx, b_idx_s, b_idx_e ) {
-  if (b_idx < 0) { return false; }
-  return boundary_index_on_fence( b_idx, b_idx_s, b_idx_e );
-}
-
-// is idx in the interval [idx_s, idx_e] (inclusive) or,
+// Is idx in the interval [idx_s, idx_e] (inclusive) or,
 // if idx_e < idx_s one of the two intervals [0,idx_e] [idx_s, N-1]
 // (inclusive)?
 //
@@ -1359,8 +4579,18 @@ function RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b) {
 //   intersects the quarry rectangle on the side of the cleave cut. See below for a discussion of
 //   the test.
 //
+
 function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+
+  //DEBUG
+  //DEBUG
+  //DEBUG
+  //_debug = 1;
+  //DEBUG
+  //DEBUG
+  //DEBUG
+
 
   let R = quarry;
 
@@ -1383,7 +4613,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     quarry_point_type[i] = Bt[b_id];
   }
 
-  if (_debug) { console.log("#vc.cp0"); }
+  if (_debug > 1) { console.log("#vc.cp0"); }
 
   let redux = [];
   for (let i=0; i<cleave_choice.length; i++) {
@@ -1392,6 +4622,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     else if (cleave_choice[i] == '*') { _code = '*'; }
     else if (cleave_choice[i] == 'c') { _code = '*'; }
     else if (cleave_choice[i] == 'b') { _code = '*'; }
+    //else if (cleave_choice[i] == 'b') { _code = 'b'; }
     else if (cleave_choice[i] == 'x') { _code = 'x'; }
     else if (cleave_choice[i] == 'X') { _code = 'x'; }
     //else { console.log("!!!!", i, cleave_choice[i]); }
@@ -1402,31 +4633,62 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   // quarry rectangle edge is 'undocked', not
   // buffetted by a border perimeter
   //
+
+  let oppo_idir  = [1,0, 3,2];
+  let cleave_idir = [ 0,3, 3,1, 1,2, 2,0 ];
+
+  let R_b_idx = [
+    [-1,-1,-1,-1],
+    [-1,-1,-1,-1],
+    [-1,-1,-1,-1],
+    [-1,-1,-1,-1]
+  ];
+
+  for (let idx=0; idx < 8; idx++) {
+    let r_idx = Math.floor(idx/2);
+    let idir = cleave_idir[idx];
+    let rdir = oppo_idir[idir];
+
+    let B = Js[ idir ][ R[r_idx][1] ][ R[r_idx][0] ];
+    if (B < 0) { B = Bij[ R[r_idx][1] ][ R[r_idx][0] ]; }
+
+    let b = Js[ rdir ][ R[r_idx][1] ][ R[r_idx][0] ];
+    if (b < 0) { b = Bij[ R[r_idx][1] ][ R[r_idx][0] ]; }
+
+    R_b_idx[r_idx][idir] = B;
+    R_b_idx[r_idx][rdir] = b;
+  }
+
+  //console.log(R_b_idx);
+
   let _undock = [ 1, 1, 1, 1 ];
 
-  if ( (Js[0][ R[1][1] ][ R[1][0] ] != Js[0][ R[0][1] ][ R[0][0] ]) ||
-       (Js[1][ R[1][1] ][ R[1][0] ] != Js[1][ R[0][1] ][ R[0][0] ]) ) {
+  let _rcur = 0,
+      _rnxt = 1;
+  if ( (R_b_idx[_rcur][0] != R_b_idx[_rnxt][0]) ||
+       (R_b_idx[_rcur][1] != R_b_idx[_rnxt][1]) ) {
     _undock[0] = 0;
   }
 
-  if ( (Js[2][ R[1][1] ][ R[1][0] ] != Js[2][ R[2][1] ][ R[2][0] ]) ||
-       (Js[3][ R[1][1] ][ R[1][0] ] != Js[3][ R[2][1] ][ R[2][0] ]) ) {
+  _rcur = 1; _rnxt = 2;
+  if ( (R_b_idx[_rcur][2] != R_b_idx[_rnxt][2]) ||
+       (R_b_idx[_rcur][3] != R_b_idx[_rnxt][3]) ) {
     _undock[1] = 0;
   }
 
-  if ( (Js[0][ R[2][1] ][ R[2][0] ] != Js[0][ R[3][1] ][ R[3][0] ]) ||
-       (Js[1][ R[2][1] ][ R[2][0] ] != Js[1][ R[3][1] ][ R[3][0] ]) ) {
+  _rcur = 2; _rnxt = 3;
+  if ( (R_b_idx[_rcur][0] != R_b_idx[_rnxt][0]) ||
+       (R_b_idx[_rcur][1] != R_b_idx[_rnxt][1]) ) {
     _undock[2] = 0;
   }
 
-  if ( (Js[2][ R[0][1] ][ R[0][0] ] != Js[2][ R[3][1] ][ R[3][0] ]) ||
-       (Js[3][ R[0][1] ][ R[0][0] ] != Js[3][ R[3][1] ][ R[3][0] ]) ) {
+  _rcur = 3; _rnxt = 0;
+  if ( (R_b_idx[_rcur][2] != R_b_idx[_rnxt][2]) ||
+       (R_b_idx[_rcur][3] != R_b_idx[_rnxt][3]) ) {
     _undock[3] = 0;
   }
 
-
-
-  if (_debug) { console.log("#vc.cp1:", cleave_choice.join(""), redux.join(""), JSON.stringify(_undock) ); }
+  if (_debug > 1) { console.log("#vc.cp1:", cleave_choice.join(""), redux.join(""), JSON.stringify(_undock) ); }
 
   // each corner needs at least one cleave cut
   //
@@ -1435,7 +4697,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   if ((redux[4] == '-') && (redux[5] == '-')) { return 0; }
   if ((redux[6] == '-') && (redux[7] == '-')) { return 0; }
 
-  if (_debug) { console.log("#vc.cp2"); }
+  if (_debug > 1) { console.log("#vc.cp2"); }
 
   // parallel cleave cuts means middle billet is moveable
   //
@@ -1445,7 +4707,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   if ((_undock[2] == 1) && (redux[5] == '*') && (redux[6] == '*')) { return 0; }
 
 
-  if (_debug) { console.log("#vc.cp3"); }
+  if (_debug > 1) { console.log("#vc.cp3, redux:", redux.join(""), "cbt:", cleave_border_type.join("") ); }
 
   // bridge tests
   // cleave line bridges two borders, so is moveable, invalidating choice
@@ -1465,7 +4727,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   if ((redux[6] == '*') && (redux[7] == '*') && (cleave_border_type[6] == 'b')) { return 0; }
   if ((redux[7] == '*') && (redux[6] == '*') && (cleave_border_type[7] == 'b')) { return 0; }
 
-  if (_debug) { console.log("#vc.cp4, redux:", redux.join(""), "cbt:", cleave_border_type.join("") ); }
+  if (_debug > 1) { console.log("#vc.cp4, redux:", redux.join(""), "cbt:", cleave_border_type.join("") ); }
 
 
   // float tests
@@ -1474,7 +4736,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
 
   // we'll use cleave 5 (upper left corner, pointing upwards) as an example:
   //
-  // IF   cleave_5 is present and ends on a border (upwards)
+  // IF   cleave_5 is present and ends on a border (upwards) (that is, it doesn't end on a corner)
   // AND  opposite of cleave_5 (cleave_2) exists and ends on a border or
   //        cleave_2 doesn't exist at all
   // AND  origin point of cleave_5 (quarry_point_2) has the same endpoint as
@@ -1489,12 +4751,12 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   //
 
 
-  if (_debug) { console.log("#cc.cp5"); }
+  if (_debug > 1) { console.log("#vc.cp5"); }
 
-  let cleave_idir = [ 0, 3,  3, 1,  1, 2,  2, 0 ];
+  //let cleave_idir = [ 0, 3,  3, 1,  1, 2,  2, 0 ];
   let oppo_cleave = [ 3, 6, 5, 0,
                       7, 2, 1, 4 ];
-  let oppo_idir = [ 1,0, 3,2 ];
+  //let oppo_idir = [ 1,0, 3,2 ];
 
   for (cleave_idx = 0; cleave_idx < 8; cleave_idx++) {
     let r_idx = Math.floor(cleave_idx/2);
@@ -1506,11 +4768,12 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     if ((quarry_point_type[r_idx] != 'c') &&
         (redux[cleave_idx] == '*') && (cleave_border_type[cleave_idx] == 'b') &&
         (((redux[rev_cleave_idx] == '*') && (cleave_border_type[rev_cleave_idx] == 'b')) ||
-          (redux[rev_cleave_idx] == '-')) &&
+          (redux[rev_cleave_idx] == '-') ||
+          (cleave_border_type[rev_cleave_idx] == 'x')) &&
         (Js[idir][ R[r_idx][1] ][ R[r_idx][0] ] == Js[idir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ]) &&
         (Js[rdir][ R[r_idx][1] ][ R[r_idx][0] ] == Js[rdir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ])) {
 
-      if (_debug) {
+      if (_debug > 1) {
         console.log("#vc.cp5.5: cleave_idx:", cleave_idx, "rect_idx:", r_idx);
         console.log("qpt[", r_idx, "]:", quarry_point_type[r_idx],
           "redux[", cleave_idx, "]:", redux[cleave_idx],
@@ -1527,7 +4790,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
 
   }
 
-  if (_debug) { console.log("#vc.cp6"); }
+  if (_debug > 1) { console.log("#vc.cp6"); }
 
   return 1;
 }
@@ -1556,6 +4819,14 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
   //let _debug = false;
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
+  //DEBUG
+  //DEBUG
+  //DEBUG
+  //_debug=1;
+  //DEBUG
+  //DEBUG
+  //DEBUG
+
   let B = ctx.B;
   let Bt = ctx.Bt;
   let Bij = ctx.Bij;
@@ -1567,8 +4838,8 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
   let b_idx_s = Bij[ g_s[1] ][ g_s[0] ];
   let b_idx_e = Bij[ g_e[1] ][ g_e[0] ];
 
-  if (_debug) {
-    console.log(">>>", b_idx_s, b_idx_e, g_s, g_e, g_a, g_b);
+  if (_debug > 1) {
+    console.log("#ce.beg:s,e,g_s,g_e,g_a,g_b:", b_idx_s, b_idx_e, g_s, g_e, g_a, g_b);
   }
 
   if ((b_idx_s < 0) || (b_idx_e < 0)) { return []; }
@@ -1584,6 +4855,8 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
     [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
   ];
 
+  let cleave_nei = [ 1,0, 3,2, 5,4, 7,6 ];
+
   let cleave_idir = [ 0, 3,  3, 1,  1, 2,  2, 0 ];
 
   let bvec = [],
@@ -1595,8 +4868,8 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
     }
   }
 
-  if (_debug) {
-    console.log("::>>", cleave_profile.join(""));
+  if (_debug > 1) {
+    console.log("#ce.profile:", cleave_profile.join(""));
   }
 
   let cleave_border_type = [ '~', '~', '~', '~', '~', '~', '~', '~' ];
@@ -1605,6 +4878,20 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
 
     if ((cleave_profile[i] == 'x') || (cleave_profile[i] == 'X')) {
       cleave_border_type[i] = 'x';
+
+      /*
+      let j = cleave_nei[i];
+      console.log("???", i, j, cleave_profile[i], cleave_profile[j]);
+      if ((cleave_profile[j] == 'x') || (cleave_profile[j] == 'X')) {
+        console.log(" !!");
+        cleave_border_type[i] = 'x';
+      }
+      else {
+        console.log(" bb");
+        cleave_border_type[i] = 'b';
+      }
+      */
+
       continue;
     }
 
@@ -1630,7 +4917,7 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
 
   }
 
-  let cleave_cuts = [];
+  let cleave_choices = [];
 
   do {
 
@@ -1642,34 +4929,812 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
         cleave_choice[i] = ( bvec[b_idx] ? '*' : '-' );
         b_idx++;
       }
+      else if (cleave_profile[i] == 'c') {
+        cleave_choice[i] = '*';
+      }
 
     }
 
-    if (_debug) {
-      console.log(">>>", JSON.stringify(bvec), cleave_choice.join(""),
+    if (_debug > 1) {
+      console.log("#ce.enum:bvec,cc,valid:", JSON.stringify(bvec), cleave_choice.join(""),
         RPRP_valid_cleave( ctx, Rg, cleave_choice, cleave_border_type, _debug ) );
     }
 
     if (RPRP_valid_cleave( ctx, Rg, cleave_choice, cleave_border_type )) {
-      cleave_cuts.push(cleave_choice);
+      cleave_choices.push(cleave_choice);
     }
 
     _ivec_incr(bvec);
   } while ( !_ivec0(bvec) );
 
-  return cleave_cuts;
+  return cleave_choices;
 }
 
-
-//WIP!!
-function MIRP(rprp_info, g_s, g_e, g_a) {
-
-  let Gv = rprp_info.Gv;
-
-  let B = rprp_info.B;
-  let B2d = rprp_info.B_2d;
-
+function _cleave_cmp(a,b) {
+  if (a[0] < b[0]) { return -1; }
+  if (a[0] > b[0]) { return  1; }
+  return 0;
 }
+
+// return an array of arrays representing the available cuts
+// for the quarry rectangle.
+//
+// Example:
+//
+// [
+//   [[3,15,[2,3]],[28,3,[2,3]]],
+//   [[28,30,[2,3]],[30,15,[2,3]]],
+//   [[3,15,[2,3]],[28,30,[2,3]],[30,3,[2,3]]]
+// ]
+//
+// * Find the cleave profile
+// * Use the cleave profile to enumerate valid cleave choices
+// * Find border points implied by clave choices to create cut
+//   schedule
+//
+// Finding fence portions for the cuts can get a little complicated
+// so it's easier to add two cuts per cleave in the cleave enumeration
+// and remove duplicates at the end.
+//
+// In more detail:
+//
+// w.l.o.g., consider the bottom right endpoint of Rg (Rg_0).
+// We say the 'even' cleave, if it exists, is the one shooting out to the right
+// and the 'odd' cleave, if it exists, is the one shooting down.
+//
+// If the even cleave exists, add the two-cut (Js[0][Rg_0], Js[2][Rg_0], Rg_0).
+// If the odd cleave cut next to it (clockwise) exists, add an additional
+// two-cut of (Js[0][Rg_0], Js[3][Rg_0], Rg_0), otherwise add a 1-cut
+// (Js[0][Rg_0], Js[1][Rg_0], Rg_0).
+//
+// If the odd cleave cut exists, add the two-cut of (Js[3][Rg_0], Js[1][Rg_0], Rg_0).
+// If the previouse (counterclockwise) even cleave exists, add the two-cut
+// (Js[0][Rg_0], Js[3][Rg_0], Rg_0), otherwise add the one-cut (Js[3][Rg_0], Js[2][Rg_0], Rg_0).
+//
+// Do this for all endpoints around Rg, rotating the idirs etc clockwise by pi/2 at endpoint
+// location.
+//
+// ---
+//
+// At the end, remove duplicate one-cut and two-cuts and put them in a cleave cut schedule.
+//
+// ---
+//
+// Discussion:
+//
+// All one-cut and two-cuts should be non-overlapping (besides shared endpoints), so the
+// deduplication sort that orders by first border index should be sufficient.
+//
+// Cleave cuts should only ever be on quarry rectangle (Rg) endpoints that are proper interior grid points.
+// If a quarry rectangle endpoint has an open grid line in one direction and a border edge in the other,
+// it is an error (I believe) for a cleave cut to be present on the open grid line.
+// Should the minimum cut involve a cleave cut at this grid line, the cleave will be discovered
+// during the recursion when processing the sub-region.
+//
+//
+/*
+function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b, _debug) {
+  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+  let Js = ctx.Js;
+  let Bij = ctx.Bij;
+  let B = ctx.B;
+
+  //
+  //  5    6    7
+  //     2---3
+  //  4  |   |  0
+  //     1---0
+  //  3    2    1
+  //
+  let Rg = [
+    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
+    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
+  ];
+
+  let oppo = [ 1,0, 3,2 ];
+
+  let cleave_sched = [];
+
+  // Cleave profile is the pattern (e.g. b...XXxx),
+  // Cleave choice is an enumeration of those patterns, choosing a cleave if valid
+  //   (e.g. b-*-XXxx, b--*XXxx, b-**XXxx)
+  // Side cleave cuts are guillotine cuts that are shaved off of the quarry rectangle
+  //   side whose regions don't include the quarry rectangle endpoints..
+  //
+  // The cleave_choices is the one we use to create the actual two-cut border points and
+  // quarry adit point.
+  // For every cleave_choice (deduplicated) realization, we add all the side_cleve_cuts to it
+  //   and put it in the schedule.
+  //
+  let cleave_profile = RPRPCleaveProfile( ctx, g_s, g_e, g_a, g_b );
+  let cleave_choices = RPRP_cleave_enumerate( ctx, g_s, g_e, g_a, g_b, cleave_profile );
+  let side_cleave_cuts = RPRP_enumerate_quarry_side_region( ctx, g_s, g_e, g_a, g_b );
+
+  // lookup tables for even/odd idirs along with their perpendicular directions.
+  //
+  let lu_e_idir = [ 0, 3, 1, 2 ];
+  let lu_e_tdir = [ 2, 0, 3, 1 ];
+
+  let lu_o_idir = [ 3, 1, 2, 0 ];
+
+  for (let cci=0; cci < cleave_choices.length; cci++) {
+    let cc = cleave_choices[cci];
+
+    if (_debug) { console.log("qcc"); }
+
+    let cleave_cuts = [];
+    for (let i=0; i<4; i++) {
+      let even_cleave_idx = 2*i;
+      let odd_cleave_idx = (2*i)+1;
+
+      let e_idir = lu_e_idir[i];
+      let e_tdir = lu_e_tdir[i];
+
+      let o_idir = lu_o_idir[i];
+      let o_tdir = oppo[e_idir];
+
+      // An even cleave cut implies at least one two-cut with one cut in
+      // the even cleave direction and another in the orthogonal direction
+      // counterclockwise.
+      //
+      if (cc[even_cleave_idx] == '*') {
+        cleave_cuts.push([
+          Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
+          Js[ e_tdir ][ Rg[i][1] ][ Rg[i][0] ],
+          [ Rg[i][0], Rg[i][1] ]
+        ]);
+
+        if (_debug) { console.log("qcc: cci:", cci, "i:", i, "e.0:", cleave_cuts[ cleave_cuts.length-1] ); }
+
+        // if the clockwise neighbor (the 'odd' cleave cut) exists,
+        // add another two-cut.
+        //
+        if (cc[odd_cleave_idx] == '*') {
+          cleave_cuts.push([
+            Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            [ Rg[i][0], Rg[i][1] ]
+          ]);
+
+          if (_debug) { console.log("qcc: cci:", cci, "i:", i, "e.1a:", cleave_cuts[ cleave_cuts.length-1] ); }
+        }
+
+        // Otherwise add a one-cut in-line with the quarry edge and the even cleave line,
+        // taking the adit point as one of the 1-cut endpoints.
+        //
+        else {
+
+          let _a = B[ Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ] ];
+
+          cleave_cuts.push([
+            Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ],
+            Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            [ _a[0], _a[1] ]
+            //[ Rg[i][0], Rg[i][1] ]
+          ]);
+
+          if (_debug) { console.log("qcc: cci:", cci, "i:", i, "e.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+        }
+
+      }
+
+      // An odd cleave cut implies at least one two-cut with one constructed
+      // line in the direction of the odd cleave cut and the other in orthogonal
+      // direction clockwise.
+      //
+      if (cc[odd_cleave_idx] == '*') {
+
+        cleave_cuts.push([
+          Js[ o_tdir ][ Rg[i][1] ][ Rg[i][0] ],
+          Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+          [ Rg[i][0], Rg[i][1] ]
+        ]);
+
+        if (_debug) { console.log("qcc: cci:", cci, "i:", i, "o.0:", cleave_cuts[ cleave_cuts.length-1] ); }
+
+        // if the previous counterclockwise neighbor (the 'even' cleave cut) exists,
+        // add another two cut with both the even and odd constructed lines.
+        //
+        if (cc[even_cleave_idx] == '*') {
+          cleave_cuts.push([
+            Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            [ Rg[i][0], Rg[i][1] ]
+          ]);
+
+          if (_debug) { console.log("qcc: cci:", cci, "i:", i, "o.1a:", cleave_cuts[ cleave_cuts.length-1] ); }
+
+        }
+
+        // Otherwise add a one-cut in-line with the Rectangle edge and odd cleave cut,
+        // taking the adit poitn as one of the endpoints.
+        //
+        else {
+          let _a = B[ Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ] ];
+
+          cleave_cuts.push([
+            Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ],
+            [ _a[0], _a[1] ]
+            //[ Rg[i][0], Rg[i][1] ]
+          ]);
+
+          if (_debug) { console.log("qcc: cci:", cci, "i:", i, "o.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+        }
+
+      }
+
+    }
+
+    // add side cleave cuts
+    //
+    for (let i=0; i<side_cleave_cuts.length; i++) {
+      let cc = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], ctx.B[side_cleave_cuts[i][0]] ];
+      cleave_cuts.push( cc );
+    }
+
+    if (cleave_cuts.length == 0) { continue; }
+
+    // sort and deduplicate
+    //
+    let dedup_cleave_cuts = [];
+    cleave_cuts.sort( _cleave_cmp );
+
+    dedup_cleave_cuts.push( cleave_cuts[0] );
+    for (let i=1; i<cleave_cuts.length; i++) {
+      if (cleave_cuts[i-1][0] != cleave_cuts[i][0]) {
+        dedup_cleave_cuts.push( cleave_cuts[i] );
+      }
+    }
+
+    cleave_sched.push( dedup_cleave_cuts );
+
+  }
+
+  return cleave_sched;
+};
+*/
+
+// next attempt at doing the validation and getting relevant information
+// for quarry choice
+//
+// To avoid a combinatorial explosion, the recursion step will need the
+// one-cuts and two-cuts separated out, as the one-cuts can take either
+// endpoint as the adit point, wheres the two-cut's adit point is known
+// from the cleave enumeration.
+//
+// Return:
+//
+// {
+//   valid    : 0 invalid, 1 valid
+//   one_cut  : array of tuples representing start and end general boundary
+//              indices of guillotine cut
+//   two_cut  : array of array of triples, where each triple consists of
+//              the start general boundary index, the end general boundary index
+//              and the adit grid point
+//   b_s      : general boundary start index
+//   b_e      : general boundary end index
+//   g_s      : general boundary start grid point
+//   g_e      : general boundary end grid point
+//   g_a      : adit point of quarry rectangle
+//   g_b      : bower point of quarry rectangle
+// }
+//
+//
+//
+function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
+  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+  let oppo = [ 1,0, 3,2 ];
+
+  let B = ctx.B;
+  let Js = ctx.Js;
+  let Je = ctx.Je;
+  let Bij = ctx.Bij;
+
+  let quarry_info = {
+    "valid": 0,
+    "one_cuts": [],
+    "two_cuts": [],
+    "b_s" : -1,   "b_e" : -1,
+    "g_s" : g_s,  "g_e" : g_e,
+    "g_a" : g_a,  "g_b" : g_b,
+    "comment": ""
+  };
+
+  //
+  //  5    6    7
+  //     2---3
+  //  4  |   |  0
+  //     1---0
+  //  3    2    1
+  //
+  let Rg = [
+    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
+    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
+  ];
+
+  if (!RPRP_valid_R(ctx, g_a, g_b)) {
+    quarry_info.comment = "invalid quarry rectangle";
+    return quarry_info;
+  }
+
+  // quarry rectangle could be wholly contained in the rectilinear polygon
+  // but not contained in the region we're considering.
+  // It suffices to test each endpoint of the potentialy quarry rectangle
+  // to be in the region.
+  //
+  for (let i=0; i<Rg.length; i++) {
+    if (RPRP_point_in_region(ctx, Rg[i], g_s, g_e, g_a, _debug) == 0) {
+      quarry_info.comment = "endpoint outside of fenced region (Rg[" + i.toString() + ":" + JSON.stringify(Rg[i]) + ")";
+      return quarry_info;
+    }
+  }
+
+
+  // If it's a 1cut,
+  // make sure the quarry rectangle shares a non-degenerate edge
+  // with the cut.
+  // Exclude the special case when g_s == g_e, which should only
+  // happen for the initial pick.
+  //
+  if ( ((g_s[0] == g_e[0]) ||
+        (g_s[1] == g_e[1])) &&
+       ((g_s[0] != g_e[0]) ||
+        (g_s[1] != g_e[1])) ) {
+
+    // free dimension for 1cut
+    //
+    let c_xy = ((g_s[0] == g_e[0]) ? 1 : 0);
+
+    // order (g_s, g_e) line segment
+    //
+    let cut_ls = [
+      [ Math.min(g_s[0], g_e[0]), Math.min(g_s[1], g_e[1]) ],
+      [ Math.max(g_s[0], g_e[0]), Math.max(g_s[1], g_e[1]) ]
+    ];
+
+
+    let overlap = false;
+
+    for (let r_idx=0; r_idx<Rg.length; r_idx++) {
+
+      // free dimension for Rg line segment
+      //
+      let rl_xy = ((r_idx%2) ? 1 : 0);
+      if (rl_xy != c_xy) { continue; }
+
+      let r0 = Rg[r_idx];
+      let r1 = Rg[(r_idx+1)%Rg.length];
+
+      // order edge Rg line segment
+      //
+      let R_l = [
+        [ Math.min(r0[0], r1[0]), Math.min(r0[1], r1[1]) ],
+        [ Math.max(r0[0], r1[0]), Math.max(r0[1], r1[1]) ]
+      ];
+
+      // if line segments don't non-degeneratiely intersect, skip
+      //
+      // if ( A _ right <= B _ left ) or
+      //    ( B _ right <= A _ left ) then
+      //   line segments non-overlapping
+      //
+      if ( (cut_ls[0][c_xy] >= R_l[1][rl_xy]) ||
+           (R_l[0][rl_xy] >= cut_ls[1][c_xy]) ) {
+        continue;
+      }
+
+      overlap = true;
+      break;
+    }
+
+    // if it's a 1-cut and the quarry edge doesn't non-degenerately share 
+    // an edge with the cut, invalid choice, early return.
+    //
+    if (!overlap) {
+      quarry_info.comment = "quarry doesn't share non-degenerate 1cut edge";
+      return quarry_info;
+    }
+
+  }
+
+  //---
+
+  let idx_s = Bij[ g_s[1] ][ g_s[0] ];
+  let idx_e = Bij[ g_e[1] ][ g_e[0] ];
+
+  let cleave_sched = [];
+
+  // Cleave profile is the pattern (e.g. b...XXxx),
+  // Cleave choice is an enumeration of those patterns, choosing a cleave if valid
+  //   (e.g. b-*-XXxx, b--*XXxx, b-**XXxx)
+  // Side cleave cuts are guillotine cuts that are shaved off of the quarry rectangle
+  //   side whose regions don't include the quarry rectangle endpoints..
+  //
+  // The cleave_choices is the one we use to create the actual two-cut border points and
+  // quarry adit point.
+  // For every cleave_choice (deduplicated) realization, we add all the side_cleve_cuts to it
+  //   and put it in the schedule.
+  //
+  let cleave_profile = RPRPCleaveProfile( ctx, g_s, g_e, g_a, g_b, _debug );
+
+  for (let i=0; i<cleave_profile.length; i++) {
+    let cur_tok = cleave_profile[i];
+    let nei_tok = ((i%2) ? cleave_profile[(i+1)%8] : cleave_profile[(i+8-1)%8]);
+
+    //if (_debug > 2) {
+    //  let nei_i = ((i%2) ?  ((i+1)%8) : ((i+8-1)%8));
+    //  console.log("  qi.cleave_profile.bridge: i:", i, "nei_i:", nei_i, "cur_tok:", cur_tok, "nei_tok:", nei_tok);
+    //}
+
+    if (((cur_tok == 'b') || (cur_tok == 'c') || (cur_tok == '*')) &&
+        ((nei_tok == 'b') || (nei_tok == 'c') || (nei_tok == '*'))) {
+      quarry_info.comment = "cleave profile has bridge";
+      return quarry_info;
+    }
+  }
+
+  let cleave_choices = RPRP_cleave_enumerate( ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug );
+  let side_cleave_cuts = RPRP_enumerate_quarry_side_region( ctx, g_s, g_e, g_a, g_b, _debug );
+
+  if (_debug) {
+    console.log("qci: profile:", cleave_profile.join(""));
+    console.log("qci: cc:", JSON.stringify(cleave_choices));
+    console.log("qci: scc:", JSON.stringify(side_cleave_cuts));
+  }
+
+  let forced_corner = false;
+  for (let r_idx=0; r_idx<4; r_idx++) {
+    if ((cleave_profile[2*r_idx] == '.') &&
+        (cleave_profile[2*r_idx+1] == '.')) {
+      forced_corner = true;
+    }
+  }
+
+  if (forced_corner && (cleave_choices.length == 0)) {
+    quarry_info.comment = "forced corner but no possible cleave cuts";
+    return quarry_info;
+  }
+
+  // lookup tables for even/odd idirs along with their perpendicular directions.
+  //
+  let lu_e_idir = [ 0, 3, 1, 2 ];
+  let lu_e_tdir = [ 2, 0, 3, 1 ];
+
+  let lu_o_idir = [ 3, 1, 2, 0 ];
+
+  for (let cci=0; cci < cleave_choices.length; cci++) {
+    let cc = cleave_choices[cci];
+
+    //if (_debug) { console.log("##qci"); }
+
+    let cleave_cuts = [];
+    for (let i=0; i<4; i++) {
+      let even_cleave_idx = 2*i;
+      let odd_cleave_idx = (2*i)+1;
+
+      let e_idir = lu_e_idir[i];
+      let e_tdir = lu_e_tdir[i];
+
+      let o_idir = lu_o_idir[i];
+      let o_tdir = oppo[e_idir];
+
+      // An even cleave cut implies at least one two-cut with one cut in
+      // the even cleave direction and another in the orthogonal direction
+      // counterclockwise.
+      // We know the orthogonal direction must be a cut, either a quarry edge
+      // that runs into a border or a quarry edge that turns into a cleave cut,
+      // otherwise it wouldn't be a valid cleave choice.
+      //
+      if (cc[even_cleave_idx] == '*') {
+        cleave_cuts.push([
+          Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
+          Js[ e_tdir ][ Rg[i][1] ][ Rg[i][0] ],
+          [ Rg[i][0], Rg[i][1] ]
+        ]);
+
+        if (_debug) { console.log("qci: cci:", cci, "i:", i, "e.0:", cleave_cuts[ cleave_cuts.length-1] ); }
+
+        // if the clockwise neighbor (the 'odd' cleave cut) exists,
+        // add another two-cut.
+        //
+        if (cc[odd_cleave_idx] == '*') {
+          cleave_cuts.push([
+            Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            [ Rg[i][0], Rg[i][1] ]
+          ]);
+
+          if (_debug) { console.log("qci: cci:", cci, "i:", i, "e.1a:", cleave_cuts[ cleave_cuts.length-1] ); }
+        }
+
+        // Otherwise add a one-cut in-line with the quarry edge and the even cleave line,
+        // taking the adit point as one of the 1-cut endpoints.
+        //
+        else {
+
+          let _a = B[ Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ] ];
+
+          let ipp = (even_cleave_idx + 2) % 8;
+          let ip3 = (even_cleave_idx + 3) % 8;
+
+          let is_one_cut = false;
+
+          if ( (cc[ipp] != '*') &&
+               (cleave_profile[ip3] != 'X') ) {
+            is_one_cut = true;
+          }
+
+          let cw_i = (i+1)%4;
+
+          if ( Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ] !=
+               Js[ oppo[e_idir] ][ Rg[cw_i][1] ][ Rg[cw_i][0] ] ) {
+            is_one_cut = true;
+          }
+
+
+
+          //sloppy...
+          //
+          //yeah, no, this absolutely shouldn't be here.
+          //If we're adding a region whose fence is out of range, that is
+          //and outright error. We shouldn't be adding it in in the first
+          //place. If we do need to add in some weird fence, we need
+          //to make sure the logic is sound.
+          //doing it this way is chasing bugs symptoms without addressing
+          //the underlying issue.
+          //
+          //let _s = Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ];
+          //let _e = Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ];
+
+          //if ( wrapped_range_contain(_s, idx_s, idx_e) &&
+          //     wrapped_range_contain(_e, idx_s, idx_e) ) {
+
+          if (is_one_cut) {
+
+          cleave_cuts.push([
+              Js[ oppo[e_idir] ][ Rg[i][1] ][ Rg[i][0] ],
+              Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
+              [ _a[0], _a[1] ]
+              //[ Rg[i][0], Rg[i][1] ]
+            ]);
+
+          if (_debug) { console.log("qci: cci:", cci, "i:", i, "e.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+          //}
+
+          }
+        }
+
+      }
+
+      // An odd cleave cut implies at least one two-cut with one constructed line.
+      // If a cleave cut exists in an odd direction, 90 deg. clockwise has a
+      // quarry boundary, so makes up the other constructed line cut of a 2-cut.
+      //
+      // If the even cleave cut exists (in the counterclockwise 90 deg. direction),
+      // then we adda nother 2-cut.
+      //
+      // If the even cleave cut doesn't exist, we have a 1-cut in the counterclockwise
+      // 180 deg. direction.
+      //
+      //
+      //
+      if (cc[odd_cleave_idx] == '*') {
+
+        cleave_cuts.push([
+          Js[ o_tdir ][ Rg[i][1] ][ Rg[i][0] ],
+          Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+          [ Rg[i][0], Rg[i][1] ]
+        ]);
+
+        if (_debug) { console.log("qci: cci:", cci, "i:", i, "o.0:", cleave_cuts[ cleave_cuts.length-1] ); }
+
+        // if the previous counterclockwise neighbor (the 'even' cleave cut) exists,
+        // add another two cut with both the even and odd constructed lines.
+        //
+        if (cc[even_cleave_idx] == '*') {
+          cleave_cuts.push([
+            Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            Js[ e_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            [ Rg[i][0], Rg[i][1] ]
+          ]);
+
+          if (_debug) { console.log("qci: cci:", cci, "i:", i, "o.1a:", cleave_cuts[ cleave_cuts.length-1] ); }
+
+        }
+
+        // Otherwise add a one-cut in-line with the Rectangle edge and odd cleave cut,
+        // taking the adit poitn as one of the endpoints.
+        //
+        else {
+          let _a = B[ Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ] ];
+
+          let imm = (odd_cleave_idx + 8 - 2) % 8;
+          let im3 = (odd_cleave_idx + 8 - 3) % 8;
+
+          let is_one_cut = false;
+
+          if ( (cc[imm] != '*') &&
+               (cleave_profile[im3] != 'X') ) {
+            is_one_cut = true;
+          }
+
+          let cc_i = (i+4-1)%4;
+
+          if ( Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ] !=
+               Js[ oppo[o_idir] ][ Rg[cc_i][1] ][ Rg[cc_i][0] ] ) {
+            is_one_cut = true;
+          }
+
+          //sloppy...
+          //
+          //see above.
+          //
+          //let _s = Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ];
+          //let _e = Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ];
+
+          //if ( wrapped_range_contain(_s, idx_s, idx_e) &&
+          //     wrapped_range_contain(_e, idx_s, idx_e) ) {
+
+          if (is_one_cut) {
+
+          cleave_cuts.push([
+            Js[ o_idir ][ Rg[i][1] ][ Rg[i][0] ],
+            Js[ oppo[o_idir] ][ Rg[i][1] ][ Rg[i][0] ],
+            [ _a[0], _a[1] ]
+            //[ Rg[i][0], Rg[i][1] ]
+          ]);
+
+          if (_debug) { console.log("qci: cci:", cci, "i:", i, "o.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+          //}
+        }
+
+        }
+
+      }
+
+    }
+
+    if (cleave_cuts.length == 0) { continue; }
+
+    if (_debug) {
+      // we should put a sanity here to make sure the
+      // deduplication is removing actual duplicates...
+      //
+      console.log("dup cleave cut(", cleave_cuts.length, ")");
+      for (let _i=0; _i<cleave_cuts.length; _i++) {
+        console.log("  [", _i, "]:", cleave_cuts[_i]);
+      }
+    }
+
+    // sort and deduplicate
+    //
+    let dedup_cleave_cuts = [];
+    cleave_cuts.sort( _cleave_cmp );
+
+    // hack for now, remove cleave cut that has whole exterior range
+    //
+    let _cleave_cuts = [];
+    for (let i=0; i<cleave_cuts.length; i++) {
+      let cc = cleave_cuts[i];
+      if (((cc[0] == idx_e) && (cc[1] == idx_s)) ) { continue; }
+      _cleave_cuts.push( cleave_cuts[i] );
+    }
+    cleave_cuts = _cleave_cuts;
+
+    // sanity checks
+    //
+
+    for (let i=0; i<cleave_cuts.length; i++) {
+
+      let cc = cleave_cuts[i];
+
+      if ( (wrapped_range_contain( cc[0], idx_s, idx_e ) == 0) ||
+           (wrapped_range_contain( cc[1], idx_s, idx_e ) == 0) ||
+           ((cc[0] == idx_e) && (cc[1] == idx_s)) ) {
+        quarry_info.valid = -1;
+        quarry_info.comment = "SANITY ERROR: nonsense cleave cut:" + cc.toString();
+        return quarry_info;
+      }
+
+      if (i>0) {
+        if ( (cleave_cuts[i-1][0] == cc[0]) &&
+             (cleave_cuts[i-1][1] != cc[1]) ) {
+          quarry_info.valid = -1;
+          quarry_info.comment = "SANITY ERROR: nonsense cleave cut:" + cleave_cuts[i-1].toString() + " " + cc.toString();
+          return quarry_info;
+        }
+      }
+
+    }
+
+    dedup_cleave_cuts.push( cleave_cuts[0] );
+    for (let i=1; i<cleave_cuts.length; i++) {
+      if (cleave_cuts[i-1][0] != cleave_cuts[i][0]) {
+        dedup_cleave_cuts.push( cleave_cuts[i] );
+      }
+    }
+
+    quarry_info.two_cuts.push( dedup_cleave_cuts );
+
+  }
+
+  // We're trying to add in all the potential adit points here so that the
+  // MIRP function can recur on the 1cut with adit.
+  //
+  // Here, we're creating an array of arrays.
+  // Each array entry is a group of 1-cuts with the same cut endpoints (g_s, g_e)
+  // but different adit point.
+  // Only one choice from each "batch" should be taken, representing the minimum
+  // choice for (g_s,g_e) and adit point.
+  // 
+  // This section is only prepping the choices to be fed into the recursion
+  // at a level down.
+  //
+  // lightly tested, some weak confidence this is working as expected.
+  //
+  // Some things todo:
+  //
+  //  * we're being pretty cavalier about adding adit points, this can
+  //    be restricted better
+  //  * not here, but elsewhere we can further restrict bower points
+  //    for consideration, especially if they're being enumerated
+  //    for a 1-cut
+  //
+  for (let i=0; i<side_cleave_cuts.length; i++) {
+    let side_cut_batch = [];
+
+    // Take 1-cut endpoints (necessarily in-line and on the boundary),
+    // extend them out to the furthest grid points and walk the line,
+    // adding adit points along the way.
+    //
+    let g_cc0 = ctx.B[ side_cleave_cuts[i][0] ];
+    let g_cc1 = ctx.B[ side_cleave_cuts[i][1] ];
+
+    let _m = [ Math.min(g_cc0[0], g_cc1[0]), Math.min(g_cc0[1], g_cc1[1]) ];
+    let _M = [ Math.max(g_cc0[0], g_cc1[0]), Math.max(g_cc0[1], g_cc1[1]) ];
+
+    let dij = v_delta( v_sub(_M, _m) );
+
+    let idir = dxy2idir(dij);
+    let rdir = oppo[idir];
+
+    let b_M = Je[idir][ _M[1] ][ _M[0] ];
+    let b_m = Je[rdir][ _m[1] ][ _m[0] ];
+
+    let g_M = _M,
+        g_m = _m;
+    if (b_M >= 0) { g_M = B[b_M]; }
+    if (b_m >= 0) { g_m = B[b_m]; }
+
+    // If we have a 1-cut, we know there's going to be at least one adit point at either
+    // end of the 1-cut to consider.
+    // So we can add it and then iterate through the rest.
+    //
+    let cur_ij = [ g_m[0], g_m[1] ]; 
+    side_cut_batch.push( [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], [cur_ij[0], cur_ij[1]] ] );
+    do {
+      cur_ij = v_add(cur_ij, dij );
+
+      let scc = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], [cur_ij[0], cur_ij[1]] ];
+      side_cut_batch.push(scc);
+    } while (cmp_v(cur_ij, g_M) != 0);
+
+    if (side_cut_batch.length > 0) {
+      quarry_info.one_cuts.push(side_cut_batch);
+    }
+
+  }
+
+  quarry_info.valid = 1;
+  return quarry_info;
+};
+
+
 
 //------
 //------
@@ -1688,7 +5753,6 @@ function MIRP(rprp_info, g_s, g_e, g_a) {
 //
 // Return a list of general boundary index points enumerating the tab guillotine cuts
 // implied by the quarry rectangle.
-// 
 //
 function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
 
@@ -1702,7 +5766,7 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
 
   let guillotine_list = [];
 
-  // grid rectangle corners (ccw)
+  // grid rectangle corners (cw)
   //
   //  2-->--3
   //  |     |
@@ -1717,75 +5781,152 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
     [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
   ];
 
-  // It's easier for me to think in a consistent 'left to right'
-  // and 'down to up'. So we traverse the quarry rectangle
-  // from left to right for the both the (1,0) line and the (2,3)
-  // line.
-  // This makes the range tests for Rl easier but it means
-  // we have to potentially reverse the order of the guillotine
-  // cut depending on which quarry side we're on.
+  let s_idx = Bij[ g_s[1] ][ g_s[0] ];
+  let e_idx = Bij[ g_e[1] ][ g_e[0] ];
+
+  let oppo = [1,0, 3,2];
+  let billet_idir = [ 1, 2, 0, 3 ];
+  let ltgt_f = [ -1, 1, 1, -1 ];
+
+  // We start from Rg_0 (lower right) and go clockwise around.
+  //
+  // From the start point Rg_i, we take the current base point, g_cur,
+  // as the first non interior grid point from Rg_i, where Rg_i
+  // could itself be the first non-interior point.
+  // We then advance to the next border point and then look backwards.
+  // This gives us a candidate 1-cut.
+  // If the candidate 1-cut is within the bounds of the quarry rectangle
+  // side *and* it's advanced past our current base point, we add it
+  // to the guillotine list.
+  //
+  // If we're still within bounds, advance the current base point, g_cur,
+  // to the next border corner (by using the border jump structure, Js)
+  // and continue.
+  //
+  // The quarry rectangle is always ordered in clockwise order so
+  // the order should be correct.
+  // Additional checks need to be done to make sure the 1-cuts
+  // are within the fenced region.
   //
 
-  let Rside_idir = [0,2,0,2];
-  let oppo_idir = [ 1,0, 3,2 ];
+  for (let r_idx=0; r_idx < Rg.length; r_idx++) {
 
-  // single dimension crossing point
-  //
-  let Rl = [
-    Rg[0][0], Rg[2][1],
-    Rg[3][0], Rg[3][1]
-  ];
+    let r_nxt = (r_idx + 1) % Rg.length;
+    let idir = billet_idir[r_idx];
+    let rdir = oppo[idir];
 
-  let g_beg = [
-    Rg[1], Rg[1],
-    Rg[2], Rg[0]
-  ];
+    // See if our current base point is on the border already and,
+    // if it is, take it.
+    // If not, we're on an interior point so advance to the first
+    // border point in the appropriate direction.
+    //
+    let b_idx_cur = Bij[ Rg[r_idx][1] ][ Rg[r_idx][0] ];
+    if (b_idx_cur < 0) {
+      b_idx_cur = Js[idir][ Rg[r_idx][1] ][ Rg[r_idx][0] ];
+    }
 
-  let cut_order = [ 1, 0, 0, 1 ];
+    let g_cur = [ B[ b_idx_cur ][0], B[ b_idx_cur ][1] ];
 
-  for (let r_idx=0; r_idx<Rg.length; r_idx++) {
+    // xy is the axis dimension we're iterating towards.
+    // _c is the factor so that we can do the less than or greater
+    // than tests below.
+    //
+
+    let xy = r_idx % 2;
+    let _c = ltgt_f[r_idx];
 
     if (_debug) {
-      console.log("");
+      console.log("\nqsr: Rg:", Rg, "r_idx:", r_idx);
+      console.log("b_idx_cur:", b_idx_cur, "g_cur:", g_cur, "xy:", xy, "_c:", _c, "idir:", idir, "rdir:", rdir);
     }
 
-    let g_r = g_beg[r_idx];
-    let idir = Rside_idir[r_idx];
-    let rdir = oppo_idir[idir];
+    while ((b_idx_cur >= 0) &&
+           ( (_c*(g_cur[ xy ] - Rg[r_nxt][ xy ])) < 0)) {
 
-    let b_jmp = Bij[ g_r[1] ][ g_r[0] ];
-    if (b_jmp < 0) {
-      b_jmp = Js[idir][ g_r[1] ][ g_r[0] ];
-    }
+      // shoot ahead to next border point
+      //
+      let b_idx_nxt = Js[idir][ g_cur[1] ][ g_cur[0] ];
+      if (b_idx_nxt < 0) { break; }
+      let g_nxt = [ B[ b_idx_nxt ][0], B[ b_idx_nxt ][1] ];
 
-    let g_b = B[b_jmp];
-    let guillotine_list = [];
-    let ldim = r_idx % 2;
+      // then look back to see border point behind us
+      //
+      let b_idx_prv = Js[rdir][ g_nxt[1] ][ g_nxt[0] ];
+      let g_prv = [ B[ b_idx_prv ][0], B[ b_idx_prv ][1] ];
 
-    if (_debug) {
-      console.log("r_idx:", r_idx, "idir:", idir, "rdir:", rdir, "b_idx:", b_jmp, "g_b:", g_b, "ldim:", ldim);
-    }
+      if (_debug) {
+        console.log("  b_idx_[prv|cur|nxt]:", b_idx_prv, b_idx_cur, b_idx_nxt, ", g_[prv|cur|nxt]:", g_prv, g_cur, g_nxt);
+      }
 
-    while ((b_jmp >= 0) &&
-           (g_b[ldim] <= Rl[r_idx])) {
+      // make sure 1-cut is within bounds of quarry rectangle side and
+      // has made progress past the current g_cur pointer.
+      //
+      if ( ((_c*(g_prv[xy] - Rg[r_idx][xy])) >= 0) &&
+           ((_c*(g_nxt[xy] - Rg[r_nxt][xy])) <= 0) &&
+           ((_c*(g_prv[xy] - g_cur[xy])) >= 0) ) {
 
-      let b_jmp_nxt = Js[idir][ g_b[1] ][ g_b[0] ];
-      if (b_jmp_nxt < 0) { break; }
+        let se = [
+          Math.min(s_idx, e_idx),
+          Math.max(s_idx, e_idx)
+        ];
 
-      let g_b_nxt = B[b_jmp_nxt];
-      if (g_b_nxt[ldim] > Rl[r_idx]) { break; }
+        let np = [
+          Math.min(b_idx_prv, b_idx_nxt),
+          Math.max(b_idx_prv, b_idx_nxt)
+        ];
 
-      let b_jmp_prv = Js[rdir][ g_b_nxt[1] ][ g_b_nxt[0] ];
+        // We don't take sides that are borders and
+        // we dont' want to go where we came from
+        //
+        let _d = abs_sum_v( v_sub(B[b_idx_prv], B[b_idx_nxt]) );
 
-      if (cut_order[r_idx]) { guillotine_list.push( [b_jmp_nxt, b_jmp_prv] ); }
-      else                  { guillotine_list.push( [b_jmp_prv, b_jmp_nxt] ); }
+        if (_debug) {
+          console.log("    _d:", _d, "|d idx|:", Math.abs(b_idx_nxt - b_idx_prv),
+            "se:", se, "np:", np, "wrc:",
+            wrapped_range_contain( b_idx_nxt, e_idx, s_idx ),
+            wrapped_range_contain( b_idx_prv, e_idx, s_idx ));
 
-      b_jmp = b_jmp_nxt;
-      g_b = g_b_nxt;
-    }
+        }
 
-    if (_debug) {
-      console.log("r_idx:", r_idx, "idir:", idir, "::", guillotine_list);
+        // I'm having bounds dyslexia.
+        // b_idx_nxt is the **start**, b_idx_prv is the **end**
+        // Find fnence distance from **start** to **end**.
+        // If **end** is less than start, add B.length
+        //
+        let __s = b_idx_nxt;
+        let __e = b_idx_prv;
+
+        let border_diff = __e - __s;
+        if (border_diff < 0) { border_diff += B.length; }
+        //if (__e < __s) { border_diff = __e + B.length - __s; }
+
+        if (_debug > 1) {
+          console.log(">>>>border_diff:", border_diff, "(prv:", b_idx_prv, "nxt:", b_idx_nxt, ")");
+        }
+
+        //if ((_d != Math.abs(b_idx_nxt - b_idx_prv)) &&
+        if ((_d != border_diff) &&
+            ( ((se[0] != np[0]) || (se[1] != np[1])) ) &&
+            wrapped_range_contain( b_idx_nxt, s_idx, e_idx ) &&
+            wrapped_range_contain( b_idx_prv, s_idx, e_idx ) ) {
+          guillotine_list.push( [b_idx_nxt, b_idx_prv] );
+
+          if (_debug) {
+            console.log("  qsr.ADD:", b_idx_nxt, b_idx_prv, "(se:", s_idx, e_idx,
+              "contain(i,e,s):",
+              wrapped_range_contain( b_idx_nxt, e_idx, s_idx ),
+              wrapped_range_contain( b_idx_prv, e_idx, s_idx ));
+          }
+
+        }
+
+      }
+
+      // advance and repeat
+      //
+      g_cur = g_nxt;
+      b_idx_cur = b_idx_nxt;
+
     }
 
   }
@@ -1794,81 +5935,721 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
 }
 
 
+// lightly tested
+//
+// ctx - RPRP context
+// ij  - point being tested
+// g_s - grid general border start point (counterclockwise)
+// g_e - grid general border end point
+// g_a - intersection of constructed lines if 2-cut, g_s or g_e if 1-cut
+//
+// If the grid point ij has one or non border jump points within
+//   the border start and end region, it must be outside.
+//
+// If the grid point ij has three or four border jump points within
+//   the border start and end regoin, it must be inside.
+//
+// If the grid point ij has exactly two shared border jump points,
+//   it can be inside or outside but the rays eminating from the origin ij
+//   point must cross the constructed edge cuts.
+//   They further must not be inline
+//
+function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a, _debug) {
+  let Bij = ctx.Bij;
+  let Js = ctx.Js;
 
-//------
-//------
-//------
-//------
-//------
-//------
-//------
+  // degenerate
+  //
+  if ( ((ij[0] == g_a[0]) && (ij[1] == g_a[1])) ||
+       ((ij[0] == g_s[0]) && (ij[1] == g_s[1])) ||
+       ((ij[0] == g_e[0]) && (ij[1] == g_e[1])) ) {
+    return 1;
+  }
 
-function _main_foo() {
-  let grid_info = RPRPInit(pgn_bottom_guillotine);
+  // ij OOB
+  //
+  if ((Js[0][ ij[1] ][ ij[0] ] < 0) &&
+      (Js[1][ ij[1] ][ ij[0] ] < 0) &&
+      (Js[2][ ij[1] ][ ij[0] ] < 0) &&
+      (Js[3][ ij[1] ][ ij[0] ] < 0)) {
 
-  let g_s = [-1,-1], g_e = [-1,-1], g_a = [-1,-1], g_b = [-1, -1];
-  let cp;
+    if (_debug) { console.log("#pir.0"); }
 
-  console.log("===");
+    return 0;
+  }
 
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [5,5];
-  console.log(g_s, g_e, g_a, g_b);
+  if (typeof g_s === "undefined") {
+ 
+    if (_debug) { console.log("#pir.1 t"); }
 
-  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
+    return 1;
+  }
 
-  console.log("===");
+  // sanity
+  //
+  let idx_s = Bij[ g_s[1] ][ g_s[0] ],
+      idx_e = Bij[ g_e[1] ][ g_e[0] ];
+  if ((idx_s < 0) || (idx_e < 0)) {
 
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [4,5];
-  console.log(g_s, g_e, g_a, g_b);
+    if (_debug) { console.log("#pir.2 error"); }
 
-  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
+    return -1;
+  }
 
-  console.log("===");
+  //---
 
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [13,5];
+  // If ij is already on border, we can do a wrapped range test
+  //
+  let ij_b_idx = Bij[ ij[1] ][ ij[0] ];
+  if (ij_b_idx >= 0) {
 
-  console.log(g_s, g_e, g_a, g_b);
+    if (_debug) { console.log("#pir.3 boundary"); }
 
-  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
+    return wrapped_range_contain( ij_b_idx, idx_s, idx_e );
+  }
 
-  console.log("===");
+  let b_count = 0;
+  for (let idir=0; idir<4; idir++)  {
+    b_count += wrapped_range_contain( Js[idir][ ij[1] ][ ij[0] ], idx_s, idx_e );
+  }
 
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [12,5];
-  console.log(g_s, g_e, g_a, g_b);
+  if (b_count < 2) {
 
-  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
+    if (_debug) { console.log("#pir.4 b_count", b_count); }
 
-  console.log("===");
+    return 0;
+  }
+  if (b_count > 2) {
 
-  g_s = [1,4]; g_e = [2,4];
-  g_a = [1,4]; g_b = [9,5];
+    if (_debug) { console.log("#pir.5 b_count", b_count); }
 
-  console.log(g_s, g_e, g_a, g_b);
+    return 1;
+  }
 
-  cp = RPRPCleaveProfile(grid_info, g_s, g_e, g_a, g_b);
-  RPRP_enumerate_quarry_side_region(grid_info, g_s, g_e, g_a, g_b, true);
+  // degenerate if ij is on (g_s, g_a) or (g_a, g_e) constructed
+  // line.
+  //
+  for (let xy=0; xy<2; xy++) {
+    let yx = 1-xy;
+    if ((ij[xy] == g_s[xy]) && (ij[xy] == g_a[xy])) {
+      let mM = [ Math.min(g_s[yx], g_a[yx]), Math.max(g_s[yx], g_a[yx]) ];
+      if ( (ij[yx] >= mM[0]) && (ij[yx] <= mM[1]) ) {
+        return 1;
+      }
+    }
+
+    if ((ij[xy] == g_a[xy]) && (ij[xy] == g_e[xy])) {
+      let mM = [ Math.min(g_a[yx], g_e[yx]), Math.max(g_a[yx], g_e[yx]) ];
+      if ( (ij[yx] >= mM[0]) && (ij[yx] <= mM[1]) ) {
+        return 1;
+      }
+    }
+  }
 
 
+  let ij3 = [ ij[0], ij[1], 0 ];
+  let a3 = [ g_a[0], g_a[1], 0 ];
+  let s3 = [ g_s[0], g_s[1], 0 ];
+  let e3 = [ g_e[0], g_e[1], 0 ];
+
+  // ij to the right of (g_s -> g_a) and (g_a -> g_e)
+  // then inside (return 1)
+  // else outside (return 0)
+  //
+  let zsa = cross3( v_sub( a3, s3 ), v_sub( ij3, s3 ) );
+  let zae = cross3( v_sub( e3, a3 ), v_sub( ij3, a3 ) );
+
+  if (_debug) {
+    console.log("#pir.6 zsa", zsa, "zae", zae);
+  }
+
+  if ((zsa[2] < 0) && (zae[2] < 0)) { return 1; }
+  return 0;
 }
 
+// lightly tested
+//
+// Input
+//   g_a and g_b are grid endpoints of the rectangle R_g (in any order)
+//
+// Return:
+//
+//   1 - if rectangle is wholly contained in the rectilinear polygon
+//   0 - otherwise
+//
+// If the area is 0, we can immediately return 0.
+//
+// Consider two endpoints from a rectangle side, R_g[p] and R_g[q].
+//
+// R_g is ordered clockwise with the first point in the lower right:
+//
+//   2---3
+//   |   |
+//   1---0
+//
+// For a cardinal direction, if R_g[p] and R_g[q] agree on the last
+// general border index point, then they must have an unbroken line
+// segment between them that lies completely within the original polygon.
+//
+// For example, if R_g[0] shoots right and hits the last general border endpoint b,
+// and R_g[1] shoots right to hit the same last general border endpoint b, then
+// there must be a an unbroken line between them.
+// If R_g[1] had a different endpoint, the rectilinear polygon must have had
+// a portion of it's boundary jutting through the area between them.
+//
+// We do this for all neighboring pairs of R_g in each of the appropriate directions.
+//
+// Note that this must be the last endpoint, so using the Je structure and not the Js,
+// beacuse using the first general border endpoint would give corners for borders
+// that are colinear with the R_g side.
+//
+// If the R_g point is the last general border endpoint in the appropriate
+// direction, we lookup the endpoint from the Bij structure instead of the Je.
+// If the point is the last point on the boundary, the Js and Je structures
+// take the ray starting from the point in the cardinal direction which, in
+// this case, goes out of bounds.
+//
+// If all endpoints match up and the area is non-zero, we have a valid rectangle.
+// 
+//
+function RPRP_valid_R(ctx, g_a, g_b) {
+  let Je = ctx.Je;
+  let Bij = ctx.Bij;
+
+  // 2---3
+  // |   |
+  // 1---0
+  //
+  let Rg = [
+    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
+    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
+  ];
+
+  let pq_idir = [
+    [ 0, 1, 0 ], [ 0, 1, 1 ],
+    [ 1, 2, 2 ], [ 1, 2, 3 ],
+    [ 2, 3, 0 ], [ 2, 3, 1 ],
+    [ 3, 0, 2 ], [ 3, 0, 3 ]
+  ];
+
+  let area = abs_sum_v( v_sub(Rg[0], Rg[1]) ) * abs_sum_v( v_sub(Rg[1], Rg[2]) );
+
+  //console.log("## valid_R area =", area, "g_a:", g_a, "g_b:", g_b);
+
+  if (area == 0) { return 0; }
+
+  for (let idx=0; idx<pq_idir.length; idx++) {
+    let p = pq_idir[idx][0];
+    let q = pq_idir[idx][1];
+    let idir = pq_idir[idx][2];
+
+    // If the ray endpoint is out of bounds, we could be on the
+    // border.
+    // If we aren't on a border, we know it's not a valid rectangle
+    // (we're in a dead-zone).
+    // Otherwise, compare the endpoints to make sure they match up.
+    //
+    let p_b_idx = Je[idir][ Rg[p][1] ][ Rg[p][0] ];
+    if (p_b_idx < 0) { p_b_idx = Bij[ Rg[p][1] ][ Rg[p][0] ]; }
+
+    let q_b_idx = Je[idir][ Rg[q][1] ][ Rg[q][0] ];
+    if (q_b_idx < 0) { q_b_idx = Bij[ Rg[q][1] ][ Rg[q][0] ]; }
+
+    if ((p_b_idx < 0) || (q_b_idx < 0)) { return 0; }
+    if (p_b_idx != q_b_idx) { return 0; }
+  }
+
+  return 1;
+}
+
+
+// WIP!!!
+// still has bug...
+// ???
+// this might be cruft at this point, consider removing
+
+// Test for valid quarry rectangle.
+//
+// The rectangle is defined by g_a and g_b, must be wholly contained
+// in the region defined by the 1-cut or 2-cut defined by
+// g_s, g_e, g_a.
+//
+//
+// Input:
+//
+//   g_s - start region point on general border point (counterclockwise order)
+//   g_e - end region point on general border point
+//   g_a - adit point of cut and quarry rectangle
+//   g_b - bower point of quarry rectangle
+//
+// Output:
+//
+//   1 - valid quarry rectangle
+//   0 - otherwise
+//
+// Test for valid rectangle in addition to making sure all endoints of quarry
+// rectangle fall within the region.
+//
+function RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b) {
+
+  if (RPRP_valid_R(ctx, g_a, g_b) == 0) {
+
+    //console.log("### vq.0:", g_s, g_e, g_a, g_b, " valid_R==0!");
+
+    return 0;
+  }
+
+  // 2---3
+  // |   |
+  // 1---0
+  //
+  let Rg = [
+    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
+    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
+  ];
+
+  for (let i=0; i<Rg.length; i++) {
+    if (RPRP_point_in_region(ctx, Rg[i], g_s, g_e, g_a) == 0) {
+
+      //console.log("### vq.1:", g_s, g_e, g_a, g_b, "Rg[", i, "]:", Rg[i], " pir==0!");
+
+      return 0;
+    }
+  }
+
+  let cleave_profile = RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b);
+  
+  if ((cleave_profile[0] == 'b') && (cleave_profile[7] == 'b')) { return 0; }
+  if ((cleave_profile[1] == 'b') && (cleave_profile[2] == 'b')) { return 0; }
+  if ((cleave_profile[3] == 'b') && (cleave_profile[4] == 'b')) { return 0; }
+  if ((cleave_profile[5] == 'b') && (cleave_profile[6] == 'b')) { return 0; }
+
+  return 1;
+}
+
+// reverse index to get border cut points and 't' value
+// (which corner the quarry adit point is)
+//
+function RPRP_DPidx2b(ctx, dp_idx) {
+  let n = ctx.B.length;
+  let _idx = dp_idx;
+
+  let t = _idx % 2;
+  _idx = Math.floor( _idx / 2 );
+
+  let idx_s = _idx % n;
+  _idx = Math.floor( _idx / n );
+
+  let idx_e = _idx % n;
+  
+  return [ idx_s, idx_e, t ];
+}
+
+// lightly tested
+//
+function RPRP_DPidx2g(ctx, dp_idx) {
+
+  let s_e_t = RPRP_DPidx2b(ctx, dp_idx);
+
+  let g_s = ctx.B[ s_e_t[0] ];
+  let g_e = ctx.B[ s_e_t[1] ];
+
+  let g_a = [-1,-1];
+
+  // g_s in line with g_e (1-cut)
+  //
+  if ((g_s[0] == g_e[0]) ||
+      (g_s[1] == g_e[1])) {
+
+    if (s_e_t[2] == 0) {
+      g_a[0] = g_s[0];
+      g_a[1] = g_e[1];
+    }
+
+    else {
+      g_a[0] = g_e[0];
+      g_a[1] = g_s[1];
+    }
+
+    return [ g_s, g_e, g_a ];
+  }
+
+  // g_s diagonal to g-e
+  //
+
+  let g_a0 = [ g_s[0], g_e[1] ];
+  let g_a1 = [ g_e[0], g_s[1] ];
+
+  let s_3 = [g_s[0], g_s[1], 0];
+  let e_3 = [g_e[0], g_e[1], 0];
+  let a0_3 = [g_a0[0], g_a0[1], 0];
+  let a1_3 = [g_a1[0], g_a1[1], 0];
+
+  let v0 = cross3( v_sub(a0_3, s_3), v_sub(e_3, s_3) );
+  let v1 = cross3( v_sub(a1_3, s_3), v_sub(e_3, s_3) );
+
+  let t0 = ((v0[2] > 0) ? 0 : 1);
+  let t1 = ((v1[2] > 0) ? 0 : 1);
+
+  g_a = g_a0;
+  if (s_e_t[2] == t1) { g_a = g_a1; }
+
+
+  return [ g_s, g_e, g_a ];
+}
+
+// The one-cuts need to take the adit point in-line with
+// the cut line, exploding the number of adit points
+// available for the DP array.
+// Instead, we use a DP hash with a custom key.
+//
+function RPRP_DP_idx(ctx, g_s, g_e, g_a) {
+  let B = ctx.B;
+  let Bij = ctx.Bij;
+
+  let idx_s = Bij[ g_s[1] ][ g_s[0] ];
+  let idx_e = Bij[ g_e[1] ][ g_e[0] ];
+
+  let key = idx_s.toString() + ":" +
+            idx_e.toString() + ";" +
+            g_a[0].toString() + "," + g_a[1].toString();
+
+  return key;
+}
+
+// The dynamic programming array is of size |B| x |B| x 2.
+// Here it's giving back a single index, so it's considering
+// a flattened array, but it can be thought of as the
+// first dimension of the start general border point, g_s,
+// the end general border point, g_e, and what corner the
+// adit point, g_a, is on.
+//
+// If a 1-cut, the adit index is 0 if on g_s or 1 if on g_e.
+// For a 2-cut, g_s and g_e are not inline, so the adit
+// index is taken to be 0 if to the right of the (g_s,g_e) line
+// and 1 otherwise.
+//
+function _RPRP_DP_idx(ctx, g_s, g_e, g_a) {
+  let B = ctx.B;
+  let Bij = ctx.Bij;
+
+  let n = B.length;
+
+  let idx_s = Bij[ g_s[1] ][ g_s[0] ];
+  let idx_e = Bij[ g_e[1] ][ g_e[0] ];
+
+  //....
+
+  let t = -1;
+  if      ((g_a[0] == g_s[0]) && (g_a[1] == g_s[1])) { t=0; }
+  else if ((g_a[0] == g_e[0]) && (g_a[1] == g_e[1])) { t=1; }
+  else {
+
+    let s3 = [g_s[0], g_s[1], 0];
+    let e3 = [g_e[0], g_e[1], 0];
+    let a3 = [g_a[0], g_a[1], 0];
+
+    let v = cross3( v_sub(a3,s3), v_sub(e3,s3) );
+
+    if (v[2] > 0) { t = 0; }
+    else          { t = 1; }
+
+  }
+
+  if (t<0) { return -1; }
+
+  let dp_idx = (2*idx_s) + (2*n*idx_e) + t;
+
+  return dp_idx;
+}
+
+function _Ink(g_a, g_b) {
+  let dx = Math.abs(g_b[0] - g_a[0]);
+  let dy = Math.abs(g_b[1] - g_a[1]);
+
+  return 2*(dx+dy);
+}
+
+function _ws(n, s, pfx) {
+  n = ((typeof n === "undefined") ? 0 : n);
+  s = ((typeof s === "undefined") ? ' ' : s);
+  pfx = ((typeof pfx === "undefined") ? "" : pfx);
+  let a = [];
+  for (let i=0; i<n; i++) { a.push(s); }
+  return pfx + a.join("");
+}
+
+// try to separate out bower list for future optimizations.
+//
+//
+function RPRP_candidate_bower(ctx, g_s, g_e, g_a, _debug) {
+  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+
+  let X = ctx.X,
+      Y = ctx.Y;
+
+  let candidate_bower = [];
+
+  for (let j=0; j<Y.length; j++) {
+    for (let i=0; i<X.length; i++) {
+      candidate_bower.push([i,j]);
+    }
+  }
+  
+  return candidate_bower;
+}
+
+//WIP!!
+function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
+  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+  _debug_str = ((typeof _debug_str === "undefined") ? "" : _debug_str);
+  lvl = ((typeof lvl === "undefined") ? 0 : lvl);
+
+  let _debug_id = _debid();
+  let _pfx = _ws(2*lvl) + "mirp." + lvl.toString() + "(" + _debug_str + " -> " + _debug_id + ")";
+  _debug_str = _debug_id;
+
+  let B = ctx.B,
+      Bt = ctx.Bt,
+      Bij = ctx.Bij,
+      Bxy = ctx.Bxy,
+      G = ctx.G,
+      Gt = ctx.Gt,
+      Gij = ctx.Gij,
+      Gxy = ctx.Gxy,
+      X = ctx.X,
+      Y = ctx.Y,
+      Js = ctx.Js;
+
+  if (typeof g_s === "undefined") {
+    g_s = B[0];
+    g_e = B[0];
+    g_a = B[0];
+  }
+
+  let b_s = Bij[ g_s[1] ][ g_s[0] ];
+  let b_e = Bij[ g_e[1] ][ g_e[0] ];
+
+  if (_debug) {
+    console.log("\n" + _pfx + ".beg:",
+      "g_s:", JSON.stringify(g_s), "(" + b_s.toString() + ")",
+      "g_e:", JSON.stringify(g_e), "(" + b_e.toString() + ")",
+      "g_a:", g_a);
+  }
+
+  let dp_idx = RPRP_DP_idx(ctx, g_s, g_e, g_a);
+  if ( (dp_idx in ctx.DP_cost) && (ctx.DP_cost[dp_idx] >= 0) ) {
+
+    if (_debug) {
+      console.log( _pfx + ".memz: DP_cost[", dp_idx, "] ->", ctx.DP_cost[dp_idx],
+        "(g_s:", JSON.stringify(g_s), "g_e:", JSON.stringify(g_e), "g_a:", JSON.stringify(g_a), ")");
+    }
+
+    return ctx.DP_cost[dp_idx];
+  }
+
+  let _min_cost = -1,
+      _min_partition = [],
+      _min_bower = [-1,-1],
+      _min_rect = [];
+
+  let candidate_bower = RPRP_candidate_bower(ctx, g_s, g_e, g_a);
+  for (let bower_idx = 0; bower_idx < candidate_bower.length; bower_idx++) {
+    let g_b = candidate_bower[bower_idx];
+
+    let qi = RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug);
+    if (qi.valid == 0) {
+
+      if (_debug > 1) {
+        console.log( _ws(2*lvl), "skipping", g_s, g_e, g_a, g_b, "(", qi.comment, ")");
+      }
+
+      continue;
+    }
+
+    let a_pnt = Gxy[ Gij[ g_a[1] ][ g_a[0] ] ];
+    let b_pnt = Gxy[ Gij[ g_b[1] ][ g_b[0] ] ];
+
+    let quarry_rect_cost = _Ink(a_pnt, b_pnt);
+
+    let _min_two_cut_cost = 0;
+    let _min_two_cut_sched_idx = -1;
+
+    let _min_one_cut_cost = 0;
+    let _min_one_cut = [];
+
+    if (_debug) {
+      console.log( _pfx, "considering:", "(g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b, ")",
+        "(#1c:", qi.one_cuts.length, "#2c:", qi.two_cuts.length, ")");
+      console.log( _pfx, "1cuts:", JSON.stringify(qi.one_cuts));
+      console.log( _pfx, "2cuts:", JSON.stringify(qi.two_cuts));
+      console.log( _pfx, "mirp." + lvl.toString(),
+        "ink:", quarry_rect_cost, _Ink(a_pnt, b_pnt), "(g_ab:", g_a, g_b, "ab_pnt:", a_pnt, b_pnt, ")");
+    }
+
+    for (let sched_idx=0; sched_idx < qi.one_cuts.length; sched_idx++) {
+      let one_cut = qi.one_cuts[sched_idx];
+
+      let _min_idx = -1;
+
+      let one_cut_cost = 0;
+      for (let ci=0; ci<one_cut.length; ci++) {
+        let cut = one_cut[ci];
+        let _cost = RPRP_MIRP(ctx, B[cut[0]], B[cut[1]], cut[2], lvl+1, _debug, _debug_str);
+
+        if (_debug) {
+          console.log( _pfx, "cost of ", cut[0], cut[1], cut[2], ":", _cost);
+        }
+
+        if ( (_cost > 0) &&
+             ((_min_idx < 0) ||
+              (_cost < one_cut_cost)) ) {
+          one_cut_cost = _cost;
+          _min_idx = ci;
+
+          if (_debug) {
+            console.log( _pfx, "updating min cost (", _cost, ", _min_idx:", ci, ")");
+          }
+
+        }
+
+        if (_debug) {
+          console.log( _pfx, "1cuts[", sched_idx, "][", ci, "]", "_cost:", _cost, "one_cut_cost:", one_cut_cost);
+        }
+
+
+      }
+
+      //ERROR
+      if (_min_idx < 0) {
+        _ERROR("MIRP" + lvl.toString() + ": no valid 1cut found: " +
+               "sched[" + sched_idx.toString() + "]: " + JSON.stringify(qi.one_cuts[sched_idx]));
+        return -1;
+      }
+
+      _min_one_cut_cost += one_cut_cost;
+      _min_one_cut.push( one_cut[_min_idx] );
+
+      if (_debug) {
+        console.log( _pfx, "1cuts[", sched_idx, "] (#", one_cut.length, "):", one_cut_cost, ", _min_one_cut_cost:", _min_one_cut_cost);
+      }
+
+    }
+
+      /*
+      // one or the other here..
+      // WRONG! have to take adit point in-line with cut
+      //
+      let one_cut_cost = 0;
+      for (let ci=0; ci<one_cut.length; ci++) {
+        let cut = one_cut[ci];
+        let _cost = RPRP_MIRP(ctx, B[cut[0]], B[cut[1]], cut[2], lvl+1, _debug, _debug_str);
+        if ( (ci==0) ||
+             (_cost < one_cut_cost) ) {
+          one_cut_cost = _cost;
+          _min_idx = ci;
+        }
+
+        if (_debug) {
+          console.log( _pfx, "1cuts[", sched_idx, "][", ci, "]", "_cost:", _cost, "one_cut_cost:", one_cut_cost);
+        }
+
+
+      }
+
+      _min_one_cut_cost += one_cut_cost;
+      if (_min_idx >= 0) {
+        _min_one_cut.push( one_cut[_min_idx] );
+      }
+
+      if (_debug) {
+        console.log( _pfx, "1cuts[", sched_idx, "] (#", one_cut.length, "):", one_cut_cost, ", _min_one_cut_cost:", _min_one_cut_cost);
+      }
+
+    }
+    */
+
+
+    // take min of sched....
+    //
+    for (let sched_idx=0; sched_idx<qi.two_cuts.length; sched_idx++) {
+      let two_cut = qi.two_cuts[sched_idx];
+
+      let cur_two_cut_cost = 0;
+      for (let ci=0; ci<two_cut.length; ci++) {
+        cur_two_cut_cost += RPRP_MIRP(ctx, B[two_cut[ci][0]], B[two_cut[ci][1]], two_cut[ci][2], lvl+1, _debug, _debug_str);
+      }
+
+      if (_debug) {
+        console.log( _pfx, "cur_two_cut_cost:", cur_two_cut_cost, "(sched_idx:", sched_idx, ")");
+      }
+
+      if ((sched_idx==0) ||
+          (cur_two_cut_cost < _min_two_cut_cost)) {
+        _min_two_cut_cost = cur_two_cut_cost;
+        _min_two_cut_sched_idx = sched_idx;
+      }
+
+    }
+
+
+
+    // degenerate
+    //
+    if ((_min_cost < 0) ||
+        ((quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost) < _min_cost) ) {
+
+      let tc = [];
+      if (_min_two_cut_sched_idx >= 0) { tc = qi.two_cuts[_min_two_cut_sched_idx]; }
+
+      _min_cost = quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost;
+      _min_rect = [ [ g_a[0], g_a[1] ], [ g_b[0], g_b[1] ] ];
+      _min_partition = [ _min_one_cut, tc ];
+      //_min_partition = [ min_one_cuts, min_two_cuts ];
+    }
+
+    if (_debug) {
+      console.log( _ws(2*lvl), "_min_cost:", _min_cost, "scost:", quarry_rect_cost + _min_one_cut_cost + _min_two_cut_cost,
+      "(", quarry_rect_cost, "+", _min_one_cut_cost, "+", _min_two_cut_cost, ")");
+    }
+
+  }
+
+  if (_min_cost >= 0) {
+    ctx.DP_cost[dp_idx]       = _min_cost;
+    ctx.DP_rect[dp_idx]       = _min_rect;
+    ctx.DP_bower[dp_idx]      = _min_bower;
+    ctx.DP_partition[dp_idx]  = _min_partition;
+
+
+    console.log("DPCOST[", dp_idx, "]:", _min_cost, JSON.stringify(_min_rect), JSON.stringify(_min_bower), JSON.stringify(_min_partition));
+
+  }
+
+  console.log( _ws(2*lvl), "mirp." + lvl.toString(), "<<<");
+
+  return _min_cost;
+}
+
+
+
+//------
+//------
+//------
+//------
+//------
+//------
+//------
 
 
 function _main_example() {
-  let grid_info = RPRPInit(pgn_pinwheel1);
+  //let grid_info = RPRPInit(pgn_pinwheel1);
+  let grid_info = RPRPInit(pgn_bottom_guillotine);
   _print_rprp(grid_info);
-}
-
-function _main_guillotine() {
-  let grid_info_0 = RPRPInit(pgn_bottom_guilltine);
-  RPRP_enumerate_quarry_side_region(grid_info_0, [2,4], [1,4], [1,4], [12,5]);
 }
 
 function _main_checks() {
@@ -1882,7 +6663,8 @@ function _main_checks() {
   let cp_1 = RPRPCleaveProfile(grid_info_1, [3,1], [1,2], [3,2], [2,3]);
   let cc_1 = RPRP_cleave_enumerate(grid_info_1,  [3,1], [1,2], [3,2], [2,3], cp_1);
   let v_1 = _expect( cc_1,
-    [ ['-','c','X','c','-','*','-','*'] ],
+    //[ ['-','c','X','c','-','*','-','*'] ],
+    [ ['-','*','X','*','-','*','-','*'] ],
     _sfmt("pgn_pinwheel_1", 16, 'r') );
 
 
@@ -1890,8 +6672,10 @@ function _main_checks() {
   let cp_2 = RPRPCleaveProfile(grid_info_2, [7,1], [5,4], [7,4], [2,5]);
   let cc_2 = RPRP_cleave_enumerate(grid_info_2, [7,1], [5,4], [7,4], [2,5], cp_2);
   let v_2 = _expect( cc_2, 
-    [ ["-","c","*","-","*","-","*","-"],
-      ["-","c","*","-","*","-","-","*"]],
+    //[ ["-","c","*","-","*","-","*","-"],
+    //  ["-","c","*","-","*","-","-","*"]],
+    [ ["-","*","*","-","*","-","*","-"],
+      ["-","*","*","-","*","-","-","*"]],
     _sfmt("pgn_balance_2", 16,'r') );
 
   let grid_info_3 = RPRPInit(pgn_clover);
@@ -1900,6 +6684,15 @@ function _main_checks() {
   let v_3 = _expect( cc_3,
     [ ['x','b','b','-','b','x','X','X'] ],
     _sfmt("pgn_clover_3", 16, 'r') );
+
+  /*
+  let grid_info_3a = RPRPInit(pgn_clover3);
+  let cp_3a = RPRPCleaveProfile(grid_info_3a, [5,7], [6,5], [6,7], [3,3]);
+  let cc_3a = RPRP_cleave_enumerate(grid_info_3a, [5,7], [6,5], [6,7], [3,3], cp_3a);
+  let v_3a = _expect( cc_3a,
+    [ ['x','b','b','-','b','x','X','X'] ],
+    _sfmt("pgn_clover_3a", 16, 'r') );
+  */
 
   let grid_info_4 = RPRPInit(pgn_clover);
   let cp_4 = RPRPCleaveProfile(grid_info_4, [3,3], [3,4], [3,3], [6,7]);
@@ -1951,6 +6744,73 @@ function _main_checks() {
   let cc_9 = RPRP_cleave_enumerate(grid_info_9, [6,1], [4,1], [6,1], [3,7], cp_9);
   let v_9 = _expect( cc_9, [], _sfmt("pgn_corner_9", 16, 'r') );
 
+  //----
+  // guillotine tests
+  //
+  let grid_info_10 = RPRPInit(pgn_bottom_guillotine);
+
+  let g_s = [-1,-1], g_e = [-1,-1], g_a = [-1,-1], g_b = [-1, -1];
+
+  g_s = [2,4]; g_e = [1,4];
+  g_a = [1,4]; g_b = [5,5];
+
+  //let cp_10 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  let cut_10 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
+  let v_10 = _expect( cut_10,
+     //[[7,10],[53,6],[46,52],[11,46]],
+     [[7,10],[46,52],[11,46]],
+    _sfmt("pgn_guillotine_10", 16, 'r') );
+
+  g_s = [2,4]; g_e = [1,4];
+  g_a = [1,4]; g_b = [4,5];
+
+  //let cp_11 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  let cut_11 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
+  let v_11 = _expect( cut_11,
+    //[[7,10],[53,6]],
+    [[7,10]],
+    _sfmt("pgn_guillotine_11", 16, 'r') );
+
+
+  g_s = [2,4]; g_e = [1,4];
+  g_a = [1,4]; g_b = [13,5];
+
+  //let cp_12  = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  let cut_12 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
+  let v_12 = _expect( cut_12,
+    //[[27,31],[18,26],[12,17],[7,10],[53,6],[46,52]],
+    [[27,31],[18,26],[12,17],[7,10],[46,52]],
+    _sfmt("pgn_guillotine_12", 16, 'r') );
+
+
+  g_s = [2,4]; g_e = [1,4];
+  g_a = [1,4]; g_b = [12,5];
+
+  //let cp_13 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  let cut_13 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
+  let v_13 = _expect( cut_13,
+    //[[18,26],[12,17],[7,10],[53,6],[46,52]],
+    [[18,26],[12,17],[7,10],[46,52]],
+    _sfmt("pgn_guillotine_13", 16, 'r') );
+
+  g_s = [2,4]; g_e = [1,4];
+  g_a = [1,4]; g_b = [9,5];
+
+  //let cp_14 = RPRPCleaveProfile(grid_info_10, g_s, g_e, g_a, g_b);
+  let cut_14 = RPRP_enumerate_quarry_side_region(grid_info_10, g_s, g_e, g_a, g_b);
+  let v_14 = _expect( cut_14,
+    //[[12,17],[7,10],[53,6],[46,52]],
+    [[12,17],[7,10],[46,52]],
+    _sfmt("pgn_guillotine_14", 16, 'r') );
+
+  /*
+  let grid_info_15 = RPRPInit(pgn_clover3);
+  let cp_15 = RPRPCleaveProfile(grid_info_15, [5,7], [6,5], [6,7], [3,3]);
+  let cc_15 = RPRP_cleave_enumerate(grid_info_15, [5,7], [6,5], [6,7], [3,3], cp_15);
+  let v_15 = _expect( cc_15,
+    [ ],
+    _sfmt("pgn_clover_15", 16, 'r') );
+    */
 
 }
 
@@ -1970,11 +6830,571 @@ function _main_rprpinit_test() {
   RPRPInit( pgn_balance, 1 );
 }
 
+function _main_pir_test() {
+  let ctx = RPRPInit( pgn_pinwheel1 );
+
+  let g_s = ctx.G[0],
+      g_e = ctx.G[0],
+      g_a = ctx.G[0];
+
+  console.log("\n");
+  console.log("# g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
+  for (let j=(ctx.Y.length-1); j>=0; j--) {
+    let row_s = [];
+    for (let i=0; i<ctx.X.length; i++) {
+      let v = RPRP_point_in_region(ctx, [i,j], g_s, g_e, g_a);
+      row_s.push( (v>0) ? '*' : '.' );
+    }
+    console.log(row_s.join(""));
+  }
+
+  console.log("\n");
+
+  g_s = [2,4];
+  g_e = [4,3];
+  g_a = [2,3];
+
+  console.log("\n");
+  console.log("# g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
+  for (let j=(ctx.Y.length-1); j>=0; j--) {
+    let row_s = [];
+    for (let i=0; i<ctx.X.length; i++) {
+      let v = RPRP_point_in_region(ctx, [i,j], g_s, g_e, g_a);
+      row_s.push( (v>0) ? '*' : '.' );
+    }
+    console.log(row_s.join(""));
+  }
+  console.log("\n");
+
+  g_s = [1,2];
+  g_e = [4,3];
+  g_a = [1,3];
+
+  console.log("\n");
+  console.log("# g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
+  for (let j=(ctx.Y.length-1); j>=0; j--) {
+    let row_s = [];
+    for (let i=0; i<ctx.X.length; i++) {
+      let v = RPRP_point_in_region(ctx, [i,j], g_s, g_e, g_a);
+      row_s.push( (v>0) ? '*' : '.' );
+    }
+    console.log(row_s.join(""));
+  }
+  console.log("\n");
+
+  g_s = [4,3];
+  g_e = [1,2];
+  g_a = [1,3];
+
+  console.log("\n");
+  console.log("# g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
+  for (let j=(ctx.Y.length-1); j>=0; j--) {
+    let row_s = [];
+    for (let i=0; i<ctx.X.length; i++) {
+      let v = RPRP_point_in_region(ctx, [i,j], g_s, g_e, g_a);
+      row_s.push( (v>0) ? '*' : '.' );
+    }
+    console.log(row_s.join(""));
+  }
+  console.log("\n");
+
+  g_s = [1,1];
+  g_e = [3,1];
+  g_a = [3,1];
+
+  console.log("\n");
+  console.log("# g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
+  for (let j=(ctx.Y.length-1); j>=0; j--) {
+    let row_s = [];
+    for (let i=0; i<ctx.X.length; i++) {
+      let v = RPRP_point_in_region(ctx, [i,j], g_s, g_e, g_a);
+      row_s.push( (v>0) ? '*' : '.' );
+    }
+    console.log(row_s.join(""));
+  }
+  console.log("\n");
+
+  g_s = [3,1];
+  g_e = [1,1];
+  g_a = [1,1];
+
+  console.log("\n");
+  console.log("# g_s:", g_s, "g_e:", g_e, "g_a:", g_a);
+  for (let j=(ctx.Y.length-1); j>=0; j--) {
+    let row_s = [];
+    for (let i=0; i<ctx.X.length; i++) {
+      let v = RPRP_point_in_region(ctx, [i,j], g_s, g_e, g_a);
+      row_s.push( (v>0) ? '*' : '.' );
+    }
+    console.log(row_s.join(""));
+  }
+  console.log("\n");
+
+}
+
+function _main_custom() {
+
+  let g_s = [1,4],
+      g_e = [2,5],
+      g_a = [1,5],
+      g_b = [4,3];
+
+  let grid_info_x = RPRPInit(pgn_custom1);
+
+  _print_rprp(grid_info_x);
+
+  let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, 1);
+
+  console.log(cp_x.join(""));
+  for (let i=0; i<cc_x.length; i++) {
+    console.log(cc_x[i].join(""));
+  }
+
+  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, 1);
+
+  console.log(cc_x);
+  console.log(cs_x);
+
+
+  //let v_x = _expect( cc_x, [], _sfmt("pgn_corner_x", 16, 'r') );
+
+
+}
+
+function _main_custom_1() {
+
+  let g_s = [1,4],
+      g_e = [2,5],
+      g_a = [1,5],
+      g_b = [10,3];
+
+  let grid_info_x = RPRPInit(pgn_dragon);
+
+  _print_rprp(grid_info_x);
+
+  let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, 1);
+
+  console.log(cp_x.join(""));
+  for (let i=0; i<cc_x.length; i++) {
+    console.log(cc_x[i].join(""));
+  }
+
+  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, 1);
+
+  console.log(cc_x);
+  console.log(cs_x);
+
+
+  //let v_x = _expect( cc_x, [], _sfmt("pgn_corner_x", 16, 'r') );
+
+
+}
+
+function _main_custom_2() {
+
+  console.log("NO");
+
+  /*
+  let _debug = 0;
+
+  let g_s = [2,5],
+      g_e = [3,6],
+      g_a = [2,6],
+      g_b = [6,3];
+
+  let grid_info_x = RPRPInit(pgn_horseshoe);
+
+  _print_rprp(grid_info_x);
+
+  let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, _debug);
+
+  //console.log(cp_x.join(""));
+  //for (let i=0; i<cc_x.length; i++) { console.log(cc_x[i].join("")); }
+
+  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, _debug);
+
+  //console.log(cc_x);
+  //console.log(cs_x);
+
+  let cic = RPRPQuarryCleaveCuts(grid_info_x, g_s, g_e, g_a, g_b);
+
+  for (let i=0; i<cic.length; i++) {
+    console.log( "cleave_sched[", i, "]:", _print_cleave(cc_x[i]), JSON.stringify(cic[i]));
+  }
+
+
+  //let v_x = _expect( cc_x, [], _sfmt("pgn_corner_x", 16, 'r') );
+  */
+
+
+}
+
+function _main_custom_3() {
+  let _debug = 1;
+
+  let g_s = [0,2],
+      g_e = [0,2],
+      g_a = [0,2],
+      g_b = [1,3];
+
+  let grid_info_x = RPRPInit(pgn_pinwheel1);
+  _print_rprp(grid_info_x);
+
+  let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, _debug);
+
+}
+
+// BUG
+// degenerate error where thinks there's a 1-cut that falls out of bounds (1,0) (3,0) line
+//
+// fixed?
+//
+function _main_custom_4() {
+  let _debug = 1;
+
+  let g_s = [1,1],
+      g_e = [3,1],
+      g_a = [1,1],
+      g_b = [3,0];
+
+  let grid_info_x = RPRPInit(pgn_pinwheel1);
+  _print_rprp(grid_info_x);
+
+  let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, _debug);
+  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, _debug);
+
+  console.log("profile:", cp_x);
+  console.log("cleave_enum:", cc_x);
+  console.log("cleave_side:", cs_x);
+
+}
+
+//
+//
+function _main_custom_5() {
+  let _debug = 1;
+
+  let g_s = [3,0],
+      g_e = [3,0],
+      g_a = [3,0],
+      g_b = [1,1];
+
+  let grid_info_x = RPRPInit(pgn_pinwheel1);
+  _print_rprp(grid_info_x);
+
+  let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, _debug);
+  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, _debug);
+
+  console.log("profile:", cp_x);
+  console.log("cleave_enum:", cc_x);
+  console.log("cleave_side:", cs_x);
+
+}
+
+//
+//
+function _main_custom_6() {
+  let _debug = 1;
+
+  let g_s = [1,2],
+      g_e = [4,3],
+      g_a = [1,3],
+      g_b = [4,1];
+
+  let grid_info_x = RPRPInit(pgn_pinwheel1);
+  _print_rprp(grid_info_x);
+
+  let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, _debug);
+  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, _debug);
+
+  console.log("profile:", cp_x);
+  console.log("cleave_enum:", cc_x);
+  console.log("cleave_side:", cs_x);
+
+}
+
+//
+//
+function _main_custom_7() {
+  let _debug = 1;
+
+  let g_s = [3,1],
+      g_e = [4,4],
+      g_a = [3,4],
+      g_b = [6,1];
+
+  let grid_info_x = RPRPInit(pgn_bb_test);
+  _print_rprp(grid_info_x);
+
+  let cp_x = RPRPCleaveProfile(grid_info_x, g_s, g_e, g_a, g_b);
+  let cc_x = RPRP_cleave_enumerate(grid_info_x, g_s, g_e, g_a, g_b, cp_x, _debug);
+  let cs_x = RPRP_enumerate_quarry_side_region(grid_info_x, g_s, g_e, g_a, g_b, _debug);
+
+  console.log("valid:", RPRP_valid_quarry(grid_info_x, g_s, g_e, g_a, g_b));
+
+  console.log("profile:", cp_x);
+  console.log("cleave_enum:", cc_x);
+  console.log("cleave_side:", cs_x);
+
+}
+
+//
+//
+function _main_custom_8() {
+  let _debug = 1;
+
+  let g_s = [1,5],
+      g_e = [2,6],
+      g_a = [1,6],
+      g_b = [3,2];
+
+  let grid_info_x = RPRPInit(pgn_bb_test1);
+  _print_rprp(grid_info_x);
+
+  let qi = RPRPQuarryInfo(grid_info_x, g_s, g_e, g_a, g_b);
+  console.log("valid:", qi.valid, "(", qi.comment,")");
+  console.log("one_cut:", JSON.stringify(qi.one_cut));
+  console.log("two_cuts:", JSON.stringify(qi.two_cuts));
+
+}
+
+// This has a bridge ([1,1] to [3,1])
+// but we've decided to let it go.
+// It's a special case that should get subsumed by
+// the recursion.
+// It's not an error to recur from this quarry rectangle
+// but it means the calculation won't be optimal.
+//
+// Intead of mkaing a special heuristic to optimize away
+// this case, we let it be and know that if the recursion
+// is working properly, it won't be considered as optimal.
+//
+function _main_custom_9() {
+  let _debug = 1;
+
+  let g_s = [1,5],
+      g_e = [2,6],
+      g_a = [1,6],
+      g_b = [3,1];
+
+  let grid_info_x = RPRPInit(pgn_bb_test1);
+  _print_rprp(grid_info_x);
+
+  let qi = RPRPQuarryInfo(grid_info_x, g_s, g_e, g_a, g_b);
+  console.log("valid:", qi.valid, "(", qi.comment,")");
+  console.log("one_cut:", JSON.stringify(qi.one_cut));
+  console.log("two_cuts:", JSON.stringify(qi.two_cuts));
+
+}
+
+function _main_custom_10() {
+  let _debug = 1;
+
+  let g_s = [0,1],
+      g_e = [1,1],
+      g_a = [0,1],
+      g_b = [1,2];
+
+  let g_a1 = [1,1];
+
+  let grid_info_x = RPRPInit(pgn_ell);
+  _print_rprp(grid_info_x);
+
+  let l_idx = RPRP_DP_idx(grid_info_x, g_s, g_e, g_a);
+  let r_idx = RPRP_DP_idx(grid_info_x, g_s, g_e, g_a1);
+
+
+  console.log("g_s:", g_s, "g_e:", g_e, "g_a0:", g_a, "g_a1:", g_a1, "g_b:", g_b);
+
+  console.log("l_idx:", l_idx, "r_idx:", r_idx);
+
+  console.log(RPRP_DPidx2b(grid_info_x, l_idx), RPRP_DPidx2b(grid_info_x, r_idx));
+  console.log(RPRP_DPidx2g(grid_info_x, l_idx), RPRP_DPidx2g(grid_info_x, r_idx));
+}
+
+function _main_custom_11() {
+  let _debug = 1;
+
+  let g_s = [0,0],
+      g_e = [0,0],
+      g_a = [0,0],
+      g_b = [1,1];
+
+
+  let ctx = RPRPInit(pgn_ell);
+  _print_rprp(ctx);
+
+  let qi = RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b);
+
+  console.log(JSON.stringify(qi, undefined, 2));
+
+}
+
+function _main_mirp_square() {
+  let ctx_sq = RPRPInit( [[0,0], [10,0], [10,10], [0,10]] );
+  let v_sq = RPRP_MIRP(ctx_sq);
+  console.log("mirp.sq:", v_sq);
+  return;
+}
+
+
+function _main_mirp_L() {
+
+  let _u = undefined;
+
+  let ctx_L = RPRPInit( pgn_ell );
+  let v_L = RPRP_MIRP(ctx_L, _u, _u, _u, 0, 2);
+  _print_dp(ctx_L);
+  console.log("mirp.L:", v_L);
+  return;
+}
+
+function _main_mirp_z() {
+  let ctx_z = RPRPInit( pgn_z );
+
+  //let v_z = RPRP_MIRP(ctx_z);
+  let _u = undefined;
+  let v_z = RPRP_MIRP(ctx_z, _u, _u, _u, 0, 2);
+
+  _print_dp(ctx_z);
+  console.log("mirp.z:", v_z);
+  return;
+}
+
+function _main_mirp_pinwheel() {
+  let ctx = RPRPInit( pgn_pinwheel_sym );
+  let _u = undefined;
+  let v = RPRP_MIRP(ctx, _u, _u, _u, 0, 2);
+
+  _print_dp(ctx);
+
+  console.log("mirp:", v);
+  return;
+}
+
+function _main_mirp_test() {
+  let ctx = RPRPInit( pgn_pinwheel1 );
+  let _u = undefined;
+  let v = RPRP_MIRP(ctx, _u, _u, _u, 0, 2);
+
+  _print_dp(ctx);
+
+  console.log("mirp:", v);
+  return;
+
+  let ctx_1 = RPRPInit( pgn_pinwheel1 );
+  RPRP_MIRP(ctx_1, [3,1], [1,2], [3,2]);
+
+  let ctx_2 = RPRPInit( pgn_cavity );
+  RPRP_MIRP(ctx_2, [8,1], [7,2], [7,1]);
+
+  let ctx_3 = RPRPInit( pgn_cavity );
+  RPRP_MIRP(ctx_3, [7,2], [8,1], [7,1]);
+
+  let ctx_4 = RPRPInit( pgn_bottom_guillotine );
+  RPRP_MIRP(ctx_4, [1,4], [2,4], [1,4]);
+
+  let ctx_5 = RPRPInit( pgn_bottom_guillotine );
+  RPRP_MIRP(ctx_5, [2,4], [1,4], [1,4]);
+
+  let ctx_6 = RPRPInit( pgn_bottom_guillotine );
+  RPRP_MIRP(ctx_6, [2,4], [1,4], [2,4]);
+
+  //console.log(">>> 9,2", RPRP_point_in_region( ctx_2, [9,2], [8,1], [7,2], [7,1]  ));
+  //console.log(">>> 7,1", RPRP_point_in_region( ctx_2, [7,1], [8,1], [7,2], [7,1] ,  1) );
+  //console.log(">>> 6,0", RPRP_point_in_region( ctx_2, [6,0], [8,1], [7,2], [7,1]  ));
+}
+
+
 //       ___ 
 //  ____/ (_)
 // / __/ / / 
 // \__/_/_/  
 //           
+
+function _main_cli(argv) {
+  let pgn_a = JSON.parse(argv[0]);
+  //let g_s = JSON.parse(argv[1]);
+  //let g_e = JSON.parse(argv[2]);
+  //let g_a = JSON.parse(argv[3]);
+  //let g_b = JSON.parse(argv[4]);
+
+  let ctx = RPRPInit( pgn_a );
+  _print_rprp(ctx);
+
+}
+
+async function _main_data(argv) {
+
+  let _debug = 1;
+
+  let data = "";
+  for await (let chunk of process.stdin) {
+    data += chunk;
+  }
+
+  let data_info = JSON.parse(data);
+
+  if (data_info.op == "QuarryInfo") {
+
+    let ctx = RPRPInit(data_info.C);
+    let qi = RPRPQuarryInfo( ctx,
+                             data_info.g_s, 
+                             data_info.g_e, 
+                             data_info.g_a, 
+                             data_info.g_b, _debug);
+    //console.log( JSON.stringify(qi, undefined, 2) );
+
+    console.log("{");
+    console.log('  "valid":', qi.valid, ",");
+
+    if (qi.one_cuts.length == 0) { console.log('  "one_cuts": [],'); }
+    else {
+      console.log('  "one_cuts": [');
+      for (let i=0; i<qi.one_cuts.length; i++) {
+        let sfx = ((i == (qi.one_cuts.length-1)) ? "" : ",");
+        console.log( JSON.stringify(qi.one_cuts[i]) + sfx );
+      }
+      console.log('  ],');
+    }
+
+    if (qi.two_cuts.length == 0) { console.log('  "two_cuts": [],'); }
+    else {
+      console.log('  "two_cuts": [');
+      for (let i=0; i<qi.two_cuts.length; i++) {
+        let sfx = ((i == (qi.two_cuts.length-1)) ? "" : ",");
+        console.log( "    " + JSON.stringify(qi.two_cuts[i]) + sfx );
+      }
+      console.log('  ],');
+    }
+
+    console.log('  "b_s": ' + JSON.stringify(qi.b_s) + ', "b_e": ' + JSON.stringify(qi.b_e) + ',');
+    console.log('  "g_s": ' + JSON.stringify(qi.g_s) + ', "g_e": ' + JSON.stringify(qi.g_e) + ',');
+    console.log('  "g_a": ' + JSON.stringify(qi.g_a) + ', "g_b": ' + JSON.stringify(qi.g_b) + ',');
+    console.log('  "comment": ' + JSON.stringify(qi.comment) );
+
+    console.log("}");
+  }
+
+  else if (data_info.op == "MIRP") {
+    let ctx = RPRPInit(data_info.C);
+    let v = RPRP_MIRP(ctx, _u, _u, _u, 0, 2);
+
+    _print_dp(ctx);
+
+    console.log("mirp:", v);
+    return;
+  }
+
+}
+
 
 if ((typeof require !== "undefined") &&
     (require.main === module)) {
@@ -1985,11 +7405,32 @@ if ((typeof require !== "undefined") &&
     op = process.argv[2];
   }
 
-  if      (op == 'check')       { _main_checks(process.argv.slice(2)); }
-  else if (op == 'example')     { _main_example(process.argv.slice(2)); }
-  else if (op == 'guillotine')  { _main_guillotine(); }
-  else if (op == 'foo')         { _main_foo(); }
-  else if (op == 'rprpi')       { _main_rprpinit_test(); }
+  if      (op == 'check')   { _main_checks(process.argv.slice(2)); }
+  else if (op == 'example') { _main_example(process.argv.slice(2)); }
+  else if (op == 'rprpi')   { _main_rprpinit_test(); }
+  else if (op == 'pir')     { _main_pir_test(); }
+
+  else if (op == 'mirp')    { _main_mirp_test(); }
+  else if (op == 'mirp.sq')    { _main_mirp_square(); }
+  else if (op == 'mirp.L')    { _main_mirp_L(); }
+  else if (op == 'mirp.z')    { _main_mirp_z(); }
+  else if (op == 'mirp.pinwheel')    { _main_mirp_pinwheel(); }
+
+  else if (op == "cli") { _main_cli(process.argv.slice(3)); }
+  else if (op == "data") { _main_data(process.argv.slice(3)); }
+
+  else if (op == 'custom')  { _main_custom(); }
+  else if (op == 'custom.1')  { _main_custom_1(); }
+  else if (op == 'custom.2')  { _main_custom_2(); }
+  else if (op == 'custom.3')  { _main_custom_3(); }
+  else if (op == 'custom.4')  { _main_custom_4(); }
+  else if (op == 'custom.5')  { _main_custom_5(); }
+  else if (op == 'custom.6')  { _main_custom_6(); }
+  else if (op == 'custom.7')  { _main_custom_7(); }
+  else if (op == 'custom.8')  { _main_custom_8(); }
+  else if (op == 'custom.9')  { _main_custom_9(); }
+  else if (op == 'custom.10')  { _main_custom_10(); }
+  else if (op == 'custom.11')  { _main_custom_11(); }
 }
 
 //                          __    
@@ -2013,7 +7454,7 @@ if (typeof module !== "undefined") {
 
 
 }).call(this)}).call(this,require('_process'))
-},{"./fasslib.js":2,"_process":4,"fs":3}],2:[function(require,module,exports){
+},{"./4w.js":1,"./fasslib.js":3,"_process":5,"fs":4}],3:[function(require,module,exports){
 // To the extent possible under law, the person who associated CC0 with
 // this project has waived all copyright and related or neighboring rights
 // to this project.
@@ -2363,9 +7804,9 @@ if (typeof module !== "undefined") {
 }
 
 
-},{}],3:[function(require,module,exports){
-
 },{}],4:[function(require,module,exports){
+
+},{}],5:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -2551,5 +7992,5 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[1])(1)
+},{}]},{},[2])(2)
 });
