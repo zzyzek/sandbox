@@ -6626,11 +6626,15 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
     ctx.DP_partition[dp_idx]  = _min_partition;
 
 
-    console.log("DPCOST[", dp_idx, "]:", _min_cost, JSON.stringify(_min_rect), JSON.stringify(_min_bower), JSON.stringify(_min_partition));
+    if (_debug) {
+      console.log("DPCOST[", dp_idx, "]:", _min_cost, JSON.stringify(_min_rect), JSON.stringify(_min_bower), JSON.stringify(_min_partition));
+    }
 
   }
 
-  console.log( _ws(2*lvl), "mirp." + lvl.toString(), "<<<");
+  if (_debug) {
+    console.log( _ws(2*lvl), "mirp." + lvl.toString(), "<<<");
+  }
 
   return _min_cost;
 }
@@ -7333,7 +7337,7 @@ function _main_cli(argv) {
 
 async function _main_data(argv) {
 
-  let _debug = 1;
+  let _debug = 0;
 
   let data = "";
   for await (let chunk of process.stdin) {
@@ -7341,6 +7345,8 @@ async function _main_data(argv) {
   }
 
   let data_info = JSON.parse(data);
+
+  if ("debug" in data_info) { _debug = data_info.debug; }
 
   if (data_info.op == "QuarryInfo") {
 
@@ -7350,8 +7356,6 @@ async function _main_data(argv) {
                              data_info.g_e, 
                              data_info.g_a, 
                              data_info.g_b, _debug);
-    //console.log( JSON.stringify(qi, undefined, 2) );
-
     console.log("{");
     console.log('  "valid":', qi.valid, ",");
 
@@ -7385,7 +7389,8 @@ async function _main_data(argv) {
 
   else if (data_info.op == "MIRP") {
     let ctx = RPRPInit(data_info.C);
-    let v = RPRP_MIRP(ctx, _u, _u, _u, 0, 2);
+    let _u = undefined;
+    let v = RPRP_MIRP(ctx, _u, _u, _u, 0, _debug);
 
     _print_dp(ctx);
 
@@ -7443,7 +7448,10 @@ if (typeof module !== "undefined") {
   let func_name_map = {
     "winding" : winding,
     "windingA" : windingA,
-    "init" : RPRPInit
+    "init" : RPRPInit,
+    "fasslib": fasslib,
+    "mirp": RPRP_MIRP,
+    "QuarryInfo": RPRPQuarryInfo
   };
 
   for (let key in func_name_map) {
