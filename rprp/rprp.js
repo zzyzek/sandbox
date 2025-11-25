@@ -41,6 +41,19 @@
 // }
 //
 
+// Currently, the scoring function tallies the perimeter of each
+// rectangle. This double counts the inteior edges but only
+// single counts the exterior.
+// Some numbers below are using this double counting.
+//
+// To get the real value:
+//
+// * Call the (singly counted) perimeter $S_P$
+// * Call the (double interior) counted total $S_R$
+// * To get the actual ink value:
+//   - $S_I = (S_R - S_P)/2 + S_P = (S_P + S_R) / 2$
+//
+
 var fasslib = require("./fasslib.js");
 var fw = require("./4w.js");
 
@@ -52,6 +65,7 @@ var dot_v = fasslib.dot_v;
 var cross3 = fasslib.cross3;
 var v_delta = fasslib.v_delta;
 var abs_sum_v = fasslib.abs_sum_v;
+var cmp_v = fasslib.cmp_v;
 
 var pgon = [
   [0,0], [0,2], [1,2], [1,3], [3,3],
@@ -73,7 +87,7 @@ var pgon_pinwheel = [
   [4,6], [4,3], [5,3], [5,0], [3,0], [3,-1],
 ];
 
-// optn 96 (w/ double counting)
+// opt. 96 (w/ double counting)
 //
 var pgn_pinwheel1 = [
   [0,6], [4,6], [4,0], [9,0],
@@ -81,6 +95,7 @@ var pgn_pinwheel1 = [
   [11,15], [6,15], [6,11], [0,11]
 ];
 
+// opt. 98
 var pgn_pinwheel_sym = [
   [0,6], [4,6], [4,0], [9,0],
   [9,4], [15,4], [15,9], [11,9],
@@ -2049,6 +2064,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
 
   let B = ctx.B;
   let Js = ctx.Js;
+  let Je = ctx.Je;
   let Bij = ctx.Bij;
 
   let quarry_info = {
@@ -2481,17 +2497,46 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
 
   }
 
+  // WIP!!!
+  //
+  // we're trying to add in all the potential adit points here so that the
+  // MIRP function can recur on the 1cut with adit.
+  //
+  // Something's not right, so this needs debugging (2025-11-25)
+  //
+  //
   // add side cleave cuts
   //
   for (let i=0; i<side_cleave_cuts.length; i++) {
-    let cc0 = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], ctx.B[side_cleave_cuts[i][0]] ];
-    //let cc1 = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], ctx.B[side_cleave_cuts[i][1]] ];
 
-    //quarry_info.one_cut.push( cc0 );
-    //quarry_info.one_cut.push( cc1 );
+    let g_cc0 = ctx.B[ side_cleave_cuts[i][0] ];
+    let g_cc1 = ctx.B[ side_cleave_cuts[i][1] ];
 
-    //quarry_info.one_cuts.push( [ cc0, cc1 ] );
-    quarry_info.one_cuts.push( [ cc0 ] );
+    let _m = [ Math.min(g_cc0[0], g_cc1[0]), Math.min(g_cc0[1], g_cc1[1]) ];
+    let _M = [ Math.max(g_cc0[0], g_cc1[0]), Math.max(g_cc0[1], g_cc1[1]) ];
+
+    let dij = v_delta( v_sub(_M, _m) );
+
+    let idir = dxy2idir(dij);
+    let rdir = oppo[idir];
+
+    let b_M = Je[idir][ _M[1] ][ _M[0] ];
+    let b_m = Je[rdir][ _m[1] ][ _m[0] ];
+
+    let g_M = _M,
+        g_m = _m;
+    if (b_M >= 0) { g_M = B[b_M]; }
+    if (b_m >= 0) { g_m = B[b_m]; }
+
+    for (let cur_ij = [ g_m[0], g_m[1] ]; (cmp_v(cur_ij, g_M) != 0) ; cur_ij = v_add(cur_ij, dij )) {
+      let scc = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], [cur_ij[0], cur_ij[1]] ];
+      quarry_info.one_cuts.push( [ scc ] );
+
+    }
+
+
+    //let cc0 = [ side_cleave_cuts[i][0], side_cleave_cuts[i][1], ctx.B[side_cleave_cuts[i][0]] ];
+    //quarry_info.one_cuts.push( [ cc0 ] );
   }
 
   quarry_info.valid = 1;
@@ -3206,7 +3251,6 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
   }
 
   let dp_idx = RPRP_DP_idx(ctx, g_s, g_e, g_a);
-  //if ( ctx.DP_cost[dp_idx] >= 0 ) { return ctx.DP_cost[dp_idx]; }
   if ( (dp_idx in ctx.DP_cost) && (ctx.DP_cost[dp_idx] >= 0) ) {
 
     if (_debug) {
@@ -3261,7 +3305,37 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
 
       let _min_idx = -1;
 
+      let one_cut_cost = 0;
+      for (let ci=0; ci<one_cut.length; ci++) {
+        let cut = one_cut[ci];
+        let _cost = RPRP_MIRP(ctx, B[cut[0]], B[cut[1]], cut[2], lvl+1, _debug, _debug_str);
+        if ( (ci==0) ||
+             (_cost < one_cut_cost) ) {
+          one_cut_cost = _cost;
+          _min_idx = ci;
+        }
+
+        if (_debug) {
+          console.log( _pfx, "1cuts[", sched_idx, "][", ci, "]", "_cost:", _cost, "one_cut_cost:", one_cut_cost);
+        }
+
+
+      }
+
+      _min_one_cut_cost += one_cut_cost;
+      if (_min_idx >= 0) {
+        _min_one_cut.push( one_cut[_min_idx] );
+      }
+
+      if (_debug) {
+        console.log( _pfx, "1cuts[", sched_idx, "] (#", one_cut.length, "):", one_cut_cost, ", _min_one_cut_cost:", _min_one_cut_cost);
+      }
+
+    }
+
+      /*
       // one or the other here..
+      // WRONG! have to take adit point in-line with cut
       //
       let one_cut_cost = 0;
       for (let ci=0; ci<one_cut.length; ci++) {
@@ -3290,6 +3364,7 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       }
 
     }
+    */
 
 
     // take min of sched....
@@ -3964,8 +4039,11 @@ function _main_mirp_square() {
 
 
 function _main_mirp_L() {
+
+  let _u = undefined;
+
   let ctx_L = RPRPInit( pgn_ell );
-  let v_L = RPRP_MIRP(ctx_L);
+  let v_L = RPRP_MIRP(ctx_L, _u, _u, _u, 0, 2);
   _print_dp(ctx_L);
   console.log("mirp.L:", v_L);
   return;
@@ -3979,7 +4057,7 @@ function _main_mirp_z() {
   return;
 }
 
-function _main_mirp_test() {
+function _main_mirp_pinwheel() {
   let ctx = RPRPInit( pgn_pinwheel_sym );
   let _u = undefined;
   let v = RPRP_MIRP(ctx, _u, _u, _u, 0, 2);
@@ -3988,11 +4066,9 @@ function _main_mirp_test() {
 
   console.log("mirp:", v);
   return;
-
 }
 
-function _main_mirp_pinwheel1() {
-
+function _main_mirp_test() {
   let ctx = RPRPInit( pgn_pinwheel1 );
   let _u = undefined;
   let v = RPRP_MIRP(ctx, _u, _u, _u, 0, 2);
@@ -4096,6 +4172,16 @@ async function _main_data(argv) {
     console.log("}");
   }
 
+  else if (data_info.op == "MIRP") {
+    let ctx = RPRPInit(data_info.C);
+    let v = RPRP_MIRP(ctx, _u, _u, _u, 0, 2);
+
+    _print_dp(ctx);
+
+    console.log("mirp:", v);
+    return;
+  }
+
 }
 
 
@@ -4117,6 +4203,7 @@ if ((typeof require !== "undefined") &&
   else if (op == 'mirp.sq')    { _main_mirp_square(); }
   else if (op == 'mirp.L')    { _main_mirp_L(); }
   else if (op == 'mirp.z')    { _main_mirp_z(); }
+  else if (op == 'mirp.pinwheel')    { _main_mirp_pinwheel(); }
 
   else if (op == "cli") { _main_cli(process.argv.slice(3)); }
   else if (op == "data") { _main_data(process.argv.slice(3)); }
