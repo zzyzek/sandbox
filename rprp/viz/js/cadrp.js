@@ -197,6 +197,7 @@ function ui_mode(_mode) {
   if (g_ui.mode == "cut")   { g_ui.mode_modifier = "select"; g_ui.mode_data.cut.ready = false; }
   if (g_ui.mode == "load")  { load_pgn(); }
   if (g_ui.mode == "rect")  { g_ui.mode_modifier = "select_begin"; g_ui.mode_data.rect.ready = false; }
+  if (g_ui.mode == "partition")  { calc_partition(); }
 
 
   // button background pattern updates
@@ -312,7 +313,92 @@ function update_textarea(add_to_queue) {
   ele.value = txt_lines.join("\n");
 }
 
-// WIP
+function _draw_rprp_partition() {
+  let two = g_ui.two;
+
+  let rprp_info = g_ui.data.rprp_info;
+
+  let px_pgn = g_ui.data.pgn;
+  let gs = g_ui.data.grid_size;
+
+  let X = rprp_info.X;
+  let Y = rprp_info.Y;
+
+  let G = rprp_info.G;
+  let Gxy = rprp_info.Gxy;
+  let Gij = rprp_info.Gij;
+
+  let B = rprp_info.B;
+  let Bxy = rprp_info.Bxy;
+  let Bij = rprp_info.Bij;
+
+  let DP_partition = rprp_info.DP_partition;
+
+  let partition = rprp_info.partition;
+
+  let col_B = "rgb(220,44,0)";
+  
+  let _B_style = {
+    "fill": col_B,
+    "size": 7
+  };
+  let _dashes = [4,4];
+
+  let _oxy = [px_pgn[0][0], px_pgn[0][1]];
+  for (let i=1; i<px_pgn.length; i++) {
+    _oxy[0] = Math.min( _oxy[0], px_pgn[i][0] );
+    _oxy[1] = Math.max( _oxy[1], px_pgn[i][1] );
+  }
+
+
+  for (let p_idx=0; p_idx < partition.length; p_idx++) {
+
+    let b_s = partition[p_idx][0];
+    let b_e = partition[p_idx][1];
+    let g_a = partition[p_idx][2];
+
+
+    let bs_xy = [
+      Bxy[b_s][0]*gs + _oxy[0],
+     -Bxy[b_s][1]*gs + _oxy[1]
+    ];
+
+    let be_xy = [
+      Bxy[b_e][0]*gs + _oxy[0],
+     -Bxy[b_e][1]*gs + _oxy[1]
+    ];
+
+    let p_a = Gxy[ Gij[g_a[1]][g_a[0]] ];
+
+    let ga_xy = [
+      p_a[0]*gs + _oxy[0],
+     -p_a[1]*gs + _oxy[1]
+    ];
+
+
+    let lv0 = two.makeLine(
+      bs_xy[0], bs_xy[1],
+      ga_xy[0], ga_xy[1]
+    );
+    lv0.dashes = _dashes;
+    lv0.linewidth = 2;
+
+    let lv1 = two.makeLine(
+      ga_xy[0], ga_xy[1],
+      be_xy[0], be_xy[1]
+    );
+    lv1.dashes = _dashes;
+    lv1.linewidth = 2;
+
+
+    //let _tb = two.makeText( b_idx.toString(), bxy[0] + 7, bxy[1] + 5, _B_style );
+  }
+
+
+
+}
+
+
 function _draw_rprp_grid() {
   let two = g_ui.two;
 
@@ -780,6 +866,10 @@ function redraw() {
     _draw_rprp_grid();
   }
 
+  else if (g_ui.mode == "partition") {
+    _draw_rprp_partition();
+  }
+
   let mode_disp = document.getElementById("ui_mode");
   mode_disp.innerHTML = "mode: " + g_ui.mode + ( (g_ui.mode == "draw") ? " (" + g_ui.data.pgn_state + ")" : "" );
 
@@ -790,6 +880,18 @@ function populate_grid() {
   let data = g_ui.data;
   let pgn = pgn2a(data.pgn);
   let rprp_info = rprp.init( pgn );
+  g_ui.data.rprp_info = rprp_info;
+
+  g_ui.data.rprp_info_ready = true;
+
+  redraw();
+}
+
+function calc_partition() {
+  let data = g_ui.data;
+  let pgn = pgn2a(data.pgn);
+  let rprp_info = rprp.init( pgn );
+  rprp.mirp(rprp_info);
   g_ui.data.rprp_info = rprp_info;
 
   g_ui.data.rprp_info_ready = true;
@@ -1493,6 +1595,7 @@ function init_two() {
     else if (ev.key == 'c') { ui_mode("cut"); }
     else if (ev.key == 'r') { ui_mode("region"); }
     else if (ev.key == 's') { ui_mode("save"); }
+    else if (ev.key == 'p') { ui_mode("partition"); }
   });
 
   ele.addEventListener("keyup", (ev) => {

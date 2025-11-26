@@ -465,6 +465,14 @@ function _print_dp(ctx) {
     }
   }
 
+  if ("partition" in ctx) {
+    let plist = ctx.partition;
+
+    for (let i=0; i<plist.length; i++) {
+      console.log(plist[i]);
+    }
+  }
+
 }
 
 function __print_dp(ctx) {
@@ -481,6 +489,13 @@ function __print_dp(ctx) {
     }
   }
 
+  if ("partition" in ctx) {
+    let plist = ctx.partition;
+
+    for (let i=0; i<plist.length; i++) {
+      console.log(plist[i]);
+    }
+  }
 }
 
 function _print1da(A, hdr, ws, line_pfx, fold) {
@@ -1185,6 +1200,7 @@ function RPRPInit(_rl_pgon, _debug) {
     "Js" : Js,
     "Je" : Je,
 
+    "DP_root_key": "",
     "DP_partition": DP_partition,
     "DP_bower": DP_bower,
     "DP_rect": DP_rect,
@@ -3394,10 +3410,12 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       Y = ctx.Y,
       Js = ctx.Js;
 
+  let _init = false;
   if (typeof g_s === "undefined") {
     g_s = B[0];
     g_e = B[0];
     g_a = B[0];
+    _init = true;
   }
 
   let b_s = Bij[ g_s[1] ][ g_s[0] ];
@@ -3411,6 +3429,11 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
   }
 
   let dp_idx = RPRP_DP_idx(ctx, g_s, g_e, g_a);
+
+  if (_init) {
+    ctx.DP_root_key = [ 0, 0, [ g_a[0], g_a[1] ] ];
+  }
+
   if ( (dp_idx in ctx.DP_cost) && (ctx.DP_cost[dp_idx] >= 0) ) {
 
     if (_debug) {
@@ -3509,40 +3532,6 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
 
     }
 
-      /*
-      // one or the other here..
-      // WRONG! have to take adit point in-line with cut
-      //
-      let one_cut_cost = 0;
-      for (let ci=0; ci<one_cut.length; ci++) {
-        let cut = one_cut[ci];
-        let _cost = RPRP_MIRP(ctx, B[cut[0]], B[cut[1]], cut[2], lvl+1, _debug, _debug_str);
-        if ( (ci==0) ||
-             (_cost < one_cut_cost) ) {
-          one_cut_cost = _cost;
-          _min_idx = ci;
-        }
-
-        if (_debug) {
-          console.log( _pfx, "1cuts[", sched_idx, "][", ci, "]", "_cost:", _cost, "one_cut_cost:", one_cut_cost);
-        }
-
-
-      }
-
-      _min_one_cut_cost += one_cut_cost;
-      if (_min_idx >= 0) {
-        _min_one_cut.push( one_cut[_min_idx] );
-      }
-
-      if (_debug) {
-        console.log( _pfx, "1cuts[", sched_idx, "] (#", one_cut.length, "):", one_cut_cost, ", _min_one_cut_cost:", _min_one_cut_cost);
-      }
-
-    }
-    */
-
-
     // take min of sched....
     //
     for (let sched_idx=0; sched_idx<qi.two_cuts.length; sched_idx++) {
@@ -3564,7 +3553,6 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       }
 
     }
-
 
 
     // degenerate
@@ -3603,6 +3591,30 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
 
   if (_debug) {
     console.log( _ws(2*lvl), "mirp." + lvl.toString(), "<<<");
+  }
+
+
+  _init = false;
+  if (_init) {
+    let plist = [];
+    let Qkey = [ ctx.DP_root_key ];
+
+    while (Qkey.length > 0) {
+      let p = Qkey.pop();
+      plist.push(p);
+
+      let key = RPRP_DP_idx(ctx, B[p[0]], B[p[1]], p[2]);
+
+      console.log("???", key);
+
+      let one_cut = ctx.DP_partition[key][0];
+      let two_cut = ctx.DP_partition[key][1];
+
+      for (let i=0; i<one_cut.length; i++) { Qkey.push( one_cut[i] ); }
+      for (let i=0; i<two_cut.length; i++) { Qkey.push( two_cut[i] ); }
+    }
+
+    ctx["partition"] = plist;
   }
 
   return _min_cost;
