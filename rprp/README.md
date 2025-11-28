@@ -927,6 +927,111 @@ line segment with the one-cut ( $O(n)$ adit points in-line with the cut, $O(n^4)
 It looks like Ahn et al. bound the number of sub-polygons (potential quarry rectangles?) by $O(n^3)$,
 staying under their global $O(n^3)$ run-time goal (Section 4.1.3, Lemmas 9, 10, 11, 12).
 
+###### 2025-11-28
+
+I've been refactoring and simplifying to try and get all the profusion of cases manageable.
+I'm still worried about correctness and the next step after a milestone of a working version
+exists, I'm going to need to create a more formalized test suite.
+
+I'm going to have to document it elsewhere but while it's fresh in my mind, there's an additional
+data structure created, the "border flip" `Jf` structure.
+This is four 2D arrays, one for each cardinal direction (`+x`, `-x`, `+y`, `-y`) holding the distance
+of border or interior edges to a change in state (from border to interior/exterior or from interior to
+border).
+
+There might be a way to consolodate the border jump (`Js`, `Je`) structures with the border flip (`Jf`)
+structure, but it's a lot easier to reason about separating them.
+
+With the border flip structure, tests for "docking" of quarry rectangles becomes a lot easier, in addition
+to reasoning or calculating maximal constructed edges.
+Whereas `Js` only records the start of an "incident" inner corner, no matter if the originating root point of
+the ray is on a border, the `Jf` structure gives the distance of the change in state (from border to interior/exterior
+and from interior to border).
+
+At any rate, I was going through contortions trying to reason about valid quarry rectangles with cleave cuts and
+all this became a lot easier with the above structure in hand.
+I might need to update, change or even scrap the above, but in general, precomputing values for ease of use later
+seems to be a good idea.
+
+---
+
+As mentioned above, a major issue is that one-cuts need to consider all grid points in line with the cut as potential
+adit points.
+One thing I missed was thinking about one-cuts from the quarry cleave enumeration.
+
+When creating a two-cut, there's the start, end and only, at maximum, two choices for the adit point.
+
+Each enumeration of the cleave choices for a quarry rectangle will create a "batch" (group? bunch?) of partitions
+to try.
+Though each individual partition can be calculated independently, the batch needs to be grouped together as that
+represents one particular partition of the larger region.
+Multiple batch partitions can be available, if they have the same minimum cost, but each batch is kind of an atomic
+unit of subdivision.
+
+For a two-cut in the recursion when processing a batch (the two-cut is part of the batch), the partition
+is completely determined by its starting border point, its ending border point and it's adit point.
+The bower points are enumerated in the recursive function call.
+
+For one-cuts, the adit point is any available point in line with cut (that passes other validity tests).
+If we were to fully realize a batch by specifying the start, end and adit point for each partition, this
+would lead to a combinatorial explosion, as there would need to be a cartesian product of all one-cuts
+and their adit point choices.
+
+The partitions are independent, and so seperable, so by noticing a one-cut, we can enumerate the adit
+point choices and choose the minimum ink cut, but I had been only doing this for one-cuts from the
+side quarry enumeration, not the quarry cleave enumeration.
+
+This is mostly a technical point on the implementation but, besides batching partitions, the cuts as they
+enumerate over adit points need to be considered atomically.
+
+Some pseudo-code:
+
+
+```
+MIRP(s,e,a):
+
+  mirpMin = infinity
+
+  bowerList = enumerateBowerPoints(s,e,a)
+  for b in bowerList:
+    OneCutSide = EnumerateSideCuts(s,e,a,b)
+    CornerQuarryCuts = EnumerateQuarryEdgeCuts(s,e,a,b)
+
+    sideMin = 0
+    foreach cut in OneCutSide:
+      foreach g in grid:
+        if (! ValidAditPoint(cut,g) ): continue
+        sideMin += MIRP(cut.s, cut.e, g)
+
+
+    cornerMin = infinity
+    foreach cutBatch on CornerQuarryCuts:
+      
+      curMin = 0
+      foreach cut in cutBatch:
+        if isTwoCut(cut):
+          curMin += MIRP(cut.s, cut.e, cut.adit)
+        else:
+          oneCutMin = infinity
+          foreach g in grid:
+            if (! ValidAditPoint(cut,g) ): continue
+            m = MIRP(cut.s, cut.e, g)
+            if m < oneCutMin: oneCutMin = m
+          curMin += oneCutMin
+
+      if curMin < cornerMin: cornerMin = curMin
+
+    if (sideMin + cornerMin) < mirpMin: mirpMin = sideMin + cornerMin
+
+  return cornerMin
+```
+
+The side one-cuts could be subsumed into the corner quarry cuts but it
+doesn't add that much complexity to consider them separately.
+
+The corner quarry cuts are determined by the cleave cuts from the corners
+of the quarry rectangle, so there are only a bounded number of choices
+(easy upper bound is 256), so we know the batch size won't explode.
 
 
 
