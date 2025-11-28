@@ -561,6 +561,10 @@ function _print_rprp(ctx) {
     _print2da(ctx.Je[idir],   "\n## Je[" + idir_descr[idir] + "]:");
   }
 
+  for (let idir=0; idir<4; idir++) {
+    _print2da(ctx.Jf[idir],   "\n## Jf[" + idir_descr[idir] + "]:");
+  }
+
 }
 
 function _print_cleave(cleave) {
@@ -765,7 +769,8 @@ function RPRPInit(_rl_pgon, _debug) {
       Y = [];
 
   let Js = [ [], [], [], [] ],
-      Je = [ [], [], [], [] ];
+      Je = [ [], [], [], [] ],
+      Jf = [ [], [], [], [] ];
 
   let idir_dxy = [ [1,0], [-1,0], [0,1], [0,-1] ];
 
@@ -833,6 +838,7 @@ function RPRPInit(_rl_pgon, _debug) {
     for (let idir=0; idir<4; idir++) {
       Js[idir].push([]);
       Je[idir].push([]);
+      Jf[idir].push([]);
     }
     for (let i=0; i<X.length; i++) {
       Gij[j].push(-1);
@@ -840,6 +846,7 @@ function RPRPInit(_rl_pgon, _debug) {
       for (let idir=0; idir<4; idir++) {
         Js[idir][j].push(-1);
         Je[idir][j].push(-1);
+        Jf[idir][j].push(-1);
       }
     }
   }
@@ -914,6 +921,20 @@ function RPRPInit(_rl_pgon, _debug) {
   // times.
   //
 
+  // Below is a lookup table of when to update the near and afar
+  // indices.
+  // The `idir` is the counterclockwise direction of the border
+  // segment encountered (e.g. 2,2 -> up up).
+  // `B` means update border index, 1/0 means update indicator,
+  // -1 means intialize with special value -1 and `.` means no change.
+  //
+  // So, for example, if we're populating the Js[+x] structure,
+  // we're sweeping from right to left and say
+  // we encounter a 2,0 (up, right) border segment, the `B` code
+  // indicates update the current index (we don't update
+  // the Je[+x] current index).
+  //
+
   //-----------------------------------------------------
   // I - interior, a - afar, n - near
   //
@@ -932,6 +953,7 @@ function RPRPInit(_rl_pgon, _debug) {
   //  10   3   0    0 -1 -1   1  B  B   0 -1 -1   1  B  B
   //  11   3   1    .  .  .   .  .  B   .  .  B   .  .  .
   //
+
   // Note that the walk is in the opposite direction of the ray,
   // so +x above is indicating the ray is shooting in the +x direction
   // but we look at transitions walking from right to left.
@@ -941,6 +963,36 @@ function RPRPInit(_rl_pgon, _debug) {
   // There are only a few other cases where the near index needs
   // to be updated.
   //
+
+  // An additional "jump flip" structure is created that records
+  // the the next change from border to interior or interior to
+  // border.
+  //
+  // 0 - set distance to 0 for current point then increment distance
+  // R - update current point with distance but reset distance to 0
+  //     afterwards (and increment, setting it to 1 for next round).
+  // . - update current point with distance and update distance (increment)
+  //
+  //
+  //-----------------------------------------------------
+  //        idir   +x -x +y -y
+  // idx  prv nxt   f  f  f  f
+  //  0    0   0    .  .  0  0
+  //  1    1   1    .  .  0  0
+  //  2    2   2    0  0  .  .
+  //  3    3   3    0  0  .  .
+  //
+  //  4    0   2    0  R  R  0
+  //  5    0   3    0  R  0  R
+  //  6    1   2    R  0  R  0
+  //  7    1   3    R  0  0  R
+  //  8    2   0    R  0  0  R
+  //  9    2   1    0  R  0  R
+  //  10   3   0    R  0  R  0
+  //  11   3   1    0  R  R  0
+  //
+
+
   // Consider updating the Js structure for the +x direction.
   // We are walking from right to left, so in the opposite of the +x
   // Js portion we're filling out.
@@ -975,11 +1027,12 @@ function RPRPInit(_rl_pgon, _debug) {
     [ 10, 11, -1,  3 ]
   ];
 
+  /*
   // lookup to Interior, afar, near
   //
   let _lu_Ian = [
 
-    // idir prv, idir nxt
+    // idir_prv, idir_nxt
     // e.g. 21 y-up (+y) followed by x-left (-x)
     // note that the cleave can't go back on itself, so e.g. 01 isn't represented
     //
@@ -991,6 +1044,46 @@ function RPRPInit(_rl_pgon, _debug) {
     [ "0--", "1BB", "...", "...", "0--", "...", "..B", "1BB", "...", "1BB", "0--", "..B" ],
     [ "1BB", "0--", "...", "...", "1BB", "..B", "...", "0--", "..B", "0--", "1BB", "..." ]
 
+  ];
+  */
+
+  //  idx:                0   1   2   3   4   5   6   7   8   9  10  11
+  //  idir_prv,idir_nxt: 00  11  22  33  02  03  12  13  20  21  30  31
+
+  // Interior code lookup
+  //
+  let _lu_I = [
+    "..101..0.10.",
+    "..010..1.01.",
+    "01..0..1.10.",
+    "10..1..0.01."
+  ];
+
+  // afar code lookup
+  //
+  let _lu_afar = [
+    "..B-B..-.B-.",
+    "..-B-..B.-B.",
+    "-B..-..B.B-.",
+    "B-..B..-.-B."
+  ];
+
+  // near code lookup
+  //
+  let _lu_near = [
+    "..B-B.B-BB-.",
+    "..-B-B.B.-BB",
+    "-B..-.BB.B-B",
+    "B-..BB.-B-B."
+  ];
+
+  // flip code lookup
+  //
+  let _lu_f = [
+    "..0000RRR0R0",
+    "..00RR000R0R",
+    "00..R0R000RR",
+    "00..0R0RRR00"
   ];
 
   // begin, end, delta for X and Y directions
@@ -1006,7 +1099,8 @@ function RPRPInit(_rl_pgon, _debug) {
 
     let _interior = 0;
     let afar_B_idx = -1,
-        near_B_idx = -1;
+        near_B_idx = -1,
+        dist_B = -1;
 
     if (idir < 2) {
 
@@ -1014,6 +1108,9 @@ function RPRPInit(_rl_pgon, _debug) {
 
         afar_B_idx = -1;
         near_B_idx = -1;
+        dist_B = -1;
+
+        let f_reset = 0;
 
         for (let i = _ibound[idir][0][0]; i != _ibound[idir][0][1]; i += _ibound[idir][0][2]) {
 
@@ -1036,6 +1133,22 @@ function RPRPInit(_rl_pgon, _debug) {
             let __c = cur_B_idx;
             let __p = (cur_B_idx-1 + B.length) % B.length ;
 
+            let _lu = _idir2lu[ _idir_prv ][ _idir_nxt ];
+
+            let _I_code = _lu_I[idir][_lu];
+            let _afar_code = _lu_afar[idir][_lu];
+            let _near_code = _lu_near[idir][_lu];
+
+            if      (_I_code == '0') { _interior = 0; }
+            else if (_I_code == '1') { _interior = 1; }
+
+            if      (_afar_code == 'B') { afar_B_idx = cur_B_idx; }
+            else if (_afar_code == '-') { afar_B_idx = -1; }
+
+            if      (_near_code == 'B') { near_B_idx = cur_B_idx; }
+            else if (_near_code == '-') { near_B_idx = -1; }
+
+            /*
             let _code = _lu_Ian[idir][ _idir2lu[ _idir_prv ][ _idir_nxt ] ];
 
             if      (_code[0] == '0') { _interior = 0; }
@@ -1046,8 +1159,21 @@ function RPRPInit(_rl_pgon, _debug) {
 
             if      (_code[2] == 'B') { near_B_idx = cur_B_idx; }
             else if (_code[2] == '-') { near_B_idx = -1; }
+            */
 
+
+            let _f_code = _lu_f[idir][ _idir2lu[ _idir_prv ][ _idir_nxt ] ];
+
+            if      (_f_code == '0') { dist_B = 0; }
+            else if (_f_code == 'R') { f_reset = 1; }
           }
+
+          Jf[idir][j][i] = dist_B;
+
+          if (f_reset) { dist_B = 0; }
+          f_reset = 0;
+
+          dist_B++;
 
         }
 
@@ -1061,6 +1187,9 @@ function RPRPInit(_rl_pgon, _debug) {
 
         afar_B_idx = -1;
         near_B_idx = -1;
+        dist_B = -1;
+
+        let f_reset = 0;
 
         for (let j = _ibound[idir][1][0]; j != _ibound[idir][1][1]; j += _ibound[idir][1][2]) {
 
@@ -1080,6 +1209,22 @@ function RPRPInit(_rl_pgon, _debug) {
             let _idir_prv = dxy2idir( _dprv );
             let _idir_nxt = dxy2idir( _dnxt );
 
+            let _lu = _idir2lu[ _idir_prv ][ _idir_nxt ];
+
+            let _I_code = _lu_I[idir][_lu];
+            let _afar_code = _lu_afar[idir][_lu];
+            let _near_code = _lu_near[idir][_lu];
+
+            if      (_I_code == '0') { _interior = 0; }
+            else if (_I_code == '1') { _interior = 1; }
+
+            if      (_afar_code == 'B') { afar_B_idx = cur_B_idx; }
+            else if (_afar_code == '-') { afar_B_idx = -1; }
+
+            if      (_near_code == 'B') { near_B_idx = cur_B_idx; }
+            else if (_near_code == '-') { near_B_idx = -1; }
+
+            /*
             let _code = _lu_Ian[idir][ _idir2lu[ _idir_prv ][ _idir_nxt ] ];
 
             if      (_code[0] == '0') { _interior = 0; }
@@ -1090,8 +1235,20 @@ function RPRPInit(_rl_pgon, _debug) {
 
             if      (_code[2] == 'B') { near_B_idx = cur_B_idx; }
             else if (_code[2] == '-') { near_B_idx = -1; }
+            */
 
+            let _f_code = _lu_f[idir][ _idir2lu[ _idir_prv ][ _idir_nxt ] ];
+
+            if      (_f_code == '0') { dist_B = 0; }
+            else if (_f_code == 'R') { f_reset = 1; }
           }
+
+          Jf[idir][j][i] = dist_B;
+
+          if (f_reset) { dist_B = 0; }
+          f_reset = 0;
+
+          dist_B++;
 
         }
 
@@ -1158,6 +1315,15 @@ function RPRPInit(_rl_pgon, _debug) {
     }
   }
 
+  for (let j=0; j<Y.length; j++) {
+    for (let i=0; i<X.length; i++) {
+
+      for (let idir=0; idir<4; idir++) {
+        if (Gij[j][i] < 0) { Jf[idir][j][i] = -1; }
+      }
+
+    }
+  }
 
   let DP_cost = {},
       DP_partition = {},
@@ -1199,6 +1365,7 @@ function RPRPInit(_rl_pgon, _debug) {
 
     "Js" : Js,
     "Je" : Je,
+    "Jf" : Jf,
 
     "DP_root_key": "",
     "DP_partition": DP_partition,
@@ -1442,6 +1609,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   let R = quarry;
 
   let Js = ctx.Js;
+  let Jf = ctx.Jf;
 
   let B = ctx.B;
   let Bt = ctx.Bt;
@@ -1505,6 +1673,13 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     ((R_B[3] < 0) ? '.' : Bt[ R_B[3] ])
   ];
 
+  let Rl = [
+    R[0][0] - R[1][0],
+    R[2][1] - R[1][1],
+    R[3][0] - R[2][0],
+    R[3][1] - R[0][1]
+  ];
+
   // We're testing to see if there's a portion of the boundary
   // that butts up against the quarry rectangle (without piercing through).
   // If the quarry side is free floating, we call it 'undocked' (dock == 1).
@@ -1544,13 +1719,109 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   //
 
   //let _undock = [ 1, 1, 1, 1 ];
-  let _dock = [ 0, 0, 0, 0 ];
+  //let _dock = [ 0, 0, 0, 0 ];
 
-  let _rcur = 0,
-      _rnxt = 1;
+  let _rcur = -1,
+      _rnxt = -1;
+
+  //-----
+  //-----
+  //-----
+  let _dock = [-1,-1,-1,-1];
+
+  // bottom edge of quarry rectangle
+  //
+  _rcur = 0; _rnxt = 1;
+
+  //let idir_sched = [ 0, 3, 1, 2 ];
+  let idir_sched = [ 1, 2, 0, 3 ];
+
+  for (let r_idx=0; r_idx<4; r_idx++) {
+
+    let _rcur = r_idx;
+    let _rnxt = (r_idx+1)%4;
+
+    let _idir = idir_sched[r_idx];
+    let _rdir = oppo_idir[_idir];
+
+    if (R_Bt[_rcur] == '.') {
+
+      _dock[r_idx] = 1;
+
+      if (Jf[_idir][ R[_rcur][1] ][ R[_rcur][0] ] >= Rl[r_idx]) {
+
+        if (_debug) { console.log("#qi.dock.a.0 (R line", r_idx, "undocked)"); }
+
+        _dock[r_idx] = 0;
+      }
+      else  {
+        if (_debug) { console.log("#qi.dock.a.1 (R line", r_idx, "docked)"); }
+      }
+
+    }
+
+    // quarry endpoint on boundary
+    //
+    else {
+
+      _dock[r_idx] = 1;
+
+      // If the quarry endpoint is on a boundary in-line with
+      // the quarry edge, then automatically docked.
+      //
+      if (Jf[_idir][ R[_rcur][1] ][ R[_rcur][0] ] > 0) {
+
+        if (_debug) { console.log("#qi.dock.b.1 (R line", r_idx, "docked",
+            "R_B[", _rcur, "]:", R_B[_rcur],
+            "Jf:", Jf[_idir][R[_rcur][1] ][ R[_rcur][0] ],
+            ")"); }
+
+        _dock[r_idx] = 1;
+      }
+
+      // otherwise the quarry endpoint is on the boundary but quarry
+      // edge is at least partially not on the boundary as it starts
+      // from _rcur going in _idir direction.
+      //
+      // If the border jump point from _rcur is either the boundary point
+      // of _rnxt or _rcur and _rnxt have the same border jump point,
+      // the quarry edge must be undocked.
+      //
+      else if ( (R_idir_B[_rcur][_idir] == R_B[_rnxt]) ||
+                (R_idir_B[_rcur][_idir] == R_idir_B[_rnxt][_idir]) ) {
+
+        if (_debug) { console.log("#qi.dock.b.0 (R line", r_idx, "undocked)"); }
+
+        _dock[r_idx] = 0;
+      }
+
+      else {
+
+        if (_debug) { console.log("#qi.dock.c.1 (R line", r_idx, "docked)"); }
+
+      }
+
+
+    }
+
+  }
+
+  //-----
+  //-----
+  //-----
+
+  /*
+
+
+  _rcur = 0; _rnxt = 1;
   if ( (R_idir_B[_rcur][0] != R_idir_B[_rnxt][0]) ||
        (R_idir_B[_rcur][1] != R_idir_B[_rnxt][1]) ) {
     //_undock[0] = 0;
+    _dock[0] = 1;
+  }
+
+  if ( ((R_Bt[_rcur] == 'c') && (R_idir_B[_rnxt][0] == R_Bt[_rcur])) ||
+       ((R_Bt[_rnxt] == 'c') && (R_idir_B[_rcur][1] == R_Bt[_rnxt])) ) {
     _dock[0] = 1;
   }
 
@@ -1559,6 +1830,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   // If either corner is on a border, it's docked
   // If either has a corner facing inwoards, then its docked
   // else, it's undocked.
+
 
   if ( ((R_Bt[_rcur] == 'c') && (R_idir_B[_rnxt][0] == R_B[_rcur])) ||
        ((R_Bt[_rnxt] == 'c') && (R_idir_B[_rcur][1] == R_B[_rnxt])) ) { 
@@ -1604,6 +1876,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     _dock[3] = 0;
   }
 
+  */
 
   //---
 
@@ -1710,6 +1983,67 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
       "redux:", redux.join("") );
   }
 
+  // trying to simplify the float cleave tests
+  //
+  for (cleave_idx = 0; cleave_idx < 8; cleave_idx++) {
+    let r_idx = Math.floor(cleave_idx/2);
+    let rev_cleave_idx = oppo_cleave[cleave_idx];
+    let rev_r_idx = Math.floor(rev_cleave_idx/2);
+    let idir = cleave_idir[cleave_idx];
+    let rdir = oppo_idir[idir];
+
+    let l_idx_lu = [ 0,3, 1,0, 2,1, 3,2 ];
+    let l_idx = l_idx_lu[cleave_idx];
+
+    let cleave_endpoint = [-1,-1];
+
+    // If the cleave position isn't a constructed line or a cleave choice,
+    // we can ignore it.
+    //
+    if ((cleave_choice[cleave_idx] != '*') &&
+        (cleave_choice[cleave_idx] != 'c')) {
+
+      if (_debug > 2) { console.log("#vc.skip.0 (not a cleave/constructed line, cc[", cleave_idx, "] =", cleave_choice[cleave_idx], ")"); }
+
+      continue;
+    }
+
+    if ( Bij[ R[r_idx][1] ][ R[r_idx][0] ] >= 0 ) {
+
+      if (_debug > 2) { console.log("#vc.skip.1 (on border/corner, B:", Bij[ R[r_idx][1] ][ R[r_idx][0] ],")"); }
+
+      continue;
+    }
+
+    cleave_endpoint[0] = B[ Js[idir][ R[r_idx][1] ][ R[r_idx][0] ] ];
+
+    if ((cleave_choice[rev_cleave_idx] == '*') ||
+        (cleave_choice[rev_cleave_idx] == 'c') ||
+        (Jf[rdir][ R[r_idx][1] ][ R[r_idx][0] ] <= Rl[l_idx])) {
+      cleave_endpoint[1] = B[ Js[rdir][ R[r_idx][1] ][ R[r_idx][0] ] ];
+    }
+
+    else {
+      cleave_endpoint[1] = R[rev_r_idx];
+    }
+
+    let _corner_count = 0;
+
+    let _b0 = Bij[ cleave_endpoint[0][1] ][ cleave_endpoint[0][0] ];
+    let _b1 = Bij[ cleave_endpoint[1][1] ][ cleave_endpoint[1][0] ];
+
+    if ( (_b0 >= 0) && (Bt[_b0] == 'c') ) { _corner_count++; }
+    if ( (_b1 >= 0) && (Bt[_b1] == 'c') ) { _corner_count++; }
+
+    if (_corner_count == 0) {
+      if (_debug > 2) { console.log("#vc.float! (cleave_endpoint:", JSON.stringify(cleave_endpoint)); }
+      return 0;
+    }
+
+  }
+
+  /*
+
   for (cleave_idx = 0; cleave_idx < 8; cleave_idx++) {
     let r_idx = Math.floor(cleave_idx/2);
     let rev_cleave_idx = oppo_cleave[cleave_idx];
@@ -1773,6 +2107,8 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
       continue;
     }
 
+    */
+
 
     // so now:
     // * there's a cleave cut or constructed line in the idir direction
@@ -1801,11 +2137,13 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     }
     */
 
+    /*
     if (_debug > 1) {
       console.log("#vc.cp5.10: floating cleave cut found", "cleave_idx:", cleave_idx, "rect_idx:", r_idx);
     }
 
     return 0;
+    */
 
     /*
 
@@ -1858,7 +2196,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     }
     */
 
-  }
+  //}
 
   if (_debug > 1) { console.log("#vc.cp6"); }
 
@@ -3695,6 +4033,18 @@ function _main_checks() {
       ["-","*","*","-","*","-","-","*"]],
     _sfmt("pgn_balance_2", 16,'r') );
 
+  if (!v_2) {
+    let _e = [ ["-","*","*","-","*","-","*","-"],
+            ["-","*","*","-","*","-","-","*"]];
+
+    for (let i=0; i<cc_2.length; i++) {
+      console.log("got:", cc_2[i].join(""));
+    }
+    for (let i=0; i<_e.length; i++) {
+      console.log("xct:", _e[i].join(""));
+    }
+  }
+
   let grid_info_3 = RPRPInit(pgn_clover);
   let cp_3 = RPRPCleaveProfile(grid_info_3, [5,7], [6,5], [6,7], [3,3]);
   let cc_3 = RPRP_cleave_enumerate(grid_info_3, [5,7], [6,5], [6,7], [3,3], cp_3);
@@ -4415,6 +4765,11 @@ async function _main_data(argv) {
       else { console.log("FAIL: got:", v, "expect:", data_info.expect.return); }
     }
     return;
+  }
+
+  else if (data_info.op == "print") {
+    let ctx = RPRPInit(data_info.C);
+    _print_rprp(ctx);
   }
 
 }
