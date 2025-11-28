@@ -3820,6 +3820,9 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       _min_rect = [];
 
   let candidate_bower = RPRP_candidate_bower(ctx, g_s, g_e, g_a);
+
+  console.log( _pfx + "bower:", JSON.stringify(candidate_bower));
+
   for (let bower_idx = 0; bower_idx < candidate_bower.length; bower_idx++) {
     let g_b = candidate_bower[bower_idx];
 
@@ -3852,6 +3855,7 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       console.log( _pfx, "mirp." + lvl.toString(),
         "ink:", quarry_rect_cost, _Ink(a_pnt, b_pnt), "(g_ab:", g_a, g_b, "ab_pnt:", a_pnt, b_pnt, ")");
     }
+
 
     for (let sched_idx=0; sched_idx < qi.one_cuts.length; sched_idx++) {
       let one_cut = qi.one_cuts[sched_idx];
@@ -3893,8 +3897,15 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
         return -1;
       }
 
-      _min_one_cut_cost += one_cut_cost;
-      _min_one_cut.push( one_cut[_min_idx] );
+      //if (one_cut_cost >= 0) {
+
+      if (_debug > 0) {
+        console.log(_pfx, "ADDING one_cut_cost:", one_cut_cost, "one_cut[", _min_idx, "]:", JSON.stringify(one_cut[_min_idx]));
+      }
+
+        _min_one_cut_cost += one_cut_cost;
+        _min_one_cut.push( one_cut[_min_idx] );
+      //}
 
       if (_debug) {
         console.log( _pfx, "1cuts[", sched_idx, "] (#", one_cut.length, "):", one_cut_cost, ", _min_one_cut_cost:", _min_one_cut_cost);
@@ -3960,7 +3971,7 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
   }
 
   if (_debug) {
-    console.log( _ws(2*lvl), "mirp." + lvl.toString(), "<<<");
+    console.log( _ws(2*lvl), "mirp." + lvl.toString(), "<<<", "(_min_cost:", _min_cost, ")");
   }
 
 
