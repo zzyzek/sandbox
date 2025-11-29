@@ -3880,7 +3880,7 @@ function _dbg_mirp_quarry_skip(_debug, _pfx, g_s, g_e, g_a, g_b, comment) {
 function _dbg_mirp_quarry_info(_debug, _pfx, lvl, g_s, g_e, g_a, g_b, qi, a_pnt, b_pnt, quarry_rect_cost) {
   if (_debug) {
     console.log( _pfx, "considering:", "(g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b, ")",
-      "(#1c:", qi.side_cut.length, "#2c:", qi.corner_cuts.length, ")");
+      "(#side:", qi.side_cut.length, "#corner:", qi.corner_cuts.length, ")");
     console.log( _pfx, "side_cut:", JSON.stringify(qi.side_cut));
     console.log( _pfx, "corner_cuts:", JSON.stringify(qi.corner_cuts));
     console.log( _pfx, "mirp." + lvl.toString(),
@@ -3985,11 +3985,9 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       let _min_g_a = [-1,-1];
 
       let one_cut_cost = 0;
-      //for (let ci=0; ci<one_cut.length; ci++) {
       for (let adit_idx=0; adit_idx < candidate_adit.length; adit_idx++) {
         let g_a = candidate_adit[adit_idx];
 
-        //let cut = one_cut[ci];
         let _cost = RPRP_MIRP(ctx, B[one_cut[0]], B[one_cut[1]], g_a, lvl+1, _debug, _debug_str);
 
         if (_debug) {
@@ -4099,16 +4097,17 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       }
 
       if ((sched_idx==0) ||
-          (cur_cut_cost < _min_cut_cost)) {
-        _min_cut_cost = cur_cut_cost;
-        _min_cut_sched_idx = sched_idx;
+          //(cur_cut_cost < _min_cut_cost)) {
+          (cur_cut_cost < _min_corner_cut_cost)) {
+        //_min_cut_cost = cur_cut_cost;
+        //_min_cut_sched_idx = sched_idx;
+        _min_corner_cut_cost = cur_cut_cost;
+        _min_corner_cut_sched_idx = sched_idx;
+
       }
 
     }
 
-
-    // degenerate
-    //
     if ((_min_cost < 0) ||
         ((quarry_rect_cost + _min_side_cut_cost + _min_corner_cut_cost) < _min_cost) ) {
 
@@ -4121,10 +4120,17 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       _min_rect = [ [ g_a[0], g_a[1] ], [ g_b[0], g_b[1] ] ];
       _min_partition = [ _min_side_cut, _corner_cut_batch ];
       //_min_partition = [ min_side_cut, min_corner_cuts ];
+
+      if (_debug) {
+        console.log(_pfx, "updating min: _min_cost:", _min_cost, "_min_rect:", _min_rect,
+          "_min_part:", JSON.stringify(_min_partition), "(_min_core_cut_sched_idx:", _min_corner_cut_sched_idx,")");
+      }
+
     }
 
     if (_debug) {
-      console.log( _ws(2*lvl), "_min_cost:", _min_cost, "scost:", quarry_rect_cost + _min_side_cut_cost + _min_corner_cut_cost,
+      //console.log( _ws(2*lvl), "_min_cost:", _min_cost, "scost:", quarry_rect_cost + _min_side_cut_cost + _min_corner_cut_cost,
+      console.log( _pfx, "_min_cost:", _min_cost, "scost:", quarry_rect_cost + _min_side_cut_cost + _min_corner_cut_cost,
       "(", quarry_rect_cost, "+", _min_side_cut_cost, "+", _min_corner_cut_cost, ")");
     }
 
@@ -4138,17 +4144,18 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
 
 
     if (_debug) {
-      console.log("DPCOST[", dp_idx, "]:", _min_cost, JSON.stringify(_min_rect), JSON.stringify(_min_bower), JSON.stringify(_min_partition));
+      console.log(_pfx, "DPCOST[", dp_idx, "]:", _min_cost, JSON.stringify(_min_rect), JSON.stringify(_min_bower), JSON.stringify(_min_partition));
     }
 
   }
 
   if (_debug) {
-    console.log( _ws(2*lvl), "mirp." + lvl.toString(), "<<<", "(_min_cost:", _min_cost, ")");
+    //console.log( _ws(2*lvl), "mirp." + lvl.toString(), "<<<", "(_min_cost:", _min_cost, ")");
+    console.log( _pfx, "<<<", "(_min_cost:", _min_cost, ")");
   }
 
 
-  _init = false;
+  //_init = false;
   if (_init) {
     let plist = [];
     let Qkey = [ ctx.DP_root_key ];
