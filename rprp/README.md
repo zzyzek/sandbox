@@ -1033,6 +1033,8 @@ The corner quarry cuts are determined by the cleave cuts from the corners
 of the quarry rectangle, so there are only a bounded number of choices
 (easy upper bound is 256), so we know the batch size won't explode.
 
+---
+
 
 
 References
