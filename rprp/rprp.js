@@ -2641,7 +2641,7 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
     let u = Rg[r_idx];
     let v = Rg[r_nxt];
 
-    console.log("\nu:", u, "v:", v);
+    console.log("\nr_idx:", r_idx, "u:", u, "v:", v);
 
     let b1 = Bij[ u[1] ][ u[0] ];
     if (b1 < 0) {
@@ -2662,29 +2662,62 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
       let w = v_add( v, v_mul( Jf[rdir][ v[1] ][ v[0] ], idir_ij[rdir] ) );
       let _d = dot_v( v_sub( u, w ), idir_ij[rdir] );
 
-      console.log("  _d0:", _d, "u-w:", v_sub(u,w), "idir[", rdir, "]:", idir_ij[rdir]);
+      console.log("  _d0:", _d, "u-w:", v_sub(u,w), "rdir[", rdir, "]:", idir_ij[rdir]);
 
       if (_d < 0) { continue; }
       b0 = Bij[ w[1] ][ w[0] ];
     }
 
     console.log("r_idx:", r_idx, "b0:", b0, "b1:", b1);
-    //continue;
 
-    let cur_b = b0;
-    
+   
     let max_iter = Math.max( X.length, Y.length ),
         iter = 0;
 
-    while ( wrapped_range_contain(cur_b, b0, b1) ) {
-      let _g = B[ cur_b ];
-      let _dj = Jf[idir][ _g[1] ][ _g[0] ];
-      let _h = v_add( _g, v_mul( _dj, idir_ij[rdir] ) );
+    let cur_b = b0;
+    while ( wrapped_range_contain(cur_b, b0, b1) &&
+            (cur_b != b1) ) {
 
-      console.log("_h:", _h);
+      let _g = B[ cur_b ];
+
+      let _dj = Jf[rdir][ _g[1] ][ _g[0] ];
+
+      let _h = [-1,-1];
+      if (_dj == 0) {
+
+        // _g is on a border but a 0 Jf indicates it's at a
+        // transition.
+        // Move ahead one in rdir direction.
+        // If it's on a border, we're done, as it repreesents the
+        // beginning of the border.
+        // If not, we're in an open region and we need to shoot ahead
+        // till where the border transitions.
+        //
+
+        _h = v_add( _g, idir_ij[rdir] );
+        if (Bij[_h[1]][_h[0]] < 0) {
+          _h = v_add( _h, v_mul( Jf[rdir][ _h[1] ][ _h[0] ], idir_ij[rdir] ) )
+        }
+      }
+      else {
+
+        // If _g is already on the border, move ahead to
+        // where the current border line ends or turns.
+        //
+        _h = v_add( _g, v_mul( _dj, idir_ij[rdir] ) );
+      }
+
+
+      console.log("_h:", _h, "cur_b:", cur_b, "b0:", b0, "b1:", b1,
+        "(dj:", _dj, ", Jf[", rdir, "][", _g[1], "][", _g[0], "]:", Jf[rdir][ _g[1] ][ _g[0] ], ")");
 
       let nxt_b = Bij[ _h[1] ][ _h[0] ];
-      if (nxt_b != cur_b) { perim_range.push( [cur_b, nxt_b] ); }
+      if (nxt_b != cur_b) {
+
+        console.log(" perim.add:", "[", cur_b, nxt_b, "]");
+
+        perim_range.push( [cur_b, nxt_b] );
+      }
 
       _h = v_add( _h, idir_ij[rdir] );
       if ( (_h[0] < 0) || (_h[1] < 0) ||

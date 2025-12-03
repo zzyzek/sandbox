@@ -1,0 +1,60 @@
+\documentclass[twocolumn, 10pt]{article}
+
+\usepackage{geometry}
+\geometry{
+	a4paper,
+	total={6.85in, 9.92in},
+	left=0.71in,
+	top=0.63in,
+}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{lipsum} % XXX: Remove that
+
+\pagenumbering{gobble}
+
+\title{Example Article Template for Paged Out!}
+\author{Page Out!}
+
+\makeatletter
+\newcommand{\fsize}{\f@size pt }
+\newcommand{\textFontName}{\f@family}
+\renewcommand{\maketitle}{
+\begin{flushleft}
+{\noindent\Huge\bf\@title}\break
+\end{flushleft}
+}
+\makeatother
+
+
+\begin{document}
+\maketitle
+
+This is an example two-column template for a Paged Out! article. It uses A4 paper with proper margin settings.
+
+The font used is \textFontName, but please remember you can any font that meets our guidelines as specified at: \url{https://pagedout.institute/?page=writing.php#fonts}
+. And actually do use monospace fonts for code :)
+
+\begin{lstlisting}[language=C]
+int
+main(void)
+{
+	printf("Hello world!");
+	return (0);
+}
+\end{lstlisting}
+
+Most of the article must be written in a font not smaller than 9pt.
+This article is written with the \fsize.
+{\small This is an example 9pt sentence.}
+
+However for subscripts, footnotes, etc, you can go at low as 7pt:
+{\scriptsize This is an example \fsize sentence.}
+
+Feel free to adjust this template in any way you wish!
+The rest of the example contains your generic Lorem ipsum.
+
+\lipsum
+
+\end{document}
