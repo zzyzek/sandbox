@@ -111,7 +111,7 @@ BreakoutModelSynthesis(block B) {
     B' = B
     Choose tile & cell to resolve in B
     Constraint propagate until B is AC
-    if (contradiction) {
+    while (contradiction) {
       B = B'
       Find subregion, R, to soften
       Revert region R in B back to P
