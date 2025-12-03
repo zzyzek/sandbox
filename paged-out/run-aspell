@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+aspell --home-dir=. --personal=jargon.txt -t -c PO_BMS.tex

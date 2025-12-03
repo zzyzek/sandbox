@@ -20,8 +20,8 @@
 \author{Z. Zzyzek}
 
 \makeatletter
-\newcommand{\fsize}{\f@size pt }
-%\newcommand{\fsize}{\f9 pt }
+%\newcommand{\fsize}{\f@size pt }
+\newcommand{\fsize}{\f9 pt }
 \newcommand{\textFontName}{\f@family}
 \renewcommand{\maketitle}{
 \begin{flushleft}
@@ -57,12 +57,12 @@ Once a tile has been chosen, neighboring tiles might not have any valid neighbor
 so can be removed from consideration.
 Once this process is repeated until no more tiles can be removed, we're said to be in an \textit{Arc Consistent} state.
 
-We proceed in rounds, fixing tiles then propagating constraints until arc consistency,
-until a complete solution is found or a contradiction is encountered.
+We proceed in rounds, where each round fixes a tile and then propagates constraints until arc consistency.
+Rounds are continued until a complete solution is found or a contradiction is encountered.
 If a contradiction is encountered, BMS stochastically backtracks to attempt to recover.
 
-BMS tries to recover by choosing a small region, $R$, near the contradiction point and
-then ``softening'' it by reverting the region back to a beginning state.
+To stochastically backtrack, BMS chooses a small region, $R$, near the contradiction point and
+then ``softens'' it by reverting the region back to a beginning state.
 Here, the beginning configuration, $P$, is the state after initial
 setup constraints and initial constraint propagation has been done but before the search has started.
 
@@ -77,7 +77,7 @@ region around the contradiction point.
 
 The backtracking by localized reversion works well for tile constraints that have local correlations.
 For constraints that have long range implications, BMS can have difficulty finding full resolutions.
-CBTG algorithms of this flavor all have similar problems as they are mostly local solvers without taking
+CBTG algorithms of this flavor, such as WFC, all have similar problems as they are mostly local solvers without taking
 into account longer range correlations.
 
 
@@ -128,9 +128,7 @@ BreakoutModelSynthesis(block B) {
   \label{fig:minirogue}
 \end{figure}
 
-
-The Breakout Model Synthesis algorithm was introduced in Hoetzlein's \textit{just\_math} project.
-The WFC algorithm was developed by Gumin, based on the more general algorithm by Merrell called \textit{Modify in Blocks Model Synthesis}.
-
+BMS was introduced in Hoetzlein's \textit{just\_math} project.
+WFC was developed by Gumin, based on the more general algorithm by Merrell called \textit{Modify in Blocks Model Synthesis}.
 
 \end{document}
