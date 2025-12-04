@@ -1,14 +1,22 @@
-personal_ws-1.1 en 13 
+personal_ws-1.1 en 21 
 BMS
 BreakoutModelSynthesis
 CBTG
 Gumin
 Hoetzlein's
 Init
+Kingel
+LUNARSIGNALS
 Merrell
+Metroidvania
+Minirogue
+Overworld
+RPG
+Saltsman
 WFC
 Zzyzek
 emph
 emphstyle
 stochastically
 subregion
+tilesets

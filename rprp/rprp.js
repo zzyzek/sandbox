@@ -2614,9 +2614,11 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
 
   //
   //  5    6    7
-  //     2---3
-  //  4  |   |  0
-  //     1---0
+  //     2->-3
+  //     |   |
+  //  4  ^   v  0
+  //     |   |
+  //     1-<-0
   //  3    2    1
   //
   let Rg = [
@@ -2673,6 +2675,11 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
    
     let max_iter = Math.max( X.length, Y.length ),
         iter = 0;
+
+
+    // cur_b holds *end* of border
+    // nxt_b holds *Beginning* of next border
+    //
 
     let cur_b = b0;
     while ( wrapped_range_contain(cur_b, b0, b1) &&

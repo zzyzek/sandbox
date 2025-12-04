@@ -34,6 +34,7 @@
 
 \begin{document}
 \maketitle
+\vspace*{-1cm}
 
 %  \includegraphics[width=0.95\linewidth]{po_pm_48x48.pdf}
 
@@ -42,12 +43,13 @@
   \includegraphics[width=0.9\linewidth]{po_pm_run48x48.pdf}
   \label{fig:pillmortal}
 \end{figure}
+\vspace*{-0.4cm}
 
 %%% DEBUG
 %%% DEBUG
-\makeatletter
-\typeout{font fam: \f@family}
-\makeatother
+%\makeatletter
+%\typeout{font fam: \f@family}
+%\makeatother
 %%% DEBUG
 %%% DEBUG
 
@@ -128,14 +130,37 @@ BreakoutModelSynthesis(block B) {
   return B
 }
 \end{lstlisting}
+\vspace*{-0.5cm}
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.95\linewidth]{po_montage.pdf}
   \label{fig:minirogue}
 \end{figure}
+\vspace*{-0.25cm}
+
+
+%\newcommand\blfootnote[1]{%
+%  \begingroup
+%  \renewcommand\thefootnote{}\footnote{#1}%
+%  \addtocounter{footnote}{-1}%
+%  \endgroup
+%}
 
 BMS was introduced in Hoetzlein's \textit{just\_math} project.
 WFC was developed by Gumin, based on the more general algorithm by Merrell called \textit{Modify in Blocks Model Synthesis}.
+
+The tilesets used for the above runs are:
+\textit{Pill Mortal} (CC0),
+\textit{1985} by Adam Saltsman (public domain),
+\textit{Overhead Action RPG Overworld} by LUNARSIGNALS (CC-BY-SA3.0),
+\textit{Minirogue} by Kingel (CC-BY-SA4.0),
+\textit{Two Bit Micro Metroidvania} by 0x72 (CC0).
+
+%The \textit{Overhead Action RPG Overworld} tileset by LUNARSIGNALS (CC-BY-SA3.0) and the \textit{Minirogue} tileset by Kingel (CC-BY-SA4.0).
+%The \textit{1985} tileset by Adam Saltsman is public domain and the \textit{Two Bit Micro Metroidvania} tileset is CC0 by 0x72.
+
+%\blfootnote{ \tiny \textit{Overhead Action RPG Overworld} tileset by LUNARSIGNALS (CC-BY-SA3.0) and \textit{Two Bit Micro Metroidvania} tileset by Kingel (CC-BY-SA4.0)}
+%{\tiny \textit{Overhead Action RPG Overworld} tileset by LUNARSIGNALS (CC-BY-SA3.0) and \textit{Two Bit Micro Metroidvania} tileset by Kingel (CC-BY-SA4.0)}
 
 \end{document}
