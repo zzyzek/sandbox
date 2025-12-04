@@ -1,7 +1,9 @@
 Submission for Paged Out
 ===
 
-* [Breakout Model Synthesis (PDF)](https://github.com/zzyzek/sandbox/blob/main/paged-out/PO_BMS.pdf)
+![Breakout Model Synthesis (PDF)](po_bms.jpg)
+
+[Breakout Model Synthesis (PDF)](https://github.com/zzyzek/sandbox/blob/main/paged-out/PO_BMS.pdf)
 
 [Paged Out](https://pagedout.institute/) is an online technical magazine that published short (one-page)
 articles in a magazine like format (PDF).
@@ -24,6 +26,12 @@ To check spelling:
 ```
 
 Note the presence of a `jargon.txt` file.
+
+For the hack to create a jpg from pdf:
+
+```
+pdftoppm -jpeg -r 300 PO_BMS.pdf po_bms
+```
 
 Notes
 ---
