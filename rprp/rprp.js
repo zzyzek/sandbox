@@ -2645,9 +2645,39 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
 
     console.log("\nr_idx:", r_idx, "u:", u, "v:", v);
 
+    // b0 start of pit
+    // b1 end of pit
+    //
+    // b0 and b1 denote start and end of sequence.
+    // At each point in the iteration, we want to
+    // add a cut segment which we'll do by
+    // adding the current boundary point and the next
+    // one.
+    // After addition, current will be set to next
+    // then jumped forward until b1 is reached.
+    //
+
     let b1 = Bij[ u[1] ][ u[0] ];
     if (b1 < 0) {
+      let w = v_add( u, v_mul( Jf[idir][ u[1] ][ u[0] ], idir_ij[idir] ) );
+      let _d = dot_v( v_sub( v, w ), idir_ij[idir] );
 
+      console.log("  _d1:", _d, "v-w:", v_sub(v,w), "idir[", idir, "]:", idir_ij[idir]);
+
+      if (_d < 0) { continue; }
+      b1 = Bij[ w[1] ][ w[0] ];
+    }
+
+    let b1_ij = B[b1];
+    b1_ij = v_add( b1_ij, v_mul( Jf[idir][ b1_ij[1] ][ b1_ij[0] ], idir_ij[idir] ) );
+    b1 = Bij[ b1_ij[1] ][ b1_ij[0] ];
+
+    /*
+    if (b1 >= 0) {
+
+      // Skip to transition point (towards next Rg point).
+      // If we've skipped past it, nothing to be done.
+      //
       let w = v_add( u, v_mul( Jf[idir][ u[1] ][ u[0] ], idir_ij[idir] ) );
 
       let _d = dot_v( v_sub( v, w ), idir_ij[idir] );
@@ -2657,7 +2687,13 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
       if (_d < 0) { continue; }
       b1 = Bij[ w[1] ][ w[0] ];
     }
+    */
 
+    // If b0 isn't already on a border,
+    // skip ahead to border.
+    // Once on the border, skip ahead to transition
+    // point for start of iteration.
+    //
     let b0 = Bij[ v[1] ][ v[0] ];
     if (b0 < 0) {
 
@@ -2670,8 +2706,11 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
       b0 = Bij[ w[1] ][ w[0] ];
     }
 
-    console.log("r_idx:", r_idx, "b0:", b0, "b1:", b1);
+    let b0_ij = B[b0];
+    b0_ij = v_add( b0_ij, v_mul( Jf[rdir][ b0_ij[1] ][ b0_ij[0] ], idir_ij[rdir] ) );
+    b0 = Bij[ b0_ij[1] ][ b0_ij[0] ];
 
+    console.log("r_idx:", r_idx, "b0:", b0, "b1:", b1);
    
     let max_iter = Math.max( X.length, Y.length ),
         iter = 0;
@@ -2681,11 +2720,45 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
     // nxt_b holds *Beginning* of next border
     //
 
+    //let b1_ij = B[b1];
+
     let cur_b = b0;
     while ( wrapped_range_contain(cur_b, b0, b1) &&
             (cur_b != b1) ) {
 
       let _g = B[ cur_b ];
+      let _h = v_add( _g, idir_ij[rdir] );
+      if ( (_h[0] < 0) || (_h[1] < 0) ||
+           (_h[0] >= X.length) || (_h[1] >= Y.length) ) {
+        break;
+      }
+
+      if (Bij[ _h[1] ][ _h[0] ] < 0) {
+        _h = v_add( _h, v_mul( Jf[rdir][ _h[1] ][ _h[0] ], idir_ij[rdir] ) );
+      }
+
+      let _d = dot_v( v_sub( b1_ij, _h ), idir_ij[rdir] );
+      if (_d < 0) { break; }
+
+      let nxt_b = Bij[ _h[1] ][ _h[0] ];
+
+
+      console.log("[", r_idx, "]: adding perim", cur_b, nxt_b);
+
+      perim_range.push( [cur_b, nxt_b] );
+
+      _g = v_add( B[ nxt_b ], v_mul( Jf[rdir][ _h[1] ][ _h[0] ], idir_ij[rdir] ) );
+      cur_b = Bij[ _g[1] ][ _g[0] ];
+
+      iter++;
+      if (iter >  max_iter) {
+        console.log("SANITY ERROR: quarry_edge_ranges, exceeded max_iter:", iter, ">", max_iter );
+        return undefined;
+      }
+
+      continue;
+
+      /*
 
       let _dj = Jf[rdir][ _g[1] ][ _g[0] ];
 
@@ -2714,7 +2787,6 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
         _h = v_add( _g, v_mul( _dj, idir_ij[rdir] ) );
       }
 
-
       console.log("_h:", _h, "cur_b:", cur_b, "b0:", b0, "b1:", b1,
         "(dj:", _dj, ", Jf[", rdir, "][", _g[1], "][", _g[0], "]:", Jf[rdir][ _g[1] ][ _g[0] ], ")");
 
@@ -2736,11 +2808,8 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
 
       cur_b = nxt_b;
 
-      iter++;
-      if (iter >  max_iter) {
-        console.log("SANITY ERROR: quarry_edge_ranges, exceeded max_iter:", iter, ">", max_iter );
-        return undefined;
-      }
+      */
+
     }
 
   }
