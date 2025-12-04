@@ -1,0 +1,31 @@
+#!/bin/bash
+
+poms="poms"
+
+s="48,48,1"
+q="$s"
+
+## viz_step=1 slows the run down significantly
+## but without it we can't get nice animations.
+##
+
+mkdir -p po-pm-slideshow
+
+$poms \
+  -C ./data/pillMortal_poms.json \
+  -s "$s" \
+  -q "$q" \
+  -b 1 \
+  -B 8,8,1 \
+  -J 10000 \
+  -w 1.0 \
+  -E -1.95 \
+  -1 ./po_pm_48x48.json \
+  -P min \
+  -O patch-policy=pending \
+  -O viz_step=1 \
+  -8 po-pm-slideshow/xxx.json \
+  -9 po-pm-slideshow/ \
+  -S 1337 \
+  -V 1
+

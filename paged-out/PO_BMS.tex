@@ -43,6 +43,13 @@
   \label{fig:pillmortal}
 \end{figure}
 
+%%% DEBUG
+%%% DEBUG
+\makeatletter
+\typeout{font fam: \f@family}
+\makeatother
+%%% DEBUG
+%%% DEBUG
 
 Breakout Model Synthesis (BMS) is a Constraint Based Tile Generator (CBTG) algorithm that attempts to
 find realizations of tile placements on a 2D or 3D grid given nearest neighbor tile constraints.
@@ -68,7 +75,7 @@ setup constraints and initial constraint propagation has been done but before th
 
 After softening, the algorithm proceeds as normal, continuing its attempt to find a resolution.
 To avoid getting into cycles, some level of user-defined randomness can be added as a meta parameter
-for tile resolution and soften region location choices.
+for tile resolution choice and locations for softened regions.
 
 With BMS, large configurations can be discovered with a minimum of setup.
 WFC suffers from contradiction sensitivity, needing to restart after a single contradiction has been encountered,
