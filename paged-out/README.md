@@ -1,12 +1,29 @@
 Submission for Paged Out
 ===
 
+* [Breakout Model Synthesis (PDF)](https://github.com/zzyzek/sandbox/blob/main/paged-out/PO_BMS.pdf)
+
 [Paged Out](https://pagedout.institute/) is an online technical magazine that published short (one-page)
 articles in a magazine like format (PDF).
 
 They have a general [call for pages](https://pagedout.institute/?page=cfp.php).
 
 This directory is my submission (2025-12-03).
+
+Compilation
+---
+
+```
+./cmp.sh
+```
+
+To check spelling:
+
+```
+./run-aspell
+```
+
+Note the presence of a `jargon.txt` file.
 
 Notes
 ---
