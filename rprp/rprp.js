@@ -3467,12 +3467,16 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
                                 [-1,-1] ]);
   }
 
+
+  let border_range = RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug);
+
   // one final check to make sure all partition ranges have been
   // accounted for.
   //
   let idx_range = [];
   let fin_corner_idx = [];
   
+  console.log("seab:", JSON.stringify([g_s, g_e, g_a,g_b]));
 
   // no, this won't work
   // fence ranges will include docked borders, which get passed over
@@ -3493,7 +3497,14 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
       _range.push( [corner_cut_batch[i][0], corner_cut_batch[i][1] ] );
     }
 
+    for (let i=0; i<border_range.length; i++) {
+      _range.push( [border_range[i][0], border_range[i][1]] );
+    }
+
     _range.sort( _cleave_cmp );
+
+    console.log("  sched_idx:", sched_idx, "_range:", JSON.stringify(_range));
+
 
     let _range_valid = true;
     let se_found = [ false, false ];
@@ -3532,7 +3543,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   }
 
   for (let i=0; i<fin_corner_idx.length; i++) {
-    quarry_info.corner_cuts.push( candidate_corner_cuts[ find_corner_idx[i] ] );
+    quarry_info.corner_cuts.push( candidate_corner_cuts[ fin_corner_idx[i] ] );
   }
 
   quarry_info.valid = 1;
@@ -4372,9 +4383,19 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
 
     let qi = RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug);
     if (qi.valid == 0) {
+
+      if (_debug > 1) {
+        console.log( _pfx, "skip [", JSON.stringify(g_a), JSON.stringify(g_b), "]");
+      }
+
       _dbg_mirp_quarry_skip(_debug, _pfx, g_s, g_e, g_a, g_b, qi.comment);
       continue;
     }
+
+        if (_debug > 1) {
+          console.log( _pfx, "considering quarry: [", JSON.stringify(g_a), JSON.stringify(g_b), "]");
+        }
+
 
     let a_pnt = Gxy[ Gij[ g_a[1] ][ g_a[0] ] ];
     let b_pnt = Gxy[ Gij[ g_b[1] ][ g_b[0] ] ];
@@ -4575,7 +4596,7 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
 
       let key = RPRP_DP_idx(ctx, B[p[0]], B[p[1]], p[2]);
 
-      console.log("???", key);
+      console.log("???", key, ctx.DP_partition);
 
       let one_cut = ctx.DP_partition[key][0];
       let two_cut = ctx.DP_partition[key][1];

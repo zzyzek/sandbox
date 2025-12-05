@@ -1,6 +1,18 @@
 TODO
 ===
 
+###### 2025-12-05
+
+* still need DP viz but we need a working alg first
+* currently `data/mirp_err.json` is failing
+  - I think it's due to imporoper checking of
+    valid quarry rectangle side partition ranges
+    being valid (I know there's an error there, and
+    some edge cases that need to be handled)
+  - The base dp key is failing, I believe, so it
+    should be looked into more
+
+
 ###### 2025-11-25
 
 * visualization of DP array
