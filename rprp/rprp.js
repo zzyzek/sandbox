@@ -2594,7 +2594,199 @@ function RPRPQuarryCleaveCuts(ctx, g_s, g_e, g_a, g_b, _debug) {
 //WIP!!!
 //UNTESTED!!!
 
+// enumerate *docked* border edges to quarry edge by border index pairs
+//
 function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
+  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+
+  let X = ctx.X,
+      Y = ctx.Y,
+      Gij = ctx.Gij,
+      B = ctx.B,
+      Bij = ctx.Bij,
+      Js = ctx.Js,
+      Je = ctx.Je,
+      Jf = ctx.Jf;
+
+  if ( (typeof g_s === "undefined") ||
+       (typeof g_e === "undefined") ) {
+    g_s = B[0];
+    g_e = B[0];
+  }
+
+  //
+  //  5    6    7
+  //     2->-3
+  //     |   |
+  //  4  ^   v  0
+  //     |   |
+  //     1-<-0
+  //  3    2    1
+  //
+  let Rg = [
+    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
+    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
+    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
+  ];
+
+  let oppo_idir = [ 1,0, 3,2 ];
+
+  let r_edge_idir = [1,2,0,3];
+  let idir_ij = [ [1,0], [-1,0], [0,1], [0,-1] ];
+
+  let perim_range = [];
+
+  for (let r_idx=0; r_idx<4; r_idx++) {
+    let r_nxt = (r_idx+1)%4;
+    let idir = r_edge_idir[r_idx];
+    let rdir = oppo_idir[idir];
+
+    let u = Rg[r_idx];
+    let v = Rg[r_nxt];
+
+    console.log("\nr_idx:", r_idx, "u:", u, "v:", v);
+
+    // b0 start of pit
+    // b1 end of pit
+    //
+
+    // We're enumerating docked border edges to quarry rectangle.
+    // b1 represents the *last* grid point on a border for this
+    // edge,
+    // b0 represents the *first* grid point on a border for
+    // this edge
+
+    let b1 = Bij[ u[1] ][ u[0] ];
+    if (b1 < 0) {
+      let w = v_add( u, v_mul( Jf[idir][ u[1] ][ u[0] ], idir_ij[idir] ) );
+      let _d = dot_v( v_sub( v, w ), idir_ij[idir] );
+
+      console.log("  _d1:", _d, "v-w:", v_sub(v,w), "idir[", idir, "]:", idir_ij[idir]);
+
+      if (_d < 0) { continue; }
+      b1 = Bij[ w[1] ][ w[0] ];
+    }
+    let b1_ij = B[b1];
+
+    // If b0 isn't already on a border,
+    // skip ahead to border.
+    // Once on the border, skip ahead to transition
+    // point for start of iteration.
+    //
+    let b0 = Bij[ v[1] ][ v[0] ];
+    if (b0 < 0) {
+
+      let w = v_add( v, v_mul( Jf[rdir][ v[1] ][ v[0] ], idir_ij[rdir] ) );
+      let _d = dot_v( v_sub( u, w ), idir_ij[rdir] );
+
+      console.log("  _d0:", _d, "u-w:", v_sub(u,w), "rdir[", rdir, "]:", idir_ij[rdir]);
+
+      if (_d < 0) { continue; }
+      b0 = Bij[ w[1] ][ w[0] ];
+    }
+    let b0_ij = B[b0];
+
+    console.log("r_idx:", r_idx, "b0:", b0, "b1:", b1);
+   
+    let max_iter = Math.max( X.length, Y.length ),
+        iter = 0;
+
+    let cur_b = b0;
+    while ( wrapped_range_contain(cur_b, b0, b1) &&
+            (cur_b != b1) ) {
+
+      let _g = B[ cur_b ];
+
+
+      // record flip distance to next transition,
+      // add it to create _h (if 0, _h will just be _g),
+      // and get the next border index point
+      //
+      let _dj = Jf[ rdir ][ _g[1] ][ _g[0] ];
+      let _h = v_add( _g, v_mul( _dj, idir_ij[rdir] ) );
+      let nxt_b = Bij[ _h[1] ][ _h[0] ];
+
+      if (_debug) {
+        console.log("  r_idx:", r_idx, "_g:", JSON.stringify(_g), "cur_b:", cur_b, "dj[", rdir, "]:", _dj);
+      }
+
+
+      // if the flip extands past the quarry corner, clamp
+      // nxt_b to b1, re-use _d below to indicate termination
+      //
+      let _d = dot_v( v_sub( b1_ij, _h ), idir_ij[rdir] );
+      if (_d < 0) { nxt_b = b1; }
+
+      // Make sure to add non-trivial dock ranges and, if so,
+      // add our range.
+      // Break if we've shot past
+      //
+      if (cur_b != nxt_b) {
+
+        if (_debug) {
+          console.log("  perim:", cur_b, nxt_b);
+        }
+
+        perim_range.push( [cur_b, nxt_b] );
+      }
+      if (_d < 0) { break; }
+
+      // increment, check oob
+      //
+      _h = v_add( _h, idir_ij[rdir] );
+      if ( (_h[0] < 0) || (_h[1] < 0) ||
+           (_h[0] >= X.length) || (_h[1] >= Y.length) ) {
+        break;
+      }
+      nxt_b = Bij[ _h[1] ][ _h[0] ];
+
+      // advance to first border point
+      //
+      if (Bij[ _h[1] ][ _h[0] ] < 0) {
+        let _dhj = Jf[rdir][ _h[1] ][ _h[0] ];
+        _h = v_add( _h, v_mul( _dhj, idir_ij[rdir] ) );
+        nxt_b = Bij[ _h[1] ][ _h[0] ];
+
+        if (_debug) {
+          console.log("  ##advance h>>:", JSON.stringify(_h), "nxt_b:", nxt_b, "(_dhj:", _dhj, ")");
+        }
+
+      }
+
+      cur_b = nxt_b;
+
+      iter++;
+      if (iter >  max_iter) {
+        console.log("SANITY ERROR: quarry_edge_ranges, exceeded max_iter:", iter, ">", max_iter );
+        return undefined;
+      }
+
+      continue;
+
+    }
+
+  }
+
+  if (perim_range.length == 0) { return []; }
+
+  perim_range.sort( _cleave_cmp );
+  let merged_perim = [ [perim_range[0][0], perim_range[0][1]] ];
+  for (let i=1; i<perim_range.length; i++) {
+    if (perim_range[i][0] == perim_range[i-1][1]) {
+      merged_perim[ merged_perim.length-1 ][1] = perim_range[i][1];
+    }
+    else {
+      merged_perim.push( [perim_range[i][0], perim_range[i][1]] );
+    }
+    
+  }
+
+  return merged_perim;
+}
+
+
+function __RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
   let X = ctx.X,
@@ -5179,13 +5371,22 @@ async function _main_data(argv) {
     let ctx = RPRPInit(data_info.C);
     _print_rprp(ctx);
 
-    let r = RPRP_quarry_edge_ranges(ctx,
+    let res = RPRP_quarry_edge_ranges(ctx,
                                     data_info.g_a,
                                     data_info.g_b,
                                     data_info.g_s,
                                     data_info.g_e, _debug);
 
-    console.log(r);
+    if (_debug) { console.log(res); }
+
+    if (("expect" in data_info) &&
+        ("return" in data_info.expect)) {
+      let result_str = JSON.stringify(res);
+      let expect_str = JSON.stringify(data_info.expect.return);
+      if (result_str == expect_str) { console.log("pass"); }
+      else { console.log("FAIL: got:", result_str, "expect:", expect_str); }
+    }
+    return;
 
   }
 
