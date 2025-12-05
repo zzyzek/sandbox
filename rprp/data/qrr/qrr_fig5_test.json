@@ -12,6 +12,7 @@
   "g_a": [1,4],
   "g_b": [7,5],
 
-  "expect" : "?",
+  "debug": 1,
+  "expect" : { "return": [[4,5],[13,14],[25,33]] },
   "comment": "figure 5 from Ahn et al. This highlights their so-called '1R' case "
 }

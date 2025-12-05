@@ -183,6 +183,21 @@ function a2pgn(p, _px_origin, _gs) {
 //---
 //---
 
+function ui_cb(_cb) {
+
+  let ele_id = "ui_cb_" + _cb;
+  let ele = document.getElementById(ele_id);
+  let tf = ele.checked;
+
+  if      (_cb == "xy") { g_ui.viz_opt.show_xy = tf; }
+  else if (_cb == "ij") { g_ui.viz_opt.show_ij = tf; }
+  else if (_cb == "B")  { g_ui.viz_opt.show_B = tf; }
+  else if (_cb == "J")  { g_ui.viz_opt.show_Js = tf; }
+
+  redraw();
+
+}
+
 function ui_mode(_mode) {
   if (_mode == "save") {
     update_textarea(true);
