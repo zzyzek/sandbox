@@ -357,7 +357,7 @@ function _draw_rprp_partition() {
     "fill": col_B,
     "size": 7
   };
-  let _dashes = [4,4];
+  let _dashes = [5,5];
 
   let _oxy = [px_pgn[0][0], px_pgn[0][1]];
   for (let i=1; i<px_pgn.length; i++) {
@@ -371,7 +371,6 @@ function _draw_rprp_partition() {
     let b_s = partition[p_idx][0];
     let b_e = partition[p_idx][1];
     let g_a = partition[p_idx][2];
-
 
     let bs_xy = [
       Bxy[b_s][0]*gs + _oxy[0],
@@ -390,20 +389,27 @@ function _draw_rprp_partition() {
      -p_a[1]*gs + _oxy[1]
     ];
 
+    // consistent dash ordering
+    //
+    let p0 = _min_max_point(bs_xy, ga_xy);
+    let p1 = _min_max_point(ga_xy, be_xy);
+
 
     let lv0 = two.makeLine(
-      bs_xy[0], bs_xy[1],
-      ga_xy[0], ga_xy[1]
+      p0[0][0], p0[0][1],
+      p0[1][0], p0[1][1]
     );
     lv0.dashes = _dashes;
     lv0.linewidth = 2;
+    //lv0.opacity = 0.45;
 
     let lv1 = two.makeLine(
-      ga_xy[0], ga_xy[1],
-      be_xy[0], be_xy[1]
+      p1[0][0], p1[0][1],
+      p1[1][0], p1[1][1]
     );
     lv1.dashes = _dashes;
     lv1.linewidth = 2;
+    //lv1.opacity = 0.45;
 
 
     //let _tb = two.makeText( b_idx.toString(), bxy[0] + 7, bxy[1] + 5, _B_style );
@@ -411,6 +417,13 @@ function _draw_rprp_partition() {
 
 
 
+}
+
+function _min_max_point(a,b) {
+  return [
+    [ Math.min(a[0], b[0]), Math.min(a[1], b[1]) ],
+    [ Math.max(a[0], b[0]), Math.max(a[1], b[1]) ]
+  ];
 }
 
 

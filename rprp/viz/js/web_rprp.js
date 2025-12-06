@@ -6683,7 +6683,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   */
 
 
-  console.log("border_range:", JSON.stringify(border_range));
+  //console.log("border_range:", JSON.stringify(border_range));
 
   // one final check to make sure all partition ranges have been
   // accounted for.
@@ -6755,7 +6755,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
 
     if ( (!_range_valid) || (_range.length==0) ) {
 
-      console.log("_range invalid:", JSON.stringify(_range));
+      //console.log("_range invalid:", JSON.stringify(_range));
 
       continue;
     }
@@ -6780,7 +6780,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
       }
     }
     else {
-      console.log("NOT adding sched_idx:", sched_idx, "(fin_range:", JSON.stringify(_fin_range), ")");
+      //console.log("NOT adding sched_idx:", sched_idx, "(fin_range:", JSON.stringify(_fin_range), ")");
     }
 
 
@@ -6792,6 +6792,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   if (!_found_partition) {
 
 
+    /*
     //DEBUG
     //DEBUG
     //DEBUG
@@ -6799,10 +6800,10 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     console.log("  >>> cleave_profile:", cleave_profile.join(""));
     console.log("  >>> cleave_choices:", JSON.stringify(cleave_choices));
     console.log("  >>> side_cleave_cuts:", side_cleave_cuts);
-
     //DEBUG
     //DEBUG
     //DEBUG
+    */
 
     quarry_info.comment = "no valid cuts";
     return quarry_info;
@@ -7770,7 +7771,7 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
         let _min_one_cut_cost = -1;
         let candidate_adit = RPRP_enumerate_one_cut_adit_points(ctx, _g_s, _g_e, _debug);
 
-        console.log(">>> candidate_adit:", JSON.stringify(candidate_adit));
+        //console.log(">>> candidate_adit:", JSON.stringify(candidate_adit));
 
         for (let adit_idx=0; adit_idx < candidate_adit.length; adit_idx++) {
 
@@ -7891,6 +7892,8 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
     }
 
     ctx["partition"] = plist;
+
+    /*
     console.log("===============================");
     console.log("===============================");
     console.log("===============================");
@@ -7902,6 +7905,8 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
     console.log("===============================");
     console.log("===============================");
     console.log("===============================");
+    */
+
   }
 
   return _min_cost;
