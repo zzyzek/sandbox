@@ -5441,6 +5441,52 @@ function _main_mirp_test() {
   //console.log(">>> 6,0", RPRP_point_in_region( ctx_2, [6,0], [8,1], [7,2], [7,1]  ));
 }
 
+//----
+//----
+//----
+
+function _irnd(a,b) {
+  if (typeof a === "undefined") {
+    return Math.floor(Math.random()*2);
+  }
+
+  if (typeof b === "undefined") {
+    return Math.floor(Math.random()*a);
+  }
+
+  return Math.floor(a + ((b-a)*Math.random()));
+}
+
+function random_rprp(n_it) {
+  n_it = ((typeof n_it === "undefined") ? 1 : n_it);
+  if (n_it <= 0) { n_it = 1; }
+
+  let W = 10;
+  let H = 10;
+
+  let nX = 30,
+      nY = 30;
+
+  let sgg = [];
+  for (let j=0; j<nY; j++) {
+    sgg.push([]);
+    for (let i=0; i<nX; i++) { sgg[j].push(-1); }
+  }
+
+  for (let it=0; it<n_it; it++) {
+
+    let w = _irnd(1,W);
+    let h = _irnd(1,H);
+
+
+  }
+
+}
+
+function _main_rand(argv) {
+  console.log(random_rprp(10));
+}
+
 
 //       ___ 
 //  ____/ (_)
@@ -5582,6 +5628,7 @@ if ((typeof require !== "undefined") &&
 
   else if (op == "cli") { _main_cli(process.argv.slice(3)); }
   else if (op == "data") { _main_data(process.argv.slice(3)); }
+  else if (op == "rand") { _main_rand(process.argv.slice(3)); }
 
   else if (op == 'custom')  { _main_custom(); }
   else if (op == 'custom.1')  { _main_custom_1(); }

@@ -192,7 +192,7 @@ function ui_cb(_cb) {
   if      (_cb == "xy") { g_ui.viz_opt.show_xy = tf; }
   else if (_cb == "ij") { g_ui.viz_opt.show_ij = tf; }
   else if (_cb == "B")  { g_ui.viz_opt.show_B = tf; }
-  else if (_cb == "J")  { g_ui.viz_opt.show_Js = tf; }
+  else if (_cb == "Js")  { g_ui.viz_opt.show_Js = tf; }
 
   redraw();
 
@@ -365,12 +365,19 @@ function _draw_rprp_partition() {
     _oxy[1] = Math.max( _oxy[1], px_pgn[i][1] );
   }
 
+  console.log(">>>", partition);
+  for (let i=0; i<partition.length; i++) {
+    console.log(JSON.stringify(partition[i]));
+  }
 
   for (let p_idx=0; p_idx < partition.length; p_idx++) {
 
     let b_s = partition[p_idx][0];
     let b_e = partition[p_idx][1];
     let g_a = partition[p_idx][2];
+
+    let g_s = B[b_s];
+    let g_e = B[b_e];
 
     let bs_xy = [
       Bxy[b_s][0]*gs + _oxy[0],
@@ -381,6 +388,26 @@ function _draw_rprp_partition() {
       Bxy[b_e][0]*gs + _oxy[0],
      -Bxy[b_e][1]*gs + _oxy[1]
     ];
+
+    // starting point, skip
+    //
+    if ((g_s[0] == g_e[0]) &&
+        (g_s[1] == g_e[1])) { continue; }
+
+
+    // one-cut
+    //
+    if ((g_s[0] == g_e[0]) ||
+        (g_s[1] == g_e[1])) {
+      let q = _min_max_point(bs_xy, be_xy);
+      let _l = two.makeLine(
+        q[0][0], q[0][1],
+        q[1][0], q[1][1]
+      );
+      _l.dashes = _dashes;
+      _l.linewidth = 2;
+      continue;
+    }
 
     let p_a = Gxy[ Gij[g_a[1]][g_a[0]] ];
 
@@ -1669,8 +1696,20 @@ function __dl() {
 
 }
 
+function init_grid_cb() {
+  let name = [ "xy", "ij", "B", "Js" ];
+
+  for (let i=0; i<name.length; i++) {
+    let ele_id = "ui_cb_" + name[i];
+    let ele = document.getElementById(ele_id);
+    g_ui.viz_opt["show_" + name[i]] = ele.checked;
+  }
+
+
+}
 
 function webinit() {
   init_two();
+  init_grid_cb();
   redraw();
 }
