@@ -57,6 +57,12 @@
 var fasslib = require("./fasslib.js");
 var fw = require("./4w.js");
 
+//FOR TESTING, PLEASE DON'T KEEP IN FINAL VERSION
+//
+var clip = require("./clipper.js");
+//
+//FOR TESTING, PLEASE DON'T KEEP IN FINAL VERSION
+
 var norm2_v = fasslib.norm2_v;
 var v_sub = fasslib.v_sub;
 var v_add = fasslib.v_add;
