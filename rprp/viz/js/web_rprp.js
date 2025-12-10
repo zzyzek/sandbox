@@ -4417,7 +4417,7 @@ function RPRPInit(_rl_pgon, _debug) {
 
     }
 
-    
+
   }
 
   if (_debug) {
@@ -5240,7 +5240,7 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
     if (quarry_point_type[r_idx] == 'c') {
 
       if (_debug > 2) { console.log("#vc.skip.2 (qpt[", r_idx , "] =", quarry_point_type[r_idx], ")"); }
- 
+
       continue;
     }
 
@@ -5857,7 +5857,7 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
     if (_debug > 2) {
       console.log("r_idx:", r_idx, "b0:", b0, "b1:", b1);
     }
-   
+
     let max_iter = Math.max( X.length, Y.length ),
         iter = 0;
 
@@ -5881,11 +5881,11 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
       }
 
 
-      // if the flip extands past the quarry corner, clamp
+      // if the flip extends past the quarry corner, clamp
       // nxt_b to b1, re-use _d below to indicate termination
       //
       let _d = dot_v( v_sub( b1_ij, _h ), idir_ij[rdir] );
-      if (_d < 0) { nxt_b = b1; }
+      if (_d <= 0) { nxt_b = b1; }
 
       // Make sure to add non-trivial dock ranges and, if so,
       // add our range.
@@ -5899,7 +5899,7 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
 
         perim_range.push( [cur_b, nxt_b] );
       }
-      if (_d < 0) { break; }
+      if (_d <= 0) { break; }
 
       // increment, check oob
       //
@@ -5912,7 +5912,8 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
 
       // advance to first border point
       //
-      if (Bij[ _h[1] ][ _h[0] ] < 0) {
+      //if (Bij[ _h[1] ][ _h[0] ] < 0) {
+      if (nxt_b  < 0) {
         let _dhj = Jf[rdir][ _h[1] ][ _h[0] ];
         _h = v_add( _h, v_mul( _dhj, idir_ij[rdir] ) );
         nxt_b = Bij[ _h[1] ][ _h[0] ];
@@ -5948,7 +5949,7 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
     else {
       merged_perim.push( [perim_range[i][0], perim_range[i][1]] );
     }
-    
+
   }
 
   return merged_perim;
@@ -6072,7 +6073,7 @@ function __RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
     b0 = Bij[ b0_ij[1] ][ b0_ij[0] ];
 
     console.log("r_idx:", r_idx, "b0:", b0, "b1:", b1);
-   
+
     let max_iter = Math.max( X.length, Y.length ),
         iter = 0;
 
@@ -6651,6 +6652,10 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   let border_range = RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug);
   border_range.push( [idx_e, idx_s] );
 
+  if (_debug > 1) {
+    console.log("raw border_range:", JSON.stringify(border_range));
+  }
+
   // consolidate/merge border ranges
   //
   let _tmp_br = [ [ border_range[0][0], border_range[0][1] ] ];
@@ -6690,7 +6695,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   //
   let idx_range = [];
   let fin_corner_idx = [];
-  
+
   if (_debug > 1) {
     console.log("seab:", JSON.stringify([g_s, g_e, g_a,g_b]));
   }
@@ -6792,7 +6797,6 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   if (!_found_partition) {
 
 
-    /*
     //DEBUG
     //DEBUG
     //DEBUG
@@ -6803,7 +6807,6 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     //DEBUG
     //DEBUG
     //DEBUG
-    */
 
     quarry_info.comment = "no valid cuts";
     return quarry_info;
@@ -7045,7 +7048,7 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
             wrapped_range_contain( b_idx_prv, s_idx, e_idx ) ) {
           guillotine_list.push( [b_idx_nxt, b_idx_prv] );
 
-          if (_debug) {
+          if (_debug > 1) {
             console.log("  qsr.ADD(guillotine):", b_idx_nxt, b_idx_prv, "(se:", s_idx, e_idx,
               "contain(i,e,s):",
               wrapped_range_contain( b_idx_nxt, e_idx, s_idx ),
@@ -7114,7 +7117,7 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a, _debug) {
   }
 
   if (typeof g_s === "undefined") {
- 
+
     if (_debug > 2) { console.log("#pir.1 t"); }
 
     return 1;
@@ -7355,7 +7358,7 @@ function RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b) {
   }
 
   let cleave_profile = RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b);
-  
+
   if ((cleave_profile[0] == 'b') && (cleave_profile[7] == 'b')) { return 0; }
   if ((cleave_profile[1] == 'b') && (cleave_profile[2] == 'b')) { return 0; }
   if ((cleave_profile[3] == 'b') && (cleave_profile[4] == 'b')) { return 0; }
@@ -7378,7 +7381,7 @@ function RPRP_DPidx2b(ctx, dp_idx) {
   _idx = Math.floor( _idx / n );
 
   let idx_e = _idx % n;
-  
+
   return [ idx_s, idx_e, t ];
 }
 
@@ -7532,7 +7535,7 @@ function RPRP_candidate_bower(ctx, g_s, g_e, g_a, _debug) {
       candidate_bower.push([i,j]);
     }
   }
-  
+
   return candidate_bower;
 }
 
@@ -7573,7 +7576,15 @@ function _dbg_mirp_quarry_info(_debug, _pfx, lvl, g_s, g_e, g_a, g_b, qi, a_pnt,
     console.log( _pfx, "considering:", "(g_s:", g_s, "g_e:", g_e, "g_a:", g_a, "g_b:", g_b, ")",
       "(#side:", qi.side_cut.length, "#corner:", qi.corner_cuts.length, ")");
     console.log( _pfx, "side_cut:", JSON.stringify(qi.side_cut));
-    console.log( _pfx, "corner_cuts:", JSON.stringify(qi.corner_cuts));
+
+    let cc_a = [];
+    for (let i=0; i<qi.corner_cuts.length; i++) {
+      cc_a.push( JSON.stringify(qi.corner_cuts[i]) );
+    }
+
+    //console.log( _pfx, "corner_cuts:", JSON.stringify(qi.corner_cuts));
+    console.log( _pfx, "corner_cuts:", cc_a.join(" "));
+
     console.log( _pfx, "mirp." + lvl.toString(),
       "ink:", quarry_rect_cost, _Ink(a_pnt, b_pnt), "(g_ab:", g_a, g_b, "ab_pnt:", a_pnt, b_pnt, ")");
   }
@@ -7651,9 +7662,7 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
     let qi = RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug);
     if (qi.valid == 0) {
 
-      if (_debug) {
-        console.log( _pfx, "skip [", JSON.stringify(g_a), JSON.stringify(g_b), "]", "(", qi.comment, ")");
-      }
+      if (_debug) { console.log( _pfx, "skip [", JSON.stringify(g_a), JSON.stringify(g_b), "]", "(", qi.comment, ")"); }
 
       _dbg_mirp_quarry_skip(_debug, _pfx, g_s, g_e, g_a, g_b, qi.comment);
       continue;
@@ -7681,6 +7690,10 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       let one_cut = qi.side_cut[sched_idx];
 
       let candidate_adit = RPRP_enumerate_one_cut_adit_points(ctx, B[one_cut[0]], B[one_cut[1]], _debug);
+
+      if (_debug) {
+        console.log( _pfx, "adit:", JSON.stringify(candidate_adit));
+      }
 
       let _min_idx = -1;
       let _min_g_a = [-1,-1];
@@ -7713,12 +7726,11 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
             "one_cut_cost:", one_cut_cost, "min_idx:", _min_idx, "g_a:", JSON.stringify(_min_g_a) );
         }
 
-
       }
 
       //ERROR
       if (_min_idx < 0) {
-        _ERROR("MIRP" + lvl.toString() + ": no valid side one cut found: " +
+        _ERROR("MIRP." + lvl.toString() + ": no valid side one cut found: " +
                "sched[" + sched_idx.toString() + "]: " + JSON.stringify(qi.side_cut[sched_idx]));
         return -1;
       }
@@ -8601,6 +8613,52 @@ function _main_mirp_test() {
   //console.log(">>> 6,0", RPRP_point_in_region( ctx_2, [6,0], [8,1], [7,2], [7,1]  ));
 }
 
+//----
+//----
+//----
+
+function _irnd(a,b) {
+  if (typeof a === "undefined") {
+    return Math.floor(Math.random()*2);
+  }
+
+  if (typeof b === "undefined") {
+    return Math.floor(Math.random()*a);
+  }
+
+  return Math.floor(a + ((b-a)*Math.random()));
+}
+
+function random_rprp(n_it) {
+  n_it = ((typeof n_it === "undefined") ? 1 : n_it);
+  if (n_it <= 0) { n_it = 1; }
+
+  let W = 10;
+  let H = 10;
+
+  let nX = 30,
+      nY = 30;
+
+  let sgg = [];
+  for (let j=0; j<nY; j++) {
+    sgg.push([]);
+    for (let i=0; i<nX; i++) { sgg[j].push(-1); }
+  }
+
+  for (let it=0; it<n_it; it++) {
+
+    let w = _irnd(1,W);
+    let h = _irnd(1,H);
+
+
+  }
+
+}
+
+function _main_rand(argv) {
+  console.log(random_rprp(10));
+}
+
 
 //       ___ 
 //  ____/ (_)
@@ -8742,6 +8800,7 @@ if ((typeof require !== "undefined") &&
 
   else if (op == "cli") { _main_cli(process.argv.slice(3)); }
   else if (op == "data") { _main_data(process.argv.slice(3)); }
+  else if (op == "rand") { _main_rand(process.argv.slice(3)); }
 
   else if (op == 'custom')  { _main_custom(); }
   else if (op == 'custom.1')  { _main_custom_1(); }
