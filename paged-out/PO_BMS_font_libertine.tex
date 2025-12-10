@@ -13,14 +13,15 @@
 \usepackage{xcolor}
 \usepackage{graphicx}
 
-%\RequirePackage[T1]{fontenc}
-%\RequirePackage{libertinus}
+\RequirePackage[T1]{fontenc}
+\RequirePackage{libertinus}
 
 
 \pagenumbering{gobble}
 
 %\title{Breakout Model \\ \ \ \ \ Synthesis}
-\title{ \hspace{1cm}  Breakout \\ \vspace{0.25cm} Model Synthesis}
+%\title{ \hspace{1cm}  Breakout \\ \vspace{0.25cm} Model Synthesis}
+\title{ \centering Breakout \\ \vspace{0.125cm} \hspace{0.5cm} Model Synthesis \hspace{0.25cm} }
 \author{Z. Zzyzek}
 
 \makeatletter
@@ -28,17 +29,19 @@
 \newcommand{\fsize}{\f9 pt }
 \newcommand{\textFontName}{\f@family}
 \renewcommand{\maketitle}{
-\begin{flushleft}
+%\begin{flushleft}
 %{\noindent\Huge\bf\@title}\break
-{\noindent\Huge\bf\@title}\break
-\end{flushleft}
+%{\noindent\Huge\bf\@title}\break
+{\Huge\bf\@title}\break
+%\end{flushleft}
 }
 \makeatother
 
 
 \begin{document}
+
 \maketitle
-\vspace*{-1cm}
+%\vspace*{-1cm}
 
 %  \includegraphics[width=0.95\linewidth]{po_pm_48x48.pdf}
 
@@ -47,12 +50,12 @@
   \includegraphics[width=0.9\linewidth]{po_pm_run48x48.pdf}
   \label{fig:pillmortal}
 \end{figure}
-\vspace*{-0.4cm}
+%\vspace*{-0.4cm}
 
 %%% DEBUG
 %%% DEBUG
-%\makeatletter
-%\typeout{font fam: \f@family}
+\makeatletter
+\typeout{font fam: \f@family}
 %\makeatother
 %%% DEBUG
 %%% DEBUG
