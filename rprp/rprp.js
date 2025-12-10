@@ -5479,10 +5479,15 @@ function random_rprp(n_it) {
   let nX = 30,
       nY = 30;
 
-  let sgg = [];
+  let sgg = [],
+      tgg = [];
   for (let j=0; j<nY; j++) {
     sgg.push([]);
-    for (let i=0; i<nX; i++) { sgg[j].push(-1); }
+    tgg.push([]);
+    for (let i=0; i<nX; i++) {
+      sgg[j].push(-1);
+      tgg[j].push(-1);
+    }
   }
 
   for (let it=0; it<n_it; it++) {
@@ -5490,13 +5495,68 @@ function random_rprp(n_it) {
     let w = _irnd(1,W);
     let h = _irnd(1,H);
 
+    let sx = _irnd(0, nX-w-1);
+    let sy = _irnd(0, nY-h-1);
 
+    for (let ty=0; ty<h; ty++) {
+      for (let tx=0; tx<w; tx++) {
+        sgg[ sy + ty ][ sx + tx] = 1;
+      }
+    }
+
+  }
+
+  let ij_idir = [
+    [1,0], [-1,0],
+    [0,1], [0,-1]
+  ];
+
+  for (let j=0; j<nY; j++) {
+    for (let i=0; i<nX; i++) {
+
+      tgg[j][i] = sgg[j][i];
+
+      if (sgg[j][i] < 0) { continue; }
+
+      let _count = 0;
+      for (let idir=0; idir<4; idir++) {
+        let y = j + ij_idir[idir][1];
+        let x = i + ij_idir[idir][0];
+
+        let code = 'x';
+
+        if ( (y<0) || (y>=nY) ||
+             (x<0) || (x>=nX) ) {
+          code = '.';
+        }
+        else {
+          code = ((sgg[y][x] < 0) ? '.' : '*');
+        }
+
+        if (code == '*') { _count++; }
+      }
+
+      if (_count == 4) { tgg[j][i] = -1; }
+      else { tgg[j][i] = sgg[j][i]; }
+
+
+    }
+  }
+
+  sgg = tgg;
+
+  for (let j=0; j<nY; j++) {
+    let l = [];
+    for (let i=0; i<nX; i++) {
+      l.push( (sgg[j][i] < 0) ? '.' : '*' );
+    }
+    console.log(l.join(""));
   }
 
 }
 
 function _main_rand(argv) {
-  console.log(random_rprp(10));
+  console.log(random_rprp(20));
 }
 
 
