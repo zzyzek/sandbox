@@ -1061,6 +1061,29 @@ but by the time we get to the `(53,123)` sub-region, we've lost
 that information.
 
 
+###### 2025-12-11
+
+I'm running into many edge cases due to the intricate rules I've used
+to test whether the cleave choice is valid.
+Considering how finicky the tests are, I think only implementing the
+bare necessity, the parallel test, is necessary and should be done.
+
+The bridge test represents a sub-optimal configuration, so should
+be overtaken by the optimal cut.
+Same with the float test.
+
+The parallel test is to make sure an illegal configuration can't happen.
+
+The main ingredients:
+
+* adit enumeration in the case of a 1-cut, giving a list that's in-line with
+  the 1-cut
+* bower enumeration
+* quarry rectangle validity test
+  - for 1-cuts, make sure the quarry rectangle shares a non-degenerate edge with
+    the cut
+  - still a lot more optimizations to be done for 2-cuts
+...
 
 
 
