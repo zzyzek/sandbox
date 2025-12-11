@@ -1,10 +1,31 @@
 TODO
 ===
 
+###### 2025-12-10
+
+* some confidence of working algorithm
+  - needs more test cases
+  - needs test script
+  - clean up return value
+  - I'm still iffy about the float tests
+  - random tests
+  - it'd be nice to see if there's a minimum cut
+    with a floating edge
+* bower speedups
+  - currently, bower enumeration lists all grid points,
+    this can be optimized a great deal
+  - the general strategy is to snake out somewhow from the adit
+    point. There might be ways of excluding whole quadrents but
+    I think some amount of snaking is necessary as it might involve
+    some visibility tests
+* DP viz
+  - show catalogue of partitions and digraph thereof
+
 ###### 2025-12-05
 
 * still need DP viz but we need a working alg first
-* currently `data/mirp_err.json` is failing
+* ~currently `data/mirp_err.json` is failing~
+  - whatever this was was fixed many iterations ago
   - I think it's due to imporoper checking of
     valid quarry rectangle side partition ranges
     being valid (I know there's an error there, and
