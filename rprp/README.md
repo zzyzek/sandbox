@@ -1035,6 +1035,34 @@ of the quarry rectangle, so there are only a bounded number of choices
 
 ---
 
+###### 2025-12-10
+
+One bug fix was testing for termination in the `RPRP_quarry_edge_ranges` function.
+I was only testing to see if the current index shot past the endpoint of the quarry
+corner, not if it equalled, to bail out (fixed now).
+
+There's now another issue that's more subtle.
+See the following picture:
+
+| |
+|---|
+| ![float issue](viz/img/float_issue.png) |
+
+For the sub-region `(53,123)` there's a vertical constructed line
+(from adit point `[13,7]` to border grid point `[13,18]`, border
+index `53`).
+
+Taken in isolation, the cleave from `[13,7] -> [13,18]` is taken
+(currently) as floating.
+This cut occured from a parent quarry rectangle (shown in red) from
+`R( [10,5], [13,7] )`.
+This constructed line is, in fact, valid,
+but by the time we get to the `(53,123)` sub-region, we've lost
+that information.
+
+
+
+
 
 
 References

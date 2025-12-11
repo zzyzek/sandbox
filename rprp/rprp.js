@@ -1984,6 +1984,11 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
   // mark some configurations as floats when they're not.
   //
 
+  // FLOAT TEST
+  // FLOAT TEST
+  let _float_test = false;
+  if (_float_test) {
+
   if (_debug > 2) {
     console.log("#vc cc:", cleave_choice.join(""),
       "cbt:", cleave_border_type.join(""),
@@ -2049,161 +2054,9 @@ function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debu
 
   }
 
-  /*
-
-  for (cleave_idx = 0; cleave_idx < 8; cleave_idx++) {
-    let r_idx = Math.floor(cleave_idx/2);
-    let rev_cleave_idx = oppo_cleave[cleave_idx];
-    let rev_r_idx = Math.floor(rev_cleave_idx/2);
-    let idir = cleave_idir[cleave_idx];
-    let rdir = oppo_idir[idir];
-
-    // If the cleave position isn't a constructed line or a cleave choice,
-    // we can ignore it.
-    //
-    if ((cleave_choice[cleave_idx] != '*') &&
-        (cleave_choice[cleave_idx] != 'c')) {
-
-      if (_debug > 2) { console.log("#vc.skip.0 (cc[", cleave_idx, "] =", cleave_choice[cleave_idx], ")"); }
-
-      continue;
-    }
-
-    // If the cleave away ends on a corner,
-    // ignore it.
-    //
-    if ((cleave_border_type[cleave_idx] == 'c') ||
-        (cleave_border_type[cleave_idx] == '*')) {
-
-      if (_debug > 2) { console.log("#vc.skip.1 (cbt[", cleave_idx, "] =", cleave_border_type[cleave_idx], ")"); }
-
-      continue;
-    }
-
-    // If the cleave is rooted on a corner to begin with,
-    // ignore it.
-    //
-    if (quarry_point_type[r_idx] == 'c') {
-
-      if (_debug > 2) { console.log("#vc.skip.2 (qpt[", r_idx , "] =", quarry_point_type[r_idx], ")"); }
-
-      continue;
-    }
-
-
-    // If there's a wedge between the the current cleave root and the opposite cleave root,
-    // that must mean there's a corner in the middle so we can ignore it.
-    //
-    if ((Js[idir][ R[r_idx][1] ][ R[r_idx][0] ] != Js[idir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ]) ||
-        (Js[rdir][ R[r_idx][1] ][ R[r_idx][0] ] != Js[rdir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ])) {
-
-      if (_debug > 2) { console.log("#vc.skip.3 (Js:",
-        Js[idir][ R[r_idx][1] ][ R[r_idx][0] ], "!=", Js[idir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ], "||",
-        Js[rdir][ R[r_idx][1] ][ R[r_idx][0] ], "!=", Js[rdir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ]);
-      }
-
-      continue;
-    }
-
-    // if ...
-    //if (cleave_border_type[rev_cleave_idx] == 'x') {
-    if (cleave_border_type[rev_cleave_idx] == '*') {
-
-      if (_debug > 2) { console.log("#vc.skip.4 (cbt[", rev_cleave_idx, "]:", cleave_border_type[rev_cleave_idx], ")"); }
-
-      continue;
-    }
-
-    */
-
-
-    // so now:
-    // * there's a cleave cut or constructed line in the idir direction
-    // * that doesn't end on a corner in the idir direction
-    // * that isn't itself rooted from a corner
-    // * with no wedge buffetting the side of the quarry
-    //
-    // That should mean the cleave cut in the idir direction ends on a border,
-    // is connected to a free floating side of the quarry rectangle.
-    // What's left is to check to see if there's a cleave cut in the opposite
-    // direciton that lands on a corner.
-    // If so, ignore, otherwise, this cleave cut is floating.
-    //
-
-    /*
-    if ( ((cleave_choice[rev_cleave_idx] == '*') ||
-          (cleave_choice[rev_cleave_idx] == 'c')) &&
-         (cleave_border_type[rev_cleave_idx] != 'b') ) {
-
-      if (_debug > 2) {
-        console.log("#vc.skip.5 (cc[", rev_cleave_idx, "]:", cleave_choice[rev_cleave_idx],
-        ", cbt[", rev_cleave_idx, "]:", cleave_border_type[rev_cleave_idx], ")");
-      }
-
-      continue;
-    }
-    */
-
-    /*
-    if (_debug > 1) {
-      console.log("#vc.cp5.10: floating cleave cut found", "cleave_idx:", cleave_idx, "rect_idx:", r_idx);
-    }
-
-    return 0;
-    */
-
-    /*
-
-    if ( (quarry_point_type[r_idx] != 'c') &&
-         ((cleave_choice[cleave_idx] == '*') || (cleave_choice[cleave_idx] == 'c')) &&
-         (cleave_border_type[cleave_idx] == 'b') &&
-        //(redux[cleave_idx] == '*') && (cleave_border_type[cleave_idx] == 'b') &&
-         (((redux[rev_cleave_idx] == '*') && (cleave_border_type[rev_cleave_idx] == 'b')) ||
-           (redux[rev_cleave_idx] == '-') ||
-           (cleave_border_type[rev_cleave_idx] == 'x')) &&
-         (Js[idir][ R[r_idx][1] ][ R[r_idx][0] ] == Js[idir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ]) &&
-         (Js[rdir][ R[r_idx][1] ][ R[r_idx][0] ] == Js[rdir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ])) {
-
-      if (_debug > 1) {
-        console.log("#vc.cp5.5: cleave_idx:", cleave_idx, "rect_idx:", r_idx);
-        console.log("qpt[", r_idx, "]:", quarry_point_type[r_idx],
-          "redux[", cleave_idx, "]:", redux[cleave_idx],
-          "cbt[", cleave_idx, "]:", cleave_border_type[cleave_idx],
-          "redux[", rev_cleave_idx, "]:", redux[rev_cleave_idx],
-          "cbt[", rev_cleave_idx, "]:", cleave_border_type[rev_cleave_idx],
-          "js[", idir, "][", R[r_idx][1], "][", R[r_idx][0], "]:", Js[idir][ R[r_idx][1] ][ R[r_idx][0] ],
-          "js[", idir, "][", R[rev_r_idx][1], "][", R[rev_r_idx][0], "]:", Js[idir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ]);
-
-        console.log("  QQ.0:", (quarry_point_type[r_idx] != 'c') );
-        console.log("  QQ.1:", ((cleave_choice[cleave_idx] == '*') || (cleave_choice[cleave_idx] == 'c'))
-          && (cleave_border_type[cleave_idx] == 'b') );
-        //(redux[cleave_idx] == '*') && (cleave_border_type[cleave_idx] == 'b') &&
-        console.log("  QQ.2:", (((redux[rev_cleave_idx] == '*') && (cleave_border_type[rev_cleave_idx] == 'b'))));
-        console.log("  QQ.3:", (redux[rev_cleave_idx] == '-'));
-        console.log("  QQ.4:",  (cleave_border_type[rev_cleave_idx] == 'x'));
-        console.log("  QQ.5:",
-          (Js[idir][ R[r_idx][1] ][ R[r_idx][0] ] == Js[idir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ]) &&
-          (Js[rdir][ R[r_idx][1] ][ R[r_idx][0] ] == Js[rdir][ R[rev_r_idx][1] ][ R[rev_r_idx][0] ]));
-
-
-      }
-
-      return 0;
-    }
-    else {
-
-      if (_debug > 1) {
-        console.log("NOPE!!!!",
-          "qpt:", quarry_point_type.join(""),
-          "cc:", cleave_choice.join(""),
-          "redux:", redux.join(""),
-          "cbt:", cleave_border_type.join("")
-          );
-      }
-    }
-    */
-
-  //}
+  }
+  // FLOAT TEST
+  // FLOAT TEST
 
   if (_debug > 1) { console.log("#vc.cp6"); }
 
@@ -3075,6 +2928,36 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
 
   let candidate_corner_cuts = [];
 
+
+  /*
+  // trakcing down error focusing in on fail point
+    // for mirp_fail1.json
+    // The issue is that there's a 2-cut at the below
+    // points that's identified as float.
+    // In isolation, it's true, but the 2-cut has
+    // a part of a constructed line that extends beyond
+    // the current sub-region. Specifically
+    // the (36,53) line, makes the ([13,7],53) constructed
+    // line valid.
+  //
+  //DEBUG
+  //DEBUG
+  //DEBUG
+  //DEBUG
+  if ( (g_s[0] == 13) && (g_s[1] == 18) &&
+       (g_e[0] == 10) && (g_e[1] == 7) &&
+       (g_a[0] == 13) && (g_a[1] == 7) &&
+       (g_b[0] == 6) && (g_b[1] == 10) ) {
+    _debug = 5;
+  }
+  //DEBUG
+  //DEBUG
+  //DEBUG
+  //DEBUG
+  */
+
+
+
   //
   //  5    6    7
   //     2---3
@@ -3484,6 +3367,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   }
 
 
+
   // We need to check that the cleave cuts yield a valid result.
   // For example, if there must be a cleave cut but there aren't
   // returned, this is an invalid quarry.
@@ -3646,10 +3530,10 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     //DEBUG
     //DEBUG
     //DEBUG
-    //console.log("no valid cuts?? candidate_corner_cuts:", JSON.stringify(candidate_corner_cuts));
-    //console.log("  >>> cleave_profile:", cleave_profile.join(""));
-    //console.log("  >>> cleave_choices:", JSON.stringify(cleave_choices));
-    //console.log("  >>> side_cleave_cuts:", side_cleave_cuts);
+    console.log("no valid cuts?? candidate_corner_cuts:", JSON.stringify(candidate_corner_cuts));
+    console.log("  >>> cleave_profile:", cleave_profile.join(""));
+    console.log("  >>> cleave_choices:", JSON.stringify(cleave_choices));
+    console.log("  >>> side_cleave_cuts:", side_cleave_cuts);
     //DEBUG
     //DEBUG
     //DEBUG
@@ -4508,7 +4392,7 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
     let qi = RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug);
     if (qi.valid == 0) {
 
-      if (_debug) { console.log( _pfx, "skip [", JSON.stringify(g_a), JSON.stringify(g_b), "]", "(", qi.comment, ")"); }
+      if (_debug > 0) { console.log( _pfx, "skip [", JSON.stringify(g_a), JSON.stringify(g_b), "]", "(", qi.comment, ")"); }
 
       _dbg_mirp_quarry_skip(_debug, _pfx, g_s, g_e, g_a, g_b, qi.comment);
       continue;
