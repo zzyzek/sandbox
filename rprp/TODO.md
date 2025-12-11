@@ -8,7 +8,7 @@ TODO
   - needs test script
   - clean up return value
   - I'm still iffy about the float tests
-  - random tests
+  - ~random tests~
   - it'd be nice to see if there's a minimum cut
     with a floating edge
 * bower speedups

@@ -1,0 +1,12 @@
+{
+  "op": "MIRP",
+  "C": [
+    [0,0], [28,0], [28,6], [16,6],
+    [16,14], [22,14], [22,8], [27,8],
+    [27,17], [4,17], [4,11], [8,11],
+    [8,14], [13,14], [13,6], [0,6]
+  ],
+  "comment": "straight out failure (as of this writing) (update: took out cleave profile bridge test to get working)",
+  "debug": 1,
+  "expect": { "x": -1 }
+}

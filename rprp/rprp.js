@@ -1494,7 +1494,9 @@ function RPRP_cleave_border(ctx, g, idir) {
 function RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b) {
   let X = ctx.X,
       Y = ctx.Y;
-  let Bij = ctx.Bij;
+  let Bij = ctx.Bij,
+      Bt = ctx.Bt,
+      B = ctx.B;
 
   // boundary start and end index
   //
@@ -1533,6 +1535,20 @@ function RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b) {
     if ( ! wrapped_range_contain( b_c_idx, b_idx_s, b_idx_e ) ) {
       cleave_profile[i] = 'X';
       continue;
+    }
+
+    //---
+    let _inward_profile_type = false;
+
+    // WIP!!!!
+    if (_inward_profile_type) {
+    let b_idx = Bij[ g[1] ][ g[0] ];
+    if (b_idx >= 0) {
+      if (Bt[b_idx] == 'r') {
+        cleave_profile[i] = 'c';
+        continue;
+      }
+    }
     }
 
     // cleave inline with boundary edge
@@ -2160,6 +2176,9 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
       let _type = Bt[b_idx];
 
       if      (_type == 'b') { cleave_border_type[i] = 'b'; }
+
+      //WARNING, THIS DOESN'T LOOK RIGHT
+      //
       else if (_type == 'c') { cleave_border_type[i] = '*'; }
     }
 
@@ -3075,11 +3094,18 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     let cur_tok = cleave_profile[i];
     let nei_tok = ((i%2) ? cleave_profile[(i+1)%8] : cleave_profile[(i+8-1)%8]);
 
+    // ERROR: if one of the wuarry endpoints ends on an inward corner,
+    // this test will incorrectly call it a bridge.
+    //
+    let _cleave_profile_bridge_test = false;
+    if (_cleave_profile_bridge_test) {
     if (((cur_tok == 'b') || (cur_tok == 'c') || (cur_tok == '*')) &&
         ((nei_tok == 'b') || (nei_tok == 'c') || (nei_tok == '*'))) {
-      quarry_info.comment = "cleave profile has bridge";
+      quarry_info.comment = "cleave profile has bridge (" + cleave_profile.join("") + ")";
       return quarry_info;
     }
+    }
+
   }
 
   let cleave_choices = RPRP_cleave_enumerate( ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug );
