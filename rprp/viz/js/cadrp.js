@@ -365,10 +365,12 @@ function _draw_rprp_partition() {
     _oxy[1] = Math.max( _oxy[1], px_pgn[i][1] );
   }
 
+  /*
   console.log(">>>", partition);
   for (let i=0; i<partition.length; i++) {
     console.log(JSON.stringify(partition[i]));
   }
+  */
 
   for (let p_idx=0; p_idx < partition.length; p_idx++) {
 
