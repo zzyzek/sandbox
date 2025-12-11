@@ -3550,10 +3550,10 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     //DEBUG
     //DEBUG
     //DEBUG
-    console.log("no valid cuts?? candidate_corner_cuts:", JSON.stringify(candidate_corner_cuts));
-    console.log("  >>> cleave_profile:", cleave_profile.join(""));
-    console.log("  >>> cleave_choices:", JSON.stringify(cleave_choices));
-    console.log("  >>> side_cleave_cuts:", side_cleave_cuts);
+    //console.log("no valid cuts?? candidate_corner_cuts:", JSON.stringify(candidate_corner_cuts));
+    //console.log("  >>> cleave_profile:", cleave_profile.join(""));
+    //console.log("  >>> cleave_choices:", JSON.stringify(cleave_choices));
+    //console.log("  >>> side_cleave_cuts:", side_cleave_cuts);
     //DEBUG
     //DEBUG
     //DEBUG

@@ -7,6 +7,6 @@
     [8,14], [13,14], [13,6], [0,6]
   ],
   "comment": "straight out failure (as of this writing) (update: took out cleave profile bridge test to get working)",
-  "debug": 1,
-  "expect": { "x": -1 }
+  "debug": 0,
+  "expect": { "return": 172 }
 }

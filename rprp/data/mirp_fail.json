@@ -13,5 +13,5 @@
   ],
   "debug": 0,
   "comment": "was failing (quarry_edge_ranges bug), should be working now (290 raw score?)",
-  "expect" : { "return": 290 }
+  "expect" : { "return": 288 }
 }

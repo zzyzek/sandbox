@@ -15,5 +15,5 @@
   ],
   "debug": 0,
   "comment": "is now failing: KEY ERROR: 53:123;13,7 not found in DP_partition",
-  "expect" : { "__return": -1 }
+  "expect" : { "return": 392 }
 }
