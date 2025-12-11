@@ -1620,6 +1620,180 @@ function RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b) {
 //   the test.
 //
 
+// trying to simplify.
+// This should now only test for illegal parallel cleave choices but otherwise let anything
+// else pass.
+//
+function RPRP_valid_cleave_UPDATE(ctx, quarry, cleave_choice, cleave_border_type, _debug) {
+  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+
+  let R = quarry;
+
+  let Js = ctx.Js,
+      Jf = ctx.Jf;
+
+  let B = ctx.B,
+      Bt = ctx.Bt,
+      Bij = ctx.Bij;
+
+  if (_debug > 1) { console.log("#vc.cp0"); }
+
+  let redux = [];
+  for (let i=0; i<cleave_choice.length; i++) {
+    let _code = '^';
+    if      (cleave_choice[i] == '-') { _code = '-'; }
+    else if (cleave_choice[i] == '*') { _code = '*'; }
+    else if (cleave_choice[i] == 'c') { _code = '*'; }
+    //else if (cleave_choice[i] == 'b') { _code = '*'; }
+    else if (cleave_choice[i] == 'b') { _code = 'b'; }
+    else if (cleave_choice[i] == 'x') { _code = 'x'; }
+    else if (cleave_choice[i] == 'X') { _code = 'x'; }
+    //else { console.log("!!!!", i, cleave_choice[i]); }
+
+    redux.push( _code );
+  }
+
+  // quarry rectangle edge is 'undocked', not
+  // buffetted by a border perimeter
+  //
+
+  let oppo_idir  = [1,0, 3,2];
+  let cleave_idir = [ 0,3, 3,1, 1,2, 2,0 ];
+  let idir_Redge_sched = [ 1, 2, 0, 3 ];
+
+  let R_idir_B = [
+    [-1,-1,-1,-1],
+    [-1,-1,-1,-1],
+    [-1,-1,-1,-1],
+    [-1,-1,-1,-1]
+  ];
+
+  let R_B = [
+    Bij[ R[0][1] ][ R[0][0] ],
+    Bij[ R[1][1] ][ R[1][0] ],
+    Bij[ R[2][1] ][ R[2][0] ],
+    Bij[ R[3][1] ][ R[3][0] ]
+  ];
+
+  let R_Bt = [
+    ((R_B[0] < 0) ? '.' : Bt[ R_B[0] ]),
+    ((R_B[1] < 0) ? '.' : Bt[ R_B[1] ]),
+    ((R_B[2] < 0) ? '.' : Bt[ R_B[2] ]),
+    ((R_B[3] < 0) ? '.' : Bt[ R_B[3] ])
+  ];
+
+  let Rl = [
+    R[0][0] - R[1][0],
+    R[2][1] - R[1][1],
+    R[3][0] - R[2][0],
+    R[3][1] - R[0][1]
+  ];
+
+  // We're testing to see if there's a portion of the boundary
+  // that butts up against the quarry rectangle (without piercing through).
+  // If the quarry side is free floating, we call it 'undocked' (dock == 1).
+  //
+  // Two cleave cuts can be parallel if there's a dock between them,
+  // as the dock splits them up and creates at least two partitions.
+  // Any side cuts from the dock will be handled later.
+  //
+  // Here, we catalogue the first border point, in the cardinal
+  // directions, that each of the quarry endpoints see.
+  // We'll use these as tests for some type of test that I've now forgotten.
+  //
+  for (let idx=0; idx < 8; idx++) {
+    let r_idx = Math.floor(idx/2);
+    let idir = cleave_idir[idx];
+    let rdir = oppo_idir[idir];
+
+    let b0 = Js[ idir ][ R[r_idx][1] ][ R[r_idx][0] ];
+    if (b0 < 0) { b0 = Bij[ R[r_idx][1] ][ R[r_idx][0] ]; }
+
+    let b1 = Js[ rdir ][ R[r_idx][1] ][ R[r_idx][0] ];
+    if (b1 < 0) { b1 = Bij[ R[r_idx][1] ][ R[r_idx][0] ]; }
+
+    R_idir_B[r_idx][idir] = b0;
+    R_idir_B[r_idx][rdir] = b1;
+  }
+
+  let _dock = [-1,-1,-1,-1];
+
+  for (let r_idx=0; r_idx<4; r_idx++) {
+
+    let _rcur = r_idx;
+    let _rnxt = (r_idx+1)%4;
+
+    let _idir = idir_Redge_sched[r_idx];
+    let _rdir = oppo_idir[_idir];
+
+    // if the quarry corner is an interior point and the first
+    // flip it sees goes beyond the next quarry corner point,
+    // then its undocked (otherwise docked).
+    //
+    if (R_Bt[_rcur] == '.') {
+      _dock[r_idx] = 1;
+      if (Jf[_idir][ R[_rcur][1] ][ R[_rcur][0] ] >= Rl[r_idx]) {
+        _dock[r_idx] = 0;
+      }
+    }
+
+    // otherwise, the quarry endpoint is on boundary
+    //
+    else {
+
+      _dock[r_idx] = 1;
+
+      // If the quarry endpoint is on a boundary in-line with
+      // the quarry edge, then automatically docked.
+      //
+      if (Jf[_idir][ R[_rcur][1] ][ R[_rcur][0] ] > 0) {
+        _dock[r_idx] = 1;
+      }
+
+      // otherwise the quarry endpoint is on the boundary but quarry
+      // edge is at least partially not on the boundary as it starts
+      // from _rcur going in _idir direction.
+      //
+      // If the border jump point from _rcur is either the boundary point
+      // of _rnxt or _rcur and _rnxt have the same border jump point,
+      // the quarry edge must be undocked.
+      //
+      else if ( (R_idir_B[_rcur][_idir] == R_B[_rnxt]) ||
+                (R_idir_B[_rcur][_idir] == R_idir_B[_rnxt][_idir]) ) {
+        _dock[r_idx] = 0;
+      }
+
+    }
+
+  }
+
+  // each corner needs at least one cleave cut
+  //
+  if ((redux[0] == '-') && (redux[1] == '-')) { return 0; }
+  if ((redux[2] == '-') && (redux[3] == '-')) { return 0; }
+  if ((redux[4] == '-') && (redux[5] == '-')) { return 0; }
+  if ((redux[6] == '-') && (redux[7] == '-')) { return 0; }
+
+  if (_debug > 1) { console.log("#vc.cp2"); }
+
+  // parallel tests.
+  // If there are cleave cuts opposite each other and in the same direction
+  // on an undocked quarry edge, this represents an illegal state.
+  //
+  if ((_dock[3] == 0) && (redux[0] == '*') && (redux[7] == '*')) { return 0; }
+  if ((_dock[0] == 0) && (redux[1] == '*') && (redux[2] == '*')) { return 0; }
+  if ((_dock[1] == 0) && (redux[3] == '*') && (redux[4] == '*')) { return 0; }
+  if ((_dock[2] == 0) && (redux[5] == '*') && (redux[6] == '*')) { return 0; }
+
+  // otherwise we'll be pretty liberal in what we accept.
+  // There still could be invalid configurations in terms of bridges
+  // or floating constructed lines, but these can still yield valid
+  // partitions and should be subsumed by the search for the minimum.
+  //
+
+  return 1;
+}
+
 function RPRP_valid_cleave(ctx, quarry, cleave_choice, cleave_border_type, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
@@ -3045,7 +3219,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
         [ Math.max(r0[0], r1[0]), Math.max(r0[1], r1[1]) ]
       ];
 
-      // if line segments don't non-degeneratiely intersect, skip
+      // if line segments doesn't non-degeneratiely intersect, skip
       //
       // if ( A _ right <= B _ left ) or
       //    ( B _ right <= A _ left ) then
