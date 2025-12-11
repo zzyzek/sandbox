@@ -1,0 +1,123 @@
+#!/usr/bin/env node
+
+// To the extent possible under law, the person who associated CC0 with
+// this project has waived all copyright and related or neighboring rights
+// to this project.
+// 
+// You should have received a copy of the CC0 legalcode along with this
+// work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+//
+
+// simple program to generate random rectilinear polygons
+// usese clipper.js to do polygon union.
+// might still need to do some filtering to make sure we're
+// not returning holes.
+//
+// All parameters are hard coded.
+// Maybe can extend to feed into rprp, but right
+// now generates rprp data JSON ouput.
+//
+
+var RAND = Math.random;
+
+var clip = require("./clipper.js");
+
+function _irnd(a,b) {
+  let p = RAND();
+  if (typeof a === "undefined") { return Math.floor(p*2); }
+  if (typeof b === "undefined") { return Math.floor(a*p); }
+  return Math.floor(a + ((b-a)*p));
+}
+
+function rand_rectilinear_rect(w,h,sx,sy) {
+  sx = ((typeof sx === "undefined") ? 0 : sx);
+  sy = ((typeof sy === "undefined") ? 0 : sy);
+
+  let dx = _irnd(1,w);
+  let dy = _irnd(1,h);
+
+  let x0 = _irnd(0,sx);
+  let y0 = _irnd(0,sy);
+
+  return [
+    {"X":x0,"Y":y0},
+    {"X":x0+dx,"Y":y0},
+    {"X":x0+dx,"Y":y0+dy},
+    {"X":x0,"Y":y0+dy}
+  ];
+}
+
+function gen_rects(nrect, W,H, X,Y) {
+  let rects = [];
+  for (let i=0; i<nrect; i++) {
+    rects.push( rand_rectilinear_rect(W,H, X,Y) );
+  }
+  return rects;
+}
+
+/*
+function print_rects(rects) {
+  for (let i=0; i<rects.length; i++) {
+    for (let j=0; j<=rects[i].length; j++) {
+      console.log( rects[i][j%rects[i].length][0], rects[i][j%rects[i].length][1]);
+    }
+    console.log("\n\n");
+  }
+}
+*/
+
+function print_clips(pgns) {
+  for (let i=0; i<pgns.length; i++) {
+    let m = pgns[i].length;
+    for (let j=0; j<=pgns[i].length; j++) {
+      console.log(pgns[i][j%m].X, pgns[i][j%m].Y);
+    }
+    console.log("\n");
+  }
+}
+
+function print_clip(pgn) {
+  let m = pgn.length;
+  for (let j=0; j<pgn.length; j++) {
+    console.log(pgn[j%m].X, pgn[j%m].Y);
+  }
+}
+
+function print_rprp_data(pgn) {
+  console.log("{");
+  console.log('  "op": "MIRP",');
+  console.log('  "C":['); 
+
+  let m = pgn.length;
+  for (let j=0; j<pgn.length; j++) {
+    let sfx = ( (j<(pgn.length-1)) ? "," : "" );
+    console.log('    [' + pgn[j%m].X.toString() + ',' + pgn[j%m].Y.toString() + ']' + sfx);
+  }
+
+  console.log('  ],'); 
+  console.log('  "debug": 0,');
+  console.log('  "expect": { "_return": -1 }');
+  console.log("}");
+}
+
+//let r = gen_rects(20, 10,10, 30,30);
+//print_rects(r);
+
+//----
+
+//var subj_paths = [[{X:10,Y:10},{X:110,Y:10},{X:110,Y:110},{X:10,Y:110}],
+//                    [{X:15,Y:15},{X:115,Y:15},{X:115,Y:115},{X:15,Y:115}]]; 
+var subj_paths = gen_rects(30, 10,10, 30,30);
+var clip_paths = [];
+
+let cpr = new clip.Clipper();
+
+cpr.AddPaths(subj_paths, clip.PolyType.ptSubject, true);
+let sol = new clip.Paths();
+let suc = cpr.Execute(clip.ClipType.ctUnion, sol, clip.PolyFillType.pftNonZero, clip.PolyFillType.pftNonZero);
+
+//console.log(suc, sol);
+
+print_rprp_data(sol[0]);
+
+
