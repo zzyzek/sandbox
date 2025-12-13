@@ -18,9 +18,9 @@ function checklist:
 * `RPRP_quarry_edge_ranges`  (done, untested)
 * `RPRP_valid_R` (done, untested)
 * `RPRP_point_in_region` (done, untested)
-* `RPRP_enumerate_one_cut_adit_points`
-* `RPRP_enumerate_quarry_side_region`
-* `RPRP_candidate_bower` (!)
+* `RPRP_enumerate_one_cut_adit_points` (done, untested)
+* `RPRP_enumerate_quarry_side_region` (done, untested)
+* `RPRP_candidate_bower` (!) (wip)
 * `RPRP_MIRP` (!)
 
 
