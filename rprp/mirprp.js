@@ -2108,20 +2108,6 @@ function MIRPRP_quarry_info(ctx, g_s, g_e, g_a, g_b, _debug) {
           else if (cc[ipp] == '*')  { is_one_cut = false; }
           else { is_one_cut = true; }
 
-          /*
-          if ( (cc[ipp] != '*') &&
-               (cleave_profile[ip3] != 'X') ) {
-            is_one_cut = true;
-          }
-
-
-          if ( Js[ oppo[e_idir] ][ Rg[r_idx][1] ][ Rg[r_idx][0] ] !=
-               Js[ oppo[e_idir] ][ Rg[r_nxt][1] ][ Rg[r_nxt][0] ] ) {
-            is_one_cut = true;
-          }
-
-          */
-
           if (is_one_cut) {
 
             // we'll be enumerating adit points for the 1-cut, so use
@@ -2191,41 +2177,12 @@ function MIRPRP_quarry_info(ctx, g_s, g_e, g_a, g_b, _debug) {
 
           let is_one_cut = false;
 
-          let r_prv = (r_idx+1)%4;
+          let r_prv = (r_idx+4-1)%4;
 
-          if      (_dock[r_idx])    { is_one_cut = true; }
+          if      (_dock[r_prv])    { is_one_cut = true; }
           else if (R_B[r_prv] >= 0) { is_one_cut = true; }
           else if (cc[imm] == '*')  { is_one_cut = false; }
           else { is_one_cut = true; }
-
-
-
-          /*
-          if (cc[imm] == '*') {
-            // no 1-cut
-          }
-
-          if ( (cc[imm] != '*') &&
-               (cleave_profile[im3] != 'X') ) {
-            is_one_cut = true;
-          }
-
-          let i_cur = i;
-          let i_prv = (i+4-1)%4;
-
-          // If the previous quarry side edge is docked, this
-          // implies a one-cut.
-          //
-          if ( Js[ oppo[o_idir] ][ Rg[i_cur][1] ][ Rg[i_cur][0] ] !=
-               Js[ oppo[o_idir] ][ Rg[i_prv][1] ][ Rg[i_prv][0] ] ) {
-            is_one_cut = true;
-          }
-
-          console.log("imm:", imm, "im3:", im3, "cc[imm]:", cc[imm], "is_one_cut:", is_one_cut);
-          console.log("o_idir:", o_idir, "i:", i, "Js[...]:", Js[ oppo[o_idir] ][ Rg[r_idx][1] ][ Rg[r_idx][0] ],
-            "cc_i:", cc_i, "Js[...]:", Js[ oppo[o_idir] ][ Rg[cc_i][1] ][ Rg[cc_i][0] ]);
-
-          */
 
           if (is_one_cut) {
 
@@ -2238,7 +2195,9 @@ function MIRPRP_quarry_info(ctx, g_s, g_e, g_a, g_b, _debug) {
               [ -1, -1 ]
             ]);
 
-            if (_debug > 1) { console.log("qci: cci:", cci, "r_idx:", r_idx, "o.1b:", cleave_cuts[ cleave_cuts.length-1] ); }
+            if (_debug > 1) {
+              console.log("qci: cci:", cci, "r_idx:", r_idx, "o.1b:", cleave_cuts[ cleave_cuts.length-1],
+                "dock[", r_prv, "]:", _dock[r_prv], "cc[imm]:", cc[imm]  ); }
           }
 
         }
