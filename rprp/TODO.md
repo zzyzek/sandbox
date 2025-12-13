@@ -10,14 +10,14 @@ TODO
 
 function checklist:
 
-* `RPRP_valid_cleave` (done, untested)
-* `RPRP_cleave_enumerate` (the `_type == 'c'` looks fishy)
-* `RPRPCleaveProfile` (done, untested)
-* `RPRP_cleave_border` (done, untested)
-* `RPRP_quarry_edge_ranges`
-* `RPRP_valid_R`
-* `RPRP_point_in_region`
-* `RPRP_enumerate_quarry_side_region`
+* `RPRP_valid_cleave` (done, lightly tested)
+* `RPRP_cleave_enumerate` (done, lightly tested)
+* `RPRPCleaveProfile` (done, lightly tested)
+* `RPRP_cleave_border` (done, lightly tested)
+* `RPRP_quarry_info`  (done, untested)
+* `RPRP_quarry_edge_ranges`  (done, untested)
+* `RPRP_valid_R` (done, untested)
+* `RPRP_point_in_region` (done, untested)
 * `RPRP_enumerate_one_cut_adit_points`
 * `RPRP_enumerate_quarry_side_region`
 * `RPRP_candidate_bower` (!)

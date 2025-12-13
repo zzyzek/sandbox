@@ -412,7 +412,7 @@ function _rprp_sanity( rl_pgon ) {
 
 // returns context
 //
-function MIRPRPInit(_rl_pgon, _debug) {
+function MIRPRP_init(_rl_pgon, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : 1);
   let _eps = (1/(1024));
 
@@ -1387,19 +1387,7 @@ function MIRPRP_valid_cleave(ctx, quarry, cleave_choice, _debug) {
 // This function takes as input grid points, as opposed to `enumerateCleaveCutPoint`, which
 // takes in general points.
 //
-function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) {
-
-  //let _debug = false;
-  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
-
-  //DEBUG
-  //DEBUG
-  //DEBUG
-  //_debug=1;
-  //DEBUG
-  //DEBUG
-  //DEBUG
-
+function MIRPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile) {
   let B = ctx.B;
   let Bt = ctx.Bt;
   let Bij = ctx.Bij;
@@ -1408,12 +1396,8 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
 
   // boundary start and end index
   //
-  let b_idx_s = Bij[ g_s[1] ][ g_s[0] ];
-  let b_idx_e = Bij[ g_e[1] ][ g_e[0] ];
-
-  if (_debug > 1) {
-    console.log("#ce.beg:s,e,g_s,g_e,g_a,g_b:", b_idx_s, b_idx_e, g_s, g_e, g_a, g_b);
-  }
+  let b_idx_s = B[ g_s[1] ][ g_s[0] ];
+  let b_idx_e = B[ g_e[1] ][ g_e[0] ];
 
   if ((b_idx_s < 0) || (b_idx_e < 0)) { return []; }
 
@@ -1441,44 +1425,6 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
     }
   }
 
-  if (_debug > 1) {
-    console.log("#ce.profile:", cleave_profile.join(""));
-  }
-
-  let cleave_border_type = [ '~', '~', '~', '~', '~', '~', '~', '~' ];
-
-  for (let i=0; i<cleave_profile.length; i++) {
-
-    if ((cleave_profile[i] == 'x') || (cleave_profile[i] == 'X')) {
-      cleave_border_type[i] = 'x';
-      continue;
-    }
-
-    if (cleave_profile[i] == 'b') {
-      cleave_border_type[i] = 'b';
-      continue;
-    }
-
-    if (cleave_profile[i] == 'c') {
-      cleave_border_type[i] = '*';
-      continue;
-    }
-
-    if (cleave_profile[i] == '.') {
-      let r_idx = Math.floor(i/2);
-      let b_idx = Js[ cleave_idir[i] ][ Rg[r_idx][1] ][ Rg[r_idx][0] ];
-
-      let _type = Bt[b_idx];
-
-      if      (_type == 'b') { cleave_border_type[i] = 'b'; }
-
-      //WARNING, THIS DOESN'T LOOK RIGHT
-      //
-      else if (_type == 'c') { cleave_border_type[i] = '*'; }
-    }
-
-  }
-
   let cleave_choices = [];
 
   do {
@@ -1497,12 +1443,7 @@ function RPRP_cleave_enumerate(ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug) 
 
     }
 
-    if (_debug > 1) {
-      console.log("#ce.enum:bvec,cc,valid:", JSON.stringify(bvec), cleave_choice.join(""),
-        RPRP_valid_cleave( ctx, Rg, cleave_choice, cleave_border_type, _debug ) );
-    }
-
-    if (RPRP_valid_cleave( ctx, Rg, cleave_choice, cleave_border_type )) {
+    if (MIRPRP_valid_cleave( ctx, Rg, cleave_choice )) {
       cleave_choices.push(cleave_choice);
     }
 
@@ -1520,7 +1461,7 @@ function _cleave_cmp(a,b) {
 
 // enumerate *docked* border edges to quarry edge by border index pairs
 //
-function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
+function MIRPRP_quarry_edge_ranges(ctx, g_a, g_b, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
   let X = ctx.X,
@@ -1531,12 +1472,6 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
       Js = ctx.Js,
       Je = ctx.Je,
       Jf = ctx.Jf;
-
-  if ( (typeof g_s === "undefined") ||
-       (typeof g_e === "undefined") ) {
-    g_s = B[0];
-    g_e = B[0];
-  }
 
   //
   //  5    6    7
@@ -1583,7 +1518,7 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
     // b0 represents the *first* grid point on a border for
     // this edge
 
-    let b1 = Bij[ u[1] ][ u[0] ];
+    let b1 = B[ u[1] ][ u[0] ];
     if (b1 < 0) {
       let w = v_add( u, v_mul( Jf[idir][ u[1] ][ u[0] ], idir_ij[idir] ) );
       let _d = dot_v( v_sub( v, w ), idir_ij[idir] );
@@ -1593,16 +1528,16 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
       }
 
       if (_d < 0) { continue; }
-      b1 = Bij[ w[1] ][ w[0] ];
+      b1 = B[ w[1] ][ w[0] ];
     }
-    let b1_ij = B[b1];
+    let b1_ij = Bij[b1];
 
     // If b0 isn't already on a border,
     // skip ahead to border.
     // Once on the border, skip ahead to transition
     // point for start of iteration.
     //
-    let b0 = Bij[ v[1] ][ v[0] ];
+    let b0 = B[ v[1] ][ v[0] ];
     if (b0 < 0) {
 
       let w = v_add( v, v_mul( Jf[rdir][ v[1] ][ v[0] ], idir_ij[rdir] ) );
@@ -1613,9 +1548,9 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
       }
 
       if (_d < 0) { continue; }
-      b0 = Bij[ w[1] ][ w[0] ];
+      b0 = B[ w[1] ][ w[0] ];
     }
-    let b0_ij = B[b0];
+    let b0_ij = Bij[b0];
 
     if (_debug > 2) {
       console.log("r_idx:", r_idx, "b0:", b0, "b1:", b1);
@@ -1628,7 +1563,7 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
     while ( wrapped_range_contain(cur_b, b0, b1) &&
             (cur_b != b1) ) {
 
-      let _g = B[ cur_b ];
+      let _g = Bij[ cur_b ];
 
 
       // record flip distance to next transition,
@@ -1637,7 +1572,7 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
       //
       let _dj = Jf[ rdir ][ _g[1] ][ _g[0] ];
       let _h = v_add( _g, v_mul( _dj, idir_ij[rdir] ) );
-      let nxt_b = Bij[ _h[1] ][ _h[0] ];
+      let nxt_b = B[ _h[1] ][ _h[0] ];
 
       if (_debug > 1) {
         console.log("  r_idx:", r_idx, "_g:", JSON.stringify(_g), "cur_b:", cur_b, "dj[", rdir, "]:", _dj);
@@ -1671,15 +1606,14 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
            (_h[0] >= X.length) || (_h[1] >= Y.length) ) {
         break;
       }
-      nxt_b = Bij[ _h[1] ][ _h[0] ];
+      nxt_b = B[ _h[1] ][ _h[0] ];
 
       // advance to first border point
       //
-      //if (Bij[ _h[1] ][ _h[0] ] < 0) {
       if (nxt_b  < 0) {
         let _dhj = Jf[rdir][ _h[1] ][ _h[0] ];
         _h = v_add( _h, v_mul( _dhj, idir_ij[rdir] ) );
-        nxt_b = Bij[ _h[1] ][ _h[0] ];
+        nxt_b = B[ _h[1] ][ _h[0] ];
 
         if (_debug > 2) {
           console.log("  ##advance h>>:", JSON.stringify(_h), "nxt_b:", nxt_b, "(_dhj:", _dhj, ")");
@@ -1712,236 +1646,10 @@ function RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
     else {
       merged_perim.push( [perim_range[i][0], perim_range[i][1]] );
     }
-
   }
 
   return merged_perim;
 }
-
-
-function __RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
-  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
-
-  let X = ctx.X,
-      Y = ctx.Y,
-      Gij = ctx.Gij,
-      B = ctx.B,
-      Bij = ctx.Bij,
-      Js = ctx.Js,
-      Je = ctx.Je,
-      Jf = ctx.Jf;
-
-  if ( (typeof g_s === "undefined") ||
-       (typeof g_e === "undefined") ) {
-    g_s = B[0];
-    g_e = B[0];
-  }
-
-  //
-  //  5    6    7
-  //     2->-3
-  //     |   |
-  //  4  ^   v  0
-  //     |   |
-  //     1-<-0
-  //  3    2    1
-  //
-  let Rg = [
-    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
-    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
-    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
-    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
-  ];
-
-  let oppo_idir = [ 1,0, 3,2 ];
-
-  let r_edge_idir = [1,2,0,3];
-  let idir_ij = [ [1,0], [-1,0], [0,1], [0,-1] ];
-
-  let perim_range = [];
-
-  for (let r_idx=0; r_idx<4; r_idx++) {
-    let r_nxt = (r_idx+1)%4;
-    let idir = r_edge_idir[r_idx];
-    let rdir = oppo_idir[idir];
-
-    let u = Rg[r_idx];
-    let v = Rg[r_nxt];
-
-    console.log("\nr_idx:", r_idx, "u:", u, "v:", v);
-
-    // b0 start of pit
-    // b1 end of pit
-    //
-    // b0 and b1 denote start and end of sequence.
-    // At each point in the iteration, we want to
-    // add a cut segment which we'll do by
-    // adding the current boundary point and the next
-    // one.
-    // After addition, current will be set to next
-    // then jumped forward until b1 is reached.
-    //
-
-    let b1 = Bij[ u[1] ][ u[0] ];
-    if (b1 < 0) {
-      let w = v_add( u, v_mul( Jf[idir][ u[1] ][ u[0] ], idir_ij[idir] ) );
-      let _d = dot_v( v_sub( v, w ), idir_ij[idir] );
-
-      console.log("  _d1:", _d, "v-w:", v_sub(v,w), "idir[", idir, "]:", idir_ij[idir]);
-
-      if (_d < 0) { continue; }
-      b1 = Bij[ w[1] ][ w[0] ];
-    }
-
-    let b1_ij = B[b1];
-    b1_ij = v_add( b1_ij, v_mul( Jf[idir][ b1_ij[1] ][ b1_ij[0] ], idir_ij[idir] ) );
-    b1 = Bij[ b1_ij[1] ][ b1_ij[0] ];
-
-    /*
-    if (b1 >= 0) {
-
-      // Skip to transition point (towards next Rg point).
-      // If we've skipped past it, nothing to be done.
-      //
-      let w = v_add( u, v_mul( Jf[idir][ u[1] ][ u[0] ], idir_ij[idir] ) );
-
-      let _d = dot_v( v_sub( v, w ), idir_ij[idir] );
-
-      console.log("  _d1:", _d, "v-w:", v_sub(v,w), "idir[", idir, "]:", idir_ij[idir]);
-
-      if (_d < 0) { continue; }
-      b1 = Bij[ w[1] ][ w[0] ];
-    }
-    */
-
-    // If b0 isn't already on a border,
-    // skip ahead to border.
-    // Once on the border, skip ahead to transition
-    // point for start of iteration.
-    //
-    let b0 = Bij[ v[1] ][ v[0] ];
-    if (b0 < 0) {
-
-      let w = v_add( v, v_mul( Jf[rdir][ v[1] ][ v[0] ], idir_ij[rdir] ) );
-      let _d = dot_v( v_sub( u, w ), idir_ij[rdir] );
-
-      console.log("  _d0:", _d, "u-w:", v_sub(u,w), "rdir[", rdir, "]:", idir_ij[rdir]);
-
-      if (_d < 0) { continue; }
-      b0 = Bij[ w[1] ][ w[0] ];
-    }
-
-    let b0_ij = B[b0];
-    b0_ij = v_add( b0_ij, v_mul( Jf[rdir][ b0_ij[1] ][ b0_ij[0] ], idir_ij[rdir] ) );
-    b0 = Bij[ b0_ij[1] ][ b0_ij[0] ];
-
-    console.log("r_idx:", r_idx, "b0:", b0, "b1:", b1);
-
-    let max_iter = Math.max( X.length, Y.length ),
-        iter = 0;
-
-
-    // cur_b holds *end* of border
-    // nxt_b holds *Beginning* of next border
-    //
-
-    //let b1_ij = B[b1];
-
-    let cur_b = b0;
-    while ( wrapped_range_contain(cur_b, b0, b1) &&
-            (cur_b != b1) ) {
-
-      let _g = B[ cur_b ];
-      let _h = v_add( _g, idir_ij[rdir] );
-      if ( (_h[0] < 0) || (_h[1] < 0) ||
-           (_h[0] >= X.length) || (_h[1] >= Y.length) ) {
-        break;
-      }
-
-      if (Bij[ _h[1] ][ _h[0] ] < 0) {
-        _h = v_add( _h, v_mul( Jf[rdir][ _h[1] ][ _h[0] ], idir_ij[rdir] ) );
-      }
-
-      let _d = dot_v( v_sub( b1_ij, _h ), idir_ij[rdir] );
-      if (_d < 0) { break; }
-
-      let nxt_b = Bij[ _h[1] ][ _h[0] ];
-
-
-      console.log("[", r_idx, "]: adding perim", cur_b, nxt_b);
-
-      perim_range.push( [cur_b, nxt_b] );
-
-      _g = v_add( B[ nxt_b ], v_mul( Jf[rdir][ _h[1] ][ _h[0] ], idir_ij[rdir] ) );
-      cur_b = Bij[ _g[1] ][ _g[0] ];
-
-      iter++;
-      if (iter >  max_iter) {
-        console.log("SANITY ERROR: quarry_edge_ranges, exceeded max_iter:", iter, ">", max_iter );
-        return undefined;
-      }
-
-      continue;
-
-      /*
-
-      let _dj = Jf[rdir][ _g[1] ][ _g[0] ];
-
-      let _h = [-1,-1];
-      if (_dj == 0) {
-
-        // _g is on a border but a 0 Jf indicates it's at a
-        // transition.
-        // Move ahead one in rdir direction.
-        // If it's on a border, we're done, as it repreesents the
-        // beginning of the border.
-        // If not, we're in an open region and we need to shoot ahead
-        // till where the border transitions.
-        //
-
-        _h = v_add( _g, idir_ij[rdir] );
-        if (Bij[_h[1]][_h[0]] < 0) {
-          _h = v_add( _h, v_mul( Jf[rdir][ _h[1] ][ _h[0] ], idir_ij[rdir] ) )
-        }
-      }
-      else {
-
-        // If _g is already on the border, move ahead to
-        // where the current border line ends or turns.
-        //
-        _h = v_add( _g, v_mul( _dj, idir_ij[rdir] ) );
-      }
-
-      console.log("_h:", _h, "cur_b:", cur_b, "b0:", b0, "b1:", b1,
-        "(dj:", _dj, ", Jf[", rdir, "][", _g[1], "][", _g[0], "]:", Jf[rdir][ _g[1] ][ _g[0] ], ")");
-
-      let nxt_b = Bij[ _h[1] ][ _h[0] ];
-      if (nxt_b != cur_b) {
-
-        console.log(" perim.add:", "[", cur_b, nxt_b, "]");
-
-        perim_range.push( [cur_b, nxt_b] );
-      }
-
-      _h = v_add( _h, idir_ij[rdir] );
-      if ( (_h[0] < 0) || (_h[1] < 0) ||
-           (_h[0] >= X.length) || (_h[1] >= Y.length) ) {
-        break;
-      }
-
-      if ( Gij[ _h[1] ][ _h[0] ] < 0 ) { break; }
-
-      cur_b = nxt_b;
-
-      */
-
-    }
-
-  }
-
-  return perim_range;
-}
-
 
 
 // next attempt at doing the validation and getting relevant information
@@ -1970,15 +1678,15 @@ function __RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug) {
 // }
 //
 
-function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
+function MIRPRP_quarry_info(ctx, g_s, g_e, g_a, g_b, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
   let oppo = [ 1,0, 3,2 ];
 
-  let B = ctx.B;
+  let B = ctx.B,
+      Bij = ctx.Bij;
   let Js = ctx.Js,
       Je = ctx.Je,
       Jf = ctx.Jf;
-  let Bij = ctx.Bij;
 
   let quarry_info = {
     "valid": 0,
@@ -1991,36 +1699,6 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   };
 
   let candidate_corner_cuts = [];
-
-
-  /*
-  // trakcing down error focusing in on fail point
-    // for mirp_fail1.json
-    // The issue is that there's a 2-cut at the below
-    // points that's identified as float.
-    // In isolation, it's true, but the 2-cut has
-    // a part of a constructed line that extends beyond
-    // the current sub-region. Specifically
-    // the (36,53) line, makes the ([13,7],53) constructed
-    // line valid.
-  //
-  //DEBUG
-  //DEBUG
-  //DEBUG
-  //DEBUG
-  if ( (g_s[0] == 13) && (g_s[1] == 18) &&
-       (g_e[0] == 10) && (g_e[1] == 7) &&
-       (g_a[0] == 13) && (g_a[1] == 7) &&
-       (g_b[0] == 6) && (g_b[1] == 10) ) {
-    _debug = 5;
-  }
-  //DEBUG
-  //DEBUG
-  //DEBUG
-  //DEBUG
-  */
-
-
 
   //
   //  5    6    7
@@ -2036,7 +1714,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
   ];
 
-  if (!RPRP_valid_R(ctx, g_a, g_b)) {
+  if (!MIRPRP_valid_R(ctx, g_a, g_b)) {
     quarry_info.comment = "invalid quarry rectangle";
     return quarry_info;
   }
@@ -2047,7 +1725,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   // to be in the region.
   //
   for (let i=0; i<Rg.length; i++) {
-    if (RPRP_point_in_region(ctx, Rg[i], g_s, g_e, g_a, _debug) == 0) {
+    if (MIRPRP_point_in_region(ctx, Rg[i], g_s, g_e, g_a, _debug) == 0) {
       quarry_info.comment = "endpoint outside of fenced region (Rg[" + i.toString() + ":" + JSON.stringify(Rg[i]) + ")";
       return quarry_info;
     }
@@ -2123,8 +1801,8 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
 
   //---
 
-  let idx_s = Bij[ g_s[1] ][ g_s[0] ];
-  let idx_e = Bij[ g_e[1] ][ g_e[0] ];
+  let idx_s = B[ g_s[1] ][ g_s[0] ];
+  let idx_e = B[ g_e[1] ][ g_e[0] ];
 
   let cleave_sched = [];
 
@@ -2139,7 +1817,7 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   // For every cleave_choice (deduplicated) realization, we add all the side_cleve_cuts to it
   //   and put it in the schedule.
   //
-  let cleave_profile = RPRPCleaveProfile( ctx, g_s, g_e, g_a, g_b, _debug );
+  let cleave_profile = MIRPRP_cleave_profile( ctx, g_s, g_e, g_a, g_b, _debug );
 
   for (let i=0; i<cleave_profile.length; i++) {
     let cur_tok = cleave_profile[i];
@@ -2159,8 +1837,8 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
 
   }
 
-  let cleave_choices = RPRP_cleave_enumerate( ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug );
-  let side_cleave_cuts = RPRP_enumerate_quarry_side_region( ctx, g_s, g_e, g_a, g_b, _debug );
+  let cleave_choices = MIRPRP_cleave_enumerate( ctx, g_s, g_e, g_a, g_b, cleave_profile, _debug );
+  let side_cleave_cuts = MIRPRP_enumerate_quarry_side_region( ctx, g_s, g_e, g_a, g_b, _debug );
 
   if (_debug > 1) {
     console.log("qci: profile:", cleave_profile.join(""));
@@ -2417,8 +2095,6 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
       }
     }
 
-    //quarry_info.two_cuts.push( dedup_cleave_cuts );
-    //quarry_info.corner_cuts.push( dedup_cleave_cuts );
     candidate_corner_cuts.push( dedup_cleave_cuts );
 
   }
@@ -2429,14 +2105,10 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   //
   for (let i=0; i<side_cleave_cuts.length; i++) {
 
-    //quarry_info.one_cuts.push([ side_cleave_cuts[i][0],
-    //                            side_cleave_cuts[i][1],
-    //                            [-1,-1] ]);
     quarry_info.side_cut.push([ side_cleave_cuts[i][0],
                                 side_cleave_cuts[i][1],
                                 [-1,-1] ]);
   }
-
 
 
   // We need to check that the cleave cuts yield a valid result.
@@ -2450,8 +2122,8 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
   // If not, some are missed and it's not a valid quarry.
   //
 
-  let border_range = RPRP_quarry_edge_ranges(ctx, g_a, g_b, g_s, g_e, _debug);
-  border_range.push( [idx_e, idx_s] );
+  let border_range = MIRPRP_quarry_edge_ranges(ctx, g_a, g_b, _debug);
+  if (idx_e != idx_s) { border_range.push( [idx_e, idx_s] ); }
 
   if (_debug > 1) {
     console.log("raw border_range:", JSON.stringify(border_range));
@@ -2471,25 +2143,6 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
 
   }
   border_range = _tmp_br;
-
-
-  /*
-  if ((border_range.length == 1) &&
-      (candidate_corner_cuts.length == 0)) {
-    if (border_range[0][0] != border_range[0][1]) {
-      quarry_info.comment = "non-sweeping border cut";
-      return quarry_info;
-    }
-
-    // quarry is rectangle with no cuts?
-    //
-    quarry_info.valid = 1;
-    return quarry_info;
-  }
-  */
-
-
-  //console.log("border_range:", JSON.stringify(border_range));
 
   // one final check to make sure all partition ranges have been
   // accounted for.
@@ -2601,10 +2254,10 @@ function RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug) {
     //DEBUG
     //DEBUG
     //DEBUG
-    //console.log("no valid cuts?? candidate_corner_cuts:", JSON.stringify(candidate_corner_cuts));
-    //console.log("  >>> cleave_profile:", cleave_profile.join(""));
-    //console.log("  >>> cleave_choices:", JSON.stringify(cleave_choices));
-    //console.log("  >>> side_cleave_cuts:", side_cleave_cuts);
+    console.log("no valid cuts?? candidate_corner_cuts:", JSON.stringify(candidate_corner_cuts));
+    console.log("  >>> cleave_profile:", cleave_profile.join(""));
+    console.log("  >>> cleave_choices:", JSON.stringify(cleave_choices));
+    console.log("  >>> side_cleave_cuts:", side_cleave_cuts);
     //DEBUG
     //DEBUG
     //DEBUG
@@ -2693,7 +2346,7 @@ function RPRP_enumerate_one_cut_adit_points(ctx, g_s, g_e, _debug) {
 // Return a list of general boundary index points enumerating the tab guillotine cuts
 // implied by the quarry rectangle.
 //
-function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
+function MIRPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
   _debug = ((typeof _debug === "undefined") ? false : _debug);
 
   let B = ctx.B;
@@ -2719,8 +2372,8 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
     [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
   ];
 
-  let s_idx = Bij[ g_s[1] ][ g_s[0] ];
-  let e_idx = Bij[ g_e[1] ][ g_e[0] ];
+  let s_idx = B[ g_s[1] ][ g_s[0] ];
+  let e_idx = B[ g_e[1] ][ g_e[0] ];
 
   let oppo = [1,0, 3,2];
   let billet_idir = [ 1, 2, 0, 3 ];
@@ -2758,12 +2411,12 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
     // If not, we're on an interior point so advance to the first
     // border point in the appropriate direction.
     //
-    let b_idx_cur = Bij[ Rg[r_idx][1] ][ Rg[r_idx][0] ];
+    let b_idx_cur = B[ Rg[r_idx][1] ][ Rg[r_idx][0] ];
     if (b_idx_cur < 0) {
       b_idx_cur = Js[idir][ Rg[r_idx][1] ][ Rg[r_idx][0] ];
     }
 
-    let g_cur = [ B[ b_idx_cur ][0], B[ b_idx_cur ][1] ];
+    let g_cur = [ Bij[ b_idx_cur ][0], Bij[ b_idx_cur ][1] ];
 
     // xy is the axis dimension we're iterating towards.
     // _c is the factor so that we can do the less than or greater
@@ -2785,12 +2438,12 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
       //
       let b_idx_nxt = Js[idir][ g_cur[1] ][ g_cur[0] ];
       if (b_idx_nxt < 0) { break; }
-      let g_nxt = [ B[ b_idx_nxt ][0], B[ b_idx_nxt ][1] ];
+      let g_nxt = [ Bij[ b_idx_nxt ][0], Bij[ b_idx_nxt ][1] ];
 
       // then look back to see border point behind us
       //
       let b_idx_prv = Js[rdir][ g_nxt[1] ][ g_nxt[0] ];
-      let g_prv = [ B[ b_idx_prv ][0], B[ b_idx_prv ][1] ];
+      let g_prv = [ Bij[ b_idx_prv ][0], Bij[ b_idx_prv ][1] ];
 
       if (_debug > 1) {
         console.log("  b_idx_[prv|cur|nxt]:", b_idx_prv, b_idx_cur, b_idx_nxt, ", g_[prv|cur|nxt]:", g_prv, g_cur, g_nxt);
@@ -2816,7 +2469,7 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
         // We don't take sides that are borders and
         // we dont' want to go where we came from
         //
-        let _d = abs_sum_v( v_sub(B[b_idx_prv], B[b_idx_nxt]) );
+        let _d = abs_sum_v( v_sub(Bij[b_idx_prv], Bij[b_idx_nxt]) );
 
         if (_debug > 1) {
           console.log("    _d:", _d, "|d idx|:", Math.abs(b_idx_nxt - b_idx_prv),
@@ -2893,8 +2546,8 @@ function RPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
 //   point must cross the constructed edge cuts.
 //   They further must not be inline
 //
-function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a, _debug) {
-  let Bij = ctx.Bij;
+function MIRPRP_point_in_region(ctx, ij, g_s, g_e, g_a, _debug) {
+  let B = ctx.B;
   let Js = ctx.Js;
 
   // degenerate
@@ -2926,8 +2579,8 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a, _debug) {
 
   // sanity
   //
-  let idx_s = Bij[ g_s[1] ][ g_s[0] ],
-      idx_e = Bij[ g_e[1] ][ g_e[0] ];
+  let idx_s = B[ g_s[1] ][ g_s[0] ],
+      idx_e = B[ g_e[1] ][ g_e[0] ];
   if ((idx_s < 0) || (idx_e < 0)) {
 
     if (_debug > 2) { console.log("#pir.2 error"); }
@@ -2939,7 +2592,7 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a, _debug) {
 
   // If ij is already on border, we can do a wrapped range test
   //
-  let ij_b_idx = Bij[ ij[1] ][ ij[0] ];
+  let ij_b_idx = B[ ij[1] ][ ij[0] ];
   if (ij_b_idx >= 0) {
 
     if (_debug > 2) { console.log("#pir.3 boundary"); }
@@ -3049,9 +2702,9 @@ function RPRP_point_in_region(ctx, ij, g_s, g_e, g_a, _debug) {
 // If all endpoints match up and the area is non-zero, we have a valid rectangle.
 // 
 //
-function RPRP_valid_R(ctx, g_a, g_b) {
+function MIRPRP_valid_R(ctx, g_a, g_b) {
   let Je = ctx.Je;
-  let Bij = ctx.Bij;
+  let B = ctx.B;
 
   // 2---3
   // |   |
@@ -3089,10 +2742,10 @@ function RPRP_valid_R(ctx, g_a, g_b) {
     // Otherwise, compare the endpoints to make sure they match up.
     //
     let p_b_idx = Je[idir][ Rg[p][1] ][ Rg[p][0] ];
-    if (p_b_idx < 0) { p_b_idx = Bij[ Rg[p][1] ][ Rg[p][0] ]; }
+    if (p_b_idx < 0) { p_b_idx = B[ Rg[p][1] ][ Rg[p][0] ]; }
 
     let q_b_idx = Je[idir][ Rg[q][1] ][ Rg[q][0] ];
-    if (q_b_idx < 0) { q_b_idx = Bij[ Rg[q][1] ][ Rg[q][0] ]; }
+    if (q_b_idx < 0) { q_b_idx = B[ Rg[q][1] ][ Rg[q][0] ]; }
 
     if ((p_b_idx < 0) || (q_b_idx < 0)) { return 0; }
     if (p_b_idx != q_b_idx) { return 0; }
@@ -3102,78 +2755,10 @@ function RPRP_valid_R(ctx, g_a, g_b) {
 }
 
 
-// WIP!!!
-// still has bug...
-// ???
-// this might be cruft at this point, consider removing
-
-// Test for valid quarry rectangle.
-//
-// The rectangle is defined by g_a and g_b, must be wholly contained
-// in the region defined by the 1-cut or 2-cut defined by
-// g_s, g_e, g_a.
-//
-//
-// Input:
-//
-//   g_s - start region point on general border point (counterclockwise order)
-//   g_e - end region point on general border point
-//   g_a - adit point of cut and quarry rectangle
-//   g_b - bower point of quarry rectangle
-//
-// Output:
-//
-//   1 - valid quarry rectangle
-//   0 - otherwise
-//
-// Test for valid rectangle in addition to making sure all endoints of quarry
-// rectangle fall within the region.
-//
-/*
-function RPRP_valid_quarry(ctx, g_s, g_e, g_a, g_b) {
-
-  if (RPRP_valid_R(ctx, g_a, g_b) == 0) {
-
-    //console.log("### vq.0:", g_s, g_e, g_a, g_b, " valid_R==0!");
-
-    return 0;
-  }
-
-  // 2---3
-  // |   |
-  // 1---0
-  //
-  let Rg = [
-    [ Math.max( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
-    [ Math.min( g_a[0], g_b[0] ), Math.min( g_a[1], g_b[1] ) ],
-    [ Math.min( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ],
-    [ Math.max( g_a[0], g_b[0] ), Math.max( g_a[1], g_b[1] ) ]
-  ];
-
-  for (let i=0; i<Rg.length; i++) {
-    if (RPRP_point_in_region(ctx, Rg[i], g_s, g_e, g_a) == 0) {
-
-      //console.log("### vq.1:", g_s, g_e, g_a, g_b, "Rg[", i, "]:", Rg[i], " pir==0!");
-
-      return 0;
-    }
-  }
-
-  let cleave_profile = RPRPCleaveProfile(ctx, g_s, g_e, g_a, g_b);
-
-  if ((cleave_profile[0] == 'b') && (cleave_profile[7] == 'b')) { return 0; }
-  if ((cleave_profile[1] == 'b') && (cleave_profile[2] == 'b')) { return 0; }
-  if ((cleave_profile[3] == 'b') && (cleave_profile[4] == 'b')) { return 0; }
-  if ((cleave_profile[5] == 'b') && (cleave_profile[6] == 'b')) { return 0; }
-
-  return 1;
-}
-*/
-
 // reverse index to get border cut points and 't' value
 // (which corner the quarry adit point is)
 //
-function RPRP_DPidx2b(ctx, dp_idx) {
+function __RPRP_DPidx2b(ctx, dp_idx) {
   let n = ctx.B.length;
   let _idx = dp_idx;
 
@@ -3190,12 +2775,12 @@ function RPRP_DPidx2b(ctx, dp_idx) {
 
 // lightly tested
 //
-function RPRP_DPidx2g(ctx, dp_idx) {
+function __RPRP_DPidx2g(ctx, dp_idx) {
 
   let s_e_t = RPRP_DPidx2b(ctx, dp_idx);
 
-  let g_s = ctx.B[ s_e_t[0] ];
-  let g_e = ctx.B[ s_e_t[1] ];
+  let g_s = ctx.Bij[ s_e_t[0] ];
+  let g_e = ctx.Bij[ s_e_t[1] ];
 
   let g_a = [-1,-1];
 
@@ -3248,10 +2833,9 @@ function RPRP_DPidx2g(ctx, dp_idx) {
 //
 function MIRPRP_DP_idx(ctx, g_s, g_e, g_a) {
   let B = ctx.B;
-  let Bij = ctx.Bij;
 
-  let idx_s = Bij[ g_s[1] ][ g_s[0] ];
-  let idx_e = Bij[ g_e[1] ][ g_e[0] ];
+  let idx_s = B[ g_s[1] ][ g_s[0] ];
+  let idx_e = B[ g_e[1] ][ g_e[0] ];
 
   let key = idx_s.toString() + ":" +
             idx_e.toString() + ";" +
@@ -3283,14 +2867,14 @@ function MIRPRP_DP_idx(ctx, g_s, g_e, g_a) {
 // Note: for future use, need to check to see if g_s, g_e
 // is a 1-cut and force t index to be 0.
 //
-function _RPRP_DP_idx(ctx, g_s, g_e, g_a) {
-  let B = ctx.B;
-  let Bij = ctx.Bij;
+function _MIRPRP_DP_idx(ctx, g_s, g_e, g_a) {
+  let B = ctx.B,
+      Bij = ctx.Bij;
 
-  let n = B.length;
+  let n = Bij.length;
 
-  let idx_s = Bij[ g_s[1] ][ g_s[0] ];
-  let idx_e = Bij[ g_e[1] ][ g_e[0] ];
+  let idx_s = B[ g_s[1] ][ g_s[0] ];
+  let idx_e = B[ g_e[1] ][ g_e[0] ];
 
   //....
 
@@ -3329,7 +2913,7 @@ function _Ink(g_a, g_b) {
 // try to separate out bower list for future optimizations.
 //
 //
-function RPRP_candidate_bower(ctx, g_s, g_e, g_a, _debug) {
+function MIRPRP_candidate_bower_naive(ctx, g_s, g_e, g_a, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
   let X = ctx.X,
@@ -3344,6 +2928,34 @@ function RPRP_candidate_bower(ctx, g_s, g_e, g_a, _debug) {
   }
 
   return candidate_bower;
+}
+
+function MIRPRP_candidate_bower_opt(ctx, g_s, g_e, g_a, _debug) {
+  let X = ctx.X,
+      Y = ctx.Y;
+
+
+  let k_cut = 2;
+
+  if (cmp_v(g_s, g_e) == 0) { k_cut = 0; }
+  else if ( (g_s[0] == g_e[0]) ||
+            (g_s[1] == g_e[1]) ) {
+    k_cut = 1;
+  }
+
+  if (k_cut == 0) {
+  }
+
+  else if (k_cut == 1) {
+  }
+
+  else if (k_cut == 2) {
+  }
+
+}
+
+function MIRPRP_candidate_bower(ctx, g_s, g_e, g_a, _debug) {
+  return MIRPRP_candidate_bower_naive(ctx, g_s, g_e, g_a, _debug);
 }
 
 //WIP!!
@@ -3462,86 +3074,14 @@ function MIRPRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
   // * recur on all corner cuts, either taking the two cuts as is
   //   or enumerating adit cuts
   //
-  let candidate_bower = RPRP_candidate_bower(ctx, g_s, g_e, g_a);
+  let candidate_bower = MIRPRP_candidate_bower(ctx, g_s, g_e, g_a);
 
   _dbg_mirp_bower(_debug, _pfx, candidate_bower );
 
   for (let bower_idx = 0; bower_idx < candidate_bower.length; bower_idx++) {
     let g_b = candidate_bower[bower_idx];
 
-  }
-
-}
-
-function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
-  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
-  _debug_str = ((typeof _debug_str === "undefined") ? "" : _debug_str);
-  lvl = ((typeof lvl === "undefined") ? 0 : lvl);
-
-  let _debug_id = _debug_id();
-  let _pfx = _ws(2*lvl) + "mirp." + lvl.toString() + "(" + _debug_str + " -> " + _debug_id + ")";
-  _debug_str = _debug_id;
-
-  let B = ctx.B,
-      Bt = ctx.Bt,
-      Bij = ctx.Bij,
-      Bxy = ctx.Bxy,
-      G = ctx.G,
-      Gt = ctx.Gt,
-      Gij = ctx.Gij,
-      Gxy = ctx.Gxy,
-      X = ctx.X,
-      Y = ctx.Y,
-      Js = ctx.Js;
-
-  let _min_cost = -1,
-      _min_partition = [],
-      _min_bower = [-1,-1],
-      _min_rect = [];
-
-  let _init = false;
-  if (typeof g_s === "undefined") {
-    g_s = B[0];
-    g_e = B[0];
-    g_a = B[0];
-    _init = true;
-  }
-
-  let b_s = Bij[ g_s[1] ][ g_s[0] ];
-  let b_e = Bij[ g_e[1] ][ g_e[0] ];
-
-  _dbg_mirp_beg(_debug, _pfx, g_s, g_e, b_s, b_e, g_a);
-
-  // default to first entry on border.
-  //
-  if (_init) { ctx.DP_root_key = [0,0,[g_a[0],g_a[1]]]; }
-
-  // See if it's already memoized, if so, return it
-  //
-  let dp_idx = RPRP_DP_idx(ctx, g_s, g_e, g_a);
-  if ( (dp_idx in ctx.DP_cost) && (ctx.DP_cost[dp_idx] >= 0) ) {
-
-    _dbg_mirp_dp(_debug, _pfx, ctx, dp_idx, g_s, g_e, g_a);
-
-    return ctx.DP_cost[dp_idx];
-  }
-
-  // We get a list of bower points, check for a valid rectangle
-  // and quarry and, if valid:
-  //
-  // * store the result if it's a simple rectangle
-  // * recur on all side cuts, enumerating through each potential adit point
-  // * recur on all corner cuts, either taking the two cuts as is
-  //   or enumerating adit cuts
-  //
-  let candidate_bower = RPRP_candidate_bower(ctx, g_s, g_e, g_a);
-
-  _dbg_mirp_bower(_debug, _pfx, candidate_bower );
-
-  for (let bower_idx = 0; bower_idx < candidate_bower.length; bower_idx++) {
-    let g_b = candidate_bower[bower_idx];
-
-    let qi = RPRPQuarryInfo(ctx, g_s, g_e, g_a, g_b, _debug);
+    let qi = MIRPRP_quarry_info(ctx, g_s, g_e, g_a, g_b, _debug);
     if (qi.valid == 0) {
 
       if (_debug > 0) { console.log( _pfx, "skip [", JSON.stringify(g_a), JSON.stringify(g_b), "]", "(", qi.comment, ")"); }
@@ -3755,8 +3295,6 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
     console.log( _pfx, "<<<", "(_min_cost:", _min_cost, ")");
   }
 
-
-  //_init = false;
   if (_init) {
     let plist = [];
     let Qkey = [ ctx.DP_root_key ];
@@ -3766,10 +3304,6 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       plist.push(p);
 
       let key = RPRP_DP_idx(ctx, B[p[0]], B[p[1]], p[2]);
-
-
-      //console.log("???", key, ctx.DP_partition);
-      //_print_dp(ctx);
 
       if (key in ctx.DP_partition) {
 
@@ -3787,25 +3321,10 @@ function RPRP_MIRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
 
     ctx["partition"] = plist;
 
-    /*
-    console.log("===============================");
-    console.log("===============================");
-    console.log("===============================");
-    console.log("===============================");
-    console.log("===============================");
-    _print_dp(ctx);
-    console.log("===============================");
-    console.log("===============================");
-    console.log("===============================");
-    console.log("===============================");
-    console.log("===============================");
-    */
-
   }
 
   return _min_cost;
 }
-
 
 //------
 //------
@@ -3946,7 +3465,7 @@ function _main_cli(argv) {
   //let g_a = JSON.parse(argv[3]);
   //let g_b = JSON.parse(argv[4]);
 
-  let ctx = MIRPRPInit( pgn_a );
+  let ctx = MIRPRP_init( pgn_a );
   _print_rprp(ctx);
 
 }
@@ -3964,14 +3483,14 @@ async function _main_data(argv) {
 
   if ("debug" in data_info) { _debug = data_info.debug; }
 
-  if (data_info.op == "QuarryInfo") {
+  if (data_info.op == "quarry_info") {
 
-    let ctx = MIRPRPInit(data_info.C);
-    let qi = RPRPQuarryInfo( ctx,
-                             data_info.g_s, 
-                             data_info.g_e, 
-                             data_info.g_a, 
-                             data_info.g_b, _debug);
+    let ctx = MIRPRP_init(data_info.C);
+    let qi = MIRPRP_quarry_info( ctx,
+                                 data_info.g_s, 
+                                 data_info.g_e,
+                                 data_info.g_a, 
+                                 data_info.g_b, _debug); 
     console.log("{");
     console.log('  "valid":', qi.valid, ",");
 
@@ -4001,10 +3520,13 @@ async function _main_data(argv) {
     console.log('  "comment": ' + JSON.stringify(qi.comment) );
 
     console.log("}");
+
+    _expect_helper( data_info, qi );
+
   }
 
   else if (data_info.op == "MIRP") {
-    let ctx = MIRPRPInit(data_info.C);
+    let ctx = MIRPRP_init(data_info.C);
     let _u = undefined;
     let v = RPRP_MIRP(ctx, _u, _u, _u, 0, _debug);
 
@@ -4021,14 +3543,12 @@ async function _main_data(argv) {
   }
 
   else if (data_info.op == "quarry_edge_ranges") {
-    let ctx = MIRPRPInit(data_info.C);
+    let ctx = MIRPRP_init(data_info.C);
     _print_rprp(ctx);
 
-    let res = RPRP_quarry_edge_ranges(ctx,
-                                    data_info.g_a,
-                                    data_info.g_b,
-                                    data_info.g_s,
-                                    data_info.g_e, _debug);
+    let res = MIRPRP_quarry_edge_ranges(ctx,
+                                        data_info.g_a,
+                                        data_info.g_b, _debug);
 
     if (_debug) { console.log(res); }
 
@@ -4044,22 +3564,43 @@ async function _main_data(argv) {
   }
 
   else if (data_info.op == "print") {
-    let ctx = MIRPRPInit(data_info.C);
+    let ctx = MIRPRP_init(data_info.C);
     _print_rprp(ctx);
   }
 
   else if (data_info.op == "cleave_profile") {
-    let ctx = MIRPRPInit(data_info.C);
+    let ctx = MIRPRP_init(data_info.C);
     let res = MIRPRP_cleave_profile(ctx, data_info.g_s, data_info.g_e, data_info.g_a, data_info.g_b)
     console.log("got:", res.join(""));
     _expect_helper( data_info, res );
   }
 
   else if (data_info.op == "valid_cleave") {
-    let ctx = MIRPRPInit(data_info.C);
+    let ctx = MIRPRP_init(data_info.C);
 
     let res = MIRPRP_valid_cleave(ctx, data_info.quarry, data_info.cleave_choice );
     console.log("got:", res);
+    _expect_helper( data_info, res );
+  }
+
+  else if (data_info.op == "cleave_enumerate") {
+    let ctx = MIRPRP_init(data_info.C);
+
+    let cleave_profile = [];
+    if ("cleave_profile" in data_info) {
+      cleave_profile = data_info.cleave_profile;
+    }
+    else {
+      cleave_profile = MIRPRP_cleave_profile(ctx, data_info.g_s, data_info.g_e, data_info.g_a, data_info.g_b)
+    }
+
+    console.log("cleave_profile:", cleave_profile.join(""));
+
+    let res = MIRPRP_cleave_enumerate(ctx, data_info.g_s, data_info.g_e, data_info.g_a, data_info.g_b, cleave_profile)
+    console.log("got:", JSON.stringify(res));
+    for (let i=0; i<res.length; i++) {
+      console.log("  ", res[i].join(""));
+    }
     _expect_helper( data_info, res );
   }
 
@@ -4109,10 +3650,10 @@ if (typeof module !== "undefined") {
   let func_name_map = {
     "winding" : winding,
     "windingA" : windingA,
-    "init" : MIRPRPInit,
+    "init" : MIRPRP_init,
     "fasslib": fasslib,
     "mirp": MIRPRP,
-    "QuarryInfo": RPRPQuarryInfo
+    "quarry_info": MIRPRP_quarry_info,
   };
 
   for (let key in func_name_map) {
