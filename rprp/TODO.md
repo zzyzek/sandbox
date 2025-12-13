@@ -3,6 +3,29 @@ TODO
 
 ###### 2025-12-10
 
+* refactor
+  - simplify all the complex logic about cleave cuts, bridges, floats, etc.
+  - unless its actually illegal, let it pass
+
+
+function checklist:
+
+* `RPRP_valid_cleave` (done, untested)
+* `RPRP_cleave_enumerate` (the `_type == 'c'` looks fishy)
+* `RPRPCleaveProfile` (done, untested)
+* `RPRP_cleave_border` (done, untested)
+* `RPRP_quarry_edge_ranges`
+* `RPRP_valid_R`
+* `RPRP_point_in_region`
+* `RPRP_enumerate_quarry_side_region`
+* `RPRP_enumerate_one_cut_adit_points`
+* `RPRP_enumerate_quarry_side_region`
+* `RPRP_candidate_bower` (!)
+* `RPRP_MIRP` (!)
+
+
+###### 2025-12-10
+
 * some confidence of working algorithm
   - needs more test cases
   - needs test script

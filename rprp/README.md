@@ -1083,7 +1083,7 @@ The main ingredients:
   - for 1-cuts, make sure the quarry rectangle shares a non-degenerate edge with
     the cut
   - still a lot more optimizations to be done for 2-cuts
-...
+
 
 
 
