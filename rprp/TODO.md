@@ -1,12 +1,26 @@
 TODO
 ===
 
-###### 2025-12-10
+###### 2025-12-13
+
+* bower speedups
+  - for a 2R cut, only consider off-diagonal rectangles
+    and bound by boundary end (`Je`) of rectangle sides
+  - for a 2C cut, only consider three rectangles:
+    + one diagonal past `Jf` cliff
+    + off diagonal bounded by `Je` ends
+* adit speedups?
+  - worst case is tooth configuration
+  - seems like the logic gets complicated to know
+    what points to exclude a-priori
+* DP viz
+  - show sub-region, cut, and implication DAG
+
+###### 2025-12-12
 
 * refactor
-  - simplify all the complex logic about cleave cuts, bridges, floats, etc.
-  - unless its actually illegal, let it pass
-
+  - ~simplify all the complex logic about cleave cuts, bridges, floats, etc.~
+  - ~unless its actually illegal, let it pass~
 
 function checklist:
 
@@ -22,6 +36,8 @@ function checklist:
 * `RPRP_enumerate_quarry_side_region` (done, untested)
 * `RPRP_candidate_bower` (!) (wip)
 * `RPRP_MIRP` (!)
+
+refactor is done.
 
 
 ###### 2025-12-10

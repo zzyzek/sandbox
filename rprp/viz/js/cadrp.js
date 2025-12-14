@@ -378,8 +378,8 @@ function _draw_rprp_partition() {
     let b_e = partition[p_idx][1];
     let g_a = partition[p_idx][2];
 
-    let g_s = B[b_s];
-    let g_e = B[b_e];
+    let g_s = Bij[b_s];
+    let g_e = Bij[b_e];
 
     let bs_xy = [
       Bxy[b_s][0]*gs + _oxy[0],
@@ -411,7 +411,7 @@ function _draw_rprp_partition() {
       continue;
     }
 
-    let p_a = Gxy[ Gij[g_a[1]][g_a[0]] ];
+    let p_a = Gxy[ G[g_a[1]][g_a[0]] ];
 
     let ga_xy = [
       p_a[0]*gs + _oxy[0],
@@ -541,9 +541,9 @@ function _draw_rprp_grid() {
     //for (let ix=0; ix < (X.length-1); ix++) {
   for (let iy=0; iy < (Y.length); iy++) {
     for (let ix=0; ix < (X.length); ix++) {
-      if (Gij[iy][ix] < 0) { continue; }
+      if (G[iy][ix] < 0) { continue; }
 
-      let p_cur = Gxy[ Gij[iy][ix] ];
+      let p_cur = Gxy[ G[iy][ix] ];
 
       grid_pnt.push([
         p_cur[0]*gs + _oxy[0],
@@ -555,7 +555,7 @@ function _draw_rprp_grid() {
       if ((Js[0][iy][ix] >= 0) &&
           (ix < (X.length-1))) {
 
-        let p_prv = Gxy[ Gij[iy][ix+1] ];
+        let p_prv = Gxy[ G[iy][ix+1] ];
 
         let lh = two.makeLine(
            p_cur[0]*gs + _oxy[0],
@@ -572,7 +572,7 @@ function _draw_rprp_grid() {
 
       if ((Js[2][iy][ix] >= 0) &&
           (iy < (Y.length-1))) {
-        let p_prv = Gxy[ Gij[iy+1][ix] ];
+        let p_prv = Gxy[ G[iy+1][ix] ];
 
         let lv = two.makeLine(
            p_cur[0]*gs + _oxy[0],
@@ -936,7 +936,7 @@ function redraw() {
 function populate_grid() {
   let data = g_ui.data;
   let pgn = pgn2a(data.pgn);
-  let rprp_info = rprp.init( pgn );
+  let rprp_info = mirprp.init( pgn );
   g_ui.data.rprp_info = rprp_info;
 
   g_ui.data.rprp_info_ready = true;
@@ -947,8 +947,8 @@ function populate_grid() {
 function calc_partition() {
   let data = g_ui.data;
   let pgn = pgn2a(data.pgn);
-  let rprp_info = rprp.init( pgn );
-  rprp.mirp(rprp_info);
+  let rprp_info = mirprp.init( pgn );
+  mirprp.mirp(rprp_info);
   g_ui.data.rprp_info = rprp_info;
 
   g_ui.data.rprp_info_ready = true;
@@ -1353,13 +1353,11 @@ function mouse_click_cut(x,y) {
 
   let border_idx = -1;
 
-  //let B = rprp_info.B;
-  let B = rprp_info.Bxy;
+  let Bxy = rprp_info.Bxy;
 
   let Ba = [];
   for (let i=0; i<B.length; i++) {
-    //Ba.push( B[i].xy );
-    Ba.push( B[i] );
+    Ba.push( Bxy[i] );
   }
 
   let tB = a2pgn(Ba);

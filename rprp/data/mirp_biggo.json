@@ -24,7 +24,7 @@
   [10,14], [7,14], [7,12], [4,12],
   [4,9], [0,9]
   ],
-  "comment": "a bit slow with the current implementation (~10s)",
+  "comment": "a bit slow with the current implementation (~10s) (mirprp ~2s)",
   "debug": 0,
   "expect": { "return": 524 }
 }
