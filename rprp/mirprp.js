@@ -3131,6 +3131,7 @@ function MIRPRP_candidate_bower_opt(ctx, g_s, g_e, g_a, _debug) {
 
   let candidate_bower = [];
   let scan_bounds = [];
+  let scan_type = [];
 
   let b_s = B[ g_s[1] ][ g_s[0] ];
   let b_e = B[ g_e[1] ][ g_e[0] ];
@@ -3205,6 +3206,8 @@ function MIRPRP_candidate_bower_opt(ctx, g_s, g_e, g_a, _debug) {
         [ Math.max( g_s[0], _g0[0], _g1[0] ), Math.max( g_s[1], _g0[1], _g1[1] ) ],
       ]);
 
+      scan_type.push('a');
+
     }
 
   }
@@ -3228,6 +3231,7 @@ function MIRPRP_candidate_bower_opt(ctx, g_s, g_e, g_a, _debug) {
         [ Math.min( Bij[b0][0], Bij[b2][0], g_a[0] ), Math.min( Bij[b0][1], Bij[b2][1], g_a[1] ) ],
         [ Math.max( Bij[b0][0], Bij[b2][0], g_a[0] ), Math.max( Bij[b0][1], Bij[b2][1], g_a[1] ) ] 
       ]);
+      scan_type.push('a');
     }
 
     if ((b1 >= 0) && (b2 >= 0)) {
@@ -3235,6 +3239,7 @@ function MIRPRP_candidate_bower_opt(ctx, g_s, g_e, g_a, _debug) {
         [ Math.min( Bij[b1][0], Bij[b2][0], g_a[0] ), Math.min( Bij[b1][1], Bij[b2][1], g_a[1] ) ],
         [ Math.max( Bij[b1][0], Bij[b2][0], g_a[0] ), Math.max( Bij[b1][1], Bij[b2][1], g_a[1] ) ] 
       ]);
+      scan_type.push('a');
     }
 
   }
@@ -3265,6 +3270,7 @@ function MIRPRP_candidate_bower_opt(ctx, g_s, g_e, g_a, _debug) {
           [ Math.min( Bij[b_as][0], Bij[b_ae_r][0], g_a[0] ), Math.min( Bij[b_as][1], Bij[b_ae_r][1], g_a[1] ) ],
           [ Math.max( Bij[b_as][0], Bij[b_ae_r][0], g_a[0] ), Math.max( Bij[b_as][1], Bij[b_ae_r][1], g_a[1] ) ] 
         ]);
+        scan_type.push('a');
       }
 
       let b_ae    = Je[idir_ae][ g_a[1] ][ g_a[0] ];
@@ -3275,12 +3281,23 @@ function MIRPRP_candidate_bower_opt(ctx, g_s, g_e, g_a, _debug) {
           [ Math.min( Bij[b_ae][0], Bij[b_as_r][0], g_a[0] ), Math.min( Bij[b_ae][1], Bij[b_as_r][1], g_a[1] ) ],
           [ Math.max( Bij[b_ae][0], Bij[b_as_r][0], g_a[0] ), Math.max( Bij[b_ae][1], Bij[b_as_r][1], g_a[1] ) ] 
         ]);
+        scan_type.push('a');
       }
 
-      //WIP!!
-      //STILL NEED CENTER BORDER POINTS
+      // we only want border points for this region.
+      //
+      if ((b_ae_r >= 0) && (b_as_r >= 0)) {
+        scan_bounds.push([
+          [ Math.min( Bij[b_ae_r][0], Bij[b_as_r][0], g_a[0] ), Math.min( Bij[b_ae_r][1], Bij[b_as_r][1], g_a[1] ) ],
+          [ Math.max( Bij[b_ae_r][0], Bij[b_as_r][0], g_a[0] ), Math.max( Bij[b_ae_r][1], Bij[b_as_r][1], g_a[1] ) ] 
+        ]);
+        scan_type.push('B');
+      }
 
     }
+
+    // 2C
+    //
     else {
 
       let b_as = Je[idir_as][ g_a[1] ][ g_a[0] ];
@@ -3291,6 +3308,7 @@ function MIRPRP_candidate_bower_opt(ctx, g_s, g_e, g_a, _debug) {
           [ Math.min( Bij[b_ae][0], Bij[b_as][0], g_a[0] ), Math.min( Bij[b_ae][1], Bij[b_as][1], g_a[1] ) ],
           [ Math.max( Bij[b_ae][0], Bij[b_as][0], g_a[0] ), Math.max( Bij[b_ae][1], Bij[b_as][1], g_a[1] ) ] 
         ]);
+        scan_type.push('a');
       }
 
     }
@@ -3303,7 +3321,7 @@ function MIRPRP_candidate_bower_opt(ctx, g_s, g_e, g_a, _debug) {
   //DEBUG
   console.log("g_s:", g_s, "(", b_s, ")", "g_e:", g_e, "(", b_e, ")", "g_a:", g_a);
   for (let i=0; i<scan_bounds.length; i++) {
-    console.log("scan_bounds[", i, "]:", JSON.stringify(scan_bounds[i]));
+    console.log("scan_bounds[", i, "]:", JSON.stringify(scan_bounds[i]), "(", scan_type[i], ")");
   }
   //DEBUG
   //DEBUG
@@ -3368,8 +3386,6 @@ function _dbg_mirp_quarry_info(_debug, _pfx, lvl, g_s, g_e, g_a, g_b, qi, a_pnt,
 
 function MIRPRP_cut_cost(ctx, key) {
   if (typeof key == "undefined") {
-
-    console.log(">>>>", ctx.DP_root_key);
 
     let b_s = ctx.DP_root_key[0];
     let b_e = ctx.DP_root_key[1];
@@ -3732,109 +3748,6 @@ function _expect( q, v, _verbose ) {
 //----
 //----
 
-function _irnd(a,b) {
-  if (typeof a === "undefined") {
-    return Math.floor(Math.random()*2);
-  }
-
-  if (typeof b === "undefined") {
-    return Math.floor(Math.random()*a);
-  }
-
-  return Math.floor(a + ((b-a)*Math.random()));
-}
-
-function random_rprp(n_it) {
-  n_it = ((typeof n_it === "undefined") ? 1 : n_it);
-  if (n_it <= 0) { n_it = 1; }
-
-  let W = 10;
-  let H = 10;
-
-  let nX = 30,
-      nY = 30;
-
-  let sgg = [],
-      tgg = [];
-  for (let j=0; j<nY; j++) {
-    sgg.push([]);
-    tgg.push([]);
-    for (let i=0; i<nX; i++) {
-      sgg[j].push(-1);
-      tgg[j].push(-1);
-    }
-  }
-
-  for (let it=0; it<n_it; it++) {
-
-    let w = _irnd(1,W);
-    let h = _irnd(1,H);
-
-    let sx = _irnd(0, nX-w-1);
-    let sy = _irnd(0, nY-h-1);
-
-    for (let ty=0; ty<h; ty++) {
-      for (let tx=0; tx<w; tx++) {
-        sgg[ sy + ty ][ sx + tx] = 1;
-      }
-    }
-
-  }
-
-  let ij_idir = [
-    [1,0], [-1,0],
-    [0,1], [0,-1]
-  ];
-
-  for (let j=0; j<nY; j++) {
-    for (let i=0; i<nX; i++) {
-
-      tgg[j][i] = sgg[j][i];
-
-      if (sgg[j][i] < 0) { continue; }
-
-      let _count = 0;
-      for (let idir=0; idir<4; idir++) {
-        let y = j + ij_idir[idir][1];
-        let x = i + ij_idir[idir][0];
-
-        let code = 'x';
-
-        if ( (y<0) || (y>=nY) ||
-             (x<0) || (x>=nX) ) {
-          code = '.';
-        }
-        else {
-          code = ((sgg[y][x] < 0) ? '.' : '*');
-        }
-
-        if (code == '*') { _count++; }
-      }
-
-      if (_count == 4) { tgg[j][i] = -1; }
-      else { tgg[j][i] = sgg[j][i]; }
-
-
-    }
-  }
-
-  sgg = tgg;
-
-  for (let j=0; j<nY; j++) {
-    let l = [];
-    for (let i=0; i<nX; i++) {
-      l.push( (sgg[j][i] < 0) ? '.' : '*' );
-    }
-    console.log(l.join(""));
-  }
-
-}
-
-function _main_rand(argv) {
-  console.log(random_rprp(20));
-}
-
-
 //       ___ 
 //  ____/ (_)
 // / __/ / / 
@@ -3915,7 +3828,9 @@ async function _main_data(argv) {
 
     _print_dp(ctx);
 
-    console.log("mirp:", v, "(", MIRPRP_cut_cost(ctx), ")");
+    let root_key = ctx.DP_root_key[0].toString() + ":" + ctx.DP_root_key[1].toString() + ";"
+      + ctx.DP_root_key[2][0].toString() + "," + ctx.DP_root_key[2][1].toString();
+    console.log("mirp:", v, "(", MIRPRP_cut_cost(ctx), ")", "root_key:", root_key);
 
     if (("expect" in data_info) &&
         ("return" in data_info.expect)) {

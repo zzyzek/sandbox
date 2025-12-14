@@ -17,6 +17,6 @@
     [13,23], [0,23]
   ],
   "comment": "fig.9 of Ahn. Not sure what to expect",
-  "debug": 1,
-  "expect": { "x": -1 }
+  "debug": 0,
+  "expect": { "return": 414 }
 }
