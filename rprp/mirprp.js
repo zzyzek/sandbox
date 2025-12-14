@@ -2026,7 +2026,7 @@ function MIRPRP_quarry_info(ctx, g_s, g_e, g_a, g_b, _debug) {
     let cc = cleave_choices[cci];
 
     //DEBUG
-    console.log("cci:", cci, "cleave_choices[", cci, "]:", cleave_choices[cci].join(""));
+    //console.log("cci:", cci, "cleave_choices[", cci, "]:", cleave_choices[cci].join(""));
 
     let cleave_cuts = [];
     for (let r_idx=0; r_idx<4; r_idx++) {
@@ -2039,7 +2039,7 @@ function MIRPRP_quarry_info(ctx, g_s, g_e, g_a, g_b, _debug) {
       let o_idir = lu_o_idir[r_idx];
       let o_tdir = oppo[e_idir];
 
-      console.log("eci:", even_cleave_idx, "oci:", odd_cleave_idx);
+      //console.log("eci:", even_cleave_idx, "oci:", odd_cleave_idx);
 
       // An even cleave cut implies at least one two-cut with a constructed line in
       // the even cleave direction and another constructed line in the orthogonal direction
@@ -2106,12 +2106,17 @@ function MIRPRP_quarry_info(ctx, g_s, g_e, g_a, g_b, _debug) {
           if      (_dock[r_idx])    { is_one_cut = true; }
           else if (R_B[r_nxt] >= 0) { is_one_cut = true; }
           else if (cc[ipp] == '*')  { is_one_cut = false; }
+
+          // R_B[r_nxt] must be interior, so suffice to check
+          // if there's a constructed line exteinding in-line
+          //
+          else if (cc[ip3] != '*')  { is_one_cut = false; }
           else { is_one_cut = true; }
 
           if (is_one_cut) {
 
             // we'll be enumerating adit points for the 1-cut, so use
-            // a placeholder adit the invalid point [-1,-1]
+            // a placeholder adit, the invalid point [-1,-1]
             //
             cleave_cuts.push([
                 Js[ oppo[e_idir] ][ Rg[r_idx][1] ][ Rg[r_idx][0] ],
@@ -2182,6 +2187,12 @@ function MIRPRP_quarry_info(ctx, g_s, g_e, g_a, g_b, _debug) {
           if      (_dock[r_prv])    { is_one_cut = true; }
           else if (R_B[r_prv] >= 0) { is_one_cut = true; }
           else if (cc[imm] == '*')  { is_one_cut = false; }
+
+          // R_B[r_prv] must be interior, so suffice to check
+          // if there's a constructed line exteinding in-line
+          //
+          else if (cc[im3] != '*')  { is_one_cut = false; }
+
           else { is_one_cut = true; }
 
           if (is_one_cut) {
@@ -2625,20 +2636,18 @@ function MIRPRP_enumerate_quarry_side_region(ctx, g_s, g_e, g_a, g_b, _debug) {
         // I'm having bounds dyslexia.
         // b_idx_nxt is the **start**, b_idx_prv is the **end**
         // Find fnence distance from **start** to **end**.
-        // If **end** is less than start, add B.length
+        // If **end** is less than start, add Bij.length
         //
         let __s = b_idx_nxt;
         let __e = b_idx_prv;
 
         let border_diff = __e - __s;
         if (border_diff < 0) { border_diff += Bij.length; }
-        //if (__e < __s) { border_diff = __e + B.length - __s; }
 
         if (_debug > 1) {
           console.log(">>>>border_diff:", border_diff, "(prv:", b_idx_prv, "nxt:", b_idx_nxt, ")");
         }
 
-        //if ((_d != Math.abs(b_idx_nxt - b_idx_prv)) &&
         if ((_d != border_diff) &&
             ( ((se[0] != np[0]) || (se[1] != np[1])) ) &&
             wrapped_range_contain( b_idx_nxt, s_idx, e_idx ) &&
@@ -2700,6 +2709,7 @@ function MIRPRP_point_in_region(ctx, ij, g_s, g_e, g_a, _debug) {
        ((ij[0] == g_e[0]) && (ij[1] == g_e[1])) ) {
     return 1;
   }
+
 
   // ij OOB
   //
@@ -2902,7 +2912,7 @@ function MIRPRP_valid_R(ctx, g_a, g_b) {
 // (which corner the quarry adit point is)
 //
 function __RPRP_DPidx2b(ctx, dp_idx) {
-  let n = ctx.B.length;
+  let n = ctx.Bij.length;
   let _idx = dp_idx;
 
   let t = _idx % 2;
@@ -3267,6 +3277,12 @@ function MIRPRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
       for (let adit_idx=0; adit_idx < candidate_adit.length; adit_idx++) {
         let g_a = candidate_adit[adit_idx];
 
+
+        if ( MIRPRP_point_in_region(ctx, g_a, Bij[one_cut[0]], Bij[one_cut[1]], Bij[one_cut[0]]) == 0 ) {
+          if (_debug) { console.log( _pfx, "skipping adit.1:", g_a); }
+          continue;
+        }
+
         let _cost = MIRPRP(ctx, Bij[one_cut[0]], Bij[one_cut[1]], g_a, lvl+1, _debug, _debug_str);
 
         if (_debug) {
@@ -3351,6 +3367,11 @@ function MIRPRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
         //console.log(">>> candidate_adit:", JSON.stringify(candidate_adit));
 
         for (let adit_idx=0; adit_idx < candidate_adit.length; adit_idx++) {
+
+          if ( MIRPRP_point_in_region(ctx, candidate_adit[adit_idx], _g_s, _g_e, _g_s) == 0 ) {
+            if (_debug) { console.log( _pfx, "skipping adit.2:", g_a); }
+            continue;
+          }
 
           let _cost = MIRPRP(ctx, _g_s, _g_e, candidate_adit[adit_idx], lvl+1, _debug, _debug_str);
           if (_cost < 0) { continue; }
