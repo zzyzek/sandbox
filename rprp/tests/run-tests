@@ -3,36 +3,38 @@
 s='^mirp:|pass|FAIL'
 s='pass|FAIL'
 
+BIN="../mirprp.js"
+
 echo -n 'mirp_biggo: '
-node ../rprp.js data < ../data/mirp_biggo.json | grep -P "$s"
+node $BIN data < ../data/mirp_biggo.json | grep -P "$s"
 
 echo -n 'mirp_err: '
-node ../rprp.js data < ../data/mirp_err.json | grep -P "$s"
+node $BIN data < ../data/mirp_err.json | grep -P "$s"
 
 echo -n 'mirp_fail: '
-node ../rprp.js data < ../data/mirp_fail.json | grep -P "$s"
+node $BIN data < ../data/mirp_fail.json | grep -P "$s"
 
 echo -n 'mirp_fail1: '
-node ../rprp.js data < ../data/mirp_fail1.json | grep -P "$s"
+node $BIN data < ../data/mirp_fail1.json | grep -P "$s"
 
 echo -n 'mirp_fail2: '
-node ../rprp.js data < ../data/mirp_fail2.json | grep -P "$s"
+node $BIN data < ../data/mirp_fail2.json | grep -P "$s"
 
 echo -n 'mirp_fail3: '
-node ../rprp.js data < ../data/mirp_fail3.json | grep -P "$s"
+node $BIN data < ../data/mirp_fail3.json | grep -P "$s"
 
 echo -n 'mirp_L: '
-node ../rprp.js data < ../data/mirp_L.json | grep -P "$s"
+node $BIN data < ../data/mirp_L.json | grep -P "$s"
 
 echo -n 'mirp_nonmin: '
-node ../rprp.js data < ../data/mirp_nonmin.json | grep -P "$s"
+node $BIN data < ../data/mirp_nonmin.json | grep -P "$s"
 
 echo -n 'mirp_pinwheel: '
-node ../rprp.js data < ../data/mirp_pinwheel.json | grep -P "$s"
+node $BIN data < ../data/mirp_pinwheel.json | grep -P "$s"
 
 echo -n 'mirp_x: '
-node ../rprp.js data < ../data/mirp_x.json | grep -P "$s"
+node $BIN data < ../data/mirp_x.json | grep -P "$s"
 
 echo -n 'mirp_z: '
-node ../rprp.js data < ../data/mirp_z.json | grep -P "$s"
+node $BIN data < ../data/mirp_z.json | grep -P "$s"
 

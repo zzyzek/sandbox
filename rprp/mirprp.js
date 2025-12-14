@@ -922,6 +922,11 @@ function MIRPRP_init(_rl_pgon, _debug) {
     }
   }
 
+  let _perim = 0;
+  for (let b_idx=0; b_idx<Bxy.length; b_idx++) {
+    _perim += abs_sum_v( v_sub( Bxy[(b_idx+1)%Bxy.length], Bxy[b_idx] ) );
+  }
+
   let DP_cost = {},
       DP_partition = {},
       DP_adit = {},
@@ -950,6 +955,8 @@ function MIRPRP_init(_rl_pgon, _debug) {
     "Js" : Js,
     "Je" : Je,
     "Jf" : Jf,
+
+    "B_perim": _perim,
 
     "DP_root_key": "",
     "DP_partition": DP_partition,
@@ -3162,6 +3169,21 @@ function _dbg_mirp_quarry_info(_debug, _pfx, lvl, g_s, g_e, g_a, g_b, qi, a_pnt,
   }
 }
 
+function MIRPRP_cut_cost(ctx, key) {
+  if (typeof key == "undefined") {
+
+    console.log(">>>>", ctx.DP_root_key);
+
+    let b_s = ctx.DP_root_key[0];
+    let b_e = ctx.DP_root_key[1];
+    let g_a = ctx.DP_root_key[2];
+
+    key = MIRPRP_DP_idx(ctx, ctx.Bij[b_s], ctx.Bij[b_e], g_a);
+  }
+
+  let raw_cost = ctx.DP_cost[key];
+  return (raw_cost - ctx.B_perim) / 2;
+}
 
 function MIRPRP(ctx, g_s, g_e, g_a, lvl, _debug, _debug_str) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
@@ -3696,7 +3718,7 @@ async function _main_data(argv) {
 
     _print_dp(ctx);
 
-    console.log("mirp:", v);
+    console.log("mirp:", v, "(", MIRPRP_cut_cost(ctx), ")");
 
     if (("expect" in data_info) &&
         ("return" in data_info.expect)) {
