@@ -3090,28 +3090,225 @@ function MIRPRP_candidate_bower_naive(ctx, g_s, g_e, g_a, _debug) {
   return candidate_bower;
 }
 
+// This is heuristic optimization by trying to restrict bower points
+// to an overestimate multiple rectangular regions the candidate bower
+// points can be in.
+//
+// For 0 cut (start of algorithm), we look at all quadrents around
+// start point and take an upper bound on the rectangular regions
+// the bower point can be in.
+//
+// For a 1-cut, trace out probes from the adit in the three directions
+// available and create two rectangular regions upper bound regions for
+// the bower points.
+// For example, take a horizontal 1-cut with a region up. Take Je left, right
+// and up from adit to get maximum bounds for a I and II rectangle to bound
+// the bower points returned.
+//
+// For a 2-cut, the bulk diagonal rectangular region is excluded and the
+// off diagonal regions are used.
+// Note that the diagonal region can have bower points if the quarry rectangle
+// shares a non-degenerate edge with the border, so the points need to be
+// checked but can be excluded from the returned bower point list if they're
+// completely diagonal and interior.
+//
+// The off diagonal regions are bounded by the Je intersection points in
+// the appropriate directions.
+//
+//
 function MIRPRP_candidate_bower_opt(ctx, g_s, g_e, g_a, _debug) {
   let X = ctx.X,
       Y = ctx.Y;
 
+  let B = ctx.B,
+      Bij = ctx.Bij;
+
+  let Js = ctx.Js,
+      Je = ctx.Je,
+      Jf = ctx.Jf;
+
+  let oppo_idir = [ 1,0, 3,2 ];
+
+  let candidate_bower = [];
+  let scan_bounds = [];
+
+  let b_s = B[ g_s[1] ][ g_s[0] ];
+  let b_e = B[ g_e[1] ][ g_e[0] ];
 
   let k_cut = 2;
-
   if (cmp_v(g_s, g_e) == 0) { k_cut = 0; }
   else if ( (g_s[0] == g_e[0]) ||
             (g_s[1] == g_e[1]) ) {
     k_cut = 1;
   }
 
+  //  II | I
+  //  ------
+  // III | IV
+  //
+
+  let quadrent_dij = [
+    [ 1, 1], [-1, 1],
+    [-1,-1], [ 1,-1]
+  ];
+
+  let quadrent_idir = [
+    [0,2], [2,1],
+    [1,3], [3,0]
+  ];
+
+  // If it's a 0-cut, this is the init stage, so
+  // we take a maximum rectangle in each of the
+  // four quadrents, rejecting if inadmissible
+  // quardent
+  //
   if (k_cut == 0) {
+
+    let b_idir_max = [
+      Je[0][ g_s[1] ][ g_s[0] ],
+      Je[1][ g_s[1] ][ g_s[0] ],
+      Je[2][ g_s[1] ][ g_s[0] ],
+      Je[3][ g_s[1] ][ g_s[0] ],
+    ];
+
+    for (let q_idx=0; q_idx<4; q_idx++) {
+
+      // Take a diagonal neighbor to determine
+      // if the quadrent should be considered at all.
+      // Iff that small probe quarry rectangle isn't valid,
+      // the larger region isn't valid either.
+      //
+
+      let _nei = v_add( g_s, quadrent_dij[q_idx] );
+
+      // OOB
+      //
+      if ((_nei[0] < 0) || (_nei[0] >= X.length) ||
+          (_nei[1] < 0) || (_nei[1] >= Y.length)) {
+        continue;
+      }
+
+      // invalid quadrent
+      //
+      if (!MIRPRP_valid_R(ctx, g_s, _nei)) { continue; }
+
+      let b0 = b_idir_max[ quadrent_idir[q_idx][0] ];
+      let b1 = b_idir_max[ quadrent_idir[q_idx][1] ];
+
+      if ((b0 < 0) || (b1 < 0)) { continue; }
+
+      let _g0 = Bij[ b0 ];
+      let _g1 = Bij[ b1 ];
+
+      scan_bounds.push([
+        [ Math.min( g_s[0], _g0[0], _g1[0] ), Math.min( g_s[1], _g0[1], _g1[1] ) ],
+        [ Math.max( g_s[0], _g0[0], _g1[0] ), Math.max( g_s[1], _g0[1], _g1[1] ) ],
+      ]);
+
+    }
+
   }
 
   else if (k_cut == 1) {
+
+    let dcut = v_delta( v_sub( g_e, g_s ) );
+    let da = [ dcut[1], -dcut[0] ];
+
+    let idir_cut  = dxy2idir( dcut ),
+        idir_adit = dxy2idir( da );
+
+    let rdir_cut = oppo_idir[ idir_cut ];
+
+    let b0 = Je[idir_cut][ g_a[1] ][ g_a[0] ];
+    let b1 = Je[rdir_cut][ g_a[1] ][ g_a[0] ];
+    let b2 = Je[idir_adit][ g_a[1] ][ g_a[0] ];
+
+    if ((b0 >= 0) && (b2 >= 0)) {
+      scan_bounds.push([
+        [ Math.min( Bij[b0][0], Bij[b2][0], g_a[0] ), Math.min( Bij[b0][1], Bij[b2][1], g_a[1] ) ],
+        [ Math.max( Bij[b0][0], Bij[b2][0], g_a[0] ), Math.max( Bij[b0][1], Bij[b2][1], g_a[1] ) ] 
+      ]);
+    }
+
+    if ((b1 >= 0) && (b2 >= 0)) {
+      scan_bounds.push([
+        [ Math.min( Bij[b1][0], Bij[b2][0], g_a[0] ), Math.min( Bij[b1][1], Bij[b2][1], g_a[1] ) ],
+        [ Math.max( Bij[b1][0], Bij[b2][0], g_a[0] ), Math.max( Bij[b1][1], Bij[b2][1], g_a[1] ) ] 
+      ]);
+    }
+
   }
 
   else if (k_cut == 2) {
+
+    let d_as = v_delta( v_sub( g_s, g_a ) );
+    let d_ae = v_delta( v_sub( g_e, g_a ) );
+
+    let s = cross3( [d_as[0], d_as[1], 0], [d_ae[0], d_ae[1], 0] );
+
+    let tc_type = "2C";
+    if (s[2] < 0.5) { tc_type = "2R"; }
+
+    let idir_as = dxy2idir( d_as );
+    let idir_ae = dxy2idir( d_ae );
+
+    let rdir_as = oppo_idir[idir_as];
+    let rdir_ae = oppo_idir[idir_ae];
+
+
+    if (tc_type == "2R") {
+      let b_as    = Je[idir_as][ g_a[1] ][ g_a[0] ];
+      let b_ae_r  = Je[rdir_ae][ g_a[1] ][ g_a[0] ];
+
+      if ((b_as >= 0) && (b_ae_r >= 0)) {
+        scan_bounds.push([
+          [ Math.min( Bij[b_as][0], Bij[b_ae_r][0], g_a[0] ), Math.min( Bij[b_as][1], Bij[b_ae_r][1], g_a[1] ) ],
+          [ Math.max( Bij[b_as][0], Bij[b_ae_r][0], g_a[0] ), Math.max( Bij[b_as][1], Bij[b_ae_r][1], g_a[1] ) ] 
+        ]);
+      }
+
+      let b_ae    = Je[idir_ae][ g_a[1] ][ g_a[0] ];
+      let b_as_r  = Je[rdir_as][ g_a[1] ][ g_a[0] ];
+
+      if ((b_ae >= 0) && (b_as_r >= 0)) {
+        scan_bounds.push([
+          [ Math.min( Bij[b_ae][0], Bij[b_as_r][0], g_a[0] ), Math.min( Bij[b_ae][1], Bij[b_as_r][1], g_a[1] ) ],
+          [ Math.max( Bij[b_ae][0], Bij[b_as_r][0], g_a[0] ), Math.max( Bij[b_ae][1], Bij[b_as_r][1], g_a[1] ) ] 
+        ]);
+      }
+
+      //WIP!!
+      //STILL NEED CENTER BORDER POINTS
+
+    }
+    else {
+
+      let b_as = Je[idir_as][ g_a[1] ][ g_a[0] ];
+      let b_ae = Je[idir_ae][ g_a[1] ][ g_a[0] ];
+
+      if ((b_as >= 0) && (b_ae >= 0)) {
+        scan_bounds.push([
+          [ Math.min( Bij[b_ae][0], Bij[b_as][0], g_a[0] ), Math.min( Bij[b_ae][1], Bij[b_as][1], g_a[1] ) ],
+          [ Math.max( Bij[b_ae][0], Bij[b_as][0], g_a[0] ), Math.max( Bij[b_ae][1], Bij[b_as][1], g_a[1] ) ] 
+        ]);
+      }
+
+    }
+
+    console.log("tc_type:", tc_type);
+
   }
 
+  //DEBUG
+  //DEBUG
+  console.log("g_s:", g_s, "(", b_s, ")", "g_e:", g_e, "(", b_e, ")", "g_a:", g_a);
+  for (let i=0; i<scan_bounds.length; i++) {
+    console.log("scan_bounds[", i, "]:", JSON.stringify(scan_bounds[i]));
+  }
+  //DEBUG
+  //DEBUG
+
+  return candidate_bower;
 }
 
 function MIRPRP_candidate_bower(ctx, g_s, g_e, g_a, _debug) {
@@ -3756,7 +3953,7 @@ async function _main_data(argv) {
 
   else if (data_info.op == "cleave_profile") {
     let ctx = MIRPRP_init(data_info.C);
-    let res = MIRPRP_cleave_profile(ctx, data_info.g_s, data_info.g_e, data_info.g_a, data_info.g_b)
+    let res = MIRPRP_cleave_profile(ctx, data_info.g_s, data_info.g_e, data_info.g_a, data_info.g_b);
     console.log("got:", res.join(""));
     _expect_helper( data_info, res );
   }
@@ -3769,6 +3966,14 @@ async function _main_data(argv) {
     _expect_helper( data_info, res );
   }
 
+  else if (data_info.op == "candidate_bower") {
+    let ctx = MIRPRP_init(data_info.C);
+
+    let res = MIRPRP_candidate_bower_opt(ctx,  data_info.g_s, data_info.g_e, data_info.g_a, _debug);
+    console.log("got:", res);
+    _expect_helper( data_info, res );
+  }
+
   else if (data_info.op == "cleave_enumerate") {
     let ctx = MIRPRP_init(data_info.C);
 
@@ -3777,12 +3982,12 @@ async function _main_data(argv) {
       cleave_profile = data_info.cleave_profile;
     }
     else {
-      cleave_profile = MIRPRP_cleave_profile(ctx, data_info.g_s, data_info.g_e, data_info.g_a, data_info.g_b)
+      cleave_profile = MIRPRP_cleave_profile(ctx, data_info.g_s, data_info.g_e, data_info.g_a, data_info.g_b);
     }
 
     console.log("cleave_profile:", cleave_profile.join(""));
 
-    let res = MIRPRP_cleave_enumerate(ctx, data_info.g_s, data_info.g_e, data_info.g_a, data_info.g_b, cleave_profile)
+    let res = MIRPRP_cleave_enumerate(ctx, data_info.g_s, data_info.g_e, data_info.g_a, data_info.g_b, cleave_profile);
     console.log("got:", JSON.stringify(res));
     for (let i=0; i<res.length; i++) {
       console.log("  ", res[i].join(""));

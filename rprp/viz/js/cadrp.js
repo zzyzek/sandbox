@@ -1,3 +1,12 @@
+// To the extent possible under law, the person who associated CC0 with
+// this project has waived all copyright and related or neighboring rights
+// to this project.
+// 
+// You should have received a copy of the CC0 legalcode along with this
+// work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+//
+
+
 var g_ui = {
   "data" : {
     "grid_size": 20,
@@ -688,7 +697,7 @@ function _draw_rprp_grid() {
       "size": 7
     };
 
-    for (let b_idx=0; b_idx < B.length; b_idx++) {
+    for (let b_idx=0; b_idx < Bij.length; b_idx++) {
 
       let bxy = [
         Bxy[b_idx][0]*gs + _oxy[0],
@@ -1172,7 +1181,7 @@ function regularize_pgn( _pgn ) {
     res_pgn.push( [ pgn[cur_i][0], pgn[cur_i][1] ] );
   }
 
-  if ( rprp.windingA( res_pgn ) < 0 ) {
+  if ( mirprp.windingA( res_pgn ) < 0 ) {
     res_pgn.reverse();
   }
 
@@ -1356,7 +1365,7 @@ function mouse_click_cut(x,y) {
   let Bxy = rprp_info.Bxy;
 
   let Ba = [];
-  for (let i=0; i<B.length; i++) {
+  for (let i=0; i<Bxy.length; i++) {
     Ba.push( Bxy[i] );
   }
 
