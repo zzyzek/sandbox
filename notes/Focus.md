@@ -1,6 +1,20 @@
 Current Focus
 ---
 
+###### 2025-12-19
+
+| Task | Priority | Effort | Notes |
+|---|---|---|---|
+| Merrell Communication | `7` | `9` | |
+| West Hubbard | `3` | `a` | |
+| MIRPRP Writeup | `9` | `b` | |
+| SGG HC and SGG s-t HP | `6` | `f` | Subsumed in this is SGG:HC writeup, RSGG:HP writeup and communication |
+| cloister and liminal interface method (POMS) | `8` | `c` | |
+| SWIFRNG | `a` | `a` | |
+| Gilbert | `c` | `9` | Need to decide what end conditions are and ship it |
+| Template optimizations (POMS) | `5` | `b` | Can't do larger models without it |
+
+
 ###### 2025-07-01
 
 * ~Implement s-t Hamiltonian path on rectangular region by Itai, Szwarcfiter and Papadimitriou~
@@ -47,3 +61,26 @@ Current Focus
   - ~understand the algorithm~
     - ~2d~, ~3d~
   - ~get at least the simple region flux, with directionality~
+
+
+---
+
+| Rating | Description |
+|---|---|
+| `0` | low |
+| `1` | |
+| `2` | |
+| `3` | |
+| `4` | |
+| `5` | |
+| `6` | |
+| `7` | |
+| `8` | |
+| `9` | |
+| `a` | |
+| `b` | |
+| `c` | |
+| `d` | |
+| `e` | |
+| `f` | high |
+
