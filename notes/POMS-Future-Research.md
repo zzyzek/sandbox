@@ -789,7 +789,7 @@ Here's the idea:
 
 ---
 
-When setting up the cloisterd region, the resolved region could be transferred, the
+When setting up the cloistered region, the resolved region could be transferred, the
 edges could be filled with a path through the canonical homogeneous repeat tile but
 I wasn't sure on what to do with the interface between the fully resolved region
 and the homogeneous region.

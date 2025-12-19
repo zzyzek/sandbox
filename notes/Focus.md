@@ -3,7 +3,7 @@ Current Focus
 
 ###### 2025-07-01
 
-* Implement s-t Hamiltonian path on rectangular region by Itai, Szwarcfiter and Papadimitriou
+* ~Implement s-t Hamiltonian path on rectangular region by Itai, Szwarcfiter and Papadimitriou~
   - [paper](https://www.researchgate.net/publication/220616693_Hamilton_Paths_in_Grid_Graphs)
   - [rust implementation](https://github.com/whatsacomputertho/grid-solver/blob/main/doc/problem-specification.md)
 * Try to use sthampath for (2d) Gilbert curve with arbitrary start/endpoints
