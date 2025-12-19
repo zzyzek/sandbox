@@ -490,7 +490,7 @@ $p$ considered at origin (`[0,0,0]`) and a random $q$ point inside of this frust
   - $v _ {1,2} = v _ 2 - v _ 1$
   - $v _ {2,3} = v _ 3 - v _ 2$
   - $v _ {3,0} = v _ 3 - v _ 0$
-* Window line vectors: $k \in \{0 \dots 3\}$, $v _ {k,(k+1)\%4}(t) = v _ k + t \cdot v _ {k,k+1}$
+* Window line vectors: $k \in \\{0 \dots 3\\}$, $v _ {k,(k+1)\\%4}(t) = v _ k + t \cdot v _ {k,k+1}$
 * $q$ random point inside Frustum $(v _ 0, v _ 1, v _ 2, v _ 3 )$
   - $N _ q = \frac{q}{|q|}$
   - $Q(u) = N _ q \cdot ( u - q )$, ($Q(u)=0$ plane equation)
@@ -529,10 +529,10 @@ $Q( v _ 0(t _ 0) ) = 0 \to t _ 0 < 0$ and $t _ 1,  t _ 2, t _ 3 > 0$.
 So, define the fence edge by the counter clockwise rotation around the frustum vectors, aka
 the window direction vectors.
 For each window direction vector, store two numbers, the 'source' edge and the 'destination' edge.
-Call them $v _ {k,\text{src}}$ and $v _ {k,\text{dst}}$ respectively.
+Call them $v _ { k , \text{src} }$ and $v _ { k , \text{dst} }$ respectively.
 
-For each $0 < t _ k < 1$ such that $Q( v _ {k,(k+1) \% 4}(t _ k) ) = 0$, if $Q( v _ k ) > 0$,
-update $v _ {k,\text{src} = t _ k$, else if $Q( v _ k ) < 0$, $v _ {k,\text{dst}} = 1-t _ k$.
+For each $0 < t _ k < 1$ such that $Q( v _ {k,(k+1) \\% 4}(t _ k) ) = 0$, if $Q( v _ k ) > 0$,
+update $v _ {k,\text{src} } = t _ k$, else if $Q( v _ k ) < 0$, $v _ {k,\text{dst}} = 1-t _ k$.
 
 
 ---
