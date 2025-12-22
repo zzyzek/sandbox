@@ -799,3 +799,46 @@ around the intermediately resolved regions first, then doing the rest.
 All regions have to be chosen large enough so that there's enough space to resolve
 partial regions without affecting the rest of the cloistered area.
 
+
+---
+
+Tentatively, the "cloister and liminal interface method" is:
+
+
+* For a given instance with constraints, initialize the grid with the initial
+  constraints and initial constraint propagation
+* Pick a cloister block size (32x32 say) and default to half stride (16)
+* Find obstinate blocks:
+  - Walk the grid in half strides, picking out a cloister block and surrounding it,
+    when possible, with blocks of the same size (e.g. 32x32 cloister block -> 96x96 block,
+    with 32x32 cloister block in center)
+  - Pin the boundary of the center block and resolve the outer region (e.g. pin the 32x32 boundary
+    center, resolve the remaining 96x96 block)
+    + pin the outer boundary of the cloister super block as appropriate
+  - Once the outer boundary is resolved, attempt to resolve the inner cloister block
+  - Try this many times, noting the chance of success
+    + BMS with its own parameters can be used, so this might be a bit finicky
+  - If the chance of success falls below a certain value, call this an obstinate block
+* Find liminal regions
+  - Use cloister block size?
+  - Find similar blocks using a scanning window of liminal block size (cloister block size?)
+    + similarity can be bag of tiles, maybe weighted by frequency
+    + for now, exact match with hash of ordered tiles within the liminal block
+* For each obstinate block: (wip)
+  - dilate the obstinate block until it touches a liminal region
+  - place the obstinate blocks in a nursery, large enough to accommodate each of the obstinate
+    blocks and a large liminal region that connects them
+    + this is a critical part and some things need to be worked out to make this robust
+    + one idea is to create a rough packing of the obstinate blocks, take the bounding box of
+      the obstinate blocks and some liminal block size, pin the appropriate values for
+      the obstinate block, pin liminal boundary with liminal set and then fill in all the
+      rest of the region with the liminal set
+  - Solve the nursery
+    + if solved, transfer the overlap of the liminal region in the nusery with the liminal region
+      in the original
+  - Repeat
+
+
+
+
+
