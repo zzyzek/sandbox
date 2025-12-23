@@ -838,6 +838,25 @@ Tentatively, the "cloister and liminal interface method" is:
       in the original
   - Repeat
 
+---
+
+All this is pretty academic.
+The way to proceed is to get some basic examples and try various tactics on them.
+Afterwards we can see how to refine.
+
+To start:
+
+* 2bmmv, corners and edges, grow to larger realization
+* 1985, left and right corner constraints to seed, then grow width wise
+* amarelo, grow width wise
+* blowharder, castle path start and end
+* vilenes, corners expand
+* forest microtileset, hourglass land constraint, try to find solution (corner expand?)
+* oarpgo, boundary conditions, expand
+* brutal plum, start/end paths on corners, expand
+
+
+
 
 
 
