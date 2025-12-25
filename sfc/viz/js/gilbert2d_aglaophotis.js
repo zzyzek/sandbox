@@ -369,7 +369,7 @@ function toRGBAa(rgba) {
 }
 
 function _dl() {
-  var ele = document.getElementById("gilbert3d_hellebore");
+  var ele = document.getElementById("gilbert2d_aglaophotis");
   let defs = document.getElementById("custom_defs");
 
   // very hacky, find the defs definition, take the defs
