@@ -49,12 +49,12 @@ As a reminder, for rectangle $R = R(n,m)$ with endpoints $s,t$, an *acceptable* 
 * $C(R _ {n,m}, s,t)$ (*color compatible*)
   - $\rho(s) \ne \rho(t)$ when  $n \cdot m \equiv 0 \bmod 2$
   - $\rho(s) = \rho(t) = \mu(R _ {n,m})$ when $n \cdot m \equiv 1 \bmod 2$
-* $s = \sigma(R _ {1,m} ), t = \sigma(R _ {1,m}) + (0,m-1)$ (*1-line constrained*)
+* $s = \sigma(R _ {1,m} ), t = \sigma(R _ {1,m}) + (0,m-1)$ (*1-line endpoint constrained*)
   - and all other symmetric cases
-* $s _ x \ne t _ x$ when $R _ {2,m}$ (*2-layer constrained*)
+* $s _ x \ne t _ x$ when $R _ {2,m}$ (*2-layer partition constrained*)
   - and color compatible
   - and all other symmetric cases
-* $\rho(s) \ne \mu(R _ {3,2k}) \text{ and either } \left( (s _ x \ge t _ x) \text{ or } ( t _ y \text{ and } s _ x + 1 \ge t _ x ) \right)$ (*3-stack constrained*)
+* $\rho(s) \ne \mu(R _ {3,2k}) \text{ and either } \left( (s _ x \ge t _ x) \text{ or } ( t _ y \text{ and } s _ x + 1 \ge t _ x ) \right)$ (*3-stack cul-de-sac constrained*)
   - and color compatible
   - and all other symmetric cases
 
