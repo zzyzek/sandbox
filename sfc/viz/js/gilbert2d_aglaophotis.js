@@ -33,6 +33,9 @@ var PROJECT_VEC = [
   [ -1/2, -1/2,-1 ]
 ];
 
+var BEG_COLOR = "rgb(80,80,140)";
+var END_COLOR = "rgb(120,180,180)";
+
 var njs = numeric;
 
 
@@ -1899,6 +1902,8 @@ function mkConn(xy,wh,u,v_idir, txt) {
   txt = ((typeof txt === "undefined" ) ? [] : txt);
 
   let co_dark = "rgb(50,50,50)";
+  let co_gray0 = "rgb(100,100,100)";
+  let co_gray1 = "rgb(235,235,235)";
   let co_light = "rgb(255,255,255)";
 
   let _minwh = ((wh[0] < wh[1]) ? wh[0] : wh[1]);
@@ -1916,6 +1921,17 @@ function mkConn(xy,wh,u,v_idir, txt) {
   let c = two.makeRectangle(xy[0],xy[1], wh[0],wh[1]);
   c.fill = co_light;
   c.stroke = co_dark;
+
+  // start cell
+  //
+  let start_cell = false;
+  if (start_cell) {
+    let sc = two.makeRectangle( xy[0]-(wh[0]/2) + (s/2),
+                                xy[1]+(wh[1]/2) - (s/2),
+                                s,s);
+    sc.fill = co_gray0;
+    sc.stroke = co_dark;
+  }
 
   if (u.length > 0) {
 
@@ -1992,6 +2008,16 @@ function mkConn(xy,wh,u,v_idir, txt) {
       let f = Math.floor( Math.abs(v[0][0]/2) ) + 1;
 
       let dxy = [ f*v_dxy[idir][0] / (v.length+f), f*v_dxy[idir][1] / (v.length+f) ];
+
+
+      /*
+      dxy = [0,0];
+      if      (idir == 0) { dxy = [0, wh[1]-s/2]; }
+      else if (idir == 1) { dxy = [0,wh[1] - s/2]; }
+      else if (idir == 2) { dxy = [s/2, 0]; }
+      else if (idir == 3) { dxy = [wh[0] - s/2,0]; }
+*/
+
       let sxy = v_sxy[idir];
       let cur_xy = njs.add(sxy, dxy);
 
@@ -2163,7 +2189,330 @@ function mkBasic(xy,wh,u,v, txt) {
 
 }
 
+
+function mkRefLegend( oxy, s ) {
+  let two = g_fig_ctx.two;
+
+  let wh = [5*s, 5*s];
+
+  let co_dark = "rgb(50,50,50)";
+  let co_gray0 = "rgb(100,100,100)";
+  let co_gray1 = "rgb(235,235,235)";
+  let co_light = "rgb(255,255,255)";
+
+  let co_fill = co_gray0;
+
+
+  for (let j=0; j<2; j++) {
+    for (let i=0; i<3; i++) {
+      let x = oxy[0] - wh[0]/2 + s/2 + (i*s);
+      let y = oxy[1] - wh[1]/2 + s/2 + (j*s);
+      let r = two.makeRectangle( x,y, s, s );
+      r.fill = ( (((i+j)%2) == 1) ? co_fill : co_light );
+      r.stroke = co_dark;
+    }
+
+  }
+
+  for (let j=0; j<2; j++) {
+    for (let i=0; i<2; i++) {
+      let x = oxy[0] + wh[0]/2 - s/2 + (i*s);
+      let y = oxy[1] - wh[1]/2 + s/2 + (j*s);
+      let r = two.makeRectangle( x,y, s, s );
+      r.fill = ( (((i+j)%2) == 1) ? co_fill : co_light );
+      r.stroke = co_dark;
+    }
+  }
+
+  for (let j=0; j<3; j++) {
+    for (let i=0; i<2; i++) {
+      let x = oxy[0] + wh[0]/2 - s/2 + (i*s);
+      let y = oxy[1] + wh[1]/2 + s/2 - (j*s);
+      let r = two.makeRectangle( x,y, s, s );
+      r.fill = ( (((i+j)%2) == 0) ? co_fill : co_light );
+      r.stroke = co_dark;
+    }
+
+  }
+
+  for (let j=0; j<3; j++) {
+    for (let i=0; i<3; i++) {
+      let x = oxy[0] - wh[0]/2 + s/2 + (i*s);
+      let y = oxy[1] + wh[1]/2 + s/2 - (j*s);
+      let r = two.makeRectangle( x,y, s, s );
+      r.fill = ( (((i+j)%2) == 0) ? co_fill : co_light );
+      r.stroke = co_dark;
+    }
+
+  }
+
+}
+
+// oxy  - origin xy
+// wh   - width height
+// eowh - width eo, height eo, (e.g. [[0,0], [0,1]])
+// qs   - quadrent start
+// qe   - quardent end
+// cs   - color start (default 0)
+//
+function mk3Subdiv( oxy, wh, eowh, qs,qe, cs ) {
+  cs = ((typeof cs === "undefined") ? 0 : cs);
+  let two = g_fig_ctx.two;
+
+  let s = 20/2;
+
+  let co_dark = "rgb(50,50,50)";
+  let co_gray0 = "rgb(100,100,100)";
+  let co_gray1 = "rgb(235,235,235)";
+  let co_light = "rgb(255,255,255)";
+
+
+  let se_col = [ co_dark, co_light ];
+
+  //se_col = [ "url(#pattern-1)", co_light ];
+  //se_col = [ BEG_COLOR, END_COLOR ];
+  //se_col = [ "url(#pattern-1)", END_COLOR ];
+
+  if (cs) { se_col = [ co_light, co_dark ]; }
+
+  // 3 split outline
+  //
+  let R = two.makeRectangle(oxy[0], oxy[1], wh[0], wh[1]);
+  R.fill    = co_light;
+  R.stroke  = co_dark;
+
+  let h = two.makeLine( oxy[0] - wh[0]/2, oxy[1], oxy[0] + wh[0]/2, oxy[1] );
+  h.stroke = co_dark;
+
+  let v = two.makeLine( oxy[0], oxy[1], oxy[0], oxy[1] + wh[1]/2 );
+  v.stroke = co_dark;
+
+  // lower left anchor point color (for reference)
+  //
+  let anch = two.makeRectangle( oxy[0]-wh[0]/2 + s/2, oxy[1] + wh[1]/2 - s/2, s, s);
+  anch.fill = co_dark;
+  //anch.fill = BEG_COLOR;
+  anch.stroke = co_dark;
+
+  // start/end points
+  //
+  let mq = [
+    [ oxy[0] - wh[0]/4, oxy[1] + wh[1]/4 ],
+    [ oxy[0], oxy[1] - wh[1]/4 ],
+    [ oxy[0] + wh[0]/4, oxy[1] + wh[1]/4 ]
+  ];
+
+  let mq_s = [mq[qs][0], mq[qs][1]];
+  let mq_e = [mq[qe][0], mq[qe][1]];
+
+  if (qs == qe) {
+    mq_s[0] -= (3/4)*s;
+    mq_e[0] += (3/4)*s;
+  }
+
+  let r_s = two.makeRectangle( mq_s[0], mq_s[1], s, s );
+  r_s.fill = se_col[0];
+  r_s.stroke = co_dark;
+
+  let r_e = two.makeRectangle( mq_e[0], mq_e[1], s, s );
+  r_e.fill = se_col[1];
+  r_e.stroke = co_dark;
+
+  // lower left, upper left, upper right, lower right
+  //
+  let q_parity = [
+    [0, -1, -1, -1],
+    [-1, -1, -1, -1],
+    [-1, -1, -1, -1],
+  ];
+
+  let h0 = eowh[1][0];
+  let h1 = eowh[1][1];
+
+  let w0 = eowh[0][0];
+  let w1 = eowh[0][1];
+
+  let b0 = q_parity[0][0];
+  q_parity[0][1] = ((h0==0) ? (1-b0) : b0);
+  q_parity[0][2] = ((((w0+h0)%2)==0) ? (1-b0) : b0);
+  q_parity[0][3] = ((w0==0) ? (1-b0) : b0);
+
+  let b1 = 1-q_parity[0][1];
+  q_parity[1][0] = b1;
+  q_parity[1][1] = ((h1==0) ? b1 : (1-b1));
+  q_parity[1][2] = ((((w0+w1+h0)%2)==0) ? b1 : (1-b1));
+  q_parity[1][3] = ((w0==0) ? (1-b1) : (b1));
+
+  let b2 = 1-q_parity[0][3];
+  q_parity[2][0] = b2;
+  q_parity[2][1] = ((h0==0) ? b1 : (1-b1));
+  q_parity[2][2] = ((((w1+h0)%2)==0) ? b1 : (1-b1));
+  q_parity[2][3] = ((w1==0) ? b1 : (1-b1));
+
+  let conn_0_1 = false,
+      conn_1_2 = false,
+      conn_0_2 = false;
+
+
+  if ((qs==0) && (qe==0)) {
+    conn_0_1 = true;
+    conn_1_2 = true;
+    conn_0_2 = true;
+  }
+  else if ((qs==0) && (qe==1)) {
+    conn_0_2 = true;
+    conn_1_2 = true;
+  }
+  else if ((qs==0) && (qe==2)) {
+    conn_0_1 = true;
+    conn_1_2 = true;
+  }
+
+  if (conn_0_1) {
+    let j0_1 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] + s/2, s, s );
+    j0_1.fill = (q_parity[0][1] ? co_light : co_dark );
+    j0_1.stroke = co_dark;
+
+    let J0_1 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] - s/2, s, s );
+    J0_1.fill = (q_parity[1][0] ? co_light : co_dark );
+    J0_1.stroke = co_dark;
+  }
+
+  if (conn_1_2) {
+    let j1_2 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] - s/2, s, s );
+    j1_2.fill = (q_parity[1][3] ? co_light : co_dark );
+    j1_2.stroke = co_dark;
+
+    let J1_2 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] + s/2, s, s );
+    J1_2.fill = (q_parity[2][2] ? co_light : co_dark );
+    J1_2.stroke = co_dark;
+  }
+
+  if (conn_0_2) {
+    let j0_2 = two.makeRectangle( oxy[0] - s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+    j0_2.fill = (q_parity[0][3] ? co_light : co_dark );
+    j0_2.stroke = co_dark;
+
+    let J0_2 = two.makeRectangle( oxy[0] + s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+    J0_2.fill = (q_parity[2][0] ? co_light : co_dark );
+    J0_2.stroke = co_dark;
+  }
+
+  // text labels (e/o on sides)
+  //
+  let fs = {
+    "size": 18,
+    "family": "Libertine, Linux Libertine 0"
+  };
+
+  let p_h_t = two.makeText( eowh[1][1].toString(), oxy[0] - wh[0]/2 - 10, oxy[1] - wh[1]/4, fs );
+  let p_h_b = two.makeText( eowh[1][0].toString(), oxy[0] - wh[0]/2 - 10, oxy[1] + wh[1]/4, fs );
+
+  let p_w_l = two.makeText( eowh[0][0].toString(), oxy[0] - wh[0]/4, oxy[1] + wh[1]/2 + 15, fs );
+  let p_w_r = two.makeText( eowh[0][1].toString(), oxy[0] + wh[0]/4, oxy[1] + wh[1]/2 + 15, fs );
+
+
+}
+
 function gilbert2d_aglaophotis() {
+  let two = g_fig_ctx.two;
+  let font_style = {
+    "size": 18,
+    "family": "Libertine, Linux Libertine 0"
+  };
+
+  let co_dark = "rgb(50,50,50)";
+  let co_light = "rgb(255,255,255)";
+
+  var ele = document.getElementById("gilbert2d_aglaophotis");
+
+  two.appendTo(ele);
+
+  let sz = [50,50];
+  let sm_sz = [ sz[0]/5, sz[1]/5 ];
+
+  //let legend_odd = two.makeRectangle( 195,10, sm_sz[0], sm_sz[1] );
+  //let legend_even = two.makeRectangle( 195,30, sm_sz[0], sm_sz[1] );
+  //legend_odd.fill = co_dark;
+  //legend_even.fill = co_light;
+  //two.makeText( "0", 195 + 2*sm_sz[0],12, font_style );
+  //two.makeText( "1", 195 + 2*sm_sz[0],32, font_style );
+
+  //----
+
+  mkRefLegend([30,30], 10);
+
+  let sxy = [100,100],
+      dxy = [80,100],
+      cur_xy = sxy;
+
+  let dx = [dxy[0],0],
+      dy = [0,dxy[1]];
+
+  //two.makeText("even", sxy[0]-30,sxy[1]-60, font_style);
+  two.makeText("even", sxy[0]+15,sxy[1]-60, font_style);
+
+  cur_xy = sxy;
+  mkBasic(cur_xy,sz, [1,0], [[1,0],[0,1]] );
+
+  two.makeText("(*)", cur_xy[0]-50,cur_xy[1], font_style);
+
+  cur_xy = njs.add(cur_xy, dy);
+  mkBasic(cur_xy,sz, [0,0], [[1,0],[1,0]] );
+
+  cur_xy = njs.add(cur_xy, dy);
+  mkBasic(cur_xy,sz, [1,1], [[0,1],[0,1]] );
+
+
+  cur_xy = njs.add(sxy,dx);
+  mkBasic(cur_xy,sz, [1], [[0,1]] );
+
+  cur_xy = njs.add(cur_xy,dy);
+  mkBasic(cur_xy,sz, [0], [[1,0]] );
+
+  cur_xy = njs.add(sxy, njs.dot(2,dx));
+  mkBasic(cur_xy,sz, [], [[1,0],[0,1]] );
+
+  //----
+
+  sxy = [100,425];
+
+  two.makeText("odd", sxy[0]-30,sxy[1]-60, font_style);
+
+  cur_xy = sxy;
+  mkBasic(cur_xy,sz, [1,1], [[1,0],[0,1]] );
+
+  two.makeText("(*)", cur_xy[0]-50,cur_xy[1], font_style);
+
+  cur_xy = njs.add(cur_xy, dy);
+  mkBasic(cur_xy,sz, [1,0], [[1,0],[1,0]] );
+
+  cur_xy = njs.add(sxy,dx);
+  mkBasic(cur_xy,sz, [1], [[1,0]] );
+
+  cur_xy = njs.add(sxy, njs.dot(2,dx));
+  mkBasic(cur_xy,sz, [], [[1,0],[1,0]] );
+
+
+  //----
+
+  sxy = [400, 100];
+
+  mk3Subdiv( [sxy[0] + 0  , sxy[1]], [100,100], [[0,0],[0,0]], 0, 0, 0 );
+  mk3Subdiv( [sxy[0] + 120, sxy[1]], [100,100], [[0,0],[0,0]], 0, 1, 0 );
+  mk3Subdiv( [sxy[0] + 240, sxy[1]], [100,100], [[0,0],[0,0]], 0, 1, 1 );
+
+  //mk3Subdiv( [sxy[0] + 120, sxy[1]], [100,100], [[0,0],[0,1]], 0, 0, 0 );
+  //mk3Subdiv( [sxy[0] + 240, sxy[1]], [100,100], [[0,0],[0,1]], 0, 1, 0 );
+
+  two.update();
+
+}
+
+
+// old, kept just in case
+//
+function _gilbert2d_aglaophotis() {
   let two = g_fig_ctx.two;
   let font_style = {
     "size": 18,
