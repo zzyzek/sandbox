@@ -2250,6 +2250,148 @@ function mkRefLegend( oxy, s ) {
 
 // oxy  - origin xy
 // wh   - width height
+// eowh - width eo, height eo, (e.g. [[0,0], 0])
+// qs   - left/right start (0, 1)
+// qe   - left/right end (0,1)
+// cs   - color start (default 0)
+//
+function mk2Subdiv( oxy, wh, eowh, qs,qe, cs, show_dock ) {
+  cs = ((typeof cs === "undefined") ? 0 : cs);
+  show_dock = ((typeof show_dock === "undefined") ? false : show_dock);
+  let two = g_fig_ctx.two;
+
+  let h0 = eowh[1];
+
+  let w0 = eowh[0][0];
+  let w1 = eowh[0][1];
+
+  let s = 20/2;
+
+  let co_dark = "rgb(50,50,50)";
+  let co_gray0 = "rgb(100,100,100)";
+  let co_gray1 = "rgb(235,235,235)";
+  let co_light = "rgb(255,255,255)";
+
+
+  let se_col = [ co_dark, co_light ];
+
+  if (cs) { se_col = [ co_light, co_dark ]; }
+  if ( ((w0+w1)*(h0)) == 1 ) { se_col[1] = se_col[0]; }
+
+  //WIP!!
+
+  // 3 split outline
+  //
+  let Rl = two.makeRectangle( oxy[0] - wh[0]/4, oxy[1], wh[0]/2, wh[1] );
+  Rl.fill = co_light;
+  Rl.stroke = co_dark;
+  if ( (h0*w0) == 1 ) { Rl.fill = "url(#pattern-38)"; }
+
+  let Rr = two.makeRectangle( oxy[0] + wh[0]/4, oxy[1], wh[0]/2, wh[1] );
+  Rr.fill = co_light;
+  Rr.stroke = co_dark;
+  if ( (h0*w1) == 1 ) { Rr.fill = "url(#pattern-38)"; }
+
+  let anch = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] + wh[1]/2 - s/2, s, s);
+  anch.fill = co_dark;
+  anch.stroke = co_dark;
+
+  // start/end points
+  //
+  let mq = [
+    [ oxy[0] - wh[0]/4, oxy[1] ],
+    [ oxy[0] + wh[0]/4, oxy[1] ]
+  ];
+
+  let mq_s = [mq[qs][0], mq[qs][1]];
+  let mq_e = [mq[qe][0], mq[qe][1]];
+
+  if (qs == qe) {
+    mq_s[0] -= (3/4)*s;
+    mq_e[0] += (3/4)*s;
+  }
+
+  let r_s = two.makeRectangle( mq_s[0], mq_s[1], s, s );
+  r_s.fill = se_col[0];
+  r_s.stroke = co_dark;
+
+  let r_e = two.makeRectangle( mq_e[0], mq_e[1], s, s );
+  r_e.fill = se_col[1];
+  r_e.stroke = co_dark;
+
+
+  // text labels (e/o on sides)
+  //
+  let fs = {
+    "size": 18,
+    "family": "Libertine, Linux Libertine 0"
+  };
+
+  let p_h = two.makeText( eowh[1].toString(), oxy[0] - wh[0]/2 - 10, oxy[1], fs );
+
+  let p_w_l = two.makeText( eowh[0][0].toString(), oxy[0] - wh[0]/4, oxy[1] + wh[1]/2 + 15, fs );
+  let p_w_r = two.makeText( eowh[0][1].toString(), oxy[0] + wh[0]/4, oxy[1] + wh[1]/2 + 15, fs );
+
+
+  let q_parity = [
+    [  0, -1, -1, -1 ],
+    [ -1, -1, -1, -1 ]
+  ];
+
+  let b0 = q_parity[0][0];
+  q_parity[0][1] = ((h0==0) ? (1-b0) : b0);
+  q_parity[0][2] = ((((w0+h0)%2)==0) ? (b0) : (1-b0));
+  q_parity[0][3] = ((w0==0) ? (1-b0) : b0);
+
+  let b1 = 1-q_parity[0][3];
+  q_parity[1][0] = b1;
+  q_parity[1][1] = ((h0==0) ? (1-b1) : b1);
+  q_parity[1][2] = ((((w1+h0)%2)==0) ? (b1) : (1-b1));
+  q_parity[1][3] = ((w1==0) ? (1-b1) : b1);
+
+  show_dock = true;
+  if (show_dock) {
+    let t0 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+    t0.fill = (q_parity[0][0] ? co_light : co_dark );
+    t0.stroke = co_dark;
+
+    let t1 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] - wh[1]/2 + s/2, s, s );
+    t1.fill = (q_parity[0][1] ? co_light : co_dark );
+    t1.stroke = co_dark;
+
+    let t2 = two.makeRectangle( oxy[0] - s/2, oxy[1] - wh[1]/2 + s/2, s, s );
+    t2.fill = (q_parity[0][2] ? co_light : co_dark );
+    t2.stroke = co_dark;
+
+    let t3 = two.makeRectangle( oxy[0] - s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+    t3.fill = (q_parity[0][3] ? co_light : co_dark );
+    t3.stroke = co_dark;
+
+    //---
+
+    let t4 = two.makeRectangle( oxy[0] + s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+    t4.fill = (q_parity[1][0] ? co_light : co_dark );
+    t4.stroke = co_dark;
+
+    let t5 = two.makeRectangle( oxy[0] + s/2, oxy[1] - wh[1]/2 + s/2, s, s );
+    t5.fill = (q_parity[1][1] ? co_light : co_dark );
+    t5.stroke = co_dark;
+
+    let t6 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] - wh[1]/2 + s/2, s, s );
+    t6.fill = (q_parity[1][2] ? co_light : co_dark );
+    t6.stroke = co_dark;
+
+    let t7 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+    t7.fill = (q_parity[1][3] ? co_light : co_dark );
+    t7.stroke = co_dark;
+  }
+
+
+}
+
+
+// oxy  - origin xy
+// wh   - width height
 // eowh - width eo, height eo, (e.g. [[0,0], [0,1]])
 // qs   - quadrent start
 // qe   - quardent end
@@ -2385,69 +2527,59 @@ function mk3Subdiv( oxy, wh, eowh, qs,qe, cs, show_dock ) {
   q_parity[2][2] = ((((w1+h0)%2)==0) ? (b2) : (1-b2));
   q_parity[2][3] = ((w1==0) ? (1-b2) : (b2));
 
-  //DEBUG
-  //DEBUG
-  //DEBUG
+  if (show_dock) {
+    let t0 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+    t0.fill = (q_parity[0][0] ? co_light : co_dark );
+    t0.stroke = co_dark;
 
-  /*
-  let t0 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] + wh[1]/2 - s/2, s, s );
-  t0.fill = (q_parity[0][0] ? co_light : co_dark );
-  t0.stroke = co_dark;
+    let t1 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] + s/2, s, s );
+    t1.fill = (q_parity[0][1] ? co_light : co_dark );
+    t1.stroke = co_dark;
 
-  let t1 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] + s/2, s, s );
-  t1.fill = (q_parity[0][1] ? co_light : co_dark );
-  t1.stroke = co_dark;
+    let t2 = two.makeRectangle( oxy[0] - s/2, oxy[1] + s/2, s, s );
+    t2.fill = (q_parity[0][2] ? co_light : co_dark );
+    t2.stroke = co_dark;
 
-  let t2 = two.makeRectangle( oxy[0] - s/2, oxy[1] + s/2, s, s );
-  t2.fill = (q_parity[0][2] ? co_light : co_dark );
-  t2.stroke = co_dark;
+    let t3 = two.makeRectangle( oxy[0] - s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+    t3.fill = (q_parity[0][3] ? co_light : co_dark );
+    t3.stroke = co_dark;
 
-  let t3 = two.makeRectangle( oxy[0] - s/2, oxy[1] + wh[1]/2 - s/2, s, s );
-  t3.fill = (q_parity[0][3] ? co_light : co_dark );
-  t3.stroke = co_dark;
+    //---
 
-  //---
+    let t4 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] - s/2, s, s );
+    t4.fill = (q_parity[1][0] ? co_light : co_dark );
+    t4.stroke = co_dark;
 
-  let t4 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] - s/2, s, s );
-  t4.fill = (q_parity[1][0] ? co_light : co_dark );
-  t4.stroke = co_dark;
+    let t5 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] - wh[1]/2 + s/2, s, s );
+    t5.fill = (q_parity[1][1] ? co_light : co_dark );
+    t5.stroke = co_dark;
 
-  let t5 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] - wh[1]/2 + s/2, s, s );
-  t5.fill = (q_parity[1][1] ? co_light : co_dark );
-  t5.stroke = co_dark;
+    let t6 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] - wh[1]/2 + s/2, s, s );
+    t6.fill = (q_parity[1][2] ? co_light : co_dark );
+    t6.stroke = co_dark;
 
-  let t6 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] - wh[1]/2 + s/2, s, s );
-  t6.fill = (q_parity[1][2] ? co_light : co_dark );
-  t6.stroke = co_dark;
+    let t7 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] - s/2, s, s );
+    t7.fill = (q_parity[1][3] ? co_light : co_dark );
+    t7.stroke = co_dark;
 
-  let t7 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] - s/2, s, s );
-  t7.fill = (q_parity[1][3] ? co_light : co_dark );
-  t7.stroke = co_dark;
+    //---
 
-  //---
+    let t8 = two.makeRectangle( oxy[0] + s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+    t8.fill = (q_parity[2][0] ? co_light : co_dark );
+    t8.stroke = co_dark;
 
-  let t8 = two.makeRectangle( oxy[0] + s/2, oxy[1] + wh[1]/2 - s/2, s, s );
-  t8.fill = (q_parity[2][0] ? co_light : co_dark );
-  t8.stroke = co_dark;
+    let t9 = two.makeRectangle( oxy[0] + s/2, oxy[1] + s/2, s, s );
+    t9.fill = (q_parity[2][1] ? co_light : co_dark );
+    t9.stroke = co_dark;
 
-  let t9 = two.makeRectangle( oxy[0] + s/2, oxy[1] + s/2, s, s );
-  t9.fill = (q_parity[2][1] ? co_light : co_dark );
-  t9.stroke = co_dark;
+    let t10 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] + s/2, s, s );
+    t10.fill = (q_parity[2][2] ? co_light : co_dark );
+    t10.stroke = co_dark;
 
-  let t10 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] + s/2, s, s );
-  t10.fill = (q_parity[2][2] ? co_light : co_dark );
-  t10.stroke = co_dark;
-
-  let t11 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] + wh[1]/2 - s/2, s, s );
-  t11.fill = (q_parity[2][3] ? co_light : co_dark );
-  t11.stroke = co_dark;
-
-  return;
-  */
-
-  //DEBUG
-  //DEBUG
-  //DEBUG
+    let t11 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+    t11.fill = (q_parity[2][3] ? co_light : co_dark );
+    t11.stroke = co_dark;
+  }
 
   let conn_0_1 = false,
       conn_1_2 = false,
@@ -2619,7 +2751,7 @@ function gilbert2d_aglaophotis() {
   _ix++;
 
   //!!!!
-  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,0],[1,1]], 0, 1, 1, true );
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,0],[1,1]], 0, 1, 1 );
   _ix++;
 
   mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,0],[1,1]], 0, 2, 0 );
@@ -2642,7 +2774,7 @@ function gilbert2d_aglaophotis() {
   _ix++;
 
   //!!!!
-  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,1],[0,1]], 0, 1, 1, true );
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,1],[0,1]], 0, 1, 1 );
   _ix++;
 
   mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,0],[0,1]], 0, 2, 0 );
@@ -2673,6 +2805,68 @@ function gilbert2d_aglaophotis() {
   //mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[0,1]], 0, 2, 1 );
   _ix++;
 
+
+  //---
+
+  sxy[0] += 50;
+  sxy[1] += 145;
+  _dx = 240;
+  _ix = 0;
+
+  mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,0], 0], 0, 0, 0 );
+  _ix++;
+
+  mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,0], 0], 0, 1, 0 );
+  _ix++;
+
+  //mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,0], 0], 0, 1, 1 );
+  //_ix++;
+
+  //---
+
+  sxy[1] += 145;
+  _dx = 240;
+  _ix = 0;
+
+  mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,1], 0], 0, 0, 0 );
+  _ix++;
+
+  mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,1], 0], 0, 1, 0 );
+  _ix++;
+
+  //mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,1], 0], 0, 0, 0 );
+  //_ix++;
+
+  //---
+
+  sxy[1] += 145;
+  _dx = 240;
+  _ix = 0;
+
+  //!!!!
+  mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[1,1], 1], 0, 0, 0 );
+  _ix++;
+
+  mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,0], 1], 0, 1, 0 );
+  _ix++;
+
+  //mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,0], 1], 0, 0, 0 );
+  //_ix++;
+
+  //---
+
+  sxy[1] += 145;
+  _dx = 240;
+  _ix = 0;
+
+  mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,1], 1], 0, 0, 0 );
+  _ix++;
+
+  mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,1], 1], 0, 1, 0 );
+  _ix++;
+
+  //mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,1], 1], 0, 0, 0 );
+  //_ix++;
 
   two.update();
 }
