@@ -2255,9 +2255,16 @@ function mkRefLegend( oxy, s ) {
 // qe   - quardent end
 // cs   - color start (default 0)
 //
-function mk3Subdiv( oxy, wh, eowh, qs,qe, cs ) {
+function mk3Subdiv( oxy, wh, eowh, qs,qe, cs, show_dock ) {
   cs = ((typeof cs === "undefined") ? 0 : cs);
+  show_dock = ((typeof show_dock === "undefined") ? false : show_dock);
   let two = g_fig_ctx.two;
+
+  let h0 = eowh[1][0];
+  let h1 = eowh[1][1];
+
+  let w0 = eowh[0][0];
+  let w1 = eowh[0][1];
 
   let s = 20/2;
 
@@ -2274,9 +2281,28 @@ function mk3Subdiv( oxy, wh, eowh, qs,qe, cs ) {
   //se_col = [ "url(#pattern-1)", END_COLOR ];
 
   if (cs) { se_col = [ co_light, co_dark ]; }
+  if ( ((w0+w1)*(h0+h1)) == 1 ) { se_col[1] = se_col[0]; }
+
 
   // 3 split outline
   //
+  let Ru = two.makeRectangle( oxy[0], oxy[1] - wh[1]/4, wh[0], wh[1]/2 );
+  Ru.fill = co_light;
+  Ru.stroke = co_dark;
+  if ( (h1*(w0+w1)) == 1 ) { Ru.fill = "url(#pattern-38)"; }
+
+  let Rl = two.makeRectangle( oxy[0] - wh[0]/4, oxy[1] + wh[1]/4, wh[0]/2, wh[1]/2 );
+  Rl.fill = co_light;
+  Rl.stroke = co_dark;
+  if ( (h0*w0) == 1 ) { Rl.fill = "url(#pattern-38)"; }
+
+  let Rr = two.makeRectangle( oxy[0] + wh[0]/4, oxy[1] + wh[1]/4, wh[0]/2, wh[1]/2 );
+  Rr.fill = co_light;
+  Rr.stroke = co_dark;
+  if ( (h0*w1) == 1 ) { Rr.fill = "url(#pattern-38)"; }
+
+
+  /*
   let R = two.makeRectangle(oxy[0], oxy[1], wh[0], wh[1]);
   R.fill    = co_light;
   R.stroke  = co_dark;
@@ -2286,6 +2312,7 @@ function mk3Subdiv( oxy, wh, eowh, qs,qe, cs ) {
 
   let v = two.makeLine( oxy[0], oxy[1], oxy[0], oxy[1] + wh[1]/2 );
   v.stroke = co_dark;
+  */
 
   // lower left anchor point color (for reference)
   //
@@ -2318,6 +2345,21 @@ function mk3Subdiv( oxy, wh, eowh, qs,qe, cs ) {
   r_e.fill = se_col[1];
   r_e.stroke = co_dark;
 
+  // text labels (e/o on sides)
+  //
+  let fs = {
+    "size": 18,
+    "family": "Libertine, Linux Libertine 0"
+  };
+
+  let p_h_t = two.makeText( eowh[1][1].toString(), oxy[0] - wh[0]/2 - 10, oxy[1] - wh[1]/4, fs );
+  let p_h_b = two.makeText( eowh[1][0].toString(), oxy[0] - wh[0]/2 - 10, oxy[1] + wh[1]/4, fs );
+
+  let p_w_l = two.makeText( eowh[0][0].toString(), oxy[0] - wh[0]/4, oxy[1] + wh[1]/2 + 15, fs );
+  let p_w_r = two.makeText( eowh[0][1].toString(), oxy[0] + wh[0]/4, oxy[1] + wh[1]/2 + 15, fs );
+
+
+
   // lower left, upper left, upper right, lower right
   //
   let q_parity = [
@@ -2326,28 +2368,86 @@ function mk3Subdiv( oxy, wh, eowh, qs,qe, cs ) {
     [-1, -1, -1, -1],
   ];
 
-  let h0 = eowh[1][0];
-  let h1 = eowh[1][1];
-
-  let w0 = eowh[0][0];
-  let w1 = eowh[0][1];
-
   let b0 = q_parity[0][0];
   q_parity[0][1] = ((h0==0) ? (1-b0) : b0);
-  q_parity[0][2] = ((((w0+h0)%2)==0) ? (1-b0) : b0);
+  q_parity[0][2] = ((((w0+h0)%2)==0) ? (b0) : (1-b0));
   q_parity[0][3] = ((w0==0) ? (1-b0) : b0);
 
   let b1 = 1-q_parity[0][1];
   q_parity[1][0] = b1;
-  q_parity[1][1] = ((h1==0) ? b1 : (1-b1));
+  q_parity[1][1] = ((h1==0) ? (1-b1) : (b1));
   q_parity[1][2] = ((((w0+w1+h0)%2)==0) ? b1 : (1-b1));
-  q_parity[1][3] = ((w0==0) ? (1-b1) : (b1));
+  q_parity[1][3] = ((((w0+w1)%2)==0) ? (1-b1) : (b1));
 
   let b2 = 1-q_parity[0][3];
   q_parity[2][0] = b2;
-  q_parity[2][1] = ((h0==0) ? b1 : (1-b1));
-  q_parity[2][2] = ((((w1+h0)%2)==0) ? b1 : (1-b1));
-  q_parity[2][3] = ((w1==0) ? b1 : (1-b1));
+  q_parity[2][1] = ((h0==0) ? (1-b2) : (b2));
+  q_parity[2][2] = ((((w1+h0)%2)==0) ? (b2) : (1-b2));
+  q_parity[2][3] = ((w1==0) ? (1-b2) : (b2));
+
+  //DEBUG
+  //DEBUG
+  //DEBUG
+
+  /*
+  let t0 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+  t0.fill = (q_parity[0][0] ? co_light : co_dark );
+  t0.stroke = co_dark;
+
+  let t1 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] + s/2, s, s );
+  t1.fill = (q_parity[0][1] ? co_light : co_dark );
+  t1.stroke = co_dark;
+
+  let t2 = two.makeRectangle( oxy[0] - s/2, oxy[1] + s/2, s, s );
+  t2.fill = (q_parity[0][2] ? co_light : co_dark );
+  t2.stroke = co_dark;
+
+  let t3 = two.makeRectangle( oxy[0] - s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+  t3.fill = (q_parity[0][3] ? co_light : co_dark );
+  t3.stroke = co_dark;
+
+  //---
+
+  let t4 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] - s/2, s, s );
+  t4.fill = (q_parity[1][0] ? co_light : co_dark );
+  t4.stroke = co_dark;
+
+  let t5 = two.makeRectangle( oxy[0] - wh[0]/2 + s/2, oxy[1] - wh[1]/2 + s/2, s, s );
+  t5.fill = (q_parity[1][1] ? co_light : co_dark );
+  t5.stroke = co_dark;
+
+  let t6 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] - wh[1]/2 + s/2, s, s );
+  t6.fill = (q_parity[1][2] ? co_light : co_dark );
+  t6.stroke = co_dark;
+
+  let t7 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] - s/2, s, s );
+  t7.fill = (q_parity[1][3] ? co_light : co_dark );
+  t7.stroke = co_dark;
+
+  //---
+
+  let t8 = two.makeRectangle( oxy[0] + s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+  t8.fill = (q_parity[2][0] ? co_light : co_dark );
+  t8.stroke = co_dark;
+
+  let t9 = two.makeRectangle( oxy[0] + s/2, oxy[1] + s/2, s, s );
+  t9.fill = (q_parity[2][1] ? co_light : co_dark );
+  t9.stroke = co_dark;
+
+  let t10 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] + s/2, s, s );
+  t10.fill = (q_parity[2][2] ? co_light : co_dark );
+  t10.stroke = co_dark;
+
+  let t11 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] + wh[1]/2 - s/2, s, s );
+  t11.fill = (q_parity[2][3] ? co_light : co_dark );
+  t11.stroke = co_dark;
+
+  return;
+  */
+
+  //DEBUG
+  //DEBUG
+  //DEBUG
 
   let conn_0_1 = false,
       conn_1_2 = false,
@@ -2397,19 +2497,6 @@ function mk3Subdiv( oxy, wh, eowh, qs,qe, cs ) {
     J0_2.fill = (q_parity[2][0] ? co_light : co_dark );
     J0_2.stroke = co_dark;
   }
-
-  // text labels (e/o on sides)
-  //
-  let fs = {
-    "size": 18,
-    "family": "Libertine, Linux Libertine 0"
-  };
-
-  let p_h_t = two.makeText( eowh[1][1].toString(), oxy[0] - wh[0]/2 - 10, oxy[1] - wh[1]/4, fs );
-  let p_h_b = two.makeText( eowh[1][0].toString(), oxy[0] - wh[0]/2 - 10, oxy[1] + wh[1]/4, fs );
-
-  let p_w_l = two.makeText( eowh[0][0].toString(), oxy[0] - wh[0]/4, oxy[1] + wh[1]/2 + 15, fs );
-  let p_w_r = two.makeText( eowh[0][1].toString(), oxy[0] + wh[0]/4, oxy[1] + wh[1]/2 + 15, fs );
 
 
 }
@@ -2497,16 +2584,97 @@ function gilbert2d_aglaophotis() {
   //----
 
   sxy = [400, 100];
+  let _dx = 120,
+      _ix = 0;
 
-  mk3Subdiv( [sxy[0] + 0  , sxy[1]], [100,100], [[0,0],[0,0]], 0, 0, 0 );
-  mk3Subdiv( [sxy[0] + 120, sxy[1]], [100,100], [[0,0],[0,0]], 0, 1, 0 );
-  mk3Subdiv( [sxy[0] + 240, sxy[1]], [100,100], [[0,0],[0,0]], 0, 1, 1 );
+  //mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,0],[1,1]], 0, 0, 0 );
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,1],[0,0]], 0, 0, 0 );
+  _ix++;
 
-  //mk3Subdiv( [sxy[0] + 120, sxy[1]], [100,100], [[0,0],[0,1]], 0, 0, 0 );
-  //mk3Subdiv( [sxy[0] + 240, sxy[1]], [100,100], [[0,0],[0,1]], 0, 1, 0 );
+  _ix++;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,0],[1,1]], 0, 1, 0 );
+  _ix++;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,1],[0,0]], 0, 1, 1 );
+  _ix++;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,0],[0,0]], 0, 2, 0 );
+  _ix++;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,0],[1,1]], 0, 2, 1 );
+  _ix++;
+
+  //---
+
+  sxy[1] += 145;
+  _ix = 0;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[1,1]], 0, 0, 0 );
+  _ix++;
+  //mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,0],[1,1]], 0, 0, 0 );
+  _ix++;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[1,1]], 0, 1, 0 );
+  _ix++;
+
+  //!!!!
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,0],[1,1]], 0, 1, 1, true );
+  _ix++;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,0],[1,1]], 0, 2, 0 );
+  _ix++;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[1,1]], 0, 2, 1 );
+  _ix++;
+
+
+  //---
+
+  sxy[1] += 145;
+  _ix = 0;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,1],[0,1]], 0, 0, 0 );
+  _ix++;
+  _ix++;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,0],[1,0]], 0, 1, 0 );
+  _ix++;
+
+  //!!!!
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,1],[0,1]], 0, 1, 1, true );
+  _ix++;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,0],[0,1]], 0, 2, 0 );
+  _ix++;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[1,1]], 0, 2, 1 );
+  _ix++;
+
+  //---
+
+  sxy[1] += 145;
+  _ix = 0;
+
+  //mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[1,0]], 0, 0, 0 );
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[0,1]], 0, 0, 0 );
+  _ix++;
+  _ix++;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[1,0]], 0, 1, 0 );
+  _ix++;
+
+  //mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[0,1]], 0, 1, 1, true );
+  _ix++;
+
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[0,1]], 0, 2, 0 );
+  _ix++;
+
+  //mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[0,1]], 0, 2, 1 );
+  _ix++;
+
 
   two.update();
-
 }
 
 
