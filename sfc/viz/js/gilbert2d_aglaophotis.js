@@ -2275,6 +2275,14 @@ function mk2Subdiv( oxy, wh, eowh, qs,qe, cs, show_dock ) {
 
   let se_col = [ co_dark, co_light ];
 
+  let top_conn_exception = false;
+  if ((h0 == 1) && (((w0+w1)%2)==0)) {
+    top_conn_exception = true;
+  }
+
+  //DEBUG
+  top_conn_exception = false;
+
   if (cs) { se_col = [ co_light, co_dark ]; }
   if ( ((w0+w1)*(h0)) == 1 ) { se_col[1] = se_col[0]; }
 
@@ -2359,9 +2367,18 @@ function mk2Subdiv( oxy, wh, eowh, qs,qe, cs, show_dock ) {
     t1.fill = (q_parity[0][1] ? co_light : co_dark );
     t1.stroke = co_dark;
 
-    let t2 = two.makeRectangle( oxy[0] - s/2, oxy[1] - wh[1]/2 + s/2, s, s );
-    t2.fill = (q_parity[0][2] ? co_light : co_dark );
-    t2.stroke = co_dark;
+    if (top_conn_exception == false) {
+      let t2 = two.makeRectangle( oxy[0] - s/2, oxy[1] - wh[1]/2 + s/2, s, s );
+      t2.fill = (q_parity[0][2] ? co_light : co_dark );
+      t2.stroke = co_dark;
+    }
+    else {
+      // reversed, one down.
+      //
+      let t2 = two.makeRectangle( oxy[0] - s/2, oxy[1] - wh[1]/2 + s + s/2, s, s );
+      t2.fill = (q_parity[0][2] ? co_dark : co_light );
+      t2.stroke = co_dark;
+    }
 
     let t3 = two.makeRectangle( oxy[0] - s/2, oxy[1] + wh[1]/2 - s/2, s, s );
     t3.fill = (q_parity[0][3] ? co_light : co_dark );
@@ -2373,9 +2390,18 @@ function mk2Subdiv( oxy, wh, eowh, qs,qe, cs, show_dock ) {
     t4.fill = (q_parity[1][0] ? co_light : co_dark );
     t4.stroke = co_dark;
 
-    let t5 = two.makeRectangle( oxy[0] + s/2, oxy[1] - wh[1]/2 + s/2, s, s );
-    t5.fill = (q_parity[1][1] ? co_light : co_dark );
-    t5.stroke = co_dark;
+    if (top_conn_exception == false) {
+      let t5 = two.makeRectangle( oxy[0] + s/2, oxy[1] - wh[1]/2 + s/2, s, s );
+      t5.fill = (q_parity[1][1] ? co_light : co_dark );
+      t5.stroke = co_dark;
+    }
+    else {
+      // reversed, one down.
+      //
+      let t5 = two.makeRectangle( oxy[0] + s/2, oxy[1] - wh[1]/2 + s + s/2, s, s );
+      t5.fill = (q_parity[1][1] ? co_dark : co_light );
+      t5.stroke = co_dark;
+    }
 
     let t6 = two.makeRectangle( oxy[0] + wh[0]/2 - s/2, oxy[1] - wh[1]/2 + s/2, s, s );
     t6.fill = (q_parity[1][2] ? co_light : co_dark );
@@ -2715,6 +2741,9 @@ function gilbert2d_aglaophotis() {
 
   //----
 
+  // even width, even height
+  //
+
   sxy = [400, 100];
   let _dx = 120,
       _ix = 0;
@@ -2739,6 +2768,9 @@ function gilbert2d_aglaophotis() {
 
   //---
 
+  // odd width, even height
+  //
+
   sxy[1] += 145;
   _ix = 0;
 
@@ -2750,8 +2782,13 @@ function gilbert2d_aglaophotis() {
   mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[1,1]], 0, 1, 0 );
   _ix++;
 
-  //!!!!
-  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,0],[1,1]], 0, 1, 1 );
+  //!!!!!! INVALID
+  //mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,0],[0,0]], 0, 1, 1, true );
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,0],[0,0]], 0, 1, 1, true );
+
+  let _invalid0 = two.makeText("X", sxy[0]+_ix*_dx, sxy[1], font_style);
+  _invalid0.stroke = "rgb(255,0,0)";
+
   _ix++;
 
   mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,0],[1,1]], 0, 2, 0 );
@@ -2763,6 +2800,9 @@ function gilbert2d_aglaophotis() {
 
   //---
 
+  // even width, odd height
+  //
+
   sxy[1] += 145;
   _ix = 0;
 
@@ -2773,7 +2813,6 @@ function gilbert2d_aglaophotis() {
   mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,0],[1,0]], 0, 1, 0 );
   _ix++;
 
-  //!!!!
   mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,1],[0,1]], 0, 1, 1 );
   _ix++;
 
@@ -2785,11 +2824,20 @@ function gilbert2d_aglaophotis() {
 
   //---
 
+  // odd width, odd height
+  //
+
   sxy[1] += 145;
   _ix = 0;
 
+  // nope, also valid
   //mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[1,0]], 0, 0, 0 );
   mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[0,1]], 0, 0, 0 );
+
+  //let _invalid1 = two.makeText("X", sxy[0]+_ix*_dx, sxy[1], font_style);
+  //_invalid1.stroke = "rgb(255,0,0)";
+
+
   _ix++;
   _ix++;
 
@@ -2844,8 +2892,13 @@ function gilbert2d_aglaophotis() {
   _ix = 0;
 
   //!!!!
+  //mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[1,1], 1], 0, 0, 0 );
   mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[1,1], 1], 0, 0, 0 );
   _ix++;
+
+  //!!!!
+  //mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,0], 1], 0, 0, 0 );
+  //_ix++;
 
   mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,0], 1], 0, 1, 0 );
   _ix++;
@@ -2859,7 +2912,12 @@ function gilbert2d_aglaophotis() {
   _dx = 240;
   _ix = 0;
 
+  // no, it's valid...
   mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,1], 1], 0, 0, 0 );
+
+  //let _invalid2 = two.makeText("X", sxy[0]+_ix*_dx, sxy[1], font_style);
+  //_invalid2.stroke = "rgb(255,0,0)";
+
   _ix++;
 
   mk2Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [200, 100], [[0,1], 1], 0, 1, 0 );
