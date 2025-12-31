@@ -2451,7 +2451,6 @@ function mk3Subdiv( oxy, wh, eowh, qs,qe, cs, show_dock ) {
   if (cs) { se_col = [ co_light, co_dark ]; }
   if ( ((w0+w1)*(h0+h1)) == 1 ) { se_col[1] = se_col[0]; }
 
-
   // 3 split outline
   //
   let Ru = two.makeRectangle( oxy[0], oxy[1] - wh[1]/4, wh[0], wh[1]/2 );
@@ -2784,10 +2783,11 @@ function gilbert2d_aglaophotis() {
 
   //!!!!!! INVALID
   //mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,0],[0,0]], 0, 1, 1, true );
-  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,0],[0,0]], 0, 1, 1, true );
+  //mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[0,1],[0,0]], 0, 1, 1, true );
+  mk3Subdiv( [sxy[0] + _ix*_dx, sxy[1]], [100,100], [[1,0],[0,0]], 0, 1, 1 );
 
-  let _invalid0 = two.makeText("X", sxy[0]+_ix*_dx, sxy[1], font_style);
-  _invalid0.stroke = "rgb(255,0,0)";
+  let _invalid0 = two.makeText("!!!!", sxy[0]+_ix*_dx, sxy[1] - 8, font_style);
+  _invalid0.stroke = "rgb(255,0,255)";
 
   _ix++;
 
