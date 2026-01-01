@@ -19,6 +19,16 @@
 // W*H even : two are of 0 parity, two are of 1 parity of s,t,u,v
 //
 
+// Some notes for future reference:
+// This problem is a special case of the more general numberlink, zig-zag numberlink
+// or "flow free" problem.
+// In general, when k is unbounded and the grid graph is arbitrary, the problem is
+// np-complete.
+// The paper "Zig-Zag Numberlink is NP-Complete" by Adcock etal. (DOI: 10.2197/ipsjjip.23.239)
+// says explicitely that finite k, maybe restricted with some type of graph further, is
+// not known to be npc.
+//
+
 
 var fasslib = require("./fasslib.js");
 var cmp_v = fasslib.cmp_v;
@@ -67,7 +77,102 @@ function color_compatible(s,t,u,v, w,h) {
   return false;
 }
 
-function stuv_solve_r(s, idx, g) {
+const STUV_OPEN = -1;
+const STUV_START = -2;
+const STUV_END = -3;
+
+
+var STUV_CTX_TEMPLATE = {
+
+  "size": [-1,-1],
+
+  // start points
+  //
+  "s": [],
+
+  // end points
+  //
+  "t": [],
+
+  // current position
+  //
+  "p": [-1,-1],
+
+  // current path index
+  //
+  "p_idx": -1,
+
+  // history of path
+  //
+  "path": [],
+
+  // grid
+  //
+  //  >= 0  : path
+  //  -1    : general uninitialized point
+  //  -2    : start point
+  //  -3    : end point
+  //
+  "G" : []
+
+};
+
+function stuv_init(w,h, S, T) {
+  let ctx = { "size": [w,h] };
+
+  ctx["p"] = [-1,-1];
+  ctx["p_idx"] = [];
+
+  ctx["s"] = [];
+  ctx["t"] = [];
+  ctx["path"] = [];
+  for (let i=0; i<S.length; i++) {
+    ctx.s.push( [S[i][0], S[i][1]] );
+    ctx.t.push( [T[i][0], T[i][1]] );
+    ctx.p_idx.push(-1);
+    ctx.path.push([]);
+  }
+
+  ctx["G"] = [];
+  for (let j=0; j<ctx.size[1]; j++) {
+    ctx.G.push([]);
+    for (let i=0; i<ctx.size[0]; i++) {
+      ctx.G[j].push(-1);
+    }
+  }
+
+  for (let i=0; i<S.length; i++) {
+    ctx.G[ S[i][1] ][ S[i][0] ] = STUV_START;
+    ctx.G[ T[i][1] ][ T[i][0] ] = STUV_HP_END;
+  }
+
+  return ctx;
+}
+
+function stuv_print(ctx) {
+  console.log("size:", "W:",ctx.size[0], "H:", ctx.size[1]);
+
+  console.log("s[", ctx.s.length, "]:", JSON.stringify(ctx.s));
+  console.log("t[", ctx.t.length, "]:", JSON.stringify(ctx.t));
+
+  console.log("s_idx:", ctx.s_idx, "p_idx:", JSON.stringify(ctx.p_idx));
+
+  for (let i=0; i<ctx.path.length; i++) {
+    console.log("  path[", i, "]:", JSON.stringify(ctx.path[i]));
+  }
+
+  console.log("\nG:");
+
+  for (let j=(ctx.size[1]-1); j>=0; j--) {
+    let a = [];
+    for (let i=0; i<ctx.size[0]; i++) {
+      a.push( _ifmt(ctx.G[j][i], 3) );
+    }
+    console.log(a.join(" "));
+  }
+}
+
+function _stuv_solve_r(ctx) {
 
   let h = g.length;
   let w = g[0].length;
@@ -76,6 +181,8 @@ function stuv_solve_r(s, idx, g) {
     [1,0], [-1,0],
     [0,1], [0,-1]
   ];
+
+  let s = s_a[s_idx];
 
   // oob
   //
@@ -129,7 +236,7 @@ function stuv_solve_r(s, idx, g) {
   return -1;
 }
 
-function stuv_solve(s0,s1, t0,t1, w,h) {
+function _stuv_solve(s0,s1, t0,t1, w,h) {
   let g = [];
 
   let s0_idx = 0;
@@ -166,19 +273,63 @@ function stuv_solve(s0,s1, t0,t1, w,h) {
   return 0;
 }
 
-let w = 5, h = 4;
-let s0 = [0,0],
-    s1 = [w-1,h-1],
-    t0 = [1,1],
-    t1 = [w-2,h-2];
+var IDIR_DXY = [ [1,0], [-1,0], [0,1], [0,-1] ];
+
+function stuv_solve_r(ctx) {
+  let p = ctx.p;
+  let p_idx = ctx.p_idx;
+
+  let w = ctx.size[0];
+  let h = ctx.size[1];
+
+  // oob
+  //
+  if ((p[0] < 0) || (p[0] >= w) ||
+      (p[1] < 0) || (p[1] >= h)) {
+    return -1;
+  }
+
+  let v = ctx.G[ p[1] ][ p[0] ];
+  if (v >= 0) { return -1; }
+
+  if (v == STUV_START) {
+  }
 
 
-let r = stuv_solve(s0,s1,t0,t1, w,h);
 
-console.log("color_compatible:", color_compatible(s0,s1,t0,t1, w,h));
-console.log("got:", r);
+
+
+}
+
+function stuv_solve(ctx) {
+}
 
 function _main() {
+  let w = 7, h = 4;
+
+  let ctx = stuv_init(w,h, [[0,0],[w-1,h-1]], [[1,1],[w-2,h-2]]);
+
+  stuv_print(ctx);
+}
+
+_main();
+
+
+function _main_1() {
+  let w = 5, h = 4;
+  let s0 = [0,0],
+      s1 = [w-1,h-1],
+      t0 = [1,1],
+      t1 = [w-2,h-2];
+
+
+  let r = stuv_solve(s0,s1,t0,t1, w,h);
+
+  console.log("color_compatible:", color_compatible(s0,s1,t0,t1, w,h));
+  console.log("got:", r);
+}
+
+function _main_0() {
 
   let wh = [5,4];
 
@@ -222,3 +373,4 @@ function _main() {
   }
 
 }
+
