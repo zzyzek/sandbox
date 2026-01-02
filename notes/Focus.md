@@ -6,8 +6,8 @@ Current Focus
 | Task | Priority | Effort | Notes |
 |---|---|---|---|
 | Gilbert paper | `f` | `9` | Vanilla algorithm only, try for bridges conference |
-| $k=2$ 2D zig-zag numberlink (K2D2-ZZN) | `b` | `d` | More general problem needed for st-Gilbert  |
-| st-Gilbert | `a` | `9` | blocking on some type of K2D2-ZZN result |
+| Rectangular 2D $k=2$ zig-zag numberlink (R2K2-ZZN) | `b` | `d` | More general problem needed for st-Gilbert  |
+| st-Gilbert | `a` | `9` | blocking on some type of R2K2-ZZN result |
 | SWIFRNG | `a` | `a` | a.s. $O(n)$ relative neighborhood graph for random 3D points |
 | MIRPRP Writeup | `9` | `b` | wait too long and we'll lose context |
 | cloister and liminal interface method (POMS) | `8` | `c` | simple first, get some artifacts |
