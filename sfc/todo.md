@@ -3,13 +3,14 @@ TODO
 
 ###### 2025-06-12
 
-* make sure hibiscus, peony, milfoil and hellebore curves have subdivision schemes
-  that are stable (make a tool to help make this transparent?)
-* document hibiscus, peony, milfoil and hellebore
-  - figure out better names
-  - make diagrams (create general purpose diagram creator?)
-* update gilbert-paper issues with all the various curves
-* consider adding another subdivision scheme fore milfoil that splits it in 3
+
+* ~make sure hibiscus, peony, milfoil and hellebore curves have subdivision schemes
+  that are stable (make a tool to help make this transparent?)~
+* ~document hibiscus, peony, milfoil and hellebore~
+  - ~figure out better names~
+  - ~make diagrams (create general purpose diagram creator?)~
+* ~update gilbert-paper issues with all the various curves~
+* ~consider adding another subdivision scheme fore milfoil that splits it in 3~
 
 
 ###### 2025-06-05
