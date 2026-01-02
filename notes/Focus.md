@@ -1,18 +1,20 @@
 Current Focus
 ---
 
-###### 2025-12-19
+###### 2026-01-02
 
 | Task | Priority | Effort | Notes |
 |---|---|---|---|
+| Gilbert paper | `f` | `9` | Vanilla algorithm only, try for bridges conference |
+| $k=2$ 2D zig-zag numberlink (K2D2-ZZN) | `b` | `d` | More general problem needed for st-Gilbert  |
+| st-Gilbert | `a` | `9` | blocking on some type of K2D2-ZZN result |
+| SWIFRNG | `a` | `a` | a.s. $O(n)$ relative neighborhood graph for random 3D points |
+| MIRPRP Writeup | `9` | `b` | wait too long and we'll lose context |
+| cloister and liminal interface method (POMS) | `8` | `c` | simple first, get some artifacts |
 | Merrell Communication | `7` | `9` | |
-| West Hubbard | `3` | `a` | |
-| MIRPRP Writeup | `9` | `b` | |
 | SGG HC and SGG s-t HP | `6` | `f` | Subsumed in this is SGG:HC writeup, RSGG:HP writeup and communication |
-| cloister and liminal interface method (POMS) | `8` | `c` | |
-| SWIFRNG | `a` | `a` | |
-| Gilbert | `c` | `9` | Need to decide what end conditions are and ship it |
 | Template optimizations (POMS) | `5` | `b` | Can't do larger models without it |
+| West Hubbard | `3` | `a` | blocking on understanding external rays |
 
 
 ###### 2025-07-01
