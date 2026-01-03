@@ -117,7 +117,7 @@ We have to be careful about what $N$ we mean but here $N$, is the number of base
 In practice, the number of regions will be much less as the boundary will most likely be $O(\sqrt N)$, the number of adit points will most likely
 be constant (2) and the cut line perimeter will most likely be $O(\sqrt N)$, giving around $O(N^2)$.
 The number of rectangles will also probably be less than the worst case as the perimeter is, again, most likely $O(\sqrt N)$ and there won't be a
-lot of choices that only include exactly one docking point from the parent region (so maybe $O(N ^ {\frac{3}{2})$ ?).
+lot of choices that only include exactly one docking point from the parent region (so maybe $O(N ^ {\frac{3}{2}})$ ?).
 
 Some test cases to consider:
 
