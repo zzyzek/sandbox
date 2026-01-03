@@ -11,6 +11,9 @@ var printf = require("./printf.js");
 var fasslib = require("./fasslib.js");
 
 var v_add = fasslib.v_add;
+var cmp_v = fasslib.cmp_v;
+var ibvec_incr = fasslib.ibvec_incr;
+var ivec0 = fasslib.ivec0;
 
 var IDIR_DXY = [
   [1,0], [-1,0], [0,1], [0,-1]
@@ -314,6 +317,7 @@ function r2k2zzn_solve(ctx, _debug) {
     console.log("-------------");
   }
 
+  if (ctx.p_idx==0) { return -1; }
   return ctx.p_idx;
   //return r2k2zzn_solve_r(ctx);
 }
@@ -331,8 +335,146 @@ var R2K2ZZN_func_name_map = {
 
 if (typeof module !== "undefined") {
 
+  function distinct(a,b,c,d) {
+
+    if (cmp_v(a,b) == 0) { return 0; }
+    if (cmp_v(a,c) == 0) { return 0; }
+    if (cmp_v(a,d) == 0) { return 0; }
+    if (cmp_v(b,c) == 0) { return 0; }
+    if (cmp_v(b,d) == 0) { return 0; }
+    if (cmp_v(c,d) == 0) { return 0; }
+
+    return 1;
+  }
+
+  function stst_key(s0, t0, s1, t1) {
+    let key = 
+    s0[0].toString() + "," + s0[1].toString() + ":" +
+    t0[0].toString() + "," + t0[1].toString() + ";" +
+    s1[0].toString() + "," + s1[1].toString() + ":" +
+    t1[0].toString() + "," + t1[1].toString() + "";
+    return key;
+  }
+
+  function mark_perm_stst(M, s0, t0, s1, t1) {
+
+    M[ stst_key(s0,t0,s1,t1) ] = 1;
+    M[ stst_key(t0,s0,s1,t1) ] = 1;
+    M[ stst_key(s0,t0,t1,s1) ] = 1;
+    M[ stst_key(t0,s0,t1,s1) ] = 1;
+
+    M[ stst_key(s1,t1,s0,t0) ] = 1;
+    M[ stst_key(t1,s1,s0,t0) ] = 1;
+    M[ stst_key(s1,t1,t0,s0) ] = 1;
+    M[ stst_key(t1,s1,t0,s0) ] = 1;
+
+  }
+
+  function mark_flip_stst(M, s0, t0, s1, t1, w,h) {
+
+    mark_perm_stst(M, s0, t0, s1, t1);
+
+    let sh0 = [ s0[0], h-1-s0[1] ];
+    let th0 = [ t0[0], h-1-t0[1] ];
+
+    let sh1 = [ s1[0], h-1-s1[1] ];
+    let th1 = [ t1[0], h-1-t1[1] ];
+
+    mark_perm_stst(M, sh0, th0, sh1, th1);
+
+    let sw0 = [ w-1-s0[0], s0[1] ];
+    let tw0 = [ w-1-t0[0], t0[1] ];
+
+    let sw1 = [ w-1-s1[0], s1[1] ];
+    let tw1 = [ w-1-t1[0], t1[1] ];
+
+    mark_perm_stst(M, sw0, tw0, sw1, tw1);
+
+    let swh0 = [ w-1-s0[0], h-1-s0[1] ];
+    let twh0 = [ w-1-t0[0], h-1-t0[1] ];
+
+    let swh1 = [ w-1-s1[0], h-1-s1[1] ];
+    let twh1 = [ w-1-t1[0], h-1-t1[1] ];
+
+    mark_perm_stst(M, swh0, twh0, swh1, twh1);
+  }
+
+  function mark_stst(M, s0, t0, s1, t1, w,h) {
+    let key = stst_key(s0, t0, s1, t1);
+    M[key] = 1;
+    mark_flip_stst(M, s0, t0, s1, t1);
+  }
+
+  function color_compatible(s0,t0,s1,t1,w,h) {
+    let grid_parity = (w*h)%2;
+
+    let s0_parity = (s0[0] + s0[1])%2;
+    let t0_parity = (t0[0] + t0[1])%2;
+
+    let s1_parity = (s1[0] + s1[1])%2;
+    let t1_parity = (t1[0] + t1[1])%2;
+
+    if (grid_parity == 0) {
+      if ((s0_parity == t0_parity) ||
+          (s1_parity == t1_parity)) {
+        return 0;
+      }
+      return 1;
+    }
+
+    let parity_sum = s0_parity + t0_parity + s1_parity + t1_parity;
+    if (parity_sum == 1) { return 1; }
+    return 0;
+  }
+
   function _enum(w,h) {
 
+    let stst = [0,0, 0,0, 0,0, 0,0];
+    let B = [w,h,w,h,w,h,w,h];
+
+    let Memz = {};
+
+    let soln = [];
+
+    do {
+
+      let t1 = [stst[0], stst[1]];
+      let s1 = [stst[2], stst[3]];
+      let t0 = [stst[4], stst[5]];
+      let s0 = [stst[6], stst[7]];
+
+      if ( (cmp_v(s0, [0,0]) == 0) &&
+           (cmp_v(t0, [1,0]) == 0) &&
+           (cmp_v(s1, [2,0]) == 0) &&
+           (cmp_v(t1, [0,2]) == 0) ) {
+
+        let _key = stst_key(s0,t0,s1,t1);
+        let cc = color_compatible(s0,t0,s1,t1,w,h);
+        console.log("!!!", "(", w,h, ")", s0, t0, s1,t1, distinct(s0,t0,s1,t1), _key in Memz, cc);
+      }
+
+      if (!distinct(s0,t0,s1,t1)) { ibvec_incr(stst,B); continue; }
+      if (color_compatible(s0,t0,s1,t1,w,h) == 0) { ibvec_incr(stst,B); continue; }
+
+      let key = stst_key(s0,t0,s1,t1);
+      if (!(key in Memz)) {
+
+        let ctx = r2k2zzn_init(w,h, s0,t0, s1,t1);
+        let r = r2k2zzn_solve(ctx);
+        console.log("s0:", s0, "t0:", t0, "s1:", s1, "t1:", t1, ":::", r);
+
+        soln.push( {"key":key, "S": [s0,s1], "T":[t0,t1], "r": r, "ctx": ctx } );
+      }
+
+      mark_stst(Memz,s0,t0,s1,t1,w,h);
+      ibvec_incr(stst,B);
+
+    } while (!ivec0(stst));
+
+
+    for (let i=0; i<soln.length; i++) {
+      console.log(soln[i].key, JSON.stringify(soln[i].ctx.path));
+    }
 
   }
 
@@ -342,6 +484,9 @@ if (typeof module !== "undefined") {
     let op = "10x1";
     op = "7x2";
     op = "10x3";
+
+    _enum(3,3);
+    return;
 
     if (op == "10x1") {
       let ctx = r2k2zzn_init(10,1, [0,0], [3,0], [9,0], [4,0]);
