@@ -49,7 +49,7 @@ Let $w$ be the number of intersections of $d$ with $C$, then $C$ and $d$ partiti
 In general:
 
 $$
-s = L + w + 2 - |\text{\# shared endpoints for } d \text{ and } C|
+s = L + w + 2 - |\text{\\# shared endpoints for } d \text{ and } C|
 $$
 
 ---
