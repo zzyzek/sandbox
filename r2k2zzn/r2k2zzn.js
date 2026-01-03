@@ -331,6 +331,11 @@ var R2K2ZZN_func_name_map = {
 
 if (typeof module !== "undefined") {
 
+  function _enum(w,h) {
+
+
+  }
+
   function _main(argv) {
     let _debug = 0;
 
