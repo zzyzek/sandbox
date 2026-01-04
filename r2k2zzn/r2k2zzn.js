@@ -332,156 +332,287 @@ var R2K2ZZN_func_name_map = {
   "print": r2k2zzn_print
 };
 
+// return:
+//
+// 0 - if a==b, a==c, a==d, b==c, b==d or c==d 
+// 1 - if all distinct
+//
+function distinct(a,b,c,d) {
 
-if (typeof module !== "undefined") {
+  if (cmp_v(a,b) == 0) { return 0; }
+  if (cmp_v(a,c) == 0) { return 0; }
+  if (cmp_v(a,d) == 0) { return 0; }
+  if (cmp_v(b,c) == 0) { return 0; }
+  if (cmp_v(b,d) == 0) { return 0; }
+  if (cmp_v(c,d) == 0) { return 0; }
 
-  function distinct(a,b,c,d) {
+  return 1;
+}
 
-    if (cmp_v(a,b) == 0) { return 0; }
-    if (cmp_v(a,c) == 0) { return 0; }
-    if (cmp_v(a,d) == 0) { return 0; }
-    if (cmp_v(b,c) == 0) { return 0; }
-    if (cmp_v(b,d) == 0) { return 0; }
-    if (cmp_v(c,d) == 0) { return 0; }
+// string key for memz lookup
+//
+function stst_key(s0, t0, s1, t1) {
+  let key = 
+  s0[0].toString() + "," + s0[1].toString() + ":" +
+  t0[0].toString() + "," + t0[1].toString() + ";" +
+  s1[0].toString() + "," + s1[1].toString() + ":" +
+  t1[0].toString() + "," + t1[1].toString() + "";
+  return key;
+}
 
+// add to memez with all valid permuatations of (s0,t0), (s1,t1)
+// pairs
+//
+function mark_perm_stst(M, s0, t0, s1, t1) {
+
+  M[ stst_key(s0,t0,s1,t1) ] = 1;
+  M[ stst_key(t0,s0,s1,t1) ] = 1;
+  M[ stst_key(s0,t0,t1,s1) ] = 1;
+  M[ stst_key(t0,s0,t1,s1) ] = 1;
+
+  M[ stst_key(s1,t1,s0,t0) ] = 1;
+  M[ stst_key(t1,s1,s0,t0) ] = 1;
+  M[ stst_key(s1,t1,t0,s0) ] = 1;
+  M[ stst_key(t1,s1,t0,s0) ] = 1;
+
+}
+
+// mark memz with reflection symmetry for start/end pairs
+//
+function mark_flip_stst(M, s0, t0, s1, t1, w,h) {
+
+  mark_perm_stst(M, s0, t0, s1, t1);
+
+  let sh0 = [ s0[0], h-1-s0[1] ];
+  let th0 = [ t0[0], h-1-t0[1] ];
+
+  let sh1 = [ s1[0], h-1-s1[1] ];
+  let th1 = [ t1[0], h-1-t1[1] ];
+
+  mark_perm_stst(M, sh0, th0, sh1, th1);
+
+  let sw0 = [ w-1-s0[0], s0[1] ];
+  let tw0 = [ w-1-t0[0], t0[1] ];
+
+  let sw1 = [ w-1-s1[0], s1[1] ];
+  let tw1 = [ w-1-t1[0], t1[1] ];
+
+  mark_perm_stst(M, sw0, tw0, sw1, tw1);
+
+  let swh0 = [ w-1-s0[0], h-1-s0[1] ];
+  let twh0 = [ w-1-t0[0], h-1-t0[1] ];
+
+  let swh1 = [ w-1-s1[0], h-1-s1[1] ];
+  let twh1 = [ w-1-t1[0], h-1-t1[1] ];
+
+  mark_perm_stst(M, swh0, twh0, swh1, twh1);
+}
+
+// WIP!!!
+function mark_rotation_stst(M, s0, t0, s1, t1, w, h) {
+  if (w != h) { return; }
+
+  let cur_s0 = [s0[0], s0[1]],
+      cur_t0 = [t0[0], t0[1]],
+      cur_s1 = [s1[0], s1[1]],
+      cur_t1 = [t1[0], t1[1]];
+
+  for (let i=0; i<4; i++) {
+
+    let nxt_s0 = [ cur_s0[1], h-1-cur_s0[0] ],
+        nxt_t0 = [ cur_t0[1], h-1-cur_t0[0] ],
+        nxt_s1 = [ cur_s1[1], h-1-cur_s1[0] ],
+        nxt_t1 = [ cur_t1[1], h-1-cur_t1[0] ];
+
+    mark_flip_stst(M, cur_s0, cur_t0, cur_s1, cur_t1, w, h);
+
+    cur_s0 = nxt_s0;
+    cur_t0 = nxt_t0;
+    cur_s1 = nxt_s1;
+    cur_t1 = nxt_t1;
+
+  }
+
+}
+
+// umbrella function to apply all valid symmetry
+// memz memoizations
+//
+function mark_stst(M, s0, t0, s1, t1, w,h) {
+  let key = stst_key(s0, t0, s1, t1);
+  M[key] = 1;
+  mark_flip_stst(M, s0, t0, s1, t1,w,h);
+
+  if (w==h) {
+    mark_rotation_stst(M, s0, t0, s1, t1, w, h);
+  }
+}
+
+// if (w*h) even, s0 and t0 must be different parity
+// and s1, t1 must be different parity
+//
+// if (w*h) odd, then all but one s or t must
+// be majority color
+//
+// return:
+// 0 - color incompatible
+// 1 - color compatible
+//
+function color_compatible(s0,t0,s1,t1,w,h) {
+  let grid_parity = (w*h)%2;
+
+  let s0_parity = (s0[0] + s0[1])%2;
+  let t0_parity = (t0[0] + t0[1])%2;
+
+  let s1_parity = (s1[0] + s1[1])%2;
+  let t1_parity = (t1[0] + t1[1])%2;
+
+  if (grid_parity == 0) {
+    if ((s0_parity == t0_parity) ||
+        (s1_parity == t1_parity)) {
+      return 0;
+    }
     return 1;
   }
 
-  function stst_key(s0, t0, s1, t1) {
-    let key = 
-    s0[0].toString() + "," + s0[1].toString() + ":" +
-    t0[0].toString() + "," + t0[1].toString() + ";" +
-    s1[0].toString() + "," + s1[1].toString() + ":" +
-    t1[0].toString() + "," + t1[1].toString() + "";
-    return key;
-  }
+  let parity_sum = s0_parity + t0_parity + s1_parity + t1_parity;
+  if (parity_sum == 1) { return 1; }
+  return 0;
+}
 
-  function mark_perm_stst(M, s0, t0, s1, t1) {
+// enumerate all color compatible (s0,t0), (s1,t1)
+// pairs, solution or no, applying flip, permutation
+// or rotation symmetry of start/end pairs as necessary
+//
+function _enum(w,h) {
 
-    M[ stst_key(s0,t0,s1,t1) ] = 1;
-    M[ stst_key(t0,s0,s1,t1) ] = 1;
-    M[ stst_key(s0,t0,t1,s1) ] = 1;
-    M[ stst_key(t0,s0,t1,s1) ] = 1;
+  let stst = [0,0, 0,0, 0,0, 0,0];
+  let B = [w,h,w,h,w,h,w,h];
 
-    M[ stst_key(s1,t1,s0,t0) ] = 1;
-    M[ stst_key(t1,s1,s0,t0) ] = 1;
-    M[ stst_key(s1,t1,t0,s0) ] = 1;
-    M[ stst_key(t1,s1,t0,s0) ] = 1;
+  let Memz = {};
 
-  }
+  let soln = [];
 
-  function mark_flip_stst(M, s0, t0, s1, t1, w,h) {
+  do {
 
-    mark_perm_stst(M, s0, t0, s1, t1);
+    let t1 = [stst[0], stst[1]];
+    let s1 = [stst[2], stst[3]];
+    let t0 = [stst[4], stst[5]];
+    let s0 = [stst[6], stst[7]];
 
-    let sh0 = [ s0[0], h-1-s0[1] ];
-    let th0 = [ t0[0], h-1-t0[1] ];
+    if (!distinct(s0,t0,s1,t1)) { ibvec_incr(stst,B); continue; }
+    if (color_compatible(s0,t0,s1,t1,w,h) == 0) { ibvec_incr(stst,B); continue; }
 
-    let sh1 = [ s1[0], h-1-s1[1] ];
-    let th1 = [ t1[0], h-1-t1[1] ];
+    let key = stst_key(s0,t0,s1,t1);
+    if (!(key in Memz)) {
 
-    mark_perm_stst(M, sh0, th0, sh1, th1);
+      let ctx = r2k2zzn_init(w,h, s0,t0, s1,t1);
+      let r = r2k2zzn_solve(ctx);
+      console.log("s0:", s0, "t0:", t0, "s1:", s1, "t1:", t1, ":::", r);
 
-    let sw0 = [ w-1-s0[0], s0[1] ];
-    let tw0 = [ w-1-t0[0], t0[1] ];
-
-    let sw1 = [ w-1-s1[0], s1[1] ];
-    let tw1 = [ w-1-t1[0], t1[1] ];
-
-    mark_perm_stst(M, sw0, tw0, sw1, tw1);
-
-    let swh0 = [ w-1-s0[0], h-1-s0[1] ];
-    let twh0 = [ w-1-t0[0], h-1-t0[1] ];
-
-    let swh1 = [ w-1-s1[0], h-1-s1[1] ];
-    let twh1 = [ w-1-t1[0], h-1-t1[1] ];
-
-    mark_perm_stst(M, swh0, twh0, swh1, twh1);
-  }
-
-  function mark_stst(M, s0, t0, s1, t1, w,h) {
-    let key = stst_key(s0, t0, s1, t1);
-    M[key] = 1;
-    mark_flip_stst(M, s0, t0, s1, t1);
-  }
-
-  function color_compatible(s0,t0,s1,t1,w,h) {
-    let grid_parity = (w*h)%2;
-
-    let s0_parity = (s0[0] + s0[1])%2;
-    let t0_parity = (t0[0] + t0[1])%2;
-
-    let s1_parity = (s1[0] + s1[1])%2;
-    let t1_parity = (t1[0] + t1[1])%2;
-
-    if (grid_parity == 0) {
-      if ((s0_parity == t0_parity) ||
-          (s1_parity == t1_parity)) {
-        return 0;
-      }
-      return 1;
+      soln.push( {"key":key, "S": [s0,s1], "T":[t0,t1], "r": r, "ctx": ctx } );
     }
 
-    let parity_sum = s0_parity + t0_parity + s1_parity + t1_parity;
-    if (parity_sum == 1) { return 1; }
-    return 0;
+    mark_stst(Memz,s0,t0,s1,t1,w,h);
+    ibvec_incr(stst,B);
+
+  } while (!ivec0(stst));
+
+
+  //console.log("memz:");
+  //for (let key in Memz) { console.log(key); }
+
+  for (let i=0; i<soln.length; i++) {
+    console.log(soln[i].key, JSON.stringify(soln[i].ctx.path));
   }
 
-  function _enum(w,h) {
+  return soln;
 
-    let stst = [0,0, 0,0, 0,0, 0,0];
-    let B = [w,h,w,h,w,h,w,h];
-
-    let Memz = {};
-
-    let soln = [];
-
-    do {
-
-      let t1 = [stst[0], stst[1]];
-      let s1 = [stst[2], stst[3]];
-      let t0 = [stst[4], stst[5]];
-      let s0 = [stst[6], stst[7]];
-
-      if ( (cmp_v(s0, [0,0]) == 0) &&
-           (cmp_v(t0, [1,0]) == 0) &&
-           (cmp_v(s1, [2,0]) == 0) &&
-           (cmp_v(t1, [0,2]) == 0) ) {
-
-        let _key = stst_key(s0,t0,s1,t1);
-        let cc = color_compatible(s0,t0,s1,t1,w,h);
-        console.log("!!!", "(", w,h, ")", s0, t0, s1,t1, distinct(s0,t0,s1,t1), _key in Memz, cc);
-      }
-
-      if (!distinct(s0,t0,s1,t1)) { ibvec_incr(stst,B); continue; }
-      if (color_compatible(s0,t0,s1,t1,w,h) == 0) { ibvec_incr(stst,B); continue; }
-
-      let key = stst_key(s0,t0,s1,t1);
-      if (!(key in Memz)) {
-
-        let ctx = r2k2zzn_init(w,h, s0,t0, s1,t1);
-        let r = r2k2zzn_solve(ctx);
-        console.log("s0:", s0, "t0:", t0, "s1:", s1, "t1:", t1, ":::", r);
-
-        soln.push( {"key":key, "S": [s0,s1], "T":[t0,t1], "r": r, "ctx": ctx } );
-      }
-
-      mark_stst(Memz,s0,t0,s1,t1,w,h);
-      ibvec_incr(stst,B);
-
-    } while (!ivec0(stst));
+}
 
 
-    for (let i=0; i<soln.length; i++) {
-      console.log(soln[i].key, JSON.stringify(soln[i].ctx.path));
-    }
 
-  }
+if (typeof module !== "undefined") {
 
   function _main(argv) {
     let _debug = 0;
 
-    let op = "10x1";
+    let op = "help";
+    let w = -1,
+        h = -1;
+
+    let stst = [ -1,-1, -1,-1, -1,-1, -1,-1 ];
+
+    if (argv.length > 0) {
+      op = argv[0];
+
+      if (argv.length > 1) {
+        let a = argv[1].split(",");
+
+        w = parseInt(a[0]);
+        h = w;
+        if (a.length > 1) {
+          h = parseInt(a[1]);
+        }
+
+        if (argv.length > 2) {
+          let sta = argv[2].split(",");
+
+          for (let i=0; i<sta.length; i++) {
+            stst[i] = parseInt(sta[i]);
+          }
+        }
+
+      }
+    }
+
+    if ((op == "help") ||
+        (w < 0) ||
+        (h < 0)) {
+      console.log("prog <op> w,h [s0x,s0y,t0x,t0y,s1x,s1y,t1x,t1y]");
+      console.log("");
+      console.log(" op - help,enum,solve");
+      console.log("");
+      return;
+    }
+
+    if (op == "enum") {
+      let soln = _enum(w,h);
+      return;
+    }
+
+    else if (op == "solve") {
+      for (let i=0; i<stst.length; i+=2) {
+        if ((stst[i]   < 0) || (stst[i]   >= w) ||
+            (stst[i+1] < 0) || (stst[i+1] >= h)) {
+          console.log("one of s0,t0,s1,t1 out of bounds");
+          return;
+        }
+      }
+
+      let s0 = [stst[0], stst[1]];
+      let t0 = [stst[2], stst[3]];
+
+      let s1 = [stst[4], stst[5]];
+      let t1 = [stst[6], stst[7]];
+
+      let ctx = r2k2zzn_init(w,h, s0,t0, s1,t1);
+      let r = r2k2zzn_solve(ctx);
+      console.log("#got:", r, "(", ctx._node_count, ")");
+      if (r >= 0) {
+        r2k2zzn_gnuplot_print_path(ctx);
+      }
+    }
+
+    else {
+      console.log("unknown op:", op);
+    }
+
+  }
+
+  function __debug_main(argv) {
+
+    op = "10x1";
     op = "7x2";
     op = "10x3";
 
@@ -533,6 +664,8 @@ if (typeof module !== "undefined") {
 
   }
 
+
+  console.log(process.argv);
   _main(process.argv.slice(2));
 
 }
