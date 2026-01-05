@@ -484,7 +484,8 @@ function color_compatible(s0,t0,s1,t1,w,h) {
 // pairs, solution or no, applying flip, permutation
 // or rotation symmetry of start/end pairs as necessary
 //
-function _enum(w,h) {
+function _enum(w,h, _debug) {
+  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
   let stst = [0,0, 0,0, 0,0, 0,0];
   let B = [w,h,w,h,w,h,w,h];
@@ -508,7 +509,7 @@ function _enum(w,h) {
 
       let ctx = r2k2zzn_init(w,h, s0,t0, s1,t1);
       let r = r2k2zzn_solve(ctx);
-      console.log("s0:", s0, "t0:", t0, "s1:", s1, "t1:", t1, ":::", r);
+      //console.log("s0:", s0, "t0:", t0, "s1:", s1, "t1:", t1, ":::", r);
 
       soln.push( {"key":key, "S": [s0,s1], "T":[t0,t1], "r": r, "ctx": ctx } );
     }
@@ -519,11 +520,15 @@ function _enum(w,h) {
   } while (!ivec0(stst));
 
 
-  //console.log("memz:");
-  //for (let key in Memz) { console.log(key); }
+  if (_debug > 1) {
+    console.log("memz:");
+    for (let key in Memz) { console.log(key); }
+  }
 
-  for (let i=0; i<soln.length; i++) {
-    console.log(soln[i].key, JSON.stringify(soln[i].ctx.path));
+  if (_debug > 0) {
+    for (let i=0; i<soln.length; i++) {
+      console.log(soln[i].key, JSON.stringify(soln[i].ctx.path));
+    }
   }
 
   return soln;
@@ -533,6 +538,29 @@ function _enum(w,h) {
 
 
 if (typeof module !== "undefined") {
+
+  function _main_enum_data() {
+
+    let wh_sched = [ [2,2], [3,2], [3,3], [4,3], [4,4], [5,4], [5,5] ];
+    //wh_sched = [ [2,2], [3,2], [3,3] ];
+
+    let _data = {
+      "WH": wh_sched,
+      "s": []
+    };
+
+
+    for (let sched_idx=0; sched_idx < wh_sched.length; sched_idx++) {
+      let wh = wh_sched[sched_idx];
+
+      let soln = _enum(wh[0], wh[1]);
+
+      _data.s.push(soln);
+    }
+
+    console.log(JSON.stringify(_data));
+
+  }
 
   function _main(argv) {
     let _debug = 0;
@@ -566,7 +594,13 @@ if (typeof module !== "undefined") {
       }
     }
 
-    if ((op == "help") ||
+    if (op == "enum.data") {
+      _main_enum_data();
+      return;
+    }
+
+
+    else if ((op == "help") ||
         (w < 0) ||
         (h < 0)) {
       console.log("prog <op> w,h [s0x,s0y,t0x,t0y,s1x,s1y,t1x,t1y]");
@@ -665,7 +699,7 @@ if (typeof module !== "undefined") {
   }
 
 
-  console.log(process.argv);
+  //console.log(process.argv);
   _main(process.argv.slice(2));
 
 }
