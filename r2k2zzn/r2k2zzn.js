@@ -467,17 +467,13 @@ function color_compatible(s0,t0,s1,t1,w,h) {
   let s1_parity = (s1[0] + s1[1])%2;
   let t1_parity = (t1[0] + t1[1])%2;
 
+  let parity_sum = s0_parity + t0_parity + s1_parity + t1_parity;
+
   if (grid_parity == 0) {
-    if ((s0_parity == t0_parity) ||
-        (s1_parity == t1_parity)) {
-      return 0;
-    }
-    return 1;
+    return ((parity_sum == 2) ? 1 : 0);
   }
 
-  let parity_sum = s0_parity + t0_parity + s1_parity + t1_parity;
-  if (parity_sum == 1) { return 1; }
-  return 0;
+  return ((parity_sum == 1) ? 1 : 0);
 }
 
 // enumerate all color compatible (s0,t0), (s1,t1)
@@ -541,7 +537,12 @@ if (typeof module !== "undefined") {
 
   function _main_enum_data() {
 
-    let wh_sched = [ [2,2], [3,2], [3,3], [4,3], [4,4], [5,4], [5,5] ];
+    let wh_sched = [
+      [2,2],
+      [3,2], [3,3],
+      [4,2], [4,3], [4,4],
+      [5,2], [5,3], [5,4], [5,5],
+      [6,2], [6,3], [6,4]  ];
     //wh_sched = [ [2,2], [3,2], [3,3] ];
 
     let _data = {
@@ -558,7 +559,8 @@ if (typeof module !== "undefined") {
       _data.s.push(soln);
     }
 
-    console.log(JSON.stringify(_data));
+    //console.log(JSON.stringify(_data));
+    console.log("var r2k2zzn_enum = " + JSON.stringify(_data) + ";");
 
   }
 

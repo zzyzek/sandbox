@@ -329,11 +329,9 @@ function disp_r2k2zzn() {
 */
 
 function disp_wh_r2k2zzn(wh_idx) {
-  let square_size = 30;
+  let square_size = 8;
   let sx = 50,
       sy = 50;
-
-  square_size = 10;
 
   let wh = DATA.WH[wh_idx];
 
@@ -408,7 +406,7 @@ function disp_wh_r2k2zzn(wh_idx) {
 
       let _opt = {
         "overlay": overlay,
-        "overlay_opacity": 0.2,
+        "overlay_opacity": 0.4,
         "l_width" : l_width,
         "c_rad": c_rad,
         "sx": cur_x, "sy": cur_y,
@@ -430,6 +428,12 @@ function _get_overlay(ctx) {
   let stst = [];
   let grid = [];
 
+  let CUTOFF_OVERLAY = "rgb(20,40,80)";
+  let CORNER_OVERLAY = "rgb(80,40,20)";
+
+  //---
+  // grid for easy access
+
   let wh = ctx.size;
   for (let j=0; j<wh[1]; j++) {
     grid.push([]);
@@ -445,6 +449,10 @@ function _get_overlay(ctx) {
     grid[ s[1] ][ s[0] ] = i;
     grid[ t[1] ][ t[0] ] = i;
   }
+
+
+  // perimieter cutoff test
+  //
 
   let p = [1,0];
 
@@ -480,8 +488,36 @@ function _get_overlay(ctx) {
     for (let i=0; i<4; i++) {
       if (stst[(i+1)%4] == stst[i]) { found=false; break; }
     }
-    if (found) { return "rgb(20,40,80)"; }
+    if (found) { return CUTOFF_OVERLAY; }
   }
+
+  //---
+  //---
+
+  let u = grid[0][0],
+      v = grid[0][1],
+      w = grid[1][0];
+
+
+  if ( (u<0) && (v>=0) && (w>=0) && (v!=w) ) { return CORNER_OVERLAY; }
+
+  u = grid[wh[1]-1][0];
+  v = grid[wh[1]-1][1];
+  w = grid[wh[1]-2][0];
+
+  if ( (u<0) && (v>=0) && (w>=0) && (v!=w) ) { return CORNER_OVERLAY; }
+
+  u = grid[wh[1]-1][wh[0]-1];
+  v = grid[wh[1]-1][wh[0]-2];
+  w = grid[wh[1]-2][wh[0]-1];
+
+  if ( (u<0) && (v>=0) && (w>=0) && (v!=w) ) { return CORNER_OVERLAY; }
+
+  u = grid[0][wh[0]-1];
+  v = grid[0][wh[0]-2];
+  w = grid[1][wh[0]-1];
+
+  if ( (u<0) && (v>=0) && (w>=0) && (v!=w) ) { return CORNER_OVERLAY; }
 
   return undefined;
 }
@@ -492,6 +528,6 @@ function web_init() {
   var ele = document.getElementById(CANVAS_ID);
   two.appendTo(ele);
 
-  disp_wh_r2k2zzn(3);
+  disp_wh_r2k2zzn(9);
   //disp_r2k2zzn();
 }
