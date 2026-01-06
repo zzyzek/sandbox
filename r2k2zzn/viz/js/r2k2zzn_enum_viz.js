@@ -366,57 +366,69 @@ function disp_wh_r2k2zzn(wh_idx) {
   let _osx = sx,
       _osy = sy;
 
-  for (let j_disp=0; j_disp < nside_valid; j_disp++) {
-    for (let i_disp=0; i_disp < nside_valid; i_disp++) {
-      let _idx = (j_disp*nside_valid) + i_disp;
-      if (_idx >= valid_ctx.length) { continue; }
+  let show_valid = true;
+  if (show_valid) {
 
-      let ctx = valid_ctx[_idx];
+    for (let j_disp=0; j_disp < nside_valid; j_disp++) {
+      for (let i_disp=0; i_disp < nside_valid; i_disp++) {
+        let _idx = (j_disp*nside_valid) + i_disp;
+        if (_idx >= valid_ctx.length) { continue; }
 
-      let cur_x = _osx + (i_disp*dx);
-      let cur_y = _osy + (j_disp*dy);
+        let ctx = valid_ctx[_idx];
 
-      let _opt = {
-        "l_width" : l_width,
-        "c_rad": c_rad,
-        "end_circle":true,
-        "sx": cur_x, "sy": cur_y,
-        "nx": wh[0], "ny": wh[1],
-        "x_len": square_size, "y_len": square_size,
-        "paths": ctx.path
-      };
+        let cur_x = _osx + (i_disp*dx);
+        let cur_y = _osy + (j_disp*dy);
 
-      mk_checkerboard_paths(_opt);
+        let _opt = {
+          "l_width" : l_width,
+          "c_rad": c_rad,
+          "end_circle":true,
+          "sx": cur_x, "sy": cur_y,
+          "nx": wh[0], "ny": wh[1],
+          "x_len": square_size, "y_len": square_size,
+          "paths": ctx.path
+        };
+
+        mk_checkerboard_paths(_opt);
+      }
     }
+
+    _osx = sx + (nside_valid*dx) + (dx/4);
+  }
+  else {
+    _osx = sx;
+    _osy = sy;
   }
 
-  _osx = sx + (nside_valid*dx) + (dx/4);
 
-  for (let j_disp=0; j_disp < nside_invalid; j_disp++) {
-    for (let i_disp=0; i_disp < nside_invalid; i_disp++) {
-      let _idx = (j_disp*nside_invalid) + i_disp;
-      if (_idx >= invalid_ctx.length) { continue; }
+  let show_invalid = false;
+  if (show_invalid) {
+    for (let j_disp=0; j_disp < nside_invalid; j_disp++) {
+      for (let i_disp=0; i_disp < nside_invalid; i_disp++) {
+        let _idx = (j_disp*nside_invalid) + i_disp;
+        if (_idx >= invalid_ctx.length) { continue; }
 
-      let ctx = invalid_ctx[_idx];
+        let ctx = invalid_ctx[_idx];
 
-      let cur_x = _osx + (i_disp*dx);
-      let cur_y = _osy + (j_disp*dy);
+        let cur_x = _osx + (i_disp*dx);
+        let cur_y = _osy + (j_disp*dy);
 
-      let overlay = _get_overlay( ctx );
+        let overlay = _get_overlay( ctx );
 
-      let _opt = {
-        "overlay": overlay,
-        "overlay_opacity": 0.4,
-        "l_width" : l_width,
-        "c_rad": c_rad,
-        "sx": cur_x, "sy": cur_y,
-        "nx": wh[0], "ny": wh[1],
-        "x_len": square_size, "y_len": square_size,
-        "S" : ctx.s,
-        "T" : ctx.t
-      };
+        let _opt = {
+          //"overlay": overlay,
+          "overlay_opacity": 0.4,
+          "l_width" : l_width,
+          "c_rad": c_rad,
+          "sx": cur_x, "sy": cur_y,
+          "nx": wh[0], "ny": wh[1],
+          "x_len": square_size, "y_len": square_size,
+          "S" : ctx.s,
+          "T" : ctx.t
+        };
 
-      mk_checkerboard_endpoints(_opt);
+        mk_checkerboard_endpoints(_opt);
+      }
     }
   }
 
@@ -430,6 +442,7 @@ function _get_overlay(ctx) {
 
   let CUTOFF_OVERLAY = "rgb(20,40,80)";
   let CORNER_OVERLAY = "rgb(80,40,20)";
+  let SQUARE_OVERLAY = "rgb(40,20,80)";
 
   //---
   // grid for easy access
@@ -519,6 +532,24 @@ function _get_overlay(ctx) {
 
   if ( (u<0) && (v>=0) && (w>=0) && (v!=w) ) { return CORNER_OVERLAY; }
 
+  //--
+
+  for (let j=0; j<(wh[1]-1); j++) {
+    for (let i=0; i<(wh[0]-1); i++) {
+      let u00 = grid[j][i];
+      let u10 = grid[j][i+1];
+      let u01 = grid[j+1][i];
+      let u11 = grid[j+1][i+1];
+
+      if ((u00 < 0) || (u10 < 0) ||
+          (u01 < 0) || (u11 < 0)) { continue; }
+
+      if ((u00 == u11) && (u10 == u01)) {
+        return SQUARE_OVERLAY;
+      }
+    }
+  }
+
   return undefined;
 }
 
@@ -528,6 +559,6 @@ function web_init() {
   var ele = document.getElementById(CANVAS_ID);
   two.appendTo(ele);
 
-  disp_wh_r2k2zzn(9);
+  disp_wh_r2k2zzn(5);
   //disp_r2k2zzn();
 }
