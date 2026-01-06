@@ -147,7 +147,7 @@ As a better back-of-the-envelope bound:
 
 All together, this gives about a factor of 1000 ( $4 \cdot (2 \cdot 2 \cdot 2) \cdot (2 \cdot 2 \cdot 2) \cdot (2 \cdot 2) = 1024$ ).
 It's too small to make any real statement, but the 5x5 has 103 inadmissible configurations and 1193 admissible configurations,
-which roughly checks out ( $(5 \cdot 5)^4 / 1000 \sim 390$ ).
+which roughly checks out ( $(5 \cdot 5)^4 / 250 \sim 1500).
 Considering rotations might be too optimistic, so the factor might be closer to $\frac{1}{250}$.
 
 For some real numbers:
