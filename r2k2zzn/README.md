@@ -116,6 +116,35 @@ are in a small 2x2 square, but I'm hoping the number of these configurations is 
 
 ![small 6x4 inadmissible examples](viz/img/r2k2zzn_6x4_example.png)
 
+Inadmissible Start Pairs
+---
+
+![inadmissible listing of 3x2, 3x3, 4x2,4x3, 4x4](img/viz/r2k2zzn_invalid_3x_x.png)
+
+The above shows inadmissible endpoint locations for $3 \times 2$, $3 \times 3$, $4 \times 2$, $4 \times 3$ and $4 \times 4$.
+
+I still don't have a good understanding of what makes starting pairs of endpoints invalid but some
+obvious ones are:
+
+* if the endpoints are all on the perimeter and alternate $(s _ 0, s _ 1, t _ 0, t _ t)$, then this invalidates an answer
+  as a connected path from one pair of endpoints will cut off a path to the other
+* similarly if there is a 2x2 square in the center that alternates $\left[ \begin{array}{cc} s _ 0 & s _ 1 \\ t _ 1 & t _ 0 \end{array} \right]$,
+  the path for $(s _ 0, t _ 0)$, say, must go on the outside and cut off $s _ 1$ from connecting to $t _ 1$
+* if there is an open corner square that have different path endpoints to its two neighbors
+* if there is an open corner square with an open neighbor but completely enclosed by three endpoints
+
+My current tactic is not so much to get a simple description of all the ways inadmissible pairings can occur but to
+try and get a library of inadmissible configurations for a finite set.
+The hope is that the inadmissible set can be automated, essentially, brute forcing enumeration so that it can be looked
+up as inadmissible.
+
+There will be a class of inadmissible endpoint configurations, no matter the size of the rectangle, and this is
+what needs to be understood before any stripping or splitting can occur.
+The above already has one such class, the 2x2 squares with alternating endpoints, as they can occur anywhere in a rectangle
+no matter the size.
+
+The hope is to examine enough small cases (8x8, 16x16, 32x32, etc) to see if there's a pattern to the class of size
+unrestricted inadmissible endpoint configurations.
 
 
 Going Forward

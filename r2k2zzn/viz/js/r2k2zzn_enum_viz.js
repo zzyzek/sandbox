@@ -366,7 +366,7 @@ function disp_wh_r2k2zzn(wh_idx) {
   let _osx = sx,
       _osy = sy;
 
-  let show_valid = true;
+  let show_valid = false;
   if (show_valid) {
 
     for (let j_disp=0; j_disp < nside_valid; j_disp++) {
@@ -401,7 +401,7 @@ function disp_wh_r2k2zzn(wh_idx) {
   }
 
 
-  let show_invalid = false;
+  let show_invalid = true;
   if (show_invalid) {
     for (let j_disp=0; j_disp < nside_invalid; j_disp++) {
       for (let i_disp=0; i_disp < nside_invalid; i_disp++) {
@@ -559,6 +559,6 @@ function web_init() {
   var ele = document.getElementById(CANVAS_ID);
   two.appendTo(ele);
 
-  disp_wh_r2k2zzn(5);
+  disp_wh_r2k2zzn(7);
   //disp_r2k2zzn();
 }
