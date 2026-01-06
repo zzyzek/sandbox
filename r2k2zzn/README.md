@@ -119,7 +119,7 @@ are in a small 2x2 square, but I'm hoping the number of these configurations is 
 Inadmissible Start Pairs
 ---
 
-![inadmissible listing of 3x2, 3x3, 4x2,4x3, 4x4](img/viz/r2k2zzn_invalid_3x_x.png)
+![inadmissible listing of 3x2, 3x3, 4x2,4x3, 4x4](img/viz/r2k2zzn_invalid_3x_4x.png)
 
 The above shows inadmissible endpoint locations for $3 \times 2$, $3 \times 3$, $4 \times 2$, $4 \times 3$ and $4 \times 4$.
 
