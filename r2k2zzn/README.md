@@ -128,7 +128,7 @@ obvious ones are:
 
 * if the endpoints are all on the perimeter and alternate $(s _ 0, s _ 1, t _ 0, t _ t)$, then this invalidates an answer
   as a connected path from one pair of endpoints will cut off a path to the other
-* similarly if there is a 2x2 square in the center that alternates $\left[ \begin{array}{cc} s _ 0 & s _ 1 \\ t _ 1 & t _ 0 \end{array} \right]$,
+* similarly if there is a 2x2 square in the center that alternates $[[ s _ 0 , s _ 1 ],[t _ 1 , t _ 0 ]]$,
   the path for $(s _ 0, t _ 0)$, say, must go on the outside and cut off $s _ 1$ from connecting to $t _ 1$
 * if there is an open corner square that have different path endpoints to its two neighbors
 * if there is an open corner square with an open neighbor but completely enclosed by three endpoints
