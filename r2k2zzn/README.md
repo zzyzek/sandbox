@@ -154,7 +154,7 @@ For some real numbers:
 
 * $16 \times 16 / 250 \sim 10M$
 * $20 \times 20 / 250 \sim 100M$
-* $32 \times 32 / 250 \sym 5B$
+* $32 \times 32 / 250 \sim 5B$
 
 Which is reasonable, depending on how long the solver takes.
 
