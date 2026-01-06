@@ -559,6 +559,6 @@ function web_init() {
   var ele = document.getElementById(CANVAS_ID);
   two.appendTo(ele);
 
-  disp_wh_r2k2zzn(7);
+  disp_wh_r2k2zzn(1);
   //disp_r2k2zzn();
 }
