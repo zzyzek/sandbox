@@ -1682,20 +1682,6 @@ function test_suite( w_range, h_range ) {
 
 
 
-if (typeof module !== "undefined") {
-
-  let func_name_map = {
-    "sthampath": sthampath,
-    "acceptable_st_hampath": acceptable_st_hampath,
-    "isColorCompatible": isColorCompatible,
-  };
-
-  for (let key in func_name_map) {
-    module.exports[key] = func_name_map[key];
-  }
-
-}
-
 //----
 //----
 //----
@@ -1913,4 +1899,27 @@ if ((typeof require !== "undefined")  &&
 
   process.exitCode = ret;
 }
+
+//---
+//---
+//---
+
+if (typeof module !== "undefined") {
+
+  let func_name_map = {
+    "sthampath": sthampath,
+    "st_hampath": sthampath,
+    "acceptable": acceptable_st_hampath,
+    "is_prime": isPrime,
+    "has_strip": hasStrip,
+    "has_split": hasStrip,
+    "color_compatible": isColorCompatible
+  };
+
+  for (let key in func_name_map) {
+    module.exports[key] = func_name_map[key];
+  }
+
+}
+
 
