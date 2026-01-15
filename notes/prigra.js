@@ -11,6 +11,7 @@
 // priority graph
 
 
+var printf = require("./printf.js");
 var fs = require("fs");
 var FN = "Focus.md";
 var data = fs.readFileSync(FN, "utf8");
@@ -145,7 +146,8 @@ console.log(pfx + " effort --->");
 console.log("");
 
 for (let i=0; i<g_data.length; i++) {
-  console.log("[" + i.toString() + "]:", g_data[i][0], "(", g_data[i][1], ",", g_data[i][2], ")");
+  g_data[i].push(i);
+  console.log("[" + printf("%2i", i) + "]:", g_data[i][0], "(", g_data[i][1], ",", g_data[i][2], ")");
 }
 console.log("");
 
@@ -162,7 +164,7 @@ g_data.sort( function(a,b) {
 console.log("suggested order");
 console.log("---------------");
 for (let i=0; i<g_data.length; i++) {
-  console.log(g_data[i][0]);
+  console.log("[" + printf("%2d", g_data[i][3].toString()) + "]:", g_data[i][0]);
 }
 
 console.log("");
