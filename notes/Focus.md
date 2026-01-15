@@ -3,18 +3,18 @@ Current Focus
 
 ###### 2026-01-02
 
-| Task | Priority | Effort | Notes |
+| Task | Effort | Priority | Notes |
 |---|---|---|---|
-| Gilbert paper | `f` | `9` | Vanilla algorithm only, try for bridges conference |
-| Rectangular 2D $k=2$ zig-zag numberlink (R2K2-ZZN) | `b` | `d` | More general problem needed for st-Gilbert  |
-| st-Gilbert | `a` | `9` | blocking on some type of R2K2-ZZN result |
+| Gilbert paper | `9` | `f` | Vanilla algorithm only, try for bridges conference. In progress: Feb 1st submission deadline. Initial draft done. |
+| Rectangular 2D $k=2$ zig-zag numberlink (R2K2-ZZN) | `d` | `b` | More general problem needed for st-Gilbert  |
+| st-Gilbert | `9` | `a` | blocking on some type of R2K2-ZZN result |
 | SWIFRNG | `a` | `a` | a.s. $O(n)$ relative neighborhood graph for random 3D points |
-| MIRPRP Writeup | `9` | `b` | wait too long and we'll lose context |
-| cloister and liminal interface method (POMS) | `8` | `c` | simple first, get some artifacts |
-| Merrell Communication | `7` | `9` | |
-| SGG HC and SGG s-t HP | `6` | `f` | Subsumed in this is SGG:HC writeup, RSGG:HP writeup and communication |
-| Template optimizations (POMS) | `5` | `b` | Can't do larger models without it |
-| West Hubbard | `3` | `a` | blocking on understanding external rays |
+| MIRPRP Writeup | `b` | `9` | wait too long and we'll lose context |
+| cloister and liminal interface method (POMS) | `c` | `8` | simple first, get some artifacts |
+| Merrell Communication | `9` | `7` | |
+| SGG HC and SGG s-t HP | `f` | `6` | Subsumed in this is SGG:HC writeup, RSGG:HP writeup and communication |
+| Template optimizations (POMS) | `b` | `5` | Can't do larger models without it |
+| West Hubbard | `a` | `3` | blocking on understanding external rays |
 
 
 ###### 2025-07-01
