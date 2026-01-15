@@ -104,16 +104,24 @@ for (let j_pri=0; j_pri<16; j_pri++) {
 
 let pfx = "      ";
 console.log("\n" + "priority");
+console.log("  |");
+console.log("  V");
 
 console.log();
 for (let j_pri=0; j_pri<16; j_pri++) {
-  let _l = [ b16[j_pri] + " | " ];
+  let _l = [ b16[j_pri] + " |" ];
   for (let i_eff=0; i_eff<16; i_eff++) {
 
     if (M[j_pri][i_eff].length == 0) {
 
-      if (((j_pri + i_eff)%4)==0) {
-        _l.push( '\\  ' );
+      if ((((15-j_pri) + i_eff)%4)==0) {
+
+        if ((i_eff == 0) && (j_pri == 15)) {
+          _l.push( '   ' );
+        }
+        else {
+          _l.push( '.  ' );
+        }
       }
       else {
         _l.push( '   ' );
@@ -123,6 +131,7 @@ for (let j_pri=0; j_pri<16; j_pri++) {
       let v = M[j_pri][i_eff].join(",");
       if (v.length == 1) { v = v + "  "; }
       else if (v.length == 2) { v = v + " "; }
+      //else if (v.length == 3) { v = v + " "; }
       _l.push( v );
     }
   }
