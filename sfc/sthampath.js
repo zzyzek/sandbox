@@ -1466,14 +1466,6 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
     let infoS = { "parent": _uid },
         infoT = { "parent": _uid };
 
-    //let retS = sthampath( S.anchor, S.s, S.t, S.alpha, S.beta, infoS );
-    //if (!retS) {
-    //  info["comment"] = "ERROR: " + _uid + " sanity, hasStrip but S invalid";
-    //  info.comment += " (S:" + infoS.comment + ")";
-    //  return false;
-    //}
-    //let spath = infoS.region.path;
-
     let retT = sthampath( T.anchor, T.s, T.t, T.alpha, T.beta, infoT );
     if (!retT) {
       info["comment"] = "ERROR: " + _uid + " sanity, hasStrip but T invalid";
@@ -1481,8 +1473,6 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
       return false;
     }
     let tpath = infoT.region.path;
-
-    //console.log("##", _uid, strip_info.comment, "spath:", spath, "tpath:", tpath);
 
     let require_splice = true;
     let d_pq = v_sub( S.t, S.s );
@@ -1496,29 +1486,19 @@ function sthampath(anchor, _s, _t, alpha, beta, info) {
 
       if (require_splice) {
 
-        // WIP
-        // * need to find a sort of dimension agnostic way to test for edge being
-        //   next to the S region
-        //
         // * consider edge from realized path for region T
         // * make sure it's parallel to S region
         // * make sure it's next to S region
+        //
         let del_ab = dot_v( v_sub( S.s, tpath[t_idx] ), d_ab );
         if ( require_splice &&
              ( t_idx > 0 ) &&
              ( Math.abs( dot_v( v_sub( tpath[t_idx], tpath[t_idx-1] ), d_pq ) ) == 1 ) &&
              ( Math.abs( del_ab ) == 1 ) ) {
-             //( Math.abs( dot_v( v_sub( S.s, tpath[t_idx] ), d_ab ) ) == 1 ) ) {
-
-          //console.log("## FOUND pq edge, t_idx:{", t_idx-1, t_idx, "}: tpath:", tpath[t_idx-1], tpath[t_idx],
-          //            "del(tpath[", t_idx, t_idx-1,"]:", v_sub(tpath[t_idx], tpath[t_idx-1]),
-          //            "d_pq:", d_pq, "d_ab:", d_ab, "del_ab:", del_ab, "S(orig).st:", S.s, S.t); 
 
           let d_del = v_mul( del_ab, d_ab );
           let S_s = v_add( tpath[t_idx-1], d_del );
           let S_t = v_add( tpath[t_idx],   d_del );
-
-          //console.log("###   d_del:", d_del, "S_s:", S_s, "S_t:", S_t);
 
           let retS = sthampath( S.anchor, S_s, S_t, S.alpha, S.beta, infoS );
           if (!retS) {
