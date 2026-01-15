@@ -201,3 +201,7 @@ References
 
 * ["Zig-Zag Numberlink is NP-Complete" by Adcock et al.](https://arxiv.org/abs/1410.5845)
 * ["Hamilton paths in grid graphs" Itai, Papadimitriou, Szwarcfiter (IPS)](https://www.ibr.cs.tu-bs.de/courses/ws2223/ag/papers/Ch8/1982-Itai_GridGraphs.pdf)
+* ["Hamiltonian cycles in solid grid graphs" by C. Umans and W. Lenhart](https://ieeexplore.ieee.org/document/646138)
+* [Graphclass: solid grid graphs, complexity of HC (polynomial) and HP (unknown)](https://www.graphclasses.org/classes/gc_1058.html)
+  - [SO:CS](https://cstheory.stackexchange.com/questions/20149/graph-classes-where-hamiltonian-cycle-and-hamiltonian-path-problems-have-differe)
+  - [SO:MO](https://mathoverflow.net/questions/152275/graph-classes-where-hamiltonian-cycle-and-hamiltonian-path-problems-have-differe)

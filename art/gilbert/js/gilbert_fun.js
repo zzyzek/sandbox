@@ -69,7 +69,6 @@ function offset_path(p, offset) {
       let tr_r = [ offset*t[1], -offset*t[0] ];
 
       let mpp = fasslib.v_mul( 1/2, fasslib.v_add( p[i-1], p[i-2] ) );
-
       let c = fasslib.cross3( [u[0], u[1], 0], [t[0], t[1], 0] );
 
       if (c[2] < 0.5) {
@@ -80,7 +79,29 @@ function offset_path(p, offset) {
         seg_l.push( fasslib.v_add( mpp, fasslib.v_add( tl_r, fasslib.v_mul( (1/2) + offset, t ) ) ) );
         seg_r.push( fasslib.v_add( mpp, fasslib.v_add( tr_r, fasslib.v_mul( (1/2) - offset, t ) ) ) );
       }
+
     }
+
+    //BUG!!!!
+    /*
+    if (i < (n-1)) {
+
+      let s = fasslib.v_delta( fasslib.v_sub( p[n-i-3], p[n-i-1] ) );
+      let sl_r = [ -offset*s[1], offset*s[0] ];
+      let sr_r = [ offset*s[1], -offset*s[0] ];
+
+      let mmm = fasslib.v_mul( 1/2, fasslib.v_add( p[n-i-2], p[n-i-1] ) );
+      let _c = fasslib.cross3( [u[0], u[1], 0], [s[0], s[1], 0] );
+
+      if (_c[2] > 0.5) {
+        seg_l.push( fasslib.v_add( mmm, fasslib.v_add( sr_r, fasslib.v_mul( (1/2) + offset, s ) ) ) );
+      }
+      else if (_c[2] < 0.5) {
+        seg_l.push( fasslib.v_add( mmm, fasslib.v_add( sr_r, fasslib.v_mul( (1/2) - offset, s ) ) ) );
+      }
+
+    }
+    */
 
     seg_l.push( fasslib.v_add(mp, fasslib.v_mul( offset, u_r ) ) );
     seg_r.push( fasslib.v_add(mp, fasslib.v_mul( offset, v_r ) ) );
@@ -99,6 +120,8 @@ function offset_path(p, offset) {
   return po;
 }
 
+var g_g = {};
+
 function redraw() {
   let two = g_ctx.two;
 
@@ -111,6 +134,8 @@ function redraw() {
       dy = 3;
 
   let w = 50, h = 10;
+  w=4;
+  h=2;
   let n = w*h;
 
   let path = [];
@@ -119,7 +144,13 @@ function redraw() {
     path.push( [xy.x, xy.y] );
   }
 
+
+
   let po = offset_path(path, 1/4);
+
+  g_g["po"] = po;
+  g_g["path"] = path;
+
   let spo = [];
   let spo_bd = [];
   for (let i=0; i<po.length; i++) {
@@ -132,10 +163,21 @@ function redraw() {
   let tp_bd = two.makePath(tpo_bd);
   tp_bd.close = true;
   tp_bd.fill = "rgb(200,200,210)";
+  tp_bd.stroke = tp_bd.fill;
+  tp_bd.opacity = 0.5;
 
   let tp = two.makePath(tpo);
   tp.close = true;
   tp.fill = "rgb(240,230,210)";
+  tp.stroke = "rgb(230,220,200)";
+  tp.stroke = "rgb(220,220,190)";
+  tp.linewidth = 2;
+
+  //tp.fill = "rgb(250,240,220)";
+  //tp.stroke = "rgb(240,230,210)";
+
+  //tp.opacity = 0.9;
+  //tp.opacity = 0.9;
 
   two.update();
 }
@@ -173,6 +215,8 @@ if (typeof module !== "undefined") {
         dy = 5;
 
     let w = 50, h = 10;
+    w = 4;
+    h = 2;
     let n = w*h;
 
     let path = [];
