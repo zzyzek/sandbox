@@ -14,6 +14,7 @@ Current Focus
 | Merrell Communication | `9` | `7` | |
 | SGG HC and SGG s-t HP | `f` | `6` | Subsumed in this is SGG:HC writeup, RSGG:HP writeup and communication |
 | Template optimizations (POMS) | `b` | `5` | Can't do larger models without it |
+| Compositile | `7` | `6` | Can't do larger models without it |
 | West Hubbard | `a` | `3` | blocking on understanding external rays |
 
 
