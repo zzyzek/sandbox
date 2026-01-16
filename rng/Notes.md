@@ -544,23 +544,23 @@ SWIF3D(P):
   gridN = ceil( |P|^{1/3} )
   bin P into grid G[gridN,gridN,gridN]
   for p in P:
-    platList = [], qCarry = []
+    candidateList = [], qCarry = []
     init coarseFence, windowFence
     for ir in [0 .. gridN]:
       inflate/update coarseFence with ir
       inflate/update windowFence with ir
       if (coarseFence secured) or (windowFence closed): break
-      fence           = Fence(G, p, ir)
-      platPerimeter   = PlatPerimeter(G,p,ir) // sub grid
+      fence               = Fence(G, p, ir)
+      candidatePerimeter  = CandidatePerimeter(G,p,ir) // sub grid
       tmpCarry = []
-      for q in {platPerimeter, qCarry}:
-        if !(q in qCarry): platList.push(q)
+      for q in {candidatePerimeter, qCarry}:
+        if !(q in qCarry): candidateList.push(q)
         if !(q in fence): tmpCarry.push(q), continue
         update coarseFence with q
         update windowFence with q
       qCarry = tmpCarry
 
-    NaiveRNG(p, platList)
+    NaiveRNG(p, candidateList)
 ```
 
 coarseFence might be redundant here.

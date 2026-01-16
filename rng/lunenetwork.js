@@ -45,8 +45,10 @@
 // greedy algorithm will yield O(n^2) to extract the RNG.
 //
 // When the points are in generic (e.g. random) position, some optimizations
-// can be employed as the average neighbor degree is effectively bounde,
-// either for the RNG or the DT.
+// can be employed as the maximum vertex degree of a neighborhood graph
+// is almost surely bounded. Note that this *not* true for generic points
+// for the DT, and for the DT with generic points, the maximum degree is
+// bounded by O( lg n / lg lg n ).
 //
 // The idea that we're trying to implement here is an expected linear
 // time algorithm for the construction of the RNG assuming random point placement.
@@ -66,7 +68,7 @@
 //        /R5 | R6\
 //
 // Consider choosing a point, $q$, somewhere in R1.
-// The lune created by by $p$ and $q$ will fully the R1
+// The lune created by by $p$ and $q$ will fully restrict the R1
 // region that is closer than dist(p,q).
 // So if $q$ is chosen to be the closest point to $p$ in R1,
 // we know no other points in R1 further away need be considered.
