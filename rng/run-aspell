@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+
+fn="$1"
+
+if [[ "$fn" == "" ]]  ; then
+  echo "provide file name"
+  exit 0
+fi
+
+aspell --home-dir=. --personal=jargon.txt -t -c "$fn"

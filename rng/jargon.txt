@@ -1,4 +1,4 @@
-personal_ws-1.1 en 332 
+personal_ws-1.1 en 343 
 AAAI
 ACM
 ACMMathSoft
@@ -271,10 +271,13 @@ biburl
 bmmv
 booktitle
 breaklines
+candidateList
+candidatePerimeter
 cbtg
 cccc
 ccccc
 ceil
+coarseFence
 convolutional
 dblp
 deduplicated
@@ -282,6 +285,7 @@ deduplication
 di
 dir
 doi
+dst
 eprint
 eprinttype
 ergodic
@@ -289,10 +293,13 @@ et
 etall
 feb
 foreach
+gridN
 hoc
 idir
 img
+init
 inproceedings
+ir
 isbn
 issn
 knt
@@ -315,19 +322,23 @@ probabilistically
 procedurally
 programmatically
 px
+qCarry
 quantized
 rng
 runtime
 ser
 solvability
+src
 subproblems
 svg
 th
 tileable
+tmpCarry
 tunable
 und
 url
 variational
 wavefunctioncollapse
 wfc
+windowFence
 zniak's

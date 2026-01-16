@@ -149,7 +149,7 @@ The basis of the algorithm is:
   - Call a radial region "closed" if a $q _ j$ point is found in it
 * Do this until no two adjacent radial regions are open or until the grid cells have
   been exhausted
-* Call $SI _ p$ the square ("influence") centered at $p$ with side length $8 \cdot \max _ {j} ( d _ {\infty} (p, q _ j) )$
+* Call $SI _ p$ the square ("influence") centered at $p$ with side length (diameter) $8 \cdot \max _ {j} ( d _ {\infty} (p, q _ j) )$
 * Walk all grid cells in $SI _ p$ and collect points into list $L$
 * Use the $q _ j$ and $L$ to find the $RNG(p)$
 
@@ -160,7 +160,7 @@ bottom left edge, with the radial region creating a thin sliver of cells all the
 With the condition that no two radial regions are open, we get some guarantees about how far we need to search
 to find all $RNG(p)$ points.
 Specifically, creating a square of radius $4 \cdot \max _ j ( d _ {\infty} (p,q _ j) )$ (total
-side $8 \cdot \max _ j ( d _ {\infty} (p,q _ j) )$) gives us a small region to scan to guarantee
+side $8 \cdot \max _ j ( d _ {\infty} (p,q _ j) )$ ) gives us a small region to scan to guarantee
 to find the $RNG(p)$ points.
 
 The idea is that for points $p,q,v$, if the angle formed by $\theta(p,v,q) \ge \frac{\pi}{2}$, then $v \in \text{lune}(p,q)$.
