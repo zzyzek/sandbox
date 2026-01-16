@@ -1,0 +1,24 @@
+npx vite
+
+## http://localhost:5173/
+##
+## in console:
+## g_data.alg_init();
+## g_data.alg_step();
+## ...
+#
+## npx vite build
+##
+## For this specific project, vite config (`vite.config.js`) needs to
+## be updated to support await in global context (for the `njs.mjs` module
+## load).
+## See :
+##  * https://stackoverflow.com/questions/72618944/get-error-to-build-my-project-in-vite-top-level-await-is-not-available-in-the
+##  * https://github.com/vitejs/vite/issues/1973
+#
+#
+# additional install information:
+#
+# npm i vite
+# npm i three
+#
