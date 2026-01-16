@@ -585,6 +585,46 @@ In general, though, we need to specify it.
 For example, having a leaf silhouette has many concave regions that would need to be explicitly
 labeled in order to update the shrinking fence.
 
+---
+
+Here's one crude suggestion:
+
+* find a bounding box of the points ( $O(n)$ )
+* overlay the $\sqrt{n}$ grid and start binning
+* find the convex hull of the point set ( $O(n)$ )
+* mark grid cells that lay completely outside of the convex hull ( $O(n)$ )
+  - know the slope/plane of hull from point on convex hull boundary,
+    can use some type of directional flood and mark, stopping when
+    encountering previously filled grid cells
+
+Of course, we rejected convex hull for the algorithm proper because it might be non-constant, but
+now we use it to get bounds on the inner points...
+
+But, to be clear, the convex polytope created from half plane cuts from the psuedo-origin, $p$,
+to each of the $q$ in question is different than the convex hull.
+They might be related (duals?) but they are distinct.
+
+Further, we have to be careful of using the convex hull
+
+It does seem like linear convex hull can bootstrap you into an algorithm but I don't quite see it.
+
+So, it turns out that the number of faces and edges of a 3d convex polytope is linear w.r.t. the
+number of vertices.
+This comes from the Euler characteristic $V - E + F = 2$ and that a 3d convex polytope can be embedded
+as a planar graph (?), bounding the edges by $E \le 3V - 6$ and therefore faces by $F \le 2V - 4$.
+
+Since this is the case, here's a sketch of an algorithm:
+
+* Bin into $\sqrt(n)$ bins as normal
+* choose an appropriate radius, $R$
+* take all points in a grid radius $R$ from $p$
+* find the a convex polytope built from half plane cuts
+  of all the points (this needs verification that it can be done)
+* find the convex hull point set of the polytope and the maximum
+  distance from that point set to $p$, $R _ {ch}$
+* If $R _ {ch}$ is too big, increment $R$ and try again
+* otherwise do naive RNG on all points falling within $R _ {ch}$
+
 
 References
 ---
@@ -593,3 +633,4 @@ References
 * [KN85] "Computing Relative Neighbourhood Graphs in the Plane" by J. Katajainen and O. Nevalainen (1985)
 * [KNT86] "A Linear Expected-Time Algorithm For Computing Planar Relative Neighboourhood Graphs" by J. Katajainen, O. Nevalainen, J. Teuhola (1986)
 * [BEY91] "The Expected Extremes in a Delaunay Triangulation" by M. Bern, D. Eppstein, F. Yao
+* [BCL93] "Fast linear expected-time algorithms for computing maxima and convex hulls" by J. Bentley, K. Clarkson, D. Levine (1993)
