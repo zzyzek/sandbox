@@ -58,7 +58,7 @@ for (let line_no=0; line_no<lines.length; line_no++) {
       let name = m[1];
       let effort = m[2];
       let priority = m[3];
-
+      let block = m[4];
 
       name = name.replace( /^ */, '' ).replace( / *$/, '');
 
