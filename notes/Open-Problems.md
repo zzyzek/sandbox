@@ -7,5 +7,7 @@ Open Problems
   in a 2D rectangle? How about a solid grid graph?
 * Is there an expected linear time or near linear time algorithm to find the relative
   neighborhood graph of uniform random 3d points in a cube?
+  - Known $O(n \lg n)$ time for 3D random points
+
 
 
