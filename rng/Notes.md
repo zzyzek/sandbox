@@ -53,7 +53,7 @@ Sizes
 * $L _ 2$, $d = 3$, $|RNG(V)| = O(|V| ^ { \frac{4}{3} })$
 * $L _ p$, no isosceles triangles $\to max _ { v \in V } \deg(v) < c$
   - in this case $|RNG(V)| \le c|V|$
-  - $L _ p$, $\forall d$, if $\forall x,y,u,v \in V, \delta _ p (x,y) \ne \delta _ p (u,v) \to |RNG(V) \le c |V|$
+  - $L _ p$, $\forall d$, if $\forall x,y,u,v \in V, \delta _ p (x,y) \ne \delta _ p (u,v) \to |RNG(V)| \le c |V|$
 
 Algorithms
 ---
