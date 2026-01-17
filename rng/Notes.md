@@ -93,7 +93,7 @@ In some "generic" configuration,
 the outer cells (and maybe the middle cells?) only contain a small number of points, so I think
 the idea is that you can just run a naive algorithm on those points without blowing your budget.
 
-Under generic conditions (for $d=2$, $L _ 2$), the algorithm works in expected linear time ($O(n)$).
+Under generic conditions (for $d=2$, $L _ 2$), the algorithm works in expected linear time ( $O(n)$ ).
 
 Some takeaways:
 
@@ -616,14 +616,26 @@ as a planar graph (?), bounding the edges by $E \le 3V - 6$ and therefore faces 
 Since this is the case, here's a sketch of an algorithm:
 
 * Bin into $\sqrt(n)$ bins as normal
-* choose an appropriate radius, $R$
-* take all points in a grid radius $R$ from $p$
-* find the a convex polytope built from half plane cuts
-  of all the points (this needs verification that it can be done)
-* find the convex hull point set of the polytope and the maximum
-  distance from that point set to $p$, $R _ {ch}$
-* If $R _ {ch}$ is too big, increment $R$ and try again
-* otherwise do naive RNG on all points falling within $R _ {ch}$
+* For each $p$ in $V$:
+  - choose an appropriate radius, $R$
+  - take all points in a grid radius $R$ from $p$
+  - find the a convex polytope built from half plane cuts
+    of all the points
+  - find the convex hull point set of the polytope and the maximum
+    distance from that point set to $p$, $R _ {ch}$
+  - If $R _ {ch}$ is too big, increment $R$ and try again
+  - otherwise do naive RNG on all points falling within $R _ {ch}$
+
+Using the naive algorithm to find the vertex enumeration of the convex polytope
+from half plane cuts can be done by taking all plane triples, finding the intersection
+point and then checking that point against all other planes, giving $O(C^4)$, $C$ the number
+of half plane cuts.
+Since $C$ is constant, the inner loop is $O(1)$.
+
+In terms of blocking out invalid grid cells, consider taking an initial pass to find the vertex
+set of the convex hull.
+Call this set $H \subseteq V$.
+For every point, $h \in H$, if **all** points in $V / h$ lie to one side of a half plane cut, 
 
 
 References
