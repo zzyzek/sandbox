@@ -19,7 +19,7 @@ $$
 \end{array}
 $$
 
-![lune2d](img/lune2d.svg)
+![lune2d](img/lune2d.png)
 
 Take $p,q \in \mathbb{R}^d$, with $r _ {p,q} = |p-q|$.
 Take the circle of radius $r _ {p,q}$ centered at $p$, $C _ p$,
