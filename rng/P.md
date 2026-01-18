@@ -111,17 +111,93 @@ This can be processed in $O(n)$ time, with $O(n)$ space.
 This will give most bins constant occupancy.
 Some bins will have max load roughly $(\ln(n) / \ln(\ln(n)))$ but
 this happens so infrequently so as not to affect any amortized run-time
-analysis that we will do.
+analysis that we will do ([see](#binning_runtime)).
 
+Algorithm (speculative)
+---
 
+We're now in a position to describe the algorithm.
 
+As of this writing, the algorithm is still an idea and hasn't been validated.
+
+We start with a point set $V$, $n = |V|$.
+
+* Initially, find the vertex convex hull of the entire point set
+  - BCL93 can be used which has expected linear time
+  - each vertex on the convex hull has an implicit splitting plane
+    + think of a set of points in a circle around the point set at infinity
+* Create the binning grid and bin points within
+* For each point, $p$
+  - W = {}
+  - While $p$ is not fenced in by a bounding convex hull $U$
+    + take an initial grid cell window around that that point
+    + find the vertex convex hull, $H$, of all points within that grid cell window
+      - if one of points is on the outer convex hull boundary, add its splitting plane to the mix
+    + find the vertex enumeration, $U$, interpreting $H$ as splitting half planes with
+      the point as the normal direction and $p$ as the origin (that is, find the dual $U = \text{dual}(H)$)
+    + if the maximum distance of $p$ to $U$ is larger than some threshold, increment the grid window size and try again
+    + otherwise add all points within the grid window to W
+  - Run `NaiveRNG` on W
+
+$W$ is expected linear, so all operations are linear as well, giving a linear expected time algorithm.
 
 Appendix
 ---
 
+### Naive Vertex Convex Hull
 
-Binning Runtime
----
+Our goal is, from a given set of vertices, $U \in \mathbb{R}^d$,
+find a subset of vertices, $H \subseteq U$, of the vertices
+that form a convex polytope fully encompasing $U$.
+
+A naive $O(|U|^4)$ algorithm simply takes each triplet of points, $p, q, u \in U$,
+and tests whether the plane constructed from the three points is to
+one side of all other points.
+If so, the plane is part of the convex hull and thus each of the three
+points is part of the convex hull vertex set.
+Otherwise, it's not.
+
+```
+NaiveConvexHull(U):
+
+  H = {}
+  for p,q,u in U:
+
+    on_hull = true
+    for v in U / {p,q,u}:
+      w = cross3((q-p),(v-p))
+      if sgn( dot((v-p),w) ) > 0:
+        on_hull = false
+        break
+
+    if on_hull:
+      H += {p,q,u}
+
+  return H
+```
+
+Where the inner loop is constructing the normal from the three points and
+then doing a sign test to see which side of the plane the test point is on.
+
+Note that the above assumes no four points co-planar.
+That is, the generic, or random, condition is that there are no degenerate
+conditions to be taken care of.
+
+### Naive Vertex Enumeration
+
+We will need to convert from a convex hull defined by its vertices to a convex
+hull defined by half plane cuts and vice versa.
+
+We will concern ourselves with going from a representation of normals
+given an origin point, $p _ 0$, and constructed vectors $\eta _ k = [ x _ k, y _ k, z _ k, d _k ]$,
+with the normalized direction vector $(x _ k, y _ k, z _ k)$ and $d _ k$ the distance from $\eta _ k$ to $p _ 0$.
+
+A naive $O(|H|^4)$ algorithm tries every triple of normal vectors to find a candidate intersection
+point, $q _ j$. 
+Once we collect all $q _ j$ we can then run a vertex convex hull algorithm
+
+
+### Binning Runtime
 
 This will be a rough outline of why binning from a Poisson process
 still gives linear run
