@@ -144,6 +144,25 @@ $W$ is expected linear, so all operations are linear as well, giving a linear ex
 Appendix
 ---
 
+### Point Set Maxima
+
+Given a set of points in $\mathbb{R}^d$, find the *maxima of the point set*,
+defined as the point or set of points not dominated by any others.
+
+Here, a point, $p$, is said to dominate a point, $q$, if all coordinates in $p$
+are larger than $q$.
+That is $\forall i \in [0 \dots (d-1)], p _ i > q _ i$.
+
+As an example, if points are taken to be in the unit sqaure from $[0,0]$ to $[1,1]$,
+a point $p'$ dominates all other points $q'$ that are in the rectangle from $[0,0]$
+to $[p' _ x, p' _ y]$.
+
+Note that the maxima is not that a point $p$ *dominates* all other points, it's that
+it's *not* dominated by any other point.
+For example, the set containing the points $\{ [0,1], [1,0] \}$ has neither dominating
+the other so either can be taken as the maxima or both can be taken as the maxima set
+of points.
+
 ### Naive Vertex Convex Hull
 
 Our goal is, from a given set of vertices, $U \in \mathbb{R}^d$,
