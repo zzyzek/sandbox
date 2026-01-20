@@ -237,7 +237,7 @@ To see why not:
 $$
 \begin{array}{l}
 \text{w.h.p. } \forall \epsilon \in (0,1), \\
-\sum _ k ^ n \mathbb{1} \{ L _ k \ge (1-\epsilon) \frac{ \ln(n) }{ \ln(\ln(n)) } \} \sim n ^ { \epsilon + o(1) } \\
+\sum _ k ^ n \mathbb{1} \\{ L _ k \ge (1-\epsilon) \frac{ \ln(n) }{ \ln(\ln(n)) } \\} \sim n ^ { \epsilon + o(1) } \\
 \end{array}
 $$
 
