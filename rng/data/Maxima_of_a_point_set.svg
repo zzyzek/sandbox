@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="378px" height="378px" viewBox="0 0 378 378" enable-background="new 0 0 378 378" xml:space="preserve">
+<line fill="none" stroke="#00CCFF" x1="9" y1="-9" x2="9" y2="387"/>
+<line fill="none" stroke="#00CCFF" x1="45" y1="-9" x2="45" y2="387"/>
+<line fill="none" stroke="#00CCFF" x1="81" y1="-9" x2="81" y2="387"/>
+<line fill="none" stroke="#00CCFF" x1="117" y1="-9" x2="117" y2="387"/>
+<line fill="none" stroke="#00CCFF" x1="153" y1="-9" x2="153" y2="387"/>
+<line fill="none" stroke="#00CCFF" x1="189" y1="-9" x2="189" y2="387"/>
+<line fill="none" stroke="#00CCFF" x1="225" y1="-9" x2="225" y2="387"/>
+<line fill="none" stroke="#00CCFF" x1="261" y1="-9" x2="261" y2="387"/>
+<line fill="none" stroke="#00CCFF" x1="297" y1="-9" x2="297" y2="387"/>
+<line fill="none" stroke="#00CCFF" x1="333" y1="-9" x2="333" y2="387"/>
+<line fill="none" stroke="#00CCFF" x1="369" y1="-9" x2="369" y2="387"/>
+<line fill="none" stroke="#00CCFF" x1="-9" y1="369" x2="387" y2="369"/>
+<line fill="none" stroke="#00CCFF" x1="-9" y1="333" x2="387" y2="333"/>
+<line fill="none" stroke="#00CCFF" x1="-9" y1="297" x2="387" y2="297"/>
+<line fill="none" stroke="#00CCFF" x1="-9" y1="261" x2="387" y2="261"/>
+<line fill="none" stroke="#00CCFF" x1="-9" y1="225" x2="387" y2="225"/>
+<line fill="none" stroke="#00CCFF" x1="-9" y1="189" x2="387" y2="189"/>
+<line fill="none" stroke="#00CCFF" x1="-9" y1="153" x2="387" y2="153"/>
+<line fill="none" stroke="#00CCFF" x1="-9" y1="117" x2="387" y2="117"/>
+<line fill="none" stroke="#00CCFF" x1="-9" y1="81" x2="387" y2="81"/>
+<line fill="none" stroke="#00CCFF" x1="-9" y1="45" x2="387" y2="45"/>
+<line fill="none" stroke="#00CCFF" x1="-9" y1="9" x2="387" y2="9"/>
+<rect x="-9" y="54" opacity="0.1" fill="#BC0028" stroke="#000000" width="216" height="333"/>
+<rect x="-9" y="99" opacity="0.1" fill="#BC0028" stroke="#000000" width="297" height="288"/>
+<rect x="-9" y="207" opacity="0.1" fill="#BC0028" stroke="#000000" width="324" height="180"/>
+<rect x="-9" y="234" opacity="0.1" fill="#BC0028" stroke="#000000" width="369" height="153"/>
+<rect x="-9" y="18" opacity="0.1" fill="#BC0028" stroke="#000000" width="45" height="369"/>
+<circle fill="#BC1E47" stroke="#000000" cx="36" cy="18" r="4.5"/>
+<circle fill="#BC1E47" stroke="#000000" cx="207" cy="54" r="4.5"/>
+<circle fill="#BC1E47" stroke="#000000" cx="288" cy="99" r="4.5"/>
+<circle fill="#BC1E47" stroke="#000000" cx="315" cy="207" r="4.5"/>
+<circle fill="#BC1E47" stroke="#000000" cx="360" cy="234" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="90" cy="90" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="72" cy="144" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="225" cy="117" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="243" cy="126" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="243" cy="144" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="198" cy="270" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="261" cy="288" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="315" cy="288" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="27" cy="315" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="54" cy="324" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="81" cy="297" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="90" cy="279" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="63" cy="216" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="171" cy="72" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="351" cy="279" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="288" cy="153" r="4.5"/>
+<circle fill="#FEC200" stroke="#000000" cx="36" cy="54" r="4.5"/>
+</svg>
