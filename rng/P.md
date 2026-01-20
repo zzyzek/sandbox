@@ -128,7 +128,7 @@ We start with a point set $V$, $n = |V|$.
     + think of a set of points in a circle around the point set at infinity
 * Create the binning grid and bin points within
 * For each point, $p$
-  - W = {}
+  - $W$ = {}
   - While $p$ is not fenced in by a bounding convex hull $U$
     + take an initial grid cell window around that that point
     + find the vertex convex hull, $H$, of all points within that grid cell window
@@ -136,8 +136,8 @@ We start with a point set $V$, $n = |V|$.
     + find the vertex enumeration, $U$, interpreting $H$ as splitting half planes with
       the point as the normal direction and $p$ as the origin (that is, find the dual $U = \text{dual}(H)$ )
     + if the maximum distance of $p$ to $U$ is larger than some threshold, increment the grid window size and try again
-    + otherwise add all points within the grid window to W
-  - Run `NaiveRNG` on W
+    + otherwise add all points within the grid window that fully encompases $U$ to $W$
+  - Run `NaiveRNG` on $W$
 
 $W$ is expected linear, so all operations are linear as well, giving a linear expected time algorithm.
 
@@ -163,9 +163,9 @@ For example, the set containing the points $\{ [0,1], [1,0] \}$ has neither domi
 the other so either can be taken as the maxima or both can be taken as the maxima set
 of points.
 
-### Naive Vertex Convex Hull
+### Naive Vertex 3D Convex Hull
 
-Our goal is, from a given set of vertices, $U \in \mathbb{R}^d$,
+Our goal is, from a given set of vertices, $U \in \mathbb{R}^3$,
 find a subset of vertices, $H \subseteq U$, of the vertices
 that form a convex polytope fully encompasing $U$.
 
