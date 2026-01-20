@@ -126,8 +126,6 @@ function naive_arg_point_set_maxima(S) {
   return _a;
 }
 
-// untested
-//
 //                   .----------------------------. (1,1)
 // sqrt( ln(N) / N ) |          D             | C |
 //                   |------------------------*---|
@@ -140,7 +138,7 @@ function naive_arg_point_set_maxima(S) {
 //                   |                        |   |
 //                   |                        |   |
 //                   .----------------------------.
-//
+//             (0,0)
 
 // spot cehck: working
 //
@@ -255,7 +253,85 @@ function M3(S, dim) {
 
 }
 
+//---
 
+//WIP!!!!
+//
+//                   .-------------------------------. (1,1)
+// sqrt( ln(N) / N ) | C[1] |                 | C[0] |
+//                   |------*-----------------*------|
+//                   |      |                 |      |
+//                   |      |                 |      |
+//                   |      |                 |      |
+//                   |      |       A         |      |
+//                   |      |                 |      |
+//                   |      |                 |      |
+//                   |      |                 |      |
+//                   |------*-----------------*------|
+//                   | C[2] |                 | C[3] |
+//                   .-------------------------------.
+//             (0,0)
+//
+function H1(S,dim) {
+  let n = S.length;
+  if (n == 0) { return { "p":[], "idx": [] }; }
+
+  dim = ((typeof dim === "undefined") ? S[0].length : dim);
+  let m = (1<<dim);
+
+  let B_idx = [];
+  let B = [];
+  let slnn = Math.pow( Math.log(n) / n, 1/dim );
+
+  let C = [];
+  for (let i=0; i<m; i++) { C.push(0); }
+
+  for (let idx=0; idx<n; idx++) {
+    for (let j=0; j<dim; j++) {
+      if ( (S[idx][j] < slnn) ||
+           (S[idx][j] > (1-slnn)) ) {
+        B_idx.push(idx);
+        B.push( S[idx] );
+        break;
+      }
+    }
+  }
+
+
+  for (let i=0; i<B_idx.length; i++) {
+    let idx = B_idx[i];
+    let p = S[idx];
+
+    for (let j=0; j<m; j++) {
+      let _c = 0;
+      for (let d=0; d<dim; d++) {
+        if ( j & (1<<d) ) {
+          if ( p[d] > (1-slnn) ) { _c++; }
+          else { break; }
+        }
+        else {
+          if ( p[d] < slnn ) { _c++; }
+          else { break; }
+        }
+      }
+      if (_c == dim) { C[j]++; }
+    }
+
+  }
+
+  for (let i=0; i<m; i++) {
+    if (C[i] == 0) {
+      //return convex_hull(S);
+    }
+  }
+
+  //return convex_hull(B);
+}
+
+
+//--------------
+//--------------
+//--------------
 
 
 function _point_domination_spot_test() {
