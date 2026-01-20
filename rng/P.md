@@ -134,7 +134,7 @@ We start with a point set $V$, $n = |V|$.
     + find the vertex convex hull, $H$, of all points within that grid cell window
       - if one of points is on the outer convex hull boundary, add its splitting plane to the mix
     + find the vertex enumeration, $U$, interpreting $H$ as splitting half planes with
-      the point as the normal direction and $p$ as the origin (that is, find the dual $U = \text{dual}(H)$)
+      the point as the normal direction and $p$ as the origin (that is, find the dual $U = \text{dual}(H)$ )
     + if the maximum distance of $p$ to $U$ is larger than some threshold, increment the grid window size and try again
     + otherwise add all points within the grid window to W
   - Run `NaiveRNG` on W

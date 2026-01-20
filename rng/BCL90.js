@@ -144,12 +144,14 @@ function naive_arg_point_set_maxima(S) {
 
 // spot cehck: working
 //
+// BCL M1 algorithm, extended to arbitrary dimension
+//
 // returns index (from S) of a maxima
 // -1 error
 //
 function M1(S, dim) {
   let n = S.length;
-  if (n == 0) { return -1; }
+  if (n == 0) { return { "p":[], "idx": [] }; }
 
   dim = ((typeof dim === "undefined") ? S[0].length : dim);
 
@@ -195,7 +197,7 @@ function M1(S, dim) {
 //
 function M3(S, dim) {
   let n = S.length;
-  if (n==0) { return -1; }
+  if (n == 0) { return { "p":[], "idx": [] }; }
 
   let maxima_idx = [ 0 ];
 
@@ -252,6 +254,7 @@ function M3(S, dim) {
   };
 
 }
+
 
 
 
