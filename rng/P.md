@@ -14,7 +14,7 @@ $$
 \begin{array}{ll}
 & (p,q) \in E \\
 \to &
- \forall v \in V / \{p,q\}, \\
+ \forall v \in V / \\{p,q\\}, \\
  & |p-q| \le \max( |p-v|, |q-v| )
 \end{array}
 $$
