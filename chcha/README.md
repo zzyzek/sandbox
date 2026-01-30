@@ -36,13 +36,31 @@ so this needs to be run twice to get the upper hull with the appropriate modific
 Consider just the lower hull.
 Assume the point set has been partitioned with the lower hull calculated for the left and right side, $L$,  $R$.
 
-To merge $L$ and $R$, set $t = \infty$ (or some large $t$ start value),
+To merge $L$ and $R$, we can consider $T _ 0, T _ 1$ as the start and stop time of the movie,
+$t \in [ T _ 0, T _ 1 ]$.
+Intuitively $T _ 0 \sim -\infty, T _ 1 \sim \infty$ but we can find finite values that work just as well and remain finite.
+
 initially walk vertices on the convex hull of $L$, $(u ^ -, u, u ^ +)$, and $R$, $(v ^ -, v, v^ +)$,
 starting from $u = \hat{p} _ { \lfloor n / 2 \rfloor }, v = \hat{p} _ {\lfloor n/2 \rfloor + 1}$,
 then advance $u$ left, $v$ right until until we find a a $(u ^ -, u, v)$ and $(u, v, v ^ +)$ both counter-clockwise
 (that is, start from the middle out until we find an initial $(u,v)$ edge).
 
+> WIP
+> WIP
+> WIP
+
+If we consider the snapshot of 'kinetic' picture for $\hat{P}$, all points will be be moving in vertical
+directions fixed by their $x$ coordinate.
+At $t = T _ 0$, the $y' _ k = z _ k - t y _ k$ coordinates will be at their maxima, as the $z _ k$ contribution will be only a constant
+shift overtaken by the $y _ k$ coefficient.
+As $t \to T _ 1$, 
+
 (WIP) From there, we advance $t$ and catalogue what happens to locally around our $(u,v)$ edge and updating the edge accordingly.
+
+> WIP
+> WIP
+> WIP
+
 
 Merging takes $O(n)$ while the recursion acts on sublists that are half the length for a total runtime of $O(n \log n)$.
 
