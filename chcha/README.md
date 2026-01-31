@@ -40,27 +40,46 @@ To merge $L$ and $R$, we can consider $T _ 0, T _ 1$ as the start and stop time 
 $t \in [ T _ 0, T _ 1 ]$.
 Intuitively $T _ 0 \sim -\infty, T _ 1 \sim \infty$ but we can find finite values that work just as well and remain finite.
 
-initially walk vertices on the convex hull of $L$, $(u ^ -, u, u ^ +)$, and $R$, $(v ^ -, v, v^ +)$,
+Before talking about the algorithm and how to merge hulls, it's informative to talk about a single lower hull as it evolves
+with the time parameter $t$.
+Take a lower hull, $H$, and consider the point set $\hat{P}(T _ 0)$ of that hull.
+As the point system evolves, the construction keeps all $x$ coordinates in place while varying the $y'(t)$ coordinates
+with respect to the time parameter, $t$.
+As $t$ increases, if the $\hat{P}(t)$ points keep their relative $y'$ position, there will be no change to the lower hull $H$.
+
+The lower hull of $H$ might change if the angle between three successive points (ordered by the $x$ coordinate) goes from
+positive to negative or vice versa.
+That is, if $( (\hat(p) _ {0}(t) - \hat(p) _ {-1}(t)) \times (\hat(p) _ {1}(t) - \hat(p) _ {0}(t))) _ z$ changes sign, where $\times$
+is the three dimensional cross product (with two dimensional vectors upgraded to three by adding a 0 component)
+and the subscript $z$ takes the last, $z$, component of the cross product.
+
+This is a small equation in the unknown $t$ that can be solved, which, for completeness sake I'll reproduce here:
+
+$$
+\begin{array}{ll}
+ & ( ([ x _ 1, y' _ 1 (t), 0 ] - [ x _ 0, y' _ 0 (t), 0 ]) \times ([x _ 0, y' _ 0(t), 0 ] - [x _ {-1} , y' _ {-1} (t), 0])) _ z = 0 \\
+\to & ( ([ x _ 1, z _ 1 - t y _ 1, 0 ] - [ x _ 0, z _ 0  - t y _ 0, 0 ]) \times ([x _ 0, z _ 0 - y _ 0, 0 ] - [x _ {-1} , z _ {-1} - t y _ {-1}, 0])) _ z = 0 \\
+\to & ( ([ x _ 1 - x _ 0, (z _ 1 - z _ 0) - t (y _ 1 - y _ 0), 0 ] ) \times ([x _ 0 - x _ {-1}, (z _ 0 - z _ {-1}) - t (y _ 0 - y _ {-1}), 0 ] )) _ z = 0 \\
+\to & (x _ 1 - x _ 0) \dot ((z _ 0 - z _ {-1}) - t (y _ 0 - y _ {-1})) - (x _ 0 - x _ {-1}) \dot ((z _ 1 - z _ 0) - t (y _ 1 - y _ 0)) = 0 \\
+\to & (x _ 1 - x _ 0) (z _ 0 - z _ {-1}) - t (x _ 1 - x _ 0) ( y _ 0 - y _ {-1}) = (x _ 0 - x _ {-1}) (z _ 1 - z _ 0) - t (x _ 0 - x _ {-1}) (y _ 1 - y _ 0) \\
+\to & t [ (x _ 0 - x _ {-1}) (y _ 1 - y _ 0) - (x _ 1 - x _ 0) ( y _ 0 - y _ {-1}) ] = (x _ 0 - x _ {-1}) (z _ 1 - z _ 0) - (x _ 1 - x _ 0) (z _ 0 - z _ {-1}) \\
+\to & t = ( (x _ 0 - x _ {-1}) (z _ 1 - z _ 0) - (x _ 1 - x _ 0) (z _ 0 - z _ {-1}) ) /  [ (x _ 0 - x _ {-1}) (y _ 1 - y _ 0) - (x _ 1 - x _ 0) ( y _ 0 - y _ {-1}) ]
+\end{array}
+$$
+
+This means we can consider three ordered points in the point set and find the time, $t _ k$, that the 'crossing event' should occur independently of the others.
+
+The recursive algorithm first partitions the point set into $L$ and $R$ lower hulls and then proceeds to merge them.
+updating $L$ and $R$ independently can be done by walking the point set in each, finding the appropriate crossing time events and updating their lower hulls
+respectively.
+
+The merge between $L$ and $R$ can be done by finding the bridge edge made from a location in $L$ and a location in $R$ to merge them and then updating the bridge
+with the idea above.
+
+Initially walk vertices on the convex hull of $L$, $(u ^ -, u, u ^ +)$, and $R$, $(v ^ -, v, v^ +)$,
 starting from $u = \hat{p} _ { \lfloor n / 2 \rfloor }, v = \hat{p} _ {\lfloor n/2 \rfloor + 1}$,
 then advance $u$ left, $v$ right until until we find a a $(u ^ -, u, v)$ and $(u, v, v ^ +)$ both counter-clockwise
 (that is, start from the middle out until we find an initial $(u,v)$ edge).
-
-> WIP
-> WIP
-> WIP
-
-If we consider the snapshot of 'kinetic' picture for $\hat{P}$, all points will be be moving in vertical
-directions fixed by their $x$ coordinate.
-At $t = T _ 0$, the $y' _ k = z _ k - t y _ k$ coordinates will be at their maxima, as the $z _ k$ contribution will be only a constant
-shift overtaken by the $y _ k$ coefficient.
-As $t \to T _ 1$, 
-
-(WIP) From there, we advance $t$ and catalogue what happens to locally around our $(u,v)$ edge and updating the edge accordingly.
-
-> WIP
-> WIP
-> WIP
-
 
 Merging takes $O(n)$ while the recursion acts on sublists that are half the length for a total runtime of $O(n \log n)$.
 
