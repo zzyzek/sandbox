@@ -51,7 +51,7 @@ The lower hull of $H$ might change if the angle between three successive points 
 positive to negative or vice versa.
 That is, if $( (\hat{p} _ {0}(t) - \hat{p} _ {-1}(t)) \times (\hat{p} _ {1}(t) - \hat{p} _ {0}(t)) ) _ z$ changes sign, where $\times$
 is the three dimensional cross product (with two dimensional vectors upgraded to three by adding a 0 component)
-and the subscript $z$ takes the last, $z$, component of the cross product.
+and the subscript $( \cdot ) _ z$ takes the last, $z$, component of the cross product.
 
 This is a small equation in the unknown $t$ that can be solved, which, for completeness sake I'll reproduce here:
 
