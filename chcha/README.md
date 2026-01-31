@@ -44,12 +44,12 @@ Before talking about the algorithm and how to merge hulls, it's informative to t
 with the time parameter $t$.
 Take a lower hull, $H$, and consider the point set $\hat{P}(T _ 0)$ of that hull.
 As the point system evolves, the construction keeps all $x$ coordinates in place while varying the $y'(t)$ coordinates
-with respect to the time parameter, $t$.
+(w.r.t. $t$).
 As $t$ increases, if the $\hat{P}(t)$ points keep their relative $y'$ position, there will be no change to the lower hull $H$.
 
 The lower hull of $H$ might change if the angle between three successive points (ordered by the $x$ coordinate) goes from
 positive to negative or vice versa.
-That is, if $( (\hat(p) _ {0}(t) - \hat(p) _ {-1}(t)) \times (\hat(p) _ {1}(t) - \hat(p) _ {0}(t))) _ z$ changes sign, where $\times$
+That is, if $( (\hat{p} _ {0}(t) - \hat{p} _ {-1}(t)) \times (\hat{p} _ {1}(t) - \hat{p} _ {0}(t)) ) _ z$ changes sign, where $\times$
 is the three dimensional cross product (with two dimensional vectors upgraded to three by adding a 0 component)
 and the subscript $z$ takes the last, $z$, component of the cross product.
 
