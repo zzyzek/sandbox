@@ -70,16 +70,29 @@ $$
 This means we can consider three ordered points in the point set and find the time, $t _ k$, that the 'crossing event' should occur independently of the others.
 
 The recursive algorithm first partitions the point set into $L$ and $R$ lower hulls and then proceeds to merge them.
-updating $L$ and $R$ independently can be done by walking the point set in each, finding the appropriate crossing time events and updating their lower hulls
+Updating $L$ and $R$ independently can be done by walking the point set in each, finding the appropriate crossing time events and updating their lower hulls
 respectively.
 
-The merge between $L$ and $R$ can be done by finding the bridge edge made from a location in $L$ and a location in $R$ to merge them and then updating the bridge
-with the idea above.
+The merge between $L$ and $R$ can be done by finding the $(u,v)$ bridge edge made from a location in $L$ and a location in $R$ to merge them and then updating the bridge
+with any points that would need to update the bridge.
 
-Initially walk vertices on the convex hull of $L$, $(u ^ -, u, u ^ +)$, and $R$, $(v ^ -, v, v^ +)$,
+To find the initial $(u,v)$ edge, Initially walk vertices on the convex hull of $L$, $(u ^ -, u, u ^ +)$, and $R$, $(v ^ -, v, v^ +)$,
 starting from $u = \hat{p} _ { \lfloor n / 2 \rfloor }, v = \hat{p} _ {\lfloor n/2 \rfloor + 1}$,
-then advance $u$ left, $v$ right until until we find a a $(u ^ -, u, v)$ and $(u, v, v ^ +)$ both counter-clockwise
-(that is, start from the middle out until we find an initial $(u,v)$ edge).
+then advance $u$ left, $v$ right until until we find a a $(u ^ -, u, v)$ and $(u, v, v ^ +)$ both counter-clockwise.
+That is, start from the middle out until we find an initial $(u,v)$ edge.
+
+Once we have the initial $(u,v)$ bridge, we can proceed to update our lower hull with the kinetics as $t$ evolves.
+
+There are six possibilities that can occur:
+
+* $L$ has a hull vertex insertion or deletion that is to the left of $(u,v)$
+* $R$ has a hull vertex insertion or deletion that is to the right of $(u,v)$
+* $(u ^ - , u, v)$ becomes clockwise, making $(u ^ -, v)$ the new bridge
+* $(u, v, v ^ +)$ becomes clockwise, making $(v, v ^ +)$ the new bridge
+* $(u, u + ^, v)$ becomes counter-clockwise, making $(u ^ +, v)$ the new bridge
+* $(u, v, v ^ +)$ becomes counter-clockwise, making $(u v ^ +)$ the new bridge
+
+
 
 Merging takes $O(n)$ while the recursion acts on sublists that are half the length for a total runtime of $O(n \log n)$.
 
