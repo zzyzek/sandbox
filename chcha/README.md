@@ -40,20 +40,60 @@ To merge $L$ and $R$, we can consider $T _ 0, T _ 1$ as the start and stop time 
 $t \in [ T _ 0, T _ 1 ]$.
 Intuitively $T _ 0 \sim -\infty, T _ 1 \sim \infty$ but we can find finite values that work just as well and remain finite.
 
-Before talking about the algorithm and how to merge hulls, it's informative to talk about a single lower hull as it evolves
-with the time parameter $t$.
-Take a lower hull, $H$, and consider the point set $\hat{P}(T _ 0)$ of that hull.
-As the point system evolves, the construction keeps all $x$ coordinates in place while varying the $y'(t)$ coordinates
-(w.r.t. $t$).
-As $t$ increases, if the $\hat{P}(t)$ points keep their relative $y'$ position, there will be no change to the lower hull $H$.
+There are a few distinct concepts that, in my opinion, get a bit muddled in Chan's paper.
+There's the original 3d points, $p _ k$, and their 2d counterparts, $\hat{p} _ k(t)$, projected into the plane with a time parameter as a function of time.
+There is the current lower projected 2d lower hull, $H(t)$, at a time, $t$, that is used to inform point addition and deletion events that will be used
+to construct the 3d convex hull.
+Distinct from both the original points and the lower hull, there's a list of *events* that indicate which of the $\hat{p} _ k$ have been added during
+the course of the algorithm.
 
-The lower hull of $H$ might change if the angle between three successive points (ordered by the $x$ coordinate) goes from
-positive to negative or vice versa.
-That is, if $( (\hat{p} _ {0}(t) - \hat{p} _ {-1}(t)) \times (\hat{p} _ {1}(t) - \hat{p} _ {0}(t)) ) _ z$ changes sign, where $\times$
-is the three dimensional cross product (with two dimensional vectors upgraded to three by adding a 0 component)
-and the subscript $( \cdot ) _ z$ takes the last, $z$, component of the cross product.
+Chan calls these "movies of the lower hull".
+I find it easier to call them event lists (queues) and I'll label them as $Q, Q _ L, Q _ R$ below.
 
-This is a small equation in the unknown $t$ that can be solved, which, for completeness sake I'll reproduce here:
+During the algorithm, $H(t)$ will only every be a snapshot of the lower hull for a snapshot of time $t$ and so, for example, can only ever be as big as the original
+point list.
+The event list, however, since it's the events of points being added or removed from the lower (2d) hull, can have points being added or removed more than once at various times.
+It turns out points can only ever appear maximum twice in the event list, bounding the event list by $(2n)$.
+
+Say we're in the bulk of the recursion.
+We assume we recursively have a snapshot of the lower left hull, $H _ L (t _ 0)$, and right hull, $H _ R (t _ 0)$ at $t _ 0 = -\infty$.
+Additionally, we recursively have event queues for the left and right points, $Q _ L, Q _ R$, where each event in their respective queues is ordered by time.
+
+From the initial left and right hulls, $H _ L(t _ 0), H _ R(t _ 0)$, we find the *bridge*, $(u,v)$ that joins the left and right hulls into a parent lower hull,
+$H (t _ 0)$, encompassing all of the points.
+
+Now we walk the event queues, taking the next timed event as it appears in the left or right event queue and updating the index in each appropriately.
+
+Take $q _ {\ell} \in Q _ L$ and $q _ r \in Q _ R$ as the current queue events and $t _ c \in [t _ {\ell}, t _ r]$ as the current time, $t _ c$, within
+range under consideration.
+
+There are six possibilities:
+
+* $q _ {\ell}$ has a hull vertex insertion or deletion that is to the left of $(u,v)$
+* $q _ r$ has a hull vertex insertion or deletion that is to the right of $(u,v)$
+* $(u ^ - (t _ c) , u (t _ c), v (t _ c))$ becomes clockwise, making $(u ^ -, v)$ the new bridge
+* $(u (t _ c), v (t _ c), v ^ + (t _ c))$ becomes clockwise, making $(v, v ^ +)$ the new bridge
+* $(u (t _ c), u + ^ (t _ c ), v (t _ c))$ becomes counter-clockwise, making $(u ^ +, v)$ the new bridge
+* $(u (t _ c), v (t _ c), v ^ + (t _ c))$ becomes counter-clockwise, making $(u v ^ +)$ the new bridge
+
+In Chan's implementation, every iteration takes the next event but takes the minimum time of the six possibilities and updates accordingly.
+Meaning, if the current event from either the left or right queue happens after the bridge update events, the bridge updates are processed
+without updating the queue event and are left to potentially be processed the next iteration.
+
+Processing bridge updates, events from the left queue and events from the right event queue adds events to our next event queue in addition to updating the snapshots
+of the left hull, right hull and our next, parent, hull.
+
+Walking events and updating the bridge to merge into our new event queue while maintaining the lower hull is linear, at most adding $2n$ new events.
+Since merging takes $O(n)$, with the recursion on sublists that are half the length, this gives a total runtime of $O(n \log n)$.
+
+
+Appendix
+---
+
+### Time Calculation
+
+Solving for when a triplet of points, $(p _ {-1}(t), p _ 0(t), p _ {+1}(t))$ ( $p _ k(t) = (x _ k, z _ k - t y _ k)$ ),
+changes from clockwise to counterclockwise, or vice versa, is a straight forward calculation:
 
 $$
 \begin{array}{ll}
@@ -63,40 +103,27 @@ $$
 \to & (x _ 1 - x _ 0) \dot ((z _ 0 - z _ {-1}) - t (y _ 0 - y _ {-1})) - (x _ 0 - x _ {-1}) \dot ((z _ 1 - z _ 0) - t (y _ 1 - y _ 0)) = 0 \\
 \to & (x _ 1 - x _ 0) (z _ 0 - z _ {-1}) - t (x _ 1 - x _ 0) ( y _ 0 - y _ {-1}) = (x _ 0 - x _ {-1}) (z _ 1 - z _ 0) - t (x _ 0 - x _ {-1}) (y _ 1 - y _ 0) \\
 \to & t [ (x _ 0 - x _ {-1}) (y _ 1 - y _ 0) - (x _ 1 - x _ 0) ( y _ 0 - y _ {-1}) ] = (x _ 0 - x _ {-1}) (z _ 1 - z _ 0) - (x _ 1 - x _ 0) (z _ 0 - z _ {-1}) \\
-\to & t = ( (x _ 0 - x _ {-1}) (z _ 1 - z _ 0) - (x _ 1 - x _ 0) (z _ 0 - z _ {-1}) ) /  [ (x _ 0 - x _ {-1}) (y _ 1 - y _ 0) - (x _ 1 - x _ 0) ( y _ 0 - y _ {-1}) ]
+\to & t = \frac{ (x _ 0 - x _ {-1}) (z _ 1 - z _ 0) - (x _ 1 - x _ 0) (z _ 0 - z _ {-1}) }{ (x _ 0 - x _ {-1}) (y _ 1 - y _ 0) - (x _ 1 - x _ 0) ( y _ 0 - y _ {-1}) } \\
 \end{array}
 $$
 
-This means we can consider three ordered points in the point set and find the time, $t _ k$, that the 'crossing event' should occur independently of the others.
-
-The recursive algorithm first partitions the point set into $L$ and $R$ lower hulls and then proceeds to merge them.
-Updating $L$ and $R$ independently can be done by walking the point set in each, finding the appropriate crossing time events and updating their lower hulls
-respectively.
-
-The merge between $L$ and $R$ can be done by finding the $(u,v)$ bridge edge made from a location in $L$ and a location in $R$ to merge them and then updating the bridge
-with any points that would need to update the bridge.
-
-To find the initial $(u,v)$ edge, Initially walk vertices on the convex hull of $L$, $(u ^ -, u, u ^ +)$, and $R$, $(v ^ -, v, v^ +)$,
-starting from $u = \hat{p} _ { \lfloor n / 2 \rfloor }, v = \hat{p} _ {\lfloor n/2 \rfloor + 1}$,
-then advance $u$ left, $v$ right until until we find a a $(u ^ -, u, v)$ and $(u, v, v ^ +)$ both counter-clockwise.
-That is, start from the middle out until we find an initial $(u,v)$ edge.
-
-Once we have the initial $(u,v)$ bridge, we can proceed to update our lower hull with the kinetics as $t$ evolves.
-
-There are six possibilities that can occur:
-
-* $L$ has a hull vertex insertion or deletion that is to the left of $(u,v)$
-* $R$ has a hull vertex insertion or deletion that is to the right of $(u,v)$
-* $(u ^ - , u, v)$ becomes clockwise, making $(u ^ -, v)$ the new bridge
-* $(u, v, v ^ +)$ becomes clockwise, making $(v, v ^ +)$ the new bridge
-* $(u, u + ^, v)$ becomes counter-clockwise, making $(u ^ +, v)$ the new bridge
-* $(u, v, v ^ +)$ becomes counter-clockwise, making $(u v ^ +)$ the new bridge
+That is, if $( (\hat{p} _ {0}(t) - \hat{p} _ {-1}(t)) \times (\hat{p} _ {1}(t) - \hat{p} _ {0}(t)) ) _ z$ changes sign, where $\times$
+is the three dimensional cross product (with two dimensional vectors upgraded to three by adding a 0 component)
+and the subscript $( \cdot ) _ z$ takes the last, $z$, component of the cross product.
 
 
+### Finding an Initial $(u,v)$ Bridge From Two Kinetic 2d Lower Hulls
 
-Merging takes $O(n)$ while the recursion acts on sublists that are half the length for a total runtime of $O(n \log n)$.
+We have lower hulls $H _ L( t _ 0)$ and $H _ R(t _ 0)$ at $t _ 0 = -\infty$.
+A initial *bridge* is an edge, $(u,v)$ with $u \in H _ L(t _ 0)$, $v \in H _ R(t _ 0)$, that creates a convex hull $H ( t _ 0)$.
 
+Intuitively, we start from the middle out until we find an initial $(u,v)$ edge that's a proper bridge candidate.
 
+To find the initial $(u,v)$ edge, we can initially walk vertices on the convex hull
+of $H _  L(t _ 0)$, $(u ^ -, u, u ^ +)$, and $H _ R( t _ 0)$, $(v ^ -, v, v^ +)$ from inward out until we find a suitable bridge.
+Starting from $u = \hat{p} _ { \lfloor n / 2 \rfloor }, v = \hat{p} _ {\lfloor n/2 \rfloor + 1}$,
+both of which must be part of the lower hull of $H _ L ( t _ 0)$, H _ R (t _ 0)$ respectively,
+we can then advance $u$ left and $v$ right until until we find a a $(u ^ -, u, v)$ and $(u, v, v ^ +)$ both counter-clockwise.
 
 
 
