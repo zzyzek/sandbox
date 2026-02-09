@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+
+  <title>three.js experiments</title>
+
+  <style>
+    body { margin: 0; }
+  </style>
+
+  <!--  <link rel="icon" type="image/png" href="images/favicon.ico"> -->
+  <!-- <script type='text/javascript' src='js/J.js'></script> -->
+  <!--  <link rel='stylesheet' href='css/CSS.css'> -->
+
+  <script type='importmap'>
+  {
+    "imports": {
+      "three" : "./build/three.module.js",
+      "three/addons/" : "./examples/jsm/"
+    }
+  }
+  </script>
+
+  <!-- "three/addons/" : "https://cdn.jsdelivr.net/npm/three@<version>/examples/jsm/" -->
+
+  <script>
+    var g_f = {};
+    var g_ctx = {};
+    var g_data = {};
+  </script>
+
+</head>
+<!-- <script type='module' src='main.js'> </script> -->
+
+  <script type='module'>
+    import { export_function, export_context, export_data } from "./main.js";
+    g_f = export_function;
+    g_ctx = export_context;
+    g_data = export_data;
+  </script>
+
+<body>
+
+</body>
+
+<html>
+
