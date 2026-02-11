@@ -8,11 +8,11 @@
 # work.  If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 #
 
-
 import sys, os
 import math
 import random
 
+DEBUG = 1
 PRINT_PARTITION = False
 
 def fisher_yates(a):
@@ -37,26 +37,6 @@ def _print_partition(s,a):
     if (s[i] < 0): _s = '-'
     sys.stdout.write( ' ' + _s + str(a[i]) )
   sys.stdout.write("\n")
-
-#def count_partition_r(idx, s, a):
-#  if idx == len(s):
-#    _sum = 0
-#    for i in range(idx):
-#      _sum += s[i]*a[i]
-#    if _sum == 0:
-#
-#      _print_partition(s,a)
-#
-#      return 1
-#    return 0
-#
-#  _sum = count_partition_r(idx+1, s, a)
-#
-#  s[idx] *= -1
-#  _sum += count_partition_r(idx+1, s, a)
-#  s[idx] *= -1
-#
-#  return _sum
 
 # brute force partition count
 #
@@ -113,6 +93,46 @@ def Q_idx_soln_tot(Q,idx_a, j):
     _v.append(0)
   return count_partition(_b)
 
+# Q - CRT instance matrix
+# S - solution vector (|S| = N, S[:] = {0 indeterminate, +-1 fixed}
+# idx_a - indices (|idx_a| <= N)
+# j - prime index (0 <= j < p_m)
+#
+# return:
+#  number of solutions
+#
+# Brute force recursive partition count
+#
+def Q_idx_soln(Q,S,idx_a,j):
+  _b = []
+  _s = []
+  for i in range(len(idx_a)):
+    _b.append(Q[ idx_a[i] ][j])
+    _s.append(S[ idx_a[i] ])
+  return count_partition_s(_b, _s)
+
+
+
+
+def cluster_energy_s(Q,C,s):
+  _n = len(Q)
+  _m = len(C)
+  _sum = 0
+  for p_idx in range(_m):
+    for c_idx in range(len(C[p_idx])):
+      _sum += Q_idx_soln(Q,s,C[p_idx][c_idx],p_idx)
+  return _sum
+
+def cluster_energy(Q,C,s):
+  _n = len(Q)
+  _m = len(C)
+  _sum = 0
+  for p_idx in range(_m):
+    for c_idx in range(len(C[p_idx])):
+      u = Q_idx_soln(Q,s,C[p_idx][c_idx],p_idx)
+      if u > 0: _sum += 1
+  return _sum
+
 
 def _debug():
   a = []
@@ -130,14 +150,27 @@ def _debug():
 # P - static list of first 1000 primes
 # p_m - number of primes in BSMOOTH
 #
-# A - NPP instance (array of numbers)
-# Q - chinese remainder theorem (CRT) instance vector
-# C - constraint list
+# A - NPP instance (array of numbers) (A = [ a_0, a_1, ... , a_{N-1} ])
+# Q - chinese remainder theorem (CRT) instance vector ($Q \in \mathbb{Z}^{N,m}$)
+#
+#         Q = [ [ a_0 % p_0, a_0 % p_1, a_0 % p_2, ... , a_0 % p_{m-1} ],
+#               [ a_1 % p_0, a_1 % p_1, a_1 % p_2, ... , a_1 % p_{m-1} ],
+#               [ a_2 % p_0, a_2 % p_1, a_2 % p_2, ... , a_2 % p_{m-1} ],
+#                  ...
+#               [ a_{N-1} % p_0, a_{N-1} % p_1, a_{N-1} % p_2, ... , a_{N-1} % p_{m-1} ] ]
+#
+# C - constraint index list for primes ($C \in \mathbb{Z}^{m,\cdot}$).
+#     Each row array represents the list of index constraints for a particular prime (row k corresponds to p_k)
 #
 
 
 N = 30
 m = 15
+M = (2<<m)
+BSMOOTH = 1
+
+N = 60
+m = 30
 M = (2<<m)
 BSMOOTH = 1
 
@@ -199,27 +232,31 @@ P = [
 C = []
 C_count = []
 
-
+# construct B smooth number and store number of primes in p_m
+#
 p_m = 0
 while (BSMOOTH < (2<<m)):
-  print(p_m)
+  if DEBUG > 0: print(p_m)
   BSMOOTH *= P[p_m]
   p_m+=1
 
-print(m, M, BSMOOTH)
+if DEBUG > 0: print(m, M, BSMOOTH)
 
-
+# construct A instance
+#
 for i in range(N):
   A.append( random.randrange(1, 2<<m) )
-if ((sum(A) % 2) == 0): A[0] += 1
+if ((sum(A) % 2) == 1): A[0] += 1
 
+# construct CRT vector
+#
 for i in range(N):
-
   v = []
   for j in range(p_m): v.append( A[i] % P[j] )
   Q.append(v)
 
-
+# construct constraints
+#
 for j in range(p_m):
   C.append([])
 
@@ -227,7 +264,7 @@ for j in range(p_m):
 
   c_j_n = math.ceil( 2.0*N/ilogp )
 
-  print("P[", j, "]:", P[j], "==>", ilogp, ", c_j_n:", c_j_n)
+  if DEBUG > 0: print("P[", j, "]:", P[j], "==>", ilogp, ", c_j_n:", c_j_n)
 
   C[j] = []
   for k in range(c_j_n):
@@ -237,16 +274,204 @@ for j in range(p_m):
         C[j].append(idx_a)
         break
 
-  #for k in range(
+
+def _dot(A,S):
+  _sum = 0
+  for i in range(len(S)): _sum += A[i]*S[i]
+  return _sum
+
+def simpsolve(A,S, idx):
+
+  if idx == len(S): return _dot(A,S)
+
+  S[idx] = 1
+  v = simpsolve(A,S,idx+1)
+  if v==0: return v
+
+  S[idx] = -1
+  v = simpsolve(A,S,idx+1)
+  if v==0: return v
+
+  return -1
 
 
 
+TOT_CE = 0
+COUNT = 0
 
-for i in range(len(A)):
-  print(i, A[i], Q[i])
+def detrun_i_r(A,Q,C,S,sched_idx,s_idx):
+  global COUNT
+  global TOT_CE
 
-print("")
-for j in range(p_m):
-  for k in range(len(C[j])):
-    print("pr:", P[j], "C_k{", k,"} (idx):", C[j][k], ", n_sol:", Q_idx_soln_tot(Q,C[j][k], j) )
+  _n = len(Q)
+  _m = len(C)
+
+  if s_idx == _n:
+    COUNT += 1
+    print(">>> c:", COUNT, "e:", _dot(A,S) )
+    if _dot(A,S) == 0:
+      print("FOUND!!!", S)
+      sys.exit()
+    return _dot(A,S)
+
+  _max_sched_idx = -1
+  _max_ce = -1
+  _max_idx = -1
+  _max_v = 0
+
+  for _i in range(s_idx, _n):
+    idx = sched_idx[_i]
+
+    S[ idx ] = 1
+    _ce = cluster_energy(Q,C,S)
+
+    if _ce > _max_ce:
+      _max_ce = _ce
+      _max_idx = idx
+      _max_sched_idx = _i
+      _max_v = 1
+
+    S[ idx ] = -1
+    _ce = cluster_energy(Q,C,S)
+
+    if _ce > _max_ce:
+      _max_ce = _ce
+      _max_idx = idx
+      _max_sched_idx = _i
+      _max_v = -1
+
+    S[ idx ] = 0
+
+  t = sched_idx[s_idx]
+  sched_idx[s_idx] = sched_idx[_max_sched_idx]
+  sched_idx[_max_sched_idx] = t
+
+  print("max(ce:", _max_ce, "i:", _max_idx, "si:", _max_sched_idx, "v:", _max_v,") sched:", sched_idx)
+
+  _v = 0
+  S[_max_idx] = _max_v
+
+
+  print("idx:", s_idx, "ce:", cluster_energy(Q,C,S), "/", TOT_CE, "(c:", COUNT, ")", S)
+
+  _v = detrun_i_r(A,Q,C,S,sched_idx,s_idx+1)
+  if _v == 0: return _v
+
+  S[_max_idx] *= -1
+
+  print("idx:", s_idx, "ce:", cluster_energy(Q,C,S), "/", TOT_CE, "(c:", COUNT, ")", S)
+
+  _v = detrun_i_r(A,Q,C,S,sched_idx,s_idx+1)
+  if _v == 0: return _v
+
+  t = sched_idx[s_idx]
+  sched_idx[s_idx] = sched_idx[_max_sched_idx]
+  sched_idx[_max_sched_idx] = t
+
+  S[idx] = 0
+  return -1
+
+
+def detrun_r(A,Q,C,S,s_idx):
+  global COUNT
+  global TOT_CE
+
+
+  _n = len(Q)
+  _m = len(C)
+
+  if s_idx == _n:
+    COUNT += 1
+    #print(">>>", _dot(A,S), A, S)
+    #print(">>>", COUNT, _dot(A,S), s_idx, _n, _m, len(S), _dot(S,S), S)
+    print(">>> c:", COUNT, "e:", _dot(A,S) )
+    if _dot(A,S) == 0:
+      print("FOUND!!!", S)
+      sys.exit()
+    return _dot(A,S)
+
+  S[s_idx] = 1
+  _e1p = cluster_energy(Q,C,S)
+
+  S[s_idx] = -1
+  _e1m = cluster_energy(Q,C,S)
+
+  _ss = 0
+
+  if _e1p > _e1m: _ss = 1
+  else: _ss = -1
+
+  _v = 0
+
+  S[s_idx] = _ss
+
+  print("idx:", s_idx, "ce:", cluster_energy(Q,C,S), "/", TOT_CE, "(c:", COUNT, ")")
+
+  _v = detrun_r(A,Q,C,S,s_idx+1)
+  if _v == 0: return _v
+
+  S[s_idx] *= -1
+
+  print("idx:", s_idx, "ce:", cluster_energy(Q,C,S), "/", TOT_CE, "(c:", COUNT, ")")
+  #print(s_idx, cluster_energy(Q,C,S), "(", COUNT, ")")
+
+  _v = detrun_r(A,Q,C,S,s_idx+1)
+  if _v == 0: return _v
+
+
+  S[s_idx] = 0
+  return -1
+
+
+if DEBUG > 0:
+  for i in range(len(A)):
+    print(i, A[i], Q[i])
+
   print("")
+  for j in range(p_m):
+    for k in range(len(C[j])):
+      print("pr:", P[j], "C_k{", k,"} (idx):", C[j][k], ", n_sol:", Q_idx_soln_tot(Q,C[j][k], j) )
+    print("")
+
+
+
+
+  S = []
+  for i in range(N): S.append(0)
+
+  TOT_CE = cluster_energy(Q,C,S)
+
+  print(">>>", cluster_energy(Q,C,S))
+
+  sched_idx = []
+  for i in range(N): sched_idx.append(i)
+
+  v = detrun_i_r(A,Q,C,S,sched_idx,0)
+  print("???", v, S)
+
+  #v = detrun_r(A,Q,C,S,0)
+  #print("???", v, S)
+
+#  print("??", cluster_energy(Q,C,S))
+#
+#  S[0] = 1
+#  print("S[0] = +1:", cluster_energy(Q,C,S))
+#
+#  S[1] = 1
+#  print(" S[1] = +1:", cluster_energy(Q,C,S))
+#  S[1] = -1
+#  print(" S[1] = -1:", cluster_energy(Q,C,S))
+#
+#  S[1] = 0
+#
+#  S[0] = -1
+#  print("S[0] = -1:", cluster_energy(Q,C,S))
+#  S[1] = 1
+#  print(" S[1] = +1:", cluster_energy(Q,C,S))
+#  S[1] = -1
+#  print(" S[1] = -1:", cluster_energy(Q,C,S))
+#
+#
+#  S[0] = 0
+#  S[1] = 0
+#  print("S[0,1] =  0:", cluster_energy(Q,C,S))
