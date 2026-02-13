@@ -65,7 +65,10 @@ $H (t _ 0)$, encompassing all of the points.
 
 Now we walk the event queues, taking the next timed event as it appears in the left or right event queue and updating the index in each appropriately.
 
-Take $q _ {\ell} \in Q _ L$ and $q _ r \in Q _ R$ as the current queue events and $t _ c \in [t _ {\ell}, t _ r]$ as the first time either a bridge update or an event occurs within $[t _ {\ell}, t _ r]$.
+Take $q _ {\ell} \in Q _ L$ and $q _ r \in Q _ R$ as
+the current queue events and $t _ c \in [t _ {\ell}, t _ r]$ as
+the first time either a bridge update or an event occurs
+within $[t _ {\ell}, t _ r]$.
 
 There are six possibilities:
 
@@ -91,6 +94,16 @@ Some other points:
 As the merging proceeds, the lower hull snapshot ( $H(t), H _ L (t), H _ R (t)$ ) gets updated, ending at $T _ 1 = {\infty}$.
 The hull snapshots are reset by rewinding them so they're in the $T _ 0$ state for the next iteration of the algorithm.
 This is the "... go back in time to update points" section (lines `95-104`) in the provided code.
+
+At every step of the merge, we're considering the current left and right event $q _ {\ell} \in Q _ L, q _ r \in Q _ R$
+along with the events surrounding bridge points and taking the minimum time event.
+Remember that the bridge possibilities "bleed" into the point list as $(u ^ -, u, u ^ +), (v ^ -, v, v ^ +)$ might not be
+on the lower hull snapshot but are definitely part of the point list.
+As we walk $Q _ L$ and $Q _ R$, we update the bridge events if they occur first, without advancing our indices into $Q _ L, Q _ R$.
+After all bridge events are updated, then we can make progress on $Q _ L, Q _ R$.
+As we advance in processing $Q _ L, Q _ R$ events, we might get to a point where the bridge events are again the minimum, in which
+case we repeat the above.
+
 
 
 
