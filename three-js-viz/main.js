@@ -68,7 +68,7 @@ function _rnd(a,b) {
 }
 
 export function point_tmp() {
-  let n_pnt = 1000;
+  let n_pnt = 30;
 
 
   let point = [];
@@ -109,6 +109,20 @@ export function point_tmp() {
 
   g_data["point_three"] = pnt_three;
 
+}
+
+export function conn_point() {
+  let pnt = g_data.point;
+
+  g_data["l"] = [];
+
+  for (let it=0; it<20; it++) {
+    let idx0 = Math.floor( Math.random() * pnt.length );
+    let idx1 = Math.floor( Math.random() * pnt.length );
+
+    let l = simple_line( pnt[idx0], pnt[idx1] );
+    g_data.l.push(l);
+  }
 }
 
 
@@ -156,6 +170,7 @@ renderer.setAnimationLoop( animate );
 var g_f = {
   "simple_rot_cube": simple_rot_cube,
   "simple_line": simple_line,
+  "conn_point": conn_point,
   "point_tmp": point_tmp
 };
 

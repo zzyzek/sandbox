@@ -52,8 +52,9 @@ I find it easier to call them event lists (queues) and I'll label them as $Q, Q 
 
 During the algorithm, $H(t)$ will only every be a snapshot of the lower hull for a snapshot of time $t$ and so, for example, can only ever be as big as the original
 point list.
-The event list, however, since it's the events of points being added or removed from the lower (2d) hull, can have points being added or removed more than once at various times.
-It turns out points can only ever appear maximum twice in the event list, bounding the event list by $(2n)$.
+The event list, however, are the events of points being added or removed from the lower (2d) hull and
+can have points being added or removed more than once at various times.
+It turns out points can only ever appear maximum twice in the event list, bounding the size by $(2n)$.
 
 Say we're in the bulk of the recursion.
 We assume we recursively have a snapshot of the lower left hull, $H _ L (t _ 0)$, and right hull, $H _ R (t _ 0)$ at $t _ 0 = -\infty$.
@@ -64,8 +65,7 @@ $H (t _ 0)$, encompassing all of the points.
 
 Now we walk the event queues, taking the next timed event as it appears in the left or right event queue and updating the index in each appropriately.
 
-Take $q _ {\ell} \in Q _ L$ and $q _ r \in Q _ R$ as the current queue events and $t _ c \in [t _ {\ell}, t _ r]$ as the current time, $t _ c$, within
-range under consideration.
+Take $q _ {\ell} \in Q _ L$ and $q _ r \in Q _ R$ as the current queue events and $t _ c \in [t _ {\ell}, t _ r]$ as the first time either a bridge update or an event occurs within $[t _ {\ell}, t _ r]$.
 
 There are six possibilities:
 
@@ -76,15 +76,23 @@ There are six possibilities:
 * $(u (t _ c), u + ^ (t _ c ), v (t _ c))$ becomes counter-clockwise, making $(u ^ +, v)$ the new bridge
 * $(u (t _ c), v (t _ c), v ^ + (t _ c))$ becomes counter-clockwise, making $(u v ^ +)$ the new bridge
 
-In Chan's implementation, every iteration takes the next event but takes the minimum time of the six possibilities and updates accordingly.
+In Chan's implementation, every iteration considers the next event but processes an update that occurs at minimum $t _ c \in [t _ {\ell}, t _ r]$.
 Meaning, if the current event from either the left or right queue happens after the bridge update events, the bridge updates are processed
-without updating the queue event and are left to potentially be processed the next iteration.
+without updating the queue event, with the queue events left to be processed at a future iteration.
 
 Processing bridge updates, events from the left queue and events from the right event queue adds events to our next event queue in addition to updating the snapshots
 of the left hull, right hull and our next, parent, hull.
 
 Walking events and updating the bridge to merge into our new event queue while maintaining the lower hull is linear, at most adding $2n$ new events.
 Since merging takes $O(n)$, with the recursion on sublists that are half the length, this gives a total runtime of $O(n \log n)$.
+
+Some other points:
+
+As the merging proceeds, the lower hull snapshot ( $H(t), H _ L (t), H _ R (t)$ ) gets updated, ending at $T _ 1 = {\infty}$.
+The hull snapshots are reset by rewinding them so they're in the $T _ 0$ state for the next iteration of the algorithm.
+This is the "... go back in time to update points" section (lines `95-104`) in the provided code.
+
+
 
 
 Appendix
