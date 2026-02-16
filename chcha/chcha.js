@@ -278,8 +278,38 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
   chcha_idx3( ctx, idx_v3, idx_v );
 
   for (let k = (q_n_idx-1); k >= 0; k--) {
+    let _idx = ctx.Q[iq_nxt][k];
+    let _idx3 = [-1,-1,-1];
+
+    chcha_idx3(ctx, _idx3, _idx);
+    chcha_idx3(ctx, idv_u3, idx_u);
+    chcha_idx3(ctx, idv_v3, idx_v);
+
+    let _u = ctx.P[idx_u];
+    let _v = ctx.P[idx_v];
+    let _w_cur = ctx.P[_idx];
+
+    if ((_w_cur[0] > _u[0]) &&
+        (_w_cur[0] < _v[0])) {
+      ctx.H_nei[ idx_u ][1] = _idx;
+      ctx.H_nei[ idx_v ][0] = _idx;
+
+      ctx.H_nei[ _idx ][0] = idx_u;
+      ctx.H_nei[ _idx ][1] = idx_v;
+
+      if (_idx < idx_mid) { idx_u = _idx; }
+      else                { idx_v = _idx; }
+    }
+    else {
+      chcha_H_nei_update(ctx, _idx);
+
+      if      (_idx == idx_u) { idx_u = idx_u3[0]; }
+      else if (_idx == idx_v) { idx_v = idx_v3[2]; }
+    }
+
   }
 
+  return 0;
 }
 
 
