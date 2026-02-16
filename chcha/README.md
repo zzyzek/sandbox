@@ -95,15 +95,53 @@ As the merging proceeds, the lower hull snapshot ( $H(t), H _ L (t), H _ R (t)$ 
 The hull snapshots are reset by rewinding them so they're in the $T _ 0$ state for the next iteration of the algorithm.
 This is the "... go back in time to update points" section (lines `95-104`) in the provided code.
 
+Note that the snapshot of the hull is stored in the `next`, `prev` pointers from the `Point` struct.
+This means the snapshot of the hull only ever gets updated from events that push points in between the $(u,v)$ bridge.
+
 At every step of the merge, we're considering the current left and right event $q _ {\ell} \in Q _ L, q _ r \in Q _ R$
 along with the events surrounding bridge points and taking the minimum time event.
-Remember that the bridge possibilities "bleed" into the point list as $(u ^ -, u, u ^ +), (v ^ -, v, v ^ +)$ might not be
-on the lower hull snapshot but are definitely part of the point list.
+The neighbor bridge possibilities "bleed" into the hull snapshot for $H _ L(t), H _ R(t)$ as $(u ^ -, u, u ^ +), (v ^ -, v, v ^ +)$.
+$u^+, v^-$ might not be part of the joined hull of $H(t)$ but will be part of $H _ L(t)$ or $H _ R(t).
 As we walk $Q _ L$ and $Q _ R$, we update the bridge events if they occur first, without advancing our indices into $Q _ L, Q _ R$.
 After all bridge events are updated, then we can make progress on $Q _ L, Q _ R$.
 As we advance in processing $Q _ L, Q _ R$ events, we might get to a point where the bridge events are again the minimum, in which
 case we repeat the above.
 
+---
+
+Summary:
+
+* The `hull` function takes in a doubly linked list, `list`, list length and event return event queue `A`, 
+  and input event queue `B`
+* Function `hull` returns an event queue in `A` along with updating the `next`, `prev` pointers in `list`
+  that represent the current convex hull snapshot $H(T _ 0)$
+  - `list` is of size $n$
+  - `A` is bounded by $2n$
+    + `A` has `NIL` sentinal node terminator
+* For function `hull`:
+  - finds $(u,v)$ bridge
+  - recursively calls `hull` on the left and right `list`, storing events in queue `B`
+  - walks events in `B`, adding to `A` event queue with minimum of event for left `B`, right `B`
+    or $(u,v)$ bridge
+    + three indices, one for left `B`, one for right `B` and one for output event queue `A`
+    + if event is drawn from left/right `B`, left/right index updated accordingly
+    + if event updates bridge, left/right `B` index untouched
+    + in all cases, output event queue index updated as a new event is added
+  - after `A` event queue updated, reverse walk `A` to update pointers to update so hull snapshot is $H(T _ 0)$
+    + call current `A` event $q$
+    + if $q$ is to the left/right of $(u,v)$ bridge , update neighbor pointers from $q$
+      - if $q$ is on $u$ or $v$, update $u$ or $v$ to the appropriate neighbor point
+    + if $q$ is (strictly) between $(u,v)$ bridge (e.g. non-inclusive), update pointers of $u$, $v$ to
+      insert event queue point $q$ (update $H(t)$ )
+      - update $u$, $v$ by setting it to new event queue point depending on whether $q$ is in the left or
+        right side
+  
+The `hull` function finds the $(u,v)$ bridge, recursively calls `hull` to find the left and right event queues,
+then merges the left and right queues, with the $(u,v)$ bridge to create a new event queue.
+The new event queue is then rewinded, updating the $(u,v)$ bridge and updating neighbor pointers of event queue
+points to create the implicit $H(T _ 0)$ snapshot.
+That is, a post condition of the `hull` function is that, $H(T _ 0)$ is held in the `next` and `prev` pointers
+for event queue points.
 
 
 
