@@ -93,16 +93,45 @@ function chcha_turn3(ctx, idx3) {
 function chcha_time3(ctx, idx3) {
   if ((idx3[0] < 0) ||
       (idx3[1] < 0) ||
-      (idx3[2] < 0)) { return 1.0; }
+      (idx3[2] < 0)) { return ctx.T[1]; }
 
   return _time( ctx.P[idx3[0]], ctx.P[idx3[1]], ctx.P[idx3[2]] );
 }
 
-//WIP!!!
-// t_cur, t_nxt need to have correct values
-// last rewind/update of current hull needs to happen
+// we can figure out whether it's an insertion or deletion
+// by context.
+// If the current hull point has it's neighbors pointing
+// back to it, we know it needs to be deleted.
+// If the current hull point doesn't have it's neighbors
+// pointing to it, it's an insertion.
 //
+function chcha_H_indel(ctx, idx) {
 
+  if (idx < 0) { return -1; }
+
+  let idx_prv = ctx.H_nei[idx][0],
+      idx_nxt = ctx.H_nei[idx][1];
+
+  // insert
+  //
+  if ( (idx_prv >= 0) &&
+       (ctx.H_nei[idx_prv][1] != idx) ) {
+    ctx.H_nei[idx_prv][1] = idx;
+    if (idx_nxt >= 0) { ctx.H_nei[idx_nxt][0] = idx; }
+  }
+
+  // delete
+  //
+  else if ( (idx_nxt >= 0) &&
+            (ctx.H_nei[idx_nxt][0] != idx) ) {
+    ctx.H_nei[idx_nxt][0] = idx;
+    if (idx_prv >= 0) { ctx.H_nei[idx_prv][1] = idx; }
+  }
+
+  return 0;
+}
+
+// untested
 //
 // ctx:
 //
@@ -181,8 +210,8 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
 
   } while (1);
 
-  let t_cur = -1;
-  let t_nxt = 1;
+  let t_cur = ctx.T[0];
+  let t_nxt = ctx.T[1];
 
   let q_n_idx = 0;
   let q_l_idx = s_idx;
@@ -203,6 +232,7 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
     t[4] = chcha_time3(ctx, [idx_u3[1], idx_v3[0], idx_v3[1]]);
     t[5] = chcha_time3(ctx, [idx_u3[1], idx_v3[1], idx_v3[2]]);
 
+    t_nxt = ctx.T[1];
     let tm_idx = -1;
     for (let _i=0; _i<6; _i++) {
       if ((t[_i] > t_cur) &&
@@ -323,11 +353,23 @@ function chcha_init(P) {
 
   let ctx = {
     "p" : P,
+    "T" : [0,0],
     "q_idx": 0,
     "Q": [ [], [] ],
     "H_nei" : []
   };
 
+  // time bounds
+  //
+  for (let i=1; i<(n-1); i++) {
+    let t = _time(ctx.P[i-1], ctx.P[i], ctx.P[i+1]);
+    if (i==1) {
+      ctx.T[0] = t;
+      ctx.T[1] = t;
+    }
+    if (t < ctx.T[0]) { ctx.T[0] = t; }
+    if (t > ctx.T[1]) { ctx.T[1] = t; }
+  }
 
   for (let i=0; i<n; i++) {
     ctx.Q[0].push(-1);
