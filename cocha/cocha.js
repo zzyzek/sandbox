@@ -7,7 +7,7 @@
 //
 
 
-// Chan's Other Convex Hull Algorithm implemenation
+// Chan's (Other) Convex Hull Algorithm implemenation
 //
 
 var _rnd = Math.random;

@@ -3,6 +3,35 @@ Chan's (Other) Convex Hull Algorithm
 
 (Attempt at) Implementation of Chan's (Other) Convex Hull Algorithm (COCHA).
 
+This is a discussion and implementation of Chan's algorithm presented in his 2003 paper
+"A Minimalist’s Implementation of the 3-d Divide-and-Conquer Convex Hull Algorithm" ([see](https://tmc.web.engr.illinois.edu/ch3d/ch3d.pdf)).
+
+The algorithm find the lower hull point set of a set 3d points in general position (no co-planar, co-linear or duplicate points).
+The basic idea is to convert the 3d problem into a 2d "kinetic" problem by transforming
+points $p _ k = (x _ k, y _ k, z _ k) \to \hat{p} _ k(t) = (x _ k, z _ k - t y _ k) = (\hat{x} _ k, \hat{y} _ k )$,
+and then keeping track of the lower hull as time progresses.
+
+The kinetic 2d lower hull is constructed recursively by partitioning the list and then merging.
+Merging can be done efficiently by noticing that updates to each partitioned lower hull
+can be used to create new updates to a new, merged, lower hull by updating
+a bridge edge, $(u,v)$, as updates to the left and right partition are considered.
+
+
+
+???
+---
+
+We sort the $\hat{p} _ k$ by $x$ coordinate so that the kinetics only move in the $\hat{y}$ dimension.
+
+As time progresses for contiguous triples of 2d points $( \hat{p} _ {k-1}(t), \hat{p} _ k, \hat{p} _ {k+1} )$, the linkage
+will change orientation at a single, easily calculable, time.
+A snapshot of the lower hull, in isolation, could be updated by considering only the discrete time steps of when contiguous
+linkages change orientation, and updating the lower hull snapshot, depending on if a point pokes through the snapshot and needs
+to be added or a point already on the lower hull boundary retreats behind the boundary interface and needs to be removed.
+
+
+
+
 Overview
 ---
 
@@ -117,7 +146,7 @@ Summary:
   that represent the current convex hull snapshot $H(T _ 0)$
   - `list` is of size $n$
   - `A` is bounded by $2n$
-    + `A` has `NIL` sentinal node terminator
+    + `A` has `NIL` sentinel node terminator
 * For function `hull`:
   - finds $(u,v)$ bridge
   - recursively calls `hull` on the left and right `list`, storing events in queue `B`
@@ -138,7 +167,7 @@ Summary:
   
 The `hull` function finds the $(u,v)$ bridge, recursively calls `hull` to find the left and right event queues,
 then merges the left and right queues, with the $(u,v)$ bridge to create a new event queue.
-The new event queue is then rewinded, updating the $(u,v)$ bridge and updating neighbor pointers of event queue
+The new event queue is then reminded, updating the $(u,v)$ bridge and updating neighbor pointers of event queue
 points to create the implicit $H(T _ 0)$ snapshot.
 That is, a post condition of the `hull` function is that, $H(T _ 0)$ is held in the `next` and `prev` pointers
 for event queue points.
