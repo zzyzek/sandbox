@@ -373,6 +373,7 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
         ctx.Q[iq_cur][q_n] = ctx.Q[iq_tmp][q_l_idx];
         cocha_H_indel(ctx, ctx.Q[iq_cur][q_n]);
         q_l_idx++;
+        q_n++;
       }
     }
 
@@ -386,6 +387,7 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
         ctx.Q[iq_cur][q_n] = ctx.Q[iq_tmp][q_r_idx];
         cocha_H_indel(ctx, ctx.Q[iq_cur][q_n]);
         q_r_idx++;
+        q_n++;
       }
     }
 
@@ -398,6 +400,7 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
 
       ctx.Q[iq_cur][q_n] = idx_u3[2];
       idx_u = idx_u3[2];
+      q_n++;
     }
 
     // (u^-,u,v)
@@ -409,6 +412,7 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
 
       ctx.Q[iq_cur][q_n] = idx_u3[1];
       idx_u = idx_u3[0];
+      q_n++;
     }
 
     // (u,v^-,v)
@@ -420,6 +424,7 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
 
       ctx.Q[iq_cur][q_n] = idx_v3[0];
       idx_v = idx_v3[0];
+      q_n++;
     }
 
     // (u,v,v^+)
@@ -427,13 +432,14 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
     //
     else if (tm_idx == 5) {
 
-      if (debug) { console.log(pfx, "c.5:", idx_v3[1]); }
 
       ctx.Q[iq_cur][q_n] = idx_v3[1];
       idx_v = idx_v3[2];
+      q_n++;
+
+      if (debug) { console.log(pfx, "c.5: adding v", idx_v3[1], "(Q[", iq_cur, "][", q_n, "]:", ctx.Q[iq_cur][q_n]); }
     }
 
-    q_n++;
     t_cur = t_nxt;
 
   }
@@ -487,10 +493,12 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
 }
 
 function cocha_hull(ctx) {
-  let t = cocha_recur(ctx, 0, ctx.P.length,0,0,0);
+  let n = cocha_recur(ctx, 0, ctx.P.length,0,0,0);
 
-  console.log("#got:", t);
-  console.log("#fin Q[0][:]:", JSON.stringify(ctx.Q[0]));
+
+
+  console.log("#got:", n);
+  console.log("#fin Q[0][:]:", JSON.stringify(ctx.Q[0].slice(n)));
 }
 
 
@@ -593,7 +601,7 @@ function spot_test_n(n) {
   cocha_debug_print(ctx_p);
 }
 
-function _main() {
+function _test4() {
   let p4 = [
     [0.19934746276184268,0.5246896249209678,0.49728295677020107],
     [0.32598849126298624,0.5198095632590565,0.10786006506005597],
@@ -602,6 +610,21 @@ function _main() {
   ];
 
   p_test(p4);
+}
+
+function _main() {
+
+  let p5 = [
+    [0.1411086695212913,0.9889707232490882,0.2974191406125922],
+    [0.3461412140188016,0.8876979824303942,0.032618248612263034],
+    [0.4252658182659408,0.4526509423103633,0.869096488349462],
+    [0.49226847514813277,0.11710160089786525,0.3120693173785294],
+    [0.9260933828093872,0.20363218574254982,0.058259587675342006],
+  ];
+
+  p_test(p5);
+
+  //spot_test_n(5);
 }
 
 
