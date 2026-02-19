@@ -41,7 +41,6 @@ function cocha_debug_print_t(ctx) {
 function cocha_debug_print(ctx) {
   let foldq = 16;
 
-
   for (let i=0; i<ctx.P.length; i++) {
     console.log("#  [" + i.toString() + "] {",
       printf("%0.4f", ctx.P[i][0]),
@@ -50,7 +49,7 @@ function cocha_debug_print(ctx) {
       "} {idx| l:", printf("%3i", ctx.H_nei[i][0]), "r:", printf("%3i", ctx.H_nei[i][1]), "}");
   }
 
-  console.log("#T:", JSON.stringify(ctx.T) );
+  console.log("#T:", JSON.stringify(ctx.T), "{", ctx.T_BEG, ctx.T_END, "}" );
   console.log("#_t:", JSON.stringify(ctx._t) );
 
   let qidx = ctx.q_idx;
@@ -145,7 +144,7 @@ function cocha_turn3(ctx, idx3) {
 function cocha_time3(ctx, idx3) {
   if ((idx3[0] < 0) ||
       (idx3[1] < 0) ||
-      (idx3[2] < 0)) { return ctx.T[1]+1; }
+      (idx3[2] < 0)) { return ctx.T_END; }
 
   return _time( ctx.P[idx3[0]], ctx.P[idx3[1]], ctx.P[idx3[2]] );
 }
@@ -188,8 +187,16 @@ function cocha_H_indel(ctx, idx) {
 //
 // input:
 //
-// ctx - cocha context
+// ctx      : cocha context
+// s_idx    : start index of point list (P)
+// e_idx_ni : end index (non-inclusive) of point list (P)
+// q_idx    : which index (0,1) the current event list is (e.g. ctx.Q[q_idx])
+// q_s      : start position of current event list (e.g. ctx.Q[q_idx][q_s:...])
 //
+// return:
+//
+// >=0      : number of events in event list
+// -1       : error
 //
 //
 // ctx:
@@ -203,7 +210,7 @@ function cocha_H_indel(ctx, idx) {
 //         -1 indicates no neighbor
 //
 //
-function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
+function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
 
   let debug = 1;
 
@@ -235,31 +242,34 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
   let n2 = Math.floor(n/2);
   idx_mid = s_idx + n2;
 
-  let iq_cur = q_idx;
-  let iq_nxt = 1-q_idx;
+  // iq_cur is the the current event queue we're pushing new events into
+  // iq_tmp is the 'temporary' event queue that we use for the recursive
+  //        partitions
+  //
+  let iq_cur = q_idx_cur;
+  let iq_tmp = 1-iq_cur;
 
   //DEBUG
   let pfx = printf("#[%2i,%2i]", s_idx, e_idx_ni);
-  console.log("#recur[", iq_cur, "]:", "se:[", s_idx, e_idx_ni, "]", "(n:", n, ")")
-
-  if (n==1) {
-    ctx.Q[iq_nxt][0] = s_idx;
-    ctx.H_nei[s_idx][0] = -1;
-    ctx.H_nei[s_idx][1] = -1;
-    return 0;
+  if (debug) {
+    console.log(pfx, "q_idx:", q_idx_cur, "q_s:", q_s);
   }
 
-  q_l_n = cocha_recur(ctx, s_idx, idx_mid, iq_nxt, q_s);
+  if (n==1) {
+    ctx.Q[iq_cur][q_s] = s_idx;
+    ctx.H_nei[s_idx][0] = -1;
+    ctx.H_nei[s_idx][1] = -1;
+    return 1;
+  }
+
+  q_l_n = cocha_recur(ctx, s_idx, idx_mid, iq_tmp, q_s);
   if (q_l_n < 0) { return q_l_n; }
 
-  q_r_n = cocha_recur(ctx, idx_mid, e_idx_ni, iq_nxt, q_s + q_l_n);
+  q_r_n = cocha_recur(ctx, idx_mid, e_idx_ni, iq_tmp, q_s + q_l_n);
   if (q_r_n < 0) { return q_r_n; }
 
   idx_u = idx_mid-1;
   idx_v = idx_mid;
-
-  //DEBUG
-  console.log(pfx, "initial idx_u:", idx_u, "idx_v:", idx_v);
 
   do {
 
@@ -282,27 +292,40 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
 
   } while (1);
 
-  t_cur = ctx.T[0]-1;
-  t_nxt = ctx.T[1]+1;
+  t_cur = ctx.T_BEG;
+  t_nxt = ctx.T_END;
 
   //DEBUG
-  console.log(pfx, "idx_u:", idx_u, "idx_v:", idx_v, "(idx_mid:", idx_mid, ")",
-    "t:", t_cur,
-    "Ql:", JSON.stringify( ctx.Q[iq_cur].slice(s_idx, idx_mid) ),
-    "Qr:", JSON.stringify( ctx.Q[iq_cur].slice(idx_mid, e_idx_ni) ) );
+  if (debug) {
+    console.log(pfx, "idx_u:", idx_u, "idx_v:", idx_v, "(idx_mid:", idx_mid, ")",
+      "t:", t_cur,
+      "Ql" + printf("[%i][%i:%i]", iq_tmp, q_s, q_s+q_l_n) + ":", JSON.stringify( ctx.Q[iq_tmp].slice(q_s, q_s+q_l_n) ),
+      "Qr" + printf("[%i][%i:%i]", iq_tmp, q_s+q_l_n, q_s+q_l_n+q_r_n) + ":", JSON.stringify( ctx.Q[iq_tmp].slice(q_s+q_l_n, q_s+q_l_n+q_r_n) ) );
+  }
 
-  let q_n_idx = 0;
-  let q_l_idx = s_idx;
-  let q_r_idx = idx_mid;
+  let q_n = 0;
+  let q_l_idx = q_s;
+  let q_r_idx = q_s + q_l_n;
   while (1) {
+
+    t6[0] = ctx.T_END;
+    t6[1] = ctx.T_END;
+
+    idx_l3[0] = -1; idx_l3[1] = -1; idx_l3[2] = -1;
+    idx_r3[0] = -1; idx_r3[1] = -1; idx_r3[2] = -1;
+
+    if (q_l_idx < (q_s + q_l_n)) {
+      cocha_idx3(ctx, idx_l3, ctx.Q[iq_tmp][q_l_idx]);
+      t6[0] = cocha_time3(ctx, idx_l3);
+    }
+
+    if (q_r_idx < (q_s + q_l_n + q_r_n)) {
+      cocha_idx3(ctx, idx_r3, ctx.Q[iq_tmp][q_r_idx]);
+      t6[1] = cocha_time3(ctx, idx_r3);
+    }
 
     cocha_idx3(ctx, idx_u3, idx_u);
     cocha_idx3(ctx, idx_v3, idx_v);
-    cocha_idx3(ctx, idx_l3, ctx.Q[iq_cur][q_l_idx]);
-    cocha_idx3(ctx, idx_r3, ctx.Q[iq_cur][q_r_idx]);
-
-    t6[0] = cocha_time3(ctx, idx_l3);
-    t6[1] = cocha_time3(ctx, idx_r3);
 
     t6[2] = cocha_time3(ctx, [idx_u3[1], idx_u3[2], idx_v3[1]]);
     t6[3] = cocha_time3(ctx, [idx_u3[0], idx_u3[1], idx_v3[1]]);
@@ -310,7 +333,7 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
     t6[4] = cocha_time3(ctx, [idx_u3[1], idx_v3[0], idx_v3[1]]);
     t6[5] = cocha_time3(ctx, [idx_u3[1], idx_v3[1], idx_v3[2]]);
 
-    t_nxt = ctx.T[1]+1;
+    t_nxt = ctx.T_END;
     let tm_idx = -1;
     for (let _i=0; _i<6; _i++) {
       if ((t6[_i] > t_cur) &&
@@ -323,14 +346,14 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
 
     if (tm_idx == -1) {
 
-      if (debug) { console.log(pfx, "k:", q_n_idx, "no event found, stopping"); }
+      if (debug) { console.log(pfx, "k:", q_n, "no event found, stopping"); }
 
       break;
     }
 
     if (debug) {
-      console.log(pfx, "T-:", ctx.T[0]-1, "T+:", ctx.T[1]+1);
-      console.log(pfx, "k:", q_n_idx, "tidx_event:", tm_idx, "(t6:", JSON.stringify(t6.map( (_) => {return printf("%0.2f",_);} )), ")");
+      console.log(pfx, "T-:", ctx.T_BEG, "T+:", ctx.T_END);
+      console.log(pfx, "k:", q_n, "tidx_event:", tm_idx, "(t6:", JSON.stringify(t6.map( (_) => {return printf("%0.2f",_);} )), ")");
       console.log(pfx, "t6[0]:", t6[0], idx_l3);
       console.log(pfx, "t6[1]:", t6[1], idx_r3);
       console.log(pfx, "t6[2]:", t6[2], [idx_u3[1], idx_u3[2], idx_v3[1]]);
@@ -345,10 +368,10 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
     if (tm_idx == 0) {
       if (ctx.P[idx_l3[1]][0] < ctx.P[idx_u3[1]][0]) {
 
-        if (debug) { console.log(pfx, "c.0:", ctx.Q[iq_cur][q_l_idx]); }
+        if (debug) { console.log(pfx, "c.0:", ctx.Q[iq_tmp][q_l_idx]); }
 
-        ctx.Q[iq_nxt][q_n_idx] = ctx.Q[iq_cur][q_l_idx];
-        cocha_H_indel(ctx, ctx.Q[iq_nxt][q_n_idx]);
+        ctx.Q[iq_cur][q_n] = ctx.Q[iq_tmp][q_l_idx];
+        cocha_H_indel(ctx, ctx.Q[iq_cur][q_n]);
         q_l_idx++;
       }
     }
@@ -358,10 +381,10 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
     else if (tm_idx == 1) {
       if (ctx.P[idx_r3[1]][0] > ctx.P[idx_v3[1]][0]) {
 
-        if (debug) { console.log(pfx, "c.1:", ctx.Q[iq_cur][q_l_idx]); }
+        if (debug) { console.log(pfx, "c.1:", ctx.Q[iq_tmp][q_l_idx]); }
 
-        ctx.Q[iq_nxt][q_n_idx] = ctx.Q[iq_cur][q_r_idx];
-        cocha_H_indel(ctx, ctx.Q[iq_nxt][q_n_idx]);
+        ctx.Q[iq_cur][q_n] = ctx.Q[iq_tmp][q_r_idx];
+        cocha_H_indel(ctx, ctx.Q[iq_cur][q_n]);
         q_r_idx++;
       }
     }
@@ -373,7 +396,7 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
 
       if (debug) { console.log(pfx, "c.2:", idx_u3[2]); }
 
-      ctx.Q[iq_nxt][q_n_idx] = idx_u3[2];
+      ctx.Q[iq_cur][q_n] = idx_u3[2];
       idx_u = idx_u3[2];
     }
 
@@ -384,7 +407,7 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
 
       if (debug) { console.log(pfx, "c.3:", idx_u3[1]); }
 
-      ctx.Q[iq_nxt][q_n_idx] = idx_u3[1];
+      ctx.Q[iq_cur][q_n] = idx_u3[1];
       idx_u = idx_u3[0];
     }
 
@@ -395,7 +418,7 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
 
       if (debug) { console.log(pfx, "c.4:", idx_v3[0]); }
 
-      ctx.Q[iq_nxt][q_n_idx] = idx_v3[0];
+      ctx.Q[iq_cur][q_n] = idx_v3[0];
       idx_v = idx_v3[0];
     }
 
@@ -406,15 +429,15 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
 
       if (debug) { console.log(pfx, "c.5:", idx_v3[1]); }
 
-      ctx.Q[iq_nxt][q_n_idx] = idx_v3[1];
+      ctx.Q[iq_cur][q_n] = idx_v3[1];
       idx_v = idx_v3[2];
     }
 
-    q_n_idx++;
+    q_n++;
     t_cur = t_nxt;
 
   }
-  ctx.Q[iq_nxt][q_n_idx] = -1;
+  //ctx.Q[iq_cur][q_n] = -1;
 
 
   ctx.H_nei[ idx_u ][1] = idx_v;
@@ -423,13 +446,13 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
   cocha_idx3( ctx, idx_u3, idx_u );
   cocha_idx3( ctx, idx_v3, idx_v );
 
-  for (let k = (q_n_idx-1); k >= 0; k--) {
+  for (let k = (q_n-1); k >= 0; k--) {
 
     if (debug) {
-      console.log(pfx, "rewind: k:", k, "(", q_n_idx, ")", "Q[", iq_nxt, "]:", JSON.stringify(ctx.Q[iq_nxt]) );
+      console.log(pfx, "rewind: k:", k, "(", q_n, ")", "Q[", iq_cur, "]:", JSON.stringify(ctx.Q[iq_cur]) );
     }
 
-    let _idx = ctx.Q[iq_nxt][k];
+    let _idx = ctx.Q[iq_cur][k];
     let _idx3 = [-1,-1,-1];
 
     cocha_idx3(ctx, _idx3, _idx);
@@ -460,11 +483,14 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
 
   }
 
-  return 0;
+  return q_n;
 }
 
 function cocha_hull(ctx) {
-  return cocha_recur(ctx, 0, ctx.P.length,0,0,0);
+  let t = cocha_recur(ctx, 0, ctx.P.length,0,0,0);
+
+  console.log("#got:", t);
+  console.log("#fin Q[0][:]:", JSON.stringify(ctx.Q[0]));
 }
 
 
@@ -500,6 +526,9 @@ function cocha_init(P) {
     if (t < ctx.T[0]) { ctx.T[0] = t; }
     if (t > ctx.T[1]) { ctx.T[1] = t; }
   }
+
+  ctx.T_BEG = ctx.T[0] - 1;
+  ctx.T_END = ctx.T[1] + 1;
 
   for (let i=0; i<n; i++) {
     ctx.Q[0].push(-1);
