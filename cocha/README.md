@@ -1,7 +1,7 @@
-Chan's Convex Hull Algorithm
+Chan's (Other) Convex Hull Algorithm
 ===
 
-(Attempt at) Implementation of Chan's Convex Hull Algorithm (ChCHA);
+(Attempt at) Implementation of Chan's (Other) Convex Hull Algorithm (COCHA).
 
 Overview
 ---

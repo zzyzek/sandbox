@@ -25,7 +25,7 @@ function print_point(P) {
   }
 }
 
-function chcha_debug_print_t(ctx) {
+function cocha_debug_print_t(ctx) {
   for (let t_idx=0; t_idx < ctx._t.length; t_idx++) {
 
     let t = ctx._t[t_idx];
@@ -38,7 +38,7 @@ function chcha_debug_print_t(ctx) {
   }
 }
 
-function chcha_debug_print(ctx) {
+function cocha_debug_print(ctx) {
   let foldq = 16;
 
 
@@ -66,7 +66,7 @@ function chcha_debug_print(ctx) {
 
 }
 
-function chcha_json(ctx) {
+function cocha_json(ctx) {
 
   console.log("{");
   console.log("  \"p\": [");
@@ -124,7 +124,7 @@ function _turn(p,q,r) {
   return _den;
 }
 
-function chcha_idx3(ctx, idx3, idx) {
+function cocha_idx3(ctx, idx3, idx) {
   if (idx < 0) { idx3[0] = -1; idx3[1] = -1, idx3[2] = -1; return; }
 
   idx3[0] = ctx.H_nei[idx][0];
@@ -134,7 +134,7 @@ function chcha_idx3(ctx, idx3, idx) {
   return idx3;
 }
 
-function chcha_turn3(ctx, idx3) {
+function cocha_turn3(ctx, idx3) {
   if ((idx3[0] < 0) ||
       (idx3[1] < 0) ||
       (idx3[2] < 0)) { return 1.0; }
@@ -142,10 +142,10 @@ function chcha_turn3(ctx, idx3) {
   return _turn( ctx.P[idx3[0]], ctx.P[idx3[1]], ctx.P[idx3[2]] );
 }
 
-function chcha_time3(ctx, idx3) {
+function cocha_time3(ctx, idx3) {
   if ((idx3[0] < 0) ||
       (idx3[1] < 0) ||
-      (idx3[2] < 0)) { return ctx.T[1]; }
+      (idx3[2] < 0)) { return ctx.T[1]+1; }
 
   return _time( ctx.P[idx3[0]], ctx.P[idx3[1]], ctx.P[idx3[2]] );
 }
@@ -157,7 +157,7 @@ function chcha_time3(ctx, idx3) {
 // If the current hull point doesn't have it's neighbors
 // pointing to it, it's an insertion.
 //
-function chcha_H_indel(ctx, idx) {
+function cocha_H_indel(ctx, idx) {
 
   if (idx < 0) { return -1; }
 
@@ -183,7 +183,14 @@ function chcha_H_indel(ctx, idx) {
   return 0;
 }
 
-// untested
+// wip (still buggy 2026-02-18)
+//
+//
+// input:
+//
+// ctx - cocha context
+//
+//
 //
 // ctx:
 //
@@ -195,7 +202,8 @@ function chcha_H_indel(ctx, idx) {
 //         1 idx -> +x (right)
 //         -1 indicates no neighbor
 //
-function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
+//
+function cocha_recur(ctx, s_idx, e_idx_ni, q_idx, q_s) {
 
   let debug = 1;
 
@@ -220,6 +228,9 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
       idx_u1v0v1 = [ -1,-1,-1 ],
       idx_u1v1v2 = [ -1,-1,-1 ];
 
+  let q_l_n = 0,
+      q_r_n = 0;
+
   let n = (e_idx_ni - s_idx);
   let n2 = Math.floor(n/2);
   idx_mid = s_idx + n2;
@@ -232,17 +243,17 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
   console.log("#recur[", iq_cur, "]:", "se:[", s_idx, e_idx_ni, "]", "(n:", n, ")")
 
   if (n==1) {
-    ctx.Q[iq_cur][0] = s_idx;
+    ctx.Q[iq_nxt][0] = s_idx;
     ctx.H_nei[s_idx][0] = -1;
     ctx.H_nei[s_idx][1] = -1;
     return 0;
   }
 
-  _r = chcha_recur(ctx, s_idx, idx_mid, iq_nxt);
-  if (_r < 0) { return _r; }
+  q_l_n = cocha_recur(ctx, s_idx, idx_mid, iq_nxt, q_s);
+  if (q_l_n < 0) { return q_l_n; }
 
-  _r = chcha_recur(ctx, idx_mid, e_idx_ni, iq_nxt);
-  if (_r < 0) { return _r; }
+  q_r_n = cocha_recur(ctx, idx_mid, e_idx_ni, iq_nxt, q_s + q_l_n);
+  if (q_r_n < 0) { return q_r_n; }
 
   idx_u = idx_mid-1;
   idx_v = idx_mid;
@@ -252,18 +263,18 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
 
   do {
 
-    chcha_idx3(ctx, idx_u3, idx_u);
-    chcha_idx3(ctx, idx_v3, idx_v);
+    cocha_idx3(ctx, idx_u3, idx_u);
+    cocha_idx3(ctx, idx_v3, idx_v);
 
     // move v right
     //
-    if (chcha_turn3(ctx, [ idx_u3[1], idx_v3[1], idx_v3[2] ] ) < 0) {
+    if (cocha_turn3(ctx, [ idx_u3[1], idx_v3[1], idx_v3[2] ] ) < 0) {
       idx_v = idx_v3[2];
     }
 
     // move u left
     //
-    else if (chcha_turn3(ctx, [ idx_u3[0], idx_u3[1], idx_v3[1] ] ) < 0) {
+    else if (cocha_turn3(ctx, [ idx_u3[0], idx_u3[1], idx_v3[1] ] ) < 0) {
       idx_u = idx_u3[0];
     }
 
@@ -275,26 +286,29 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
   t_nxt = ctx.T[1]+1;
 
   //DEBUG
-  console.log(pfx, "idx_u:", idx_u, "idx_v:", idx_v, "t:", t_cur);
+  console.log(pfx, "idx_u:", idx_u, "idx_v:", idx_v, "(idx_mid:", idx_mid, ")",
+    "t:", t_cur,
+    "Ql:", JSON.stringify( ctx.Q[iq_cur].slice(s_idx, idx_mid) ),
+    "Qr:", JSON.stringify( ctx.Q[iq_cur].slice(idx_mid, e_idx_ni) ) );
 
   let q_n_idx = 0;
   let q_l_idx = s_idx;
   let q_r_idx = idx_mid;
   while (1) {
 
-    chcha_idx3(ctx, idx_u3, idx_u);
-    chcha_idx3(ctx, idx_v3, idx_v);
-    chcha_idx3(ctx, idx_l3, ctx.Q[iq_cur][q_l_idx]);
-    chcha_idx3(ctx, idx_r3, ctx.Q[iq_cur][q_r_idx]);
+    cocha_idx3(ctx, idx_u3, idx_u);
+    cocha_idx3(ctx, idx_v3, idx_v);
+    cocha_idx3(ctx, idx_l3, ctx.Q[iq_cur][q_l_idx]);
+    cocha_idx3(ctx, idx_r3, ctx.Q[iq_cur][q_r_idx]);
 
-    t6[0] = chcha_time3(ctx, idx_l3);
-    t6[1] = chcha_time3(ctx, idx_r3);
+    t6[0] = cocha_time3(ctx, idx_l3);
+    t6[1] = cocha_time3(ctx, idx_r3);
 
-    t6[2] = chcha_time3(ctx, [idx_u3[1], idx_u3[2], idx_v3[1]]);
-    t6[3] = chcha_time3(ctx, [idx_u3[0], idx_u3[1], idx_v3[1]]);
+    t6[2] = cocha_time3(ctx, [idx_u3[1], idx_u3[2], idx_v3[1]]);
+    t6[3] = cocha_time3(ctx, [idx_u3[0], idx_u3[1], idx_v3[1]]);
 
-    t6[4] = chcha_time3(ctx, [idx_u3[1], idx_v3[0], idx_v3[1]]);
-    t6[5] = chcha_time3(ctx, [idx_u3[1], idx_v3[1], idx_v3[2]]);
+    t6[4] = cocha_time3(ctx, [idx_u3[1], idx_v3[0], idx_v3[1]]);
+    t6[5] = cocha_time3(ctx, [idx_u3[1], idx_v3[1], idx_v3[2]]);
 
     t_nxt = ctx.T[1]+1;
     let tm_idx = -1;
@@ -314,7 +328,17 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
       break;
     }
 
-    if (debug) { console.log(pfx, "k:", q_n_idx, "tidx_event:", tm_idx); }
+    if (debug) {
+      console.log(pfx, "T-:", ctx.T[0]-1, "T+:", ctx.T[1]+1);
+      console.log(pfx, "k:", q_n_idx, "tidx_event:", tm_idx, "(t6:", JSON.stringify(t6.map( (_) => {return printf("%0.2f",_);} )), ")");
+      console.log(pfx, "t6[0]:", t6[0], idx_l3);
+      console.log(pfx, "t6[1]:", t6[1], idx_r3);
+      console.log(pfx, "t6[2]:", t6[2], [idx_u3[1], idx_u3[2], idx_v3[1]]);
+      console.log(pfx, "t6[3]:", t6[3], [idx_u3[0], idx_u3[1], idx_v3[1]]);
+      console.log(pfx, "t6[4]:", t6[4], [idx_u3[1], idx_v3[0], idx_v3[1]]);
+      console.log(pfx, "t6[5]:", t6[5], [idx_u3[1], idx_v3[1], idx_v3[2]]);
+
+    }
 
     // event is left of bridge
     //
@@ -324,7 +348,7 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
         if (debug) { console.log(pfx, "c.0:", ctx.Q[iq_cur][q_l_idx]); }
 
         ctx.Q[iq_nxt][q_n_idx] = ctx.Q[iq_cur][q_l_idx];
-        chcha_H_indel(ctx, ctx.Q[iq_nxt][q_n_idx]);
+        cocha_H_indel(ctx, ctx.Q[iq_nxt][q_n_idx]);
         q_l_idx++;
       }
     }
@@ -337,7 +361,7 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
         if (debug) { console.log(pfx, "c.1:", ctx.Q[iq_cur][q_l_idx]); }
 
         ctx.Q[iq_nxt][q_n_idx] = ctx.Q[iq_cur][q_r_idx];
-        chcha_H_indel(ctx, ctx.Q[iq_nxt][q_n_idx]);
+        cocha_H_indel(ctx, ctx.Q[iq_nxt][q_n_idx]);
         q_r_idx++;
       }
     }
@@ -396,8 +420,8 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
   ctx.H_nei[ idx_u ][1] = idx_v;
   ctx.H_nei[ idx_v ][0] = idx_u;
 
-  chcha_idx3( ctx, idx_u3, idx_u );
-  chcha_idx3( ctx, idx_v3, idx_v );
+  cocha_idx3( ctx, idx_u3, idx_u );
+  cocha_idx3( ctx, idx_v3, idx_v );
 
   for (let k = (q_n_idx-1); k >= 0; k--) {
 
@@ -408,9 +432,9 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
     let _idx = ctx.Q[iq_nxt][k];
     let _idx3 = [-1,-1,-1];
 
-    chcha_idx3(ctx, _idx3, _idx);
-    chcha_idx3(ctx, idx_u3, idx_u);
-    chcha_idx3(ctx, idx_v3, idx_v);
+    cocha_idx3(ctx, _idx3, _idx);
+    cocha_idx3(ctx, idx_u3, idx_u);
+    cocha_idx3(ctx, idx_v3, idx_v);
 
     let _u = ctx.P[idx_u];
     let _v = ctx.P[idx_v];
@@ -428,7 +452,7 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
       else                { idx_v = _idx; }
     }
     else {
-      chcha_H_indel(ctx, _idx);
+      cocha_H_indel(ctx, _idx);
 
       if      (_idx == idx_u) { idx_u = idx_u3[0]; }
       else if (_idx == idx_v) { idx_v = idx_v3[2]; }
@@ -439,8 +463,8 @@ function chcha_recur(ctx, s_idx, e_idx_ni, q_idx) {
   return 0;
 }
 
-function chcha_hull(ctx) {
-  return chcha_recur(ctx, 0, ctx.P.length,0);
+function cocha_hull(ctx) {
+  return cocha_recur(ctx, 0, ctx.P.length,0,0,0);
 }
 
 
@@ -450,7 +474,7 @@ function _xxx() {
   print_point(P);
 }
 
-function chcha_init(P) {
+function cocha_init(P) {
   let n = P.length;
 
   P.sort(pnt_cmp);
@@ -501,30 +525,30 @@ function spot_test2() {
   let p2 = init_point(2);
   p2.sort(pnt_cmp);
   print_point(p2);
-  let ctx_p2 = chcha_init(p2);
-  chcha_hull(ctx_p2);
-  chcha_debug_print(ctx_p2);
+  let ctx_p2 = cocha_init(p2);
+  cocha_hull(ctx_p2);
+  cocha_debug_print(ctx_p2);
 }
 
 function spot_test3() {
   let p3 = init_point(3);
   p3.sort(pnt_cmp);
   print_point(p3);
-  let ctx_p3 = chcha_init(p3);
-  let r = chcha_hull(ctx_p3);
+  let ctx_p3 = cocha_init(p3);
+  let r = cocha_hull(ctx_p3);
 
   console.log(">>>", r);
 
-  chcha_debug_print(ctx_p3);
+  cocha_debug_print(ctx_p3);
 }
 
 function p_test(p) {
 
-  let ctx = chcha_init(p);
-  let r = chcha_hull(ctx);
+  let ctx = cocha_init(p);
+  let r = cocha_hull(ctx);
 
-  chcha_debug_print_t(ctx);
-  chcha_debug_print(ctx);
+  cocha_debug_print_t(ctx);
+  cocha_debug_print(ctx);
 
 }
 
@@ -532,12 +556,12 @@ function spot_test_n(n) {
   let p = init_point(n);
   p.sort(pnt_cmp);
   print_point(p);
-  let ctx_p = chcha_init(p);
-  let r = chcha_hull(ctx_p);
+  let ctx_p = cocha_init(p);
+  let r = cocha_hull(ctx_p);
 
   console.log(">>>", r);
 
-  chcha_debug_print(ctx_p);
+  cocha_debug_print(ctx_p);
 }
 
 function _main() {
