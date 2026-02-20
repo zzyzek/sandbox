@@ -181,32 +181,6 @@ function cocha_H_indel(ctx, idx) {
   return 0;
 }
 
-function _cocha_H_indel(ctx, idx) {
-
-  if (idx < 0) { return -1; }
-
-  let idx_prv = ctx.H_nei[idx][0],
-      idx_nxt = ctx.H_nei[idx][1];
-
-  // insert
-  //
-  if ( (idx_prv >= 0) &&
-       (ctx.H_nei[idx_prv][1] != idx) ) {
-    ctx.H_nei[idx_prv][1] = idx;
-    if (idx_nxt >= 0) { ctx.H_nei[idx_nxt][0] = idx; }
-  }
-
-  // delete
-  //
-  else if ( (idx_nxt >= 0) &&
-            (ctx.H_nei[idx_nxt][0] != idx) ) {
-    ctx.H_nei[idx_nxt][0] = idx;
-    if (idx_prv >= 0) { ctx.H_nei[idx_prv][1] = idx; }
-  }
-
-  return 0;
-}
-
 // wip (still buggy 2026-02-18)
 //
 //
@@ -528,26 +502,6 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
       else                { idx_v = _idx; }
     }
 
-    /*
-    if ((_w_cur[0] > _u[0]) &&
-        (_w_cur[0] < _v[0])) {
-      ctx.H_nei[ idx_u ][1] = _idx;
-      ctx.H_nei[ idx_v ][0] = _idx;
-
-      ctx.H_nei[ _idx ][0] = idx_u;
-      ctx.H_nei[ _idx ][1] = idx_v;
-
-      if (_idx < idx_mid) { idx_u = _idx; }
-      else                { idx_v = _idx; }
-    }
-    else {
-      cocha_H_indel(ctx, _idx);
-
-      if      (_idx == idx_u) { idx_u = idx_u3[0]; }
-      else if (_idx == idx_v) { idx_v = idx_v3[2]; }
-    }
-    */
-
   }
 
   return q_n;
@@ -555,7 +509,6 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
 
 function cocha_hull(ctx) {
   let n = cocha_recur(ctx, 0, ctx.P.length,0,0,0);
-
 
 
   console.log("#got:", n);
@@ -598,8 +551,12 @@ function cocha_init(P) {
     if (t > ctx.T[1]) { ctx.T[1] = t; }
   }
 
-  ctx.T_BEG = ctx.T[0] - 1;
-  ctx.T_END = ctx.T[1] + 1;
+  // perhaps if I were more clever, I could
+  // find reasonable upper bounds dependent
+  // on values of coordinates.
+  //
+  ctx.T_BEG = -1e99;
+  ctx.T_END =  1e99;
 
   for (let i=0; i<n; i++) {
     ctx.Q[0].push(-1);
@@ -706,9 +663,26 @@ function _test6() {
 
 }
 
+function _test7() {
+
+  let p7 = [
+    [0.08102541676378161,0.20095600221464172,0.07388784976056084],
+    [0.2566648902725843,0.32336822621133665,0.8580097895356209],
+    [0.3033468447513459,0.857781207933638,0.9766556528520516],
+    [0.4942691221888873,0.18618235523762316,0.6260216168067616],
+    [0.7372639911023942,0.24307913353048205,0.3493472169678489],
+    [0.7990335138109927,0.05221620008067873,0.6026994416490505],
+    [0.9464659507180238,0.39981490695396427,0.029159018492347366]
+  ];
+
+  p_test(p7);
+
+}
+
 function _main() {
-  _test6();
-  //spot_test_n(6);
+  //_test6();
+  _test7();
+  //spot_test_n(7);
 }
 
 
