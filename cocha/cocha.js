@@ -510,6 +510,40 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
 function cocha_hull(ctx) {
   let n = cocha_recur(ctx, 0, ctx.P.length,0,0,0);
 
+  let vtx_list = [];
+  for (let i=0; i<n; i++) {
+    let idx = ctx.Q[0][i];
+    vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
+  }
+
+  /*
+  for (let i=0; i<ctx.P.length; i++) { ctx.P[i][2] = -ctx.P[i][2]; }
+  cocha_reset(ctx);
+
+  n = cocha_recur(ctx, 0, ctx.P.length,0,0,0);
+  for (let i=0; i<n; i++) {
+    let idx = ctx.Q[0][i];
+    vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
+  }
+
+  for (let i=0; i<ctx.P.length; i++) { ctx.P[i][2] = -ctx.P[i][2]; }
+  */
+
+  for (let i=0; i<ctx.P.length; i++) {
+    console.log(ctx.P[i][0], ctx.P[i][1], ctx.P[i][2]);
+    console.log("\n\n");
+  }
+
+  for (let i=0; i<vtx_list.length; i++) {
+    let uvw = vtx_list[i];
+    console.log( ctx.P[ uvw[0] ][0],  ctx.P[ uvw[0] ][1],  ctx.P[ uvw[0] ][2] );
+    console.log( ctx.P[ uvw[1] ][0],  ctx.P[ uvw[1] ][1],  ctx.P[ uvw[1] ][2] );
+    console.log( ctx.P[ uvw[2] ][0],  ctx.P[ uvw[2] ][1],  ctx.P[ uvw[2] ][2] );
+    console.log( ctx.P[ uvw[0] ][0],  ctx.P[ uvw[0] ][1],  ctx.P[ uvw[0] ][2] );
+    console.log("\n\n");
+  }
+
+
 
   console.log("#got:", n);
   console.log("#fin Q[0][:]:", JSON.stringify(ctx.Q[0].slice(0,n)));
@@ -522,6 +556,22 @@ function _xxx() {
   let P = init_point(20);
   P.sort(pnt_cmp);
   print_point(P);
+}
+
+function cocha_reset(ctx) {
+
+  let n = ctx.P.length;
+
+  for (let i=0; i<n; i++) {
+    ctx.Q[0][2*i] = -1;
+    ctx.Q[0][2*i+1] = -1;
+    ctx.Q[1][2*i] = -1;
+    ctx.Q[1][2*i+1] = -1;
+
+    ctx.H_nei[i][0] = -1;
+    ctx.H_nei[i][1] = -1;
+  }
+
 }
 
 function cocha_init(P) {
@@ -577,6 +627,8 @@ function cocha_init(P) {
 
   return ctx;
 }
+
+
 
 function spot_test2() {
   let p2 = init_point(2);
@@ -681,8 +733,16 @@ function _test7() {
 
 function _main() {
   //_test6();
-  _test7();
+  //_test7();
   //spot_test_n(7);
+
+  let p = init_point(20);
+  let ctx = cocha_init(p);
+  let r = cocha_hull(ctx);
+
+  console.log("#...", r);
+
+  
 }
 
 
