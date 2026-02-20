@@ -514,20 +514,21 @@ function cocha_hull(ctx) {
   for (let i=0; i<n; i++) {
     let idx = ctx.Q[0][i];
     vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
+
+    cocha_H_indel(ctx, idx);
   }
 
-  /*
   for (let i=0; i<ctx.P.length; i++) { ctx.P[i][2] = -ctx.P[i][2]; }
-  cocha_reset(ctx);
+  //cocha_reset(ctx);
 
   n = cocha_recur(ctx, 0, ctx.P.length,0,0,0);
   for (let i=0; i<n; i++) {
     let idx = ctx.Q[0][i];
     vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
+    cocha_H_indel(ctx, idx);
   }
 
   for (let i=0; i<ctx.P.length; i++) { ctx.P[i][2] = -ctx.P[i][2]; }
-  */
 
   for (let i=0; i<ctx.P.length; i++) {
     console.log(ctx.P[i][0], ctx.P[i][1], ctx.P[i][2]);
@@ -731,12 +732,40 @@ function _test7() {
 
 }
 
-function _main() {
+function _test9() {
+  let p9 = [
+    [0.03373975871834212,0.3458105099980622,0.9868635742588905],
+    [0.06557532629409124,0.3290787601516416,0.9253850765837877],
+    [0.24722412793732262,0.6661241220261769,0.6687071616709546],
+    [0.29512199669995987,0.7703151939579145,0.7123357322518018],
+    [0.353238770586767,0.9837777890513197,0.9589729703913512],
+    [0.45623105274891973,0.3250232398554289,0.605312316232097],
+    [0.5860117307071262,0.2888760924619087,0.7360023723992755],
+    [0.7750779980330444,0.9873914524363374,0.09913136242287002],
+    [0.7811016004183633,0.7034488220301516,0.5748783204626202]
+  ];
+
+  let ctx = cocha_init(p9);
+  let r = cocha_hull(ctx);
+
+
+}
+
+function __main() {
   //_test6();
   //_test7();
-  //spot_test_n(7);
 
-  let p = init_point(20);
+  _test9();
+  return;
+
+  spot_test_n(9);
+  return;
+
+}
+
+function _main() {
+
+  let p = init_point(40);
   let ctx = cocha_init(p);
   let r = cocha_hull(ctx);
 
