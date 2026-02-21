@@ -532,7 +532,13 @@ function cocha_hull(ctx) {
   let vtx_list = [];
   for (let i=0; i<n; i++) {
     let idx = ctx.Q[0][i];
-    vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
+
+    let l_idx = ctx.P[ctx.H_nei[idx][0]][3];
+    let m_idx = ctx.P[idx][3];
+    let r_idx = ctx.P[ctx.H_nei[idx][1]][3];
+
+    //vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
+    vtx_list.push( [ l_idx, m_idx, r_idx ] );
     cocha_H_indel(ctx, idx);
   }
 
@@ -547,13 +553,24 @@ function cocha_hull(ctx) {
 
   for (let i=0; i<n; i++) {
     let idx = ctx.Q[0][i];
-    vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
+
+    let l_idx = ctx.P[ctx.H_nei[idx][0]][3];
+    let m_idx = ctx.P[idx][3];
+    let r_idx = ctx.P[ctx.H_nei[idx][1]][3];
+
+    //vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
+    vtx_list.push( [ l_idx, m_idx, r_idx ] );
     cocha_H_indel(ctx, idx);
   }
 
   for (let i=0; i<ctx.P.length; i++) { ctx.P[i][2] = -ctx.P[i][2]; }
 
   return vtx_list;
+}
+
+function HULL(P) {
+  let ctx = cocha_init(P);
+  return cocha_hull(ctx);
 }
 
 function cocha_print_hull(ctx, vtx_list) {
@@ -586,8 +603,13 @@ function cocha_reset(ctx) {
 
 }
 
-function cocha_init(P) {
-  let n = P.length;
+function cocha_init(_P) {
+  let n = _P.length;
+
+  let P = [];
+  for (let i=0; i<_P.length; i++) {
+    P.push( [_P[i][0], _P[i][1], _P[i][2], i ] );
+  }
 
   P.sort(pnt_cmp);
 
@@ -763,6 +785,8 @@ function _main() {
     return -1;
   }
 
+  let vlist = HULL(P);
+
   let cocha_ctx = cocha_init(P);
   cocha_ctx._debug = DEBUG_LEVEL;
   let vlist = cocha_hull(cocha_ctx);
@@ -828,19 +852,20 @@ function _main() {
 
 
 if (typeof module !== "undefined") {
-  module.exports["rand_point"] = rand_point;
-  module.exports["reset"] = cocha_reset;
-  module.exports["recur"] = cocha_recur;
-  module.exports["indel"] = cocha_H_indel;
-  module.exports["idx3"] = cocha_idx3;
-  module.exports["turn3"] = cocha_turn3;
-  module.exports["time3"] = cocha_time3;
+  //module.exports["rand_point"] = rand_point;
+  module.exports["_reset"] = cocha_reset;
+  module.exports["_recur"] = cocha_recur;
+  module.exports["_indel"] = cocha_H_indel;
+  module.exports["_idx3"] = cocha_idx3;
+  module.exports["_turn3"] = cocha_turn3;
+  module.exports["_time3"] = cocha_time3;
 
-  module.exports["init"] = cocha_init;
-  module.exports["hull"] = cocha_hull;
+  module.exports["_init"] = cocha_init;
+  module.exports["_hull"] = cocha_hull;
+  module.exports["hull"] = HULL;
 
-  module.exports["time"] = _time;
-  module.exports["turn"] = _turn;
+  module.exports["_time"] = _time;
+  module.exports["_turn"] = _turn;
 }
 
 if ((typeof require !== "undefined") &&
