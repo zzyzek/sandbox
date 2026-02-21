@@ -785,7 +785,7 @@ function _main() {
     return -1;
   }
 
-  let vlist = HULL(P);
+  //let vlist = HULL(P);
 
   let cocha_ctx = cocha_init(P);
   cocha_ctx._debug = DEBUG_LEVEL;

@@ -34,6 +34,7 @@
 // points, so they are both maxima.
 //
 
+var cocha = require("./cocha.js");
 var BCL90_STANDALONE = true;
 
 var drand = Math.random;
