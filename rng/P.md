@@ -1,8 +1,8 @@
 ...
 ===
 
-Consider a vertex set $V = \{ v | v \in \mathbb{R}^d \}$, $n = |V|$, where
-we will be considering only $d \in \{2,3\}$ with a Euclidean distance metric.
+Consider a vertex set $V = \\{ v | v \in \mathbb{R}^d \\}$, $n = |V|$, where
+we will be considering only $d \in \\{2,3\\}$ with a Euclidean distance metric.
 
 Relative Neighborhood Graph (RNG)
 ---
