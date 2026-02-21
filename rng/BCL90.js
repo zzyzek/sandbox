@@ -322,6 +322,7 @@ function H1(S,dim) {
 
   for (let i=0; i<m; i++) {
     if (C[i] == 0) {
+      //return cocha.hull(S);
       //return convex_hull(S);
     }
   }
