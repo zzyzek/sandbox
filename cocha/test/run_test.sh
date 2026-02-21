@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# note that points need to be in sorted order for out index checks to match below
+#
+
 for ifn in `ls ../data/*.cocha` ; do
 
   bfn=`basename $ifn`

@@ -13,6 +13,7 @@
 
 var COCHA_VERSION = "0.2.0";
 
+
 var _rnd = Math.random;
 var printf = require("printf");
 
@@ -524,6 +525,10 @@ function cocha_hull(ctx) {
   let n = cocha_recur(ctx, 0, ctx.P.length,0,0,0);
   ctx.q_n = n;
 
+  if (ctx._debug > 0) {
+    console.log("# got:", n, "Q[0]:", JSON.stringify(ctx.Q[0].slice(0,n)));
+  }
+
   let vtx_list = [];
   for (let i=0; i<n; i++) {
     let idx = ctx.Q[0][i];
@@ -535,6 +540,11 @@ function cocha_hull(ctx) {
 
   n = cocha_recur(ctx, 0, ctx.P.length,0,0,0);
   ctx.q_n = n;
+
+  if (ctx._debug > 0) {
+    console.log("# got:", n, "Q[0]:", JSON.stringify(ctx.Q[0].slice(0,n)));
+  }
+
   for (let i=0; i<n; i++) {
     let idx = ctx.Q[0][i];
     vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
@@ -686,6 +696,7 @@ function show_help(fp) {
 function _main() {
   var getopt = require("posix-getopt");
   var fs = require("fs");
+  let DEBUG_LEVEL = 0;
 
   let _ret = 0;
 
@@ -753,6 +764,7 @@ function _main() {
   }
 
   let cocha_ctx = cocha_init(P);
+  cocha_ctx._debug = DEBUG_LEVEL;
   let vlist = cocha_hull(cocha_ctx);
 
   if (_opt.output_format.search(/point/) == 0) {

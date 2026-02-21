@@ -1,0 +1,52 @@
+#!/usr/bin/node
+// To the extent possible under law, the person who associated CC0 with
+// this project has waived all copyright and related or neighboring rights
+// to this project.
+//
+// You should have received a copy of the CC0 legalcode along with this
+// work.  If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+//
+
+// pretty minimal for now, not sure if this tool is useful so I won't 
+// add to it for now.
+//
+
+function rand_uniform() { return Math.random(); }
+
+var _rand_dist = rand_uniform;
+
+let op = 'u';
+
+if (process.argv.length > 2) {
+  op = process.argv[2];
+}
+
+let N = 1;
+let M = 1;
+
+if (op.length == 0) { op = "1"; }
+else if (op[0] == 'u') {
+  _rand_dist = rand_uniform;
+  op = op.slice(1);
+}
+
+let tok = op.split("x");
+
+if (!isNaN( parseInt(tok[0]) )) {
+  N = parseInt(tok[0]);
+}
+
+if (tok.length > 1) {
+  if (!isNaN( parseInt(tok[1]) )) {
+    M = parseInt(tok[1]);
+  }
+}
+
+for (let i=0; i<N; i++) {
+  let a = [];
+  for (let j=0; j<M; j++) {
+    a.push( _rand_dist() );
+  }
+  console.log(a.join(" "));
+}
+
