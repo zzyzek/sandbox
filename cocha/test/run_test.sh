@@ -1,0 +1,15 @@
+#!/bin/bash
+
+for ifn in `ls ../data/*.cocha` ; do
+
+  bfn=`basename $ifn`
+  a=`../cocha.js -s -O index -i $ifn | grep -v '#' | sha256sum | cut -f1 -d' '`
+  b=`../n4cha3d.js $ifn | grep -v '#' | sha256sum | cut -f1 -d' '`
+
+  echo -n "$bfn: "
+  if [[ "$a" == "$b" ]] ; then
+    echo 'pass'
+  else
+    echo FAIL
+  fi
+done
