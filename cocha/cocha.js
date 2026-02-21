@@ -213,8 +213,7 @@ function cocha_H_indel(ctx, idx) {
 //
 //
 function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
-
-  let debug = 1;
+  let debug = ctx._debug;
 
   let idx_mid = -1,
       idx_u = -1,
@@ -575,6 +574,8 @@ function cocha_init(P) {
   P.sort(pnt_cmp);
 
   let ctx = {
+    "_debug": 0,
+
     "P" : P,
     "T" : [0,0],
     "q_idx": 0,
@@ -767,6 +768,7 @@ var long_opt = [
   "V", ":(verbose)",
   "P", "(print-point)",
   "u", "(print-vertex)",
+  "s", "(sort-index)",
   "i", ":(input-file)",
 ];
 
@@ -776,6 +778,7 @@ var long_opt_desc = [
   "verbosity level",
   "print input points",
   "print index vertex points (default print Euclidean points)",
+  "print index in sorted order",
   "input file (first line number of points proceeding by each 3d point on a line)",
   ""
 ];
@@ -816,6 +819,7 @@ function _main() {
   let _opt = {
     "print_point": false,
     "print_index": false,
+    "sort_index" : false,
     "ifn": ""
   };
 
@@ -829,8 +833,13 @@ function _main() {
       case 'V': DEBUG_LEVEL = parseInt(arg_opt.optarg); break;
       case 'P': _opt.print_point = true; break;
       case 'u': _opt.print_index = true; break;
+      case 's': _opt.sort_index = true; break;
       case 'i': _opt.ifn = arg_opt.optarg; break;
-      default: show_help(process.stderr); exec=0; break;
+      default:
+        process.stderr.write("invalid option '" + arg_opt.option + "'\n");
+        show_help(process.stderr);
+        exec=0;
+        break;
     }
   }
 
@@ -878,9 +887,26 @@ function _main() {
   }
 
   if (_opt.print_index) {
+
+    if (_opt.sort_index) {
+      for (let i=0; i<vlist.length; i++) {
+        vlist[i].sort( (a,b) => { if (a<b) { return -1; } if (a>b) { return 1; } return 0; });
+      }
+
+      vlist.sort( (a,b) => {
+        let _n = Math.min(a.length,b.length);
+        for (let _i=0; _i<_n; _i++) {
+          if (a[_i]<b[_i]) { return -1; }
+          if (a[_i]>b[_i]) { return  1; }
+        }
+        return 0;
+      });
+    }
+
     for (let i=0; i<vlist.length; i++) {
       console.log(vlist[i][0], vlist[i][1], vlist[i][2]);
     }
+
   }
   else {
     cocha_print_hull(cocha_ctx, vlist);
