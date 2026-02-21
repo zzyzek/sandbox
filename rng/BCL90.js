@@ -1,3 +1,4 @@
+#!/usr/bin/node
 // LICENSE: CC0
 //
 // To the extent possible under law, the person who associated CC0 with
@@ -35,7 +36,9 @@
 //
 
 var cocha = require("./cocha.js");
-var BCL90_STANDALONE = true;
+var BCL90_STANDALONE = false;
+
+var NAIVE_RUNTIME_COUNT = 0;
 
 var drand = Math.random;
 
@@ -106,6 +109,15 @@ function point_domination(a,b) {
 
 // O(n^2)
 //
+// input:
+//
+//   S : array of points (of arbitrary but same dimension)
+//
+//
+// return:
+//
+//   array of indices of maxima (non-dominated points)
+//
 function naive_arg_point_set_maxima(S) {
   let n = S.length;
   let _max_idx = 0;
@@ -116,6 +128,9 @@ function naive_arg_point_set_maxima(S) {
 
     let _maxima = true;
     for (let j=0; j<n; j++) {
+
+      NAIVE_RUNTIME_COUNT++;
+
       if (i==j) { continue; }
       let d = point_domination( S[i], S[j] );
       if (d == 'b') { _maxima = false; break; }
@@ -128,7 +143,7 @@ function naive_arg_point_set_maxima(S) {
 }
 
 //                   .----------------------------. (1,1)
-// sqrt( ln(N) / N ) |          D             | C |
+// (ln(N) / N)^{1/d} |          D             | C |
 //                   |------------------------*---|
 //                   |                      / |   |
 //                   |                     P  |   |
@@ -355,6 +370,25 @@ function _point_domination_spot_test() {
   console.log(a,b, point_domination(a,b));
 }
 
+if (typeof module !== "undefined") {
+}
+
+if ((typeof require !== "undefined") &&
+    (require.main === module)) {
+  BCL90_STANDALONE = true;
+}
+
+function rand_point(n, d) {
+  let a = [];
+  for (let i=0; i<n; i++) {
+    let v = [];
+    for (let j=0; j<d; j++) {
+      v.push(Math.random());
+    }
+    a.push(v);
+  }
+  return a;
+}
 
 if (BCL90_STANDALONE) {
 
@@ -374,6 +408,24 @@ if (BCL90_STANDALONE) {
     else if (op == "m1_example") {
       let v = M1(_example_point_set);
       console.log(v);
+    }
+
+    else if (op == "m1_experiment") {
+
+      let n_it = 100;
+      for (let n = 20; n<100000; n *= 2) {
+        for (let it=0; it<n_it; it++) {
+
+          NAIVE_RUNTIME_COUNT = 0;
+
+          let p = rand_point(n, 3);
+          let v = M1(p);
+
+          console.log(n, NAIVE_RUNTIME_COUNT);
+          //console.log(v);
+        }
+      }
+
     }
 
     else if (op == "m3_example") {

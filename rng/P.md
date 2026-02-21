@@ -126,8 +126,8 @@ We start with a point set $V$, $n = |V|$.
   - BCL93 can be used which has expected linear time
   - each vertex on the convex hull has an implicit splitting plane
     + think of a set of points in a circle around the point set at infinity
-* Create the binning grid and bin points within
-* For each point, $p$
+* Create the binning grid, $B$, and bin points within
+* For each point, $p \in B$
   - $W$ = {}
   - While $p$ is not fenced in by a bounding convex hull $U$
     + take an initial grid cell window around that that point
