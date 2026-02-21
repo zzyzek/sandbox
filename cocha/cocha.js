@@ -1,7 +1,8 @@
+#!/usr/bin/node
 // To the extent possible under law, the person who associated CC0 with
 // this project has waived all copyright and related or neighboring rights
 // to this project.
-// 
+//
 // You should have received a copy of the CC0 legalcode along with this
 // work.  If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
@@ -9,6 +10,8 @@
 
 // Chan's (Other) Convex Hull Algorithm implemenation
 //
+
+var COCHA_VERSION = "0.1.0";
 
 var _rnd = Math.random;
 var printf = require("printf");
@@ -76,7 +79,7 @@ function cocha_json(ctx) {
   console.log("}");
 }
 
-function init_point(N) {
+function rand_point(N) {
   let P = [];
   for (let i=0; i<N; i++) {
     P.push( [ _rnd(), _rnd(), _rnd() ] );
@@ -334,7 +337,7 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
     t6[5] = cocha_time3(ctx, [idx_u3[1], idx_v3[1], idx_v3[2]]);
 
     if (debug) {
-      console.log(pfx, "uv:{", idx_u, idx_v, "}", "T[", ctx.T_BEG, ctx.T_END, "], t6:", 
+      console.log(pfx, "uv:{", idx_u, idx_v, "}", "T[", ctx.T_BEG, ctx.T_END, "], t6:",
         "(t6:", JSON.stringify(t6.map( (_) => {return printf("%0.4f",_);} )), ")");
     }
 
@@ -514,12 +517,10 @@ function cocha_hull(ctx) {
   for (let i=0; i<n; i++) {
     let idx = ctx.Q[0][i];
     vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
-
     cocha_H_indel(ctx, idx);
   }
 
   for (let i=0; i<ctx.P.length; i++) { ctx.P[i][2] = -ctx.P[i][2]; }
-  //cocha_reset(ctx);
 
   n = cocha_recur(ctx, 0, ctx.P.length,0,0,0);
   for (let i=0; i<n; i++) {
@@ -530,10 +531,15 @@ function cocha_hull(ctx) {
 
   for (let i=0; i<ctx.P.length; i++) { ctx.P[i][2] = -ctx.P[i][2]; }
 
-  for (let i=0; i<ctx.P.length; i++) {
-    console.log(ctx.P[i][0], ctx.P[i][1], ctx.P[i][2]);
-    console.log("\n\n");
-  }
+  return vtx_list;
+}
+
+function cocha_print_hull(ctx, vtx_list) {
+
+  //for (let i=0; i<ctx.P.length; i++) {
+  //  console.log(ctx.P[i][0], ctx.P[i][1], ctx.P[i][2]);
+  //  console.log("\n\n");
+  //}
 
   for (let i=0; i<vtx_list.length; i++) {
     let uvw = vtx_list[i];
@@ -544,20 +550,8 @@ function cocha_hull(ctx) {
     console.log("\n\n");
   }
 
-
-
-  console.log("#got:", n);
-  console.log("#fin Q[0][:]:", JSON.stringify(ctx.Q[0].slice(0,n)));
-
-  return n;
 }
 
-
-function _xxx() {
-  let P = init_point(20);
-  P.sort(pnt_cmp);
-  print_point(P);
-}
 
 function cocha_reset(ctx) {
 
@@ -632,7 +626,7 @@ function cocha_init(P) {
 
 
 function spot_test2() {
-  let p2 = init_point(2);
+  let p2 = rand_point(2);
   p2.sort(pnt_cmp);
   print_point(p2);
   let ctx_p2 = cocha_init(p2);
@@ -641,7 +635,7 @@ function spot_test2() {
 }
 
 function spot_test3() {
-  let p3 = init_point(3);
+  let p3 = rand_point(3);
   p3.sort(pnt_cmp);
   print_point(p3);
   let ctx_p3 = cocha_init(p3);
@@ -665,7 +659,7 @@ function p_test(p) {
 }
 
 function spot_test_n(n) {
-  let p = init_point(n);
+  let p = rand_point(n);
   p.sort(pnt_cmp);
   print_point(p);
   let ctx_p = cocha_init(p);
@@ -751,7 +745,11 @@ function _test9() {
 
 }
 
+
+
+
 function __main() {
+
   //_test6();
   //_test7();
 
@@ -763,23 +761,154 @@ function __main() {
 
 }
 
+var long_opt = [
+  "h", "(help)",
+  "v", "(version)",
+  "V", ":(verbose)",
+  "P", "(print-point)",
+  "u", "(print-vertex)",
+  "i", ":(input-file)",
+];
+
+var long_opt_desc = [
+  "help (this screen)",
+  "version",
+  "verbosity level",
+  "print input points",
+  "print index vertex points (default print Euclidean points)",
+  "input file (first line number of points proceeding by each 3d point on a line)",
+  ""
+];
+
+function show_version(fp) { fp.write( COCHA_VERSION + "\n" ); }
+function show_help(fp) {
+  fp.write("\ncocha : Chan's Other Convex Hull Algorithm\n");
+  fp.write("version ");
+  show_version(fp);
+  fp.write("\n");
+
+  for (let i=0; i<long_opt.length; i+=2) {
+    let s = "  -" + long_opt[i] + ",--" + long_opt[i+1].replace( /:?\(/, '').replace( /\)$/, '' );
+    fp.write( s );
+
+    for (let space=0; space < (24-s.length); space++) { fp.write(" "); }
+    fp.write( long_opt_desc[Math.floor(i/2)] + "\n");
+  }
+  fp.write("\n");
+
+
+  return;
+
+  fp.write("usage:\n");
+  fp.write("\n");
+  fp.write("  cocha.js [-h] [-v] [-V] [-P] [-u]\n");
+  fp.write("\n");
+  fp.write("  -h\n");
+}
+
 function _main() {
+  var getopt = require("posix-getopt");
+  var fs = require("fs");
 
-  let p = init_point(40);
-  let ctx = cocha_init(p);
-  let r = cocha_hull(ctx);
+  let _ret = 0;
 
-  console.log("#...", r);
+  let exec = 1;
+  let _opt = {
+    "print_point": false,
+    "print_index": false,
+    "ifn": ""
+  };
 
-  
+
+  let parser = new getopt.BasicParser(long_opt.join(""), process.argv);
+  while ((arg_opt = parser.getopt()) !== undefined) {
+    switch (arg_opt.option) {
+
+      case 'h': show_help(process.stdout); exec=0; _ret=0; break;
+      case 'v': show_version(process.stdout); exec=0; _ret=0; break;
+      case 'V': DEBUG_LEVEL = parseInt(arg_opt.optarg); break;
+      case 'P': _opt.print_point = true; break;
+      case 'u': _opt.print_index = true; break;
+      case 'i': _opt.ifn = arg_opt.optarg; break;
+      default: show_help(process.stderr); exec=0; break;
+    }
+  }
+
+  if (exec==0) { return _ret; }
+
+  if (_opt.ifn.length == 0) {
+    show_help(process.stderr);
+    return -1;
+  }
+
+  let _n = -1;
+  let P = [];
+
+  let dat = fs.readFileSync(_opt.ifn, 'utf8');
+  let lines = dat.split("\n");
+  for (let line_no=0; line_no<lines.length; line_no++) {
+    let line = lines[line_no].trim();
+
+    if (line.length == 0) { continue; }
+    if (line_no == 0) { _n = parseInt(line); continue; }
+
+    let tok = line.split(" ");
+    if (tok.length != 3) { continue; }
+
+    let x = parseFloat(tok[0]);
+    let y = parseFloat(tok[1]);
+    let z = parseFloat(tok[2]);
+
+    P.push([x,y,z]);
+  }
+
+  if (P.length == 0) {
+    process.stderr.write("no points\n");
+    return -1;
+  }
+
+  let cocha_ctx = cocha_init(P);
+  let vlist = cocha_hull(cocha_ctx);
+
+  if (_opt.print_point) {
+    for (let i=0; i<P.length; i++) {
+      console.log(cocha_ctx.P[i][0], cocha_ctx.P[i][1], cocha_ctx.P[i][2]);
+      console.log("\n\n");
+    }
+  }
+
+  if (_opt.print_index) {
+    for (let i=0; i<vlist.length; i++) {
+      console.log(vlist[i][0], vlist[i][1], vlist[i][2]);
+    }
+  }
+  else {
+    cocha_print_hull(cocha_ctx, vlist);
+  }
+
 }
 
 
-//spot_test2();
-//spot_test3();
-//spot_test_n(4);
+if (typeof module !== "undefined") {
+  module.exports["rand_point"] = rand_point;
+  module.exports["reset"] = cocha_reset;
+  module.exports["recur"] = cocha_recur;
+  module.exports["indel"] = cocha_H_indel;
+  module.exports["idx3"] = cocha_idx3;
+  module.exports["turn3"] = cocha_turn3;
+  module.exports["time3"] = cocha_time3;
 
-_main();
+  module.exports["init"] = cocha_init;
+  module.exports["hull"] = cocha_hull;
+
+  module.exports["time"] = _time;
+  module.exports["turn"] = _turn;
+}
+
+if ((typeof require !== "undefined") &&
+    (require.main === module)) {
+  _main(process.argv.slice(1));
+}
 
 
 
