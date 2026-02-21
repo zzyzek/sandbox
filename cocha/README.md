@@ -23,7 +23,7 @@ a bridge edge, $(u,v)$, as updates to the left and right partition are considere
 
 We sort the $\hat{p} _ k$ by $x$ coordinate so that the kinetics only move in the $\hat{y}$ dimension.
 
-As time progresses for contiguous triples of 2d points $( \hat{p} _ {k-1}(t), \hat{p} _ k, \hat{p} _ {k+1} )$, the linkage
+As time progresses for contiguous triples of 2d points $( \hat{p} _ {k-1}(t), \hat{p} _ k(t), \hat{p} _ {k+1}(t) )$, the linkage
 will change orientation at a single, easily calculable, time.
 A snapshot of the lower hull, in isolation, could be updated by considering only the discrete time steps of when contiguous
 linkages change orientation, and updating the lower hull snapshot, depending on if a point pokes through the snapshot and needs
@@ -135,6 +135,11 @@ As we walk $Q _ L$ and $Q _ R$, we update the bridge events if they occur first,
 After all bridge events are updated, then we can make progress on $Q _ L, Q _ R$.
 As we advance in processing $Q _ L, Q _ R$ events, we might get to a point where the bridge events are again the minimum, in which
 case we repeat the above.
+
+The `act` function is code for both the insertion and deletion (`indel`) of points into the lower hull snapshot.
+The insertion or deletion is determined by context, inserting if the neighboring pointers don't resolve
+to the point and deleting if neighboring pointers do resolve to the point.
+
 
 ---
 
