@@ -8,7 +8,7 @@ This is a discussion and implementation of Chan's algorithm presented in his 200
 
 The algorithm find the lower hull point set of a set 3d points in general position (no co-planar, co-linear or duplicate points).
 The basic idea is to convert the 3d problem into a 2d "kinetic" problem by transforming
-points $p _ k = (x _ k, y _ k, z _ k) \to \hat{p} _ k(t) = (x _ k, z _ k - t y _ k) = (\hat{x} _ k, \hat{y} _ k )$,
+points $p _ k = (x _ k, y _ k, z _ k) \to \hat{p} _ k(t) = (x _ k, z _ k - t y _ k) = (\hat{x} _ k, \hat{y} _ k(t) )$,
 and then keeping track of the lower hull as time progresses.
 
 The kinetic 2d lower hull is constructed recursively by partitioning the list and then merging.
