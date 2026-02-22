@@ -1,3 +1,4 @@
+<!-- Selection algorithm to find the k'th smallest entry -->
 {{task}}
 
 The '''[https://en.wikipedia.org/wiki/Selection_algorithm Selection algorithm]''' finds the <math>k</math>'th smallest number of an unordered array in <math>O(n)</math> time. This is also known as the <math>k</math>'th order statistic.
