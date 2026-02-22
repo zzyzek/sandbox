@@ -24,7 +24,7 @@ function bubble_sort(a,s,n) {
   }
 }
 
-function selection_algorithm(a, s, n, kl) {
+function k_select_recur(a, s, n, kl) {
   let v=-1, b=-1, e=-1, m=-1;
   let g = Math.floor(n/5);
 
@@ -41,7 +41,7 @@ function selection_algorithm(a, s, n, kl) {
     _swap(a, s+i, s+(5*i)+2);
   }
 
-  selection_algorithm(a,s,g,Math.floor(n/10));
+  k_select_recur(a,s,g,Math.floor(n/10));
 
   v = a[s];
 
@@ -60,22 +60,27 @@ function selection_algorithm(a, s, n, kl) {
   }
 
   else if (kl < m) {
-    selection_algorithm(a,s,m,kl);
+    k_select_recur(a,s,m,kl);
   }
 
   else {
     // m = b-s -> s = b-m -> s+m = b
-    selection_algorithm(a, s + (m+1), n - (m+1), kl - (m+1) );
+    k_select_recur(a, s + (m+1), n - (m+1), kl - (m+1) );
     _swap(a, s, b+1);
   }
 
   return a[0];
 }
 
+function k_select(a, kl) {
+  return k_select_recur(a, 0, a.length, kl);
+}
+
 
 
 if (typeof module !== "undefined") {
-  module.exports["select"] = selection_algorithm;
+  module.exports["_select"] = k_select_recur;
+  module.exports["select"] = k_select;
 }
 
 if ((typeof require !== "undefined") &&
@@ -107,7 +112,7 @@ if ((typeof require !== "undefined") &&
     for (let i=0; i<A.length; i++) { B.push(A[i]); }
     B.sort(icmp);
     console.log("select 7 from", _S(A), _S(B));
-    let v_A = selection_algorithm(A, 0, A.length, 7);
+    let v_A = k_select_recur(A, 0, A.length, 7);
     console.log(">>>", v_A);
     return;
     */
@@ -115,7 +120,7 @@ if ((typeof require !== "undefined") &&
     /*
     let A = [3,9,7,4,0];
     console.log("select 3 from", A, A.sort(icmp));
-    let v_A = selection_algorithm(A, 0, A.length, 3);
+    let v_A = k_select_recur(A, 0, A.length, 3);
     console.log(">>>", v_A);
     return;
     */
@@ -135,7 +140,7 @@ if ((typeof require !== "undefined") &&
           a = [];
           for (let i=0; i<n; i++) { a.push( _orig[i] ); }
 
-          let v_a = selection_algorithm(a, 0, n, k);
+          let v_a = k_select_recur(a, 0, n, k);
 
           console.log("it:", it, "k:", k, "n:", n, "val_a:", v_a, "val_b:", b[k]);
 
