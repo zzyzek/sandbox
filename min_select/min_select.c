@@ -212,7 +212,7 @@ int ___main(int argc, char **argv) {
   free(a);
 }
 
-int main(int argc, char **argv) {
+int __main(int argc, char **argv) {
   int n = 10, r = -1;
   if (argc > 1) {
     n = atoi(argv[1]);
