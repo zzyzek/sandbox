@@ -1,0 +1,158 @@
+{{task}}
+
+The '''[https://en.wikipedia.org/wiki/Selection_algorithm Selection algorithm]''' finds the <math>k</math>'th smallest number of an unordered array in <math>O(n)</math> time. This is also known as the <math>k</math>'th order statistic.
+
+The array is altered in place.
+
+;Algorithm Description
+
+A median of medians approach is taken to find a pivot element. The array is pivoted in place, using the pivot element found, and then recursively called to find the <math>k</math>'th element.
+
+To find the median of medians, elements of the array are grouped into chunks of five elements, sorting each five element chunk. The median element (position 2 of 5) of each chunk is then grouped at the beginning of the array and recursively called on the shorter list.
+
+The median of median element's order is guaranteed to be at least <math>(3/10)n</math> and at most <math>(7/10)n</math>.
+
+The total cost is then:
+
+<math>T(n) = T(n/5) + T((7/10)n) + O(n) = O(n)</math>
+
+Where the initial <math>T(n/5)</math> comes from the initial collection of median of medians and the <math>T((7/10)n)</math> comes from the pivoting.
+
+;Example
+
+Consider the array
+
+<pre>
+11 9 6 10 5 11 12 21 20 14 16
+</pre>
+
+The 5th largest element is 11.
+
+
+=={{header|C}}==
+
+<syntaxhighlight lang="C" line>
+#include <stdio.h>
+#include <stdlib.h>
+
+void swap(int *a, int *b) {
+  int t;
+  t = *a;
+  *a = *b;
+  *b = t;
+}
+
+int bubble_sort(int *a, int n) {
+  int i, j, k;
+  for (i=0; i<n; i++) {
+    for (j=1; j<(n-i); j++) {
+      if (a[j-1] > a[j]) { swap(a+j-1, a+j); }
+    }
+  }
+  return 0;
+}
+
+
+int selection_algorithm(int *a, int n, int kl) {
+  int i, v, b, e;
+  int g = n/5;
+
+  // base case, simple sort, putting
+  // median value in 0 position,
+  // then return
+  //
+  if (!g) {
+    if (n) {
+      bubble_sort(a,n);
+      swap(a, a+kl);
+    }
+    return a[0];
+  }
+
+  // sort blocks of 5
+  // collect median of each 5 block into
+  //   beginning of array.
+  //
+  for (i=0; i<g; i++) {
+    bubble_sort(a+5*i,5);
+    swap(a+i, a+(5*i)+2);
+  }
+
+  // recur
+  // We want the median (halfway element) of
+  // the remaining n/5 elements, so n/10
+  //
+  selection_algorithm(a,g, n/10);
+
+  // a[0] is our pivot element now
+  //
+  v = a[0];
+
+  // collect elements smaller than pivot
+  // at the beginning and larger than the pivot
+  // at the end
+  //
+  for (b=1, e=(n-1); (e-b)>0; ) {
+    if (a[b] > v) { swap(a+b, a+e); e--; }
+    else          { b++; }
+  }
+
+  // put pivot element in the middle
+  //
+  if (a[b] > v) { b--; }
+  swap(a, a+b);
+
+  // if we've found our kl largest element,
+  // put it in position 0 and return
+  //
+  if (b == kl) {
+    swap(a, a+kl);
+    return a[0];
+  }
+
+  // else if kl smaller, recur on left side
+  //
+  else if (kl < b) {
+    selection_algorithm(a,b,kl);
+  }
+
+  // otherwise recur on right side
+  //
+  else {
+    selection_algorithm(a+b+1,n-b-1,kl-b-1);
+    swap(a+b+1, a);
+  }
+
+  return a[0];
+}
+
+int main(int argc, char **argv) {
+  int i, n = 37, *a = NULL,
+      val, idx;
+  int seed = 2;
+
+  if (argc > 1) { seed = atoi(argv[1]); }
+
+  srand(seed);
+
+  a = (int *)malloc(sizeof(int)*n);
+  for (i=0; i<n; i++) { a[i] = rand()%(2*n); }
+
+  idx = rand()%n;
+  val = selection_algorithm(a,n,idx);
+
+  printf("a[%i]:", n);
+  for (i=0; i<n; i++) { printf(" %i", a[i]); }
+  printf("\n%i'th value: %i\n", idx+1, val);
+
+  free(a);
+}
+
+</syntaxhighlight>
+
+{{out}}
+<pre>
+a[37]: 42 13 12 1 10 1 6 10 13 3 4 15 7 26 27 24 36 36 40 33 41 43 58 73 67 63 72 53 55 65 61 53 68 68 62 63 66
+20'th value: 42
+</pre>
+
