@@ -3,8 +3,15 @@ Selection Algorithm
 
 ([wiki](https://en.wikipedia.org/wiki/Selection_algorithm))
 
-$O(n)$ algorithm to find $k$'th order statistic of an unsorted
-array, altering the array in place.
+A [selection algorithm](https://en.wikipedia.org/wiki/Selection_algorithm)
+is an algorithm to find $k$'th order statistic of an unsorted
+array.
+The implementation here is $O(n)$ algorithm and modifies the array in place.
+
+This implementation uses the [median of medians](https://en.wikipedia.org/wiki/Median_of_medians)
+algorithm to find pivot point and then recursively finds the order statistic
+on either the left or right sub-array, with an updated order statistic
+depending on which side of the pivot it lands on.
 
 C
 ---
