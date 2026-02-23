@@ -1,8 +1,6 @@
 Selection Algorithm
 ===
 
-([wiki](https://en.wikipedia.org/wiki/Selection_algorithm))
-
 A [selection algorithm](https://en.wikipedia.org/wiki/Selection_algorithm)
 is an algorithm to find $k$'th order statistic of an unsorted
 array.
