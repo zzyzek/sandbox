@@ -977,12 +977,12 @@ function _main() {
 if (typeof module !== "undefined") {
   //module.exports["rand_point"] = rand_point;
   module.exports["_reset"] = cocha_reset;
-  module.exports["_lower_hull_3d_recur"] = cocha_lower_hull_3d_recur;
   module.exports["_indel"] = cocha_H_indel;
   module.exports["_idx3"] = cocha_idx3;
   module.exports["_turn3"] = cocha_turn3;
   module.exports["_time3"] = cocha_time3;
 
+  module.exports["_lower_hull_3d_recur"] = cocha_lower_hull_3d_recur;
   module.exports["_init"] = cocha_init;
   module.exports["_hull3d"] = cocha_hull3d;
   module.exports["hull3d"] = HULL3D;
