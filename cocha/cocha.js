@@ -625,6 +625,7 @@ function cocha_lower_hull_2d_recur(ctx, s_idx, e_idx_ni) {
 
 function HULL2D(_P) {
   let n = _P.length;
+  let vtx_list = [];
 
   let P = [];
   for (let i=0; i<n; i++) {
@@ -641,18 +642,29 @@ function HULL2D(_P) {
 
   cocha_lower_hull_2d_recur(ctx, 0, n);
 
-  for (let i=0; i<P.length; i++) {
-    console.log(P[i][0], P[i][1]);
-    console.log("\n");
-  }
-
   let cur_idx = 0;
   while (cur_idx >= 0) {
-    console.log( P[cur_idx][0], P[cur_idx][1] );
+    vtx_list.push( P[cur_idx][2] );
     cur_idx = ctx.H_nei[cur_idx][1];
   }
 
-  return ctx;
+  for (let i=0; i<n; i++) { P[i][1] = -P[i][1]; }
+
+  cocha_lower_hull_2d_recur(ctx, 0, n);
+
+  let _tmp_list = [];
+
+  cur_idx = 0;
+  while (cur_idx >= 0) {
+    _tmp_list.push( P[cur_idx][2] );
+    cur_idx = ctx.H_nei[cur_idx][1];
+  }
+
+  for (let i=(_tmp_list.length-1); i>=0; i--) {
+    vtx_list.push( _tmp_list[i] );
+  }
+
+  return vtx_list;
 }
 
 //----
@@ -830,8 +842,18 @@ function _run_2d(opt) {
   }
 
   let vtx_list = HULL2D(P);
-  //console.log(ctx);
 
+  for (let i=0; i<P.length; i++) {
+    console.log(P[i][0], P[i][1]);
+    console.log("\n");
+  }
+
+  for (let i=0; i<vtx_list.length; i++) {
+    let idx = vtx_list[i];
+    console.log(P[idx][0], P[idx][1]);
+  }
+
+  return 0;
 }
 
 function _main() {
