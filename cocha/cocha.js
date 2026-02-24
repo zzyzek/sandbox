@@ -225,11 +225,11 @@ function cocha_H_indel(ctx, idx) {
 // T_END :  INF
 //
 //
-// cocha_recur only computes the lower hull, so needs to be called twice (for example,
+// cocha_lower_hull_3d_recur only computes the lower hull, so needs to be called twice (for example,
 // with z negated in second call).
 //
 //
-function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
+function cocha_lower_hull_3d_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
   let debug = ctx._debug;
 
   let idx_mid = -1,
@@ -280,10 +280,10 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
     return 1;
   }
 
-  q_l_n = cocha_recur(ctx, s_idx, idx_mid, iq_tmp, q_s);
+  q_l_n = cocha_lower_hull_3d_recur(ctx, s_idx, idx_mid, iq_tmp, q_s);
   if (q_l_n < 0) { return q_l_n; }
 
-  q_r_n = cocha_recur(ctx, idx_mid, e_idx_ni, iq_tmp, q_s + q_l_n);
+  q_r_n = cocha_lower_hull_3d_recur(ctx, idx_mid, e_idx_ni, iq_tmp, q_s + q_l_n);
   if (q_r_n < 0) { return q_r_n; }
 
   idx_u = idx_mid-1;
@@ -521,8 +521,8 @@ function cocha_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
   return q_n;
 }
 
-function cocha_hull(ctx) {
-  let n = cocha_recur(ctx, 0, ctx.P.length,0,0,0);
+function cocha_hull3d(ctx) {
+  let n = cocha_lower_hull_3d_recur(ctx, 0, ctx.P.length,0,0,0);
   ctx.q_n = n;
 
   if (ctx._debug > 0) {
@@ -544,7 +544,7 @@ function cocha_hull(ctx) {
 
   for (let i=0; i<ctx.P.length; i++) { ctx.P[i][2] = -ctx.P[i][2]; }
 
-  n = cocha_recur(ctx, 0, ctx.P.length,0,0,0);
+  n = cocha_lower_hull_3d_recur(ctx, 0, ctx.P.length,0,0,0);
   ctx.q_n = n;
 
   if (ctx._debug > 0) {
@@ -568,10 +568,95 @@ function cocha_hull(ctx) {
   return vtx_list;
 }
 
-function HULL(P) {
+function HULL3D(P) {
   let ctx = cocha_init(P);
-  return cocha_hull(ctx);
+  return cocha_hull3d(ctx);
 }
+
+//----
+//----
+
+
+function cocha_lower_hull_2d_recur(ctx, s_idx, e_idx_ni) {
+
+  let n = (e_idx_ni - s_idx);
+  let n2 = Math.floor(n/2);
+  let idx_mid = s_idx + n2;
+
+  if (n==1) {
+    ctx.H_nei[s_idx][0] = -1;
+    ctx.H_nei[s_idx][1] = -1;
+    return 1;
+  }
+
+  let n_l = cocha_lower_hull_2d_recur(ctx, s_idx, idx_mid);
+  if (n_l < 0) { return n_l; }
+
+  let n_r = cocha_lower_hull_2d_recur(ctx, idx_mid, e_idx_ni);
+  if (n_r < 0) { return n_r; }
+
+  let idx_u = idx_mid-1;
+  let idx_v = idx_mid;
+
+  let idx_u3 = [-1,-1,-1],
+      idx_v3 = [-1,-1,-1];
+
+  do {
+    cocha_idx3(ctx, idx_u3, idx_u);
+    cocha_idx3(ctx, idx_v3, idx_v);
+
+    if (cocha_turn3(ctx, [ idx_u3[1], idx_v3[1], idx_v3[2] ]) < 0) {
+      idx_v = idx_v3[2];
+    }
+
+    else if (cocha_turn3(ctx, [ idx_u3[0], idx_u3[1], idx_v3[1] ]) < 0) {
+      idx_u = idx_u3[0];
+    }
+
+    else { break; }
+
+  } while (1);
+
+  ctx.H_nei[idx_u][1] = idx_v;
+  ctx.H_nei[idx_v][0] = idx_u;
+
+  return 1;
+}
+
+function HULL2D(_P) {
+  let n = _P.length;
+
+  let P = [];
+  for (let i=0; i<n; i++) {
+    P.push( [ _P[i][0], _P[i][1], i ] );
+  }
+
+  P.sort(pnt_cmp);
+  let ctx = {
+    "_debug": 1,
+    "P": P,
+    "H_nei": []
+  };
+  for (let i=0; i<n; i++) { ctx.H_nei.push( [-1,-1] ); }
+
+  cocha_lower_hull_2d_recur(ctx, 0, n);
+
+  for (let i=0; i<P.length; i++) {
+    console.log(P[i][0], P[i][1]);
+    console.log("\n");
+  }
+
+  let cur_idx = 0;
+  while (cur_idx >= 0) {
+    console.log( P[cur_idx][0], P[cur_idx][1] );
+    cur_idx = ctx.H_nei[cur_idx][1];
+  }
+
+  return ctx;
+}
+
+//----
+//----
 
 function cocha_print_hull(ctx, vtx_list) {
 
@@ -681,6 +766,7 @@ var long_opt = [
   "V", ":(verbose)",
   //"P", "(print-point)",
   //"u", "(print-vertex)",
+  "I", ":(input-format)",
   "O", ":(output-format)",
   "s", "(sort-index)",
   "i", ":(input-file)",
@@ -692,6 +778,7 @@ var long_opt_desc = [
   "verbosity level",
   //"print input points",
   //"print index vertex points (default print Euclidean points)",
+  "input format (2d,3d)",
   "output format (faces,point,point-faces,index,json,gnuplot)",
   "print index in sorted order",
   "input file (first line number of points proceeding by each 3d point on a line)",
@@ -715,6 +802,38 @@ function show_help(fp) {
   fp.write("\n");
 }
 
+function _run_2d(opt) {
+  var fs = require("fs");
+  let _n = -1;
+  let P = [];
+
+  let dat = fs.readFileSync(opt.ifn, 'utf8');
+  let lines = dat.split("\n");
+  for (let line_no=0; line_no<lines.length; line_no++) {
+    let line = lines[line_no].trim();
+
+    if (line.length == 0) { continue; }
+    if (line_no == 0) { _n = parseInt(line); continue; }
+
+    let tok = line.split(" ");
+    if (tok.length != 2) { continue; }
+
+    let x = parseFloat(tok[0]);
+    let y = parseFloat(tok[1]);
+
+    P.push([x,y]);
+  }
+
+  if (P.length == 0) {
+    process.stderr.write("no points\n");
+    return -1;
+  }
+
+  let vtx_list = HULL2D(P);
+  //console.log(ctx);
+
+}
+
 function _main() {
   var getopt = require("posix-getopt");
   var fs = require("fs");
@@ -726,6 +845,7 @@ function _main() {
   let _opt = {
     //"print_point": false,
     //"print_index": false,
+    "input_format": "3d",
     "output_format": "faces",
     "sort_index" : false,
     "ifn": ""
@@ -741,6 +861,7 @@ function _main() {
       case 'V': DEBUG_LEVEL = parseInt(arg_opt.optarg); break;
       //case 'P': _opt.print_point = true; break;
       //case 'u': _opt.print_index = true; break;
+      case 'I': _opt.input_format = arg_opt.optarg; break;
       case 'O': _opt.output_format = arg_opt.optarg; break;
       case 's': _opt.sort_index = true; break;
       case 'i': _opt.ifn = arg_opt.optarg; break;
@@ -757,6 +878,10 @@ function _main() {
   if (_opt.ifn.length == 0) {
     show_help(process.stderr);
     return -1;
+  }
+
+  if (_opt.input_format == '2d') {
+    return _run_2d(_opt);
   }
 
   let _n = -1;
@@ -785,11 +910,9 @@ function _main() {
     return -1;
   }
 
-  //let vlist = HULL(P);
-
   let cocha_ctx = cocha_init(P);
   cocha_ctx._debug = DEBUG_LEVEL;
-  let vlist = cocha_hull(cocha_ctx);
+  let vlist = cocha_hull3d(cocha_ctx);
 
   if (_opt.output_format.search(/point/) == 0) {
     for (let i=0; i<P.length; i++) {
@@ -854,15 +977,18 @@ function _main() {
 if (typeof module !== "undefined") {
   //module.exports["rand_point"] = rand_point;
   module.exports["_reset"] = cocha_reset;
-  module.exports["_recur"] = cocha_recur;
+  module.exports["_lower_hull_3d_recur"] = cocha_lower_hull_3d_recur;
   module.exports["_indel"] = cocha_H_indel;
   module.exports["_idx3"] = cocha_idx3;
   module.exports["_turn3"] = cocha_turn3;
   module.exports["_time3"] = cocha_time3;
 
   module.exports["_init"] = cocha_init;
-  module.exports["_hull"] = cocha_hull;
-  module.exports["hull"] = HULL;
+  module.exports["_hull3d"] = cocha_hull3d;
+  module.exports["hull3d"] = HULL3D;
+
+  module.exports["_lower_hull_2d_recur"] = cocha_lower_hull_2d_recur;
+  module.exports["hull2d"] = HULL2D;
 
   module.exports["_time"] = _time;
   module.exports["_turn"] = _turn;
