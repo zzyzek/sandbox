@@ -36,6 +36,7 @@
 //
 
 var cocha = require("./cocha.js");
+var KOS = require("./min_select.js");
 var BCL90_STANDALONE = false;
 
 var NAIVE_RUNTIME_COUNT = 0;
@@ -207,6 +208,59 @@ function M1(S, dim) {
 
 }
 
+// needs some more testing
+// uses min_select.js (as KOS) to find N(1-(ln N / N)^{1/K}) order
+// statistic
+//
+function M2(S, dim) {
+  let n = S.length;
+  if (n == 0) { return { "p":[], "idx": [] }; }
+  dim = ((typeof dim === "undefined") ? S[0].length : dim);
+
+  let k_ordstat  = Math.floor( n * (1 - Math.pow( (Math.log(n)/n), 1/dim)) );
+
+  let C_count = 0;
+  let C_BD = [];
+
+  let P = [];
+  for (let d=0; d<dim; d++) {
+    let a_ci = [];
+    for (let i=0; i<n; i++) { a_ci.push(S[i][d]); }
+    P.push( KOS.select(a_ci, k_ordstat) );
+  }
+
+  for (let i=0; i<n; i++) {
+    let Q = S[i];
+    let d = point_domination(P, Q);
+
+    if      (d == 'a') { }
+    else if (d == 'b') { C_count++; C_BD.push(i); }
+    else               { C_BD.push(i); }
+  }
+
+  let S_tmp = [];
+  for (let i=0; i<C_BD.length; i++) {
+    S_tmp.push( S[ C_BD[i] ] );
+  }
+
+  if (C_count == 0) { return naive_arg_point_set_maxima(S); }
+  let idx_tmp = naive_arg_point_set_maxima(S_tmp);
+
+  let p_max = [];
+  let idx_max = [];
+  for (let i=0; i<idx_tmp.length; i++) {
+    p_max.push( S[C_BD[idx_tmp[i]]] );
+    idx_max.push( C_BD[idx_tmp[i]] );
+  }
+
+  return {
+    "p" : p_max,
+    "idx" : idx_max
+  };
+
+
+}
+
 // heuristic maxima algorithm
 //
 function M3(S, dim) {
@@ -246,7 +300,7 @@ function M3(S, dim) {
       // incomparable, _domcode == 'i'
       //
       else {
-        j++
+        j++;
       }
 
     }
@@ -288,11 +342,25 @@ function M3(S, dim) {
 //                   .-------------------------------.
 //             (0,0)
 //
-function H1(S,dim) {
+function H1(S,dim, CHA) {
   let n = S.length;
   if (n == 0) { return { "p":[], "idx": [] }; }
-
   dim = ((typeof dim === "undefined") ? S[0].length : dim);
+  if (typeof CHA  === "undefined") {
+    if (dim == 1) {
+      let dat = { "p" : [S[0], S[0]], "idx": [0,0] };
+      for (let i=1; i<n; i++) {
+        if (dat.p[0] > S[i]) { dat.p[0] = S[i]; dat.idx[0] = i; }
+        if (dat.p[1] < S[i]) { dat.p[1] = S[i]; dat.idx[1] = i; }
+      }
+      return dat;
+    }
+    if      (dim == 2) { CHA = convex_hull_2d; }
+    else if (dim == 3) { CHA = cocha.hull; }
+    else               { CHA = convex_null_naive; }
+  }
+
+
   let m = (1<<dim);
 
   let B_idx = [];
@@ -394,6 +462,8 @@ if (BCL90_STANDALONE) {
 
   function _main(argv) {
 
+    let _gnuplot = true;
+
     let op = "help";
     if (argv.length > 0) { op = argv[0]; }
 
@@ -407,6 +477,11 @@ if (BCL90_STANDALONE) {
 
     else if (op == "m1_example") {
       let v = M1(_example_point_set);
+      console.log(v);
+    }
+
+    else if (op == "m2_example") {
+      let v = M2(_example_point_set);
       console.log(v);
     }
 
