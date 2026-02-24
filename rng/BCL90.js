@@ -355,8 +355,8 @@ function H1(S,dim, CHA) {
       }
       return dat;
     }
-    if      (dim == 2) { CHA = convex_hull_2d; }
-    else if (dim == 3) { CHA = cocha.hull; }
+    if      (dim == 2) { CHA = cocha.hull2d; }
+    else if (dim == 3) { CHA = cocha.hull3d; }
     else               { CHA = convex_null_naive; }
   }
 
