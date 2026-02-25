@@ -27,7 +27,7 @@ and the circle of radius $r _ {p,q}$ centered at $q$, $C _ q$.
 Call the intersection of the two circles, $R = C _ p \cap C _ q$,
 the *lune* created by points $p,q$.
 
-The relative neighborbood graph consists all edges, $(p,q)$, such
+The relative neighborhood graph consists all edges, $(p,q)$, such
 that there are no points in the lune between them.
 
 In the illustration above, since $v$ is outside the lune region, $R$,
@@ -98,7 +98,7 @@ $$
 Grid Binning
 ---
 
-Consider $n = |V|$ randomely chosen points in $[0 \dots 1]^d$, $d \in \{2,3\}$
+Consider $n = |V|$ randomly chosen points in $[0 \dots 1]^d$, $d \in \{2,3\}$
 (unit square, unit cube).
 
 Choose a uniform grid with $m = \lceil n ^ {\frac{1}{d}} \rceil$ number of cells
@@ -138,10 +138,56 @@ We start with a point set $V$, $n = |V|$.
     + find the vertex enumeration, $U$, interpreting $H$ as splitting half planes with
       the point as the normal direction and $p$ as the origin (that is, find the dual $U = \text{dual}(H)$ )
     + if the maximum distance of $p$ to $U$ is larger than some threshold, increment the grid window size and try again
-    + otherwise add all points within the grid window that fully encompases $U$ to $W$
+    + otherwise add all points within the grid window that fully encompasses $U$ to $W$
   - Run `NaiveRNG` on $W$
 
 $W$ is expected linear, so all operations are linear as well, giving a linear expected time algorithm.
+
+---
+
+In a little more detail.
+
+Consider a point $p$ that we'll call the *anchor*.
+Call the cells that are within $r$ distance the cell collection.
+
+There are four cases for 3d:
+
+* the cell collection is completely interior
+* the cell collection is on an edge
+* the cell collection is on a ridge
+* the cell collection is on a corner
+
+For cell collections on an edge, we add a mirror point, $p'$, perpendicular to
+the edge face and at the same distance of $p$ to the face but on the other side.
+
+For cell collections on a ridge, we add the edge mirror points as an additional
+point, $p''$, diagonal on the other side.
+We do a similar action if the cell collection is on a corner.
+
+We add all other points, $q$, inside of the cell collection.
+
+With all the points, $q$, in the cell collection and any added mirror points,
+we try to find the vertex convex hull.
+If no such hull exists, is unbounded, or doesn't contain $p$,
+then increase the $r$ distance for the cell collection and try again.
+
+If the convex hull exists, proceed to consider each point on the vertex convex hull
+as a normal with $p$ as it's anchor, and find the maximum axis aligned distance of the vertex
+convex hull of the dual.
+That is, take all vertices on the convex hull, interpret them as points on the normal with $p$
+as anchor, and find the vertices of intersection of the implied planes, to construct a
+new convex hull.
+
+If the maximum distance of this newly constructed convex hull, $R$, is greater than some threshold, increase $r$ and try again.
+
+Otherwise, take the cell collection that fully contains $R$, with $p$ as anchor,
+and run a naive relative neighborhood graph algorithm on all points within the $R$ sized
+cell collection.
+
+All this needs to be confirmed but, intuitively, the dual of the convex hull is most likely
+going to be pretty close in size to the original convex hull and since the convex hull will
+most likely exist, for some finite $r$ (and thus $R$), the naive relative neighborhood graph
+algorithm will only run on finite many points, yielding an expected $O(n)$ algorithm for 3d.
 
 Appendix
 ---
@@ -155,7 +201,7 @@ Here, a point, $p$, is said to dominate a point, $q$, if all coordinates in $p$
 are larger than $q$.
 That is $\forall i \in [0 \dots (d-1)], p _ i > q _ i$.
 
-As an example, if points are taken to be in the unit sqaure from $[0,0]$ to $[1,1]$,
+As an example, if points are taken to be in the unit square from $[0,0]$ to $[1,1]$,
 a point $p'$ dominates all other points $q'$ that are in the rectangle from $[0,0]$
 to $[p' _ x, p' _ y]$.
 
@@ -169,7 +215,7 @@ of points.
 
 Our goal is, from a given set of vertices, $U \in \mathbb{R}^3$,
 find a subset of vertices, $H \subseteq U$, of the vertices
-that form a convex polytope fully encompasing $U$.
+that form a convex polytope fully encompassing $U$.
 
 A naive $O(|U|^4)$ algorithm simply takes each triplet of points, $p, q, u \in U$,
 and tests whether the plane constructed from the three points is to
