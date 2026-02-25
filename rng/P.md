@@ -70,6 +70,8 @@ neighborhood graph algorithm.
 Elimination Heuristics
 ---
 
+![elim2d](img/rng_elim2d.png)
+
 Consider $p,q \in V$, and the hyperplane with normal ${\bf N} _ {q,p} = (q-p) / |q-p|$ passing
 through $q$.
 
