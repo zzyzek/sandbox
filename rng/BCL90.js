@@ -35,6 +35,15 @@
 // points, so they are both maxima.
 //
 
+// min_select.js is needed for maxima computation with each dimensional component
+// chosen from a different distribution (but still component indepndent (CI)).
+//
+
+// cocha.js is Chan's (other) Convex Hull algorithm, for 2d and 3d,
+// which has O(n ln n) runtime and is used as the underlying convex
+// hull algorithm for the BCL CH algorithm (algorithm H1 here and in their paper).
+//
+
 var cocha = require("./cocha.js");
 var KOS = require("./min_select.js");
 var BCL90_STANDALONE = false;
@@ -329,6 +338,9 @@ function M3(S, dim) {
 // the convex hull.
 // Right now, it's vertex list for 2d and vertex triples for 3d.
 // We want to pick one or the other...
+//
+// This is technically H2 from BCL90 but it's so similar, subsumed
+// into H1.
 //
 //                   .-------------------------------. (1,1)
 // sqrt( ln(N) / N ) | C[1] |                 | C[0] |
