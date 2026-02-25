@@ -325,7 +325,10 @@ function M3(S, dim) {
 
 //---
 
-//WIP!!!!
+// still need to clean up some ways we think about how to return
+// the convex hull.
+// Right now, it's vertex list for 2d and vertex triples for 3d.
+// We want to pick one or the other...
 //
 //                   .-------------------------------. (1,1)
 // sqrt( ln(N) / N ) | C[1] |                 | C[0] |
@@ -342,6 +345,27 @@ function M3(S, dim) {
 //                   .-------------------------------.
 //             (0,0)
 //
+//
+// note that N has to be pretty large before we start seeing savings.
+//
+// We're taking points *outside* of A, so in the corners and
+// side strips. The C[.] counters are only sued to see if we
+// can restrict our attention to B (= outside A).
+//
+// Consider the proportion of the B area (for 3d):
+// p=l(n)/n
+// 1 - (1-(2*(p^(1/3))))^3
+//
+//        100 0.9773054763140018
+//       1000 0.7627063613354528
+//      10000 0.4775435936101511
+//     100000 0.26440782506313243
+//    1000000 0.1371718709227634
+//   10000000 0.06871190939047511
+//  100000000 0.033752163483562136
+// 1000000000 0.01639014014977558
+//
+//
 function H1(S,dim, CHA) {
   let n = S.length;
   if (n == 0) { return { "p":[], "idx": [] }; }
@@ -357,9 +381,9 @@ function H1(S,dim, CHA) {
     }
     if      (dim == 2) { CHA = cocha.hull2d; }
     else if (dim == 3) { CHA = cocha.hull3d; }
-    else               { CHA = convex_null_naive; }
+    else               { return -1; }
+    //else               { CHA = convex_null_naive; }
   }
-
 
   let m = (1<<dim);
 
@@ -405,12 +429,25 @@ function H1(S,dim, CHA) {
 
   for (let i=0; i<m; i++) {
     if (C[i] == 0) {
-      //return cocha.hull(S);
-      //return convex_hull(S);
+      return CHA(S);
     }
   }
 
-  //return convex_hull(B);
+  let B_ch = CHA(B);
+
+  let vtx_list = [];
+  if (dim == 2) {
+    for (let i=0; i<B_ch.length; i++) {
+      vtx_list.push( B_idx[ B_ch[i] ] );
+    }
+  }
+  else {
+    for (let i=0; i<B_ch.length; i++) {
+      vtx_list.push( [B_idx[ B_ch[i][0] ] , B_idx[ B_ch[i][1] ], B_idx[B_ch[i][2] ] ]);
+    }
+  }
+
+  return vtx_list;
 }
 
 
@@ -506,6 +543,58 @@ if (BCL90_STANDALONE) {
     else if (op == "m3_example") {
       let v = M3(_example_point_set);
       console.log(v);
+    }
+
+    else if (op == "h1_example") {
+      let a = [],
+          dim = 2,
+          n = 3000;
+      for (let i=0; i<n; i++) { a.push( [ drand(), drand() ] ); }
+
+      let vl = H1(a, dim);
+      
+      for (let i=0; i<n; i++) {
+        console.log(a[i][0], a[i][1]);
+        console.log("\n");
+      }
+
+      for (let i=0; i<vl.length; i++) {
+        let idx = vl[i];
+        console.log(a[idx][0], a[idx][1]);
+      }
+      console.log("\n");
+    }
+
+    else if (op == "h1_3d_example") {
+
+      let a = [],
+          dim = 3,
+          n = 1000;
+
+      if (argv.length > 1) {
+        n = parseInt(argv[1]);
+        console.log("##n:", n);
+      }
+
+
+      for (let i=0; i<n; i++) { a.push( [ drand(), drand(), drand() ] ); }
+
+      let vl = H1(a, dim);
+
+      for (let i=0; i<n; i++) {
+        console.log(a[i][0], a[i][1], a[i][2]);
+        console.log("\n");
+      }
+
+      console.log("#vl:", vl.length);
+      for (let i=0; i<vl.length; i++) {
+        let idx3 = vl[i];
+        console.log(a[idx3[0]][0], a[idx3[0]][1], a[idx3[0]][2]);
+        console.log(a[idx3[1]][0], a[idx3[1]][1], a[idx3[1]][2]);
+        console.log(a[idx3[2]][0], a[idx3[2]][1], a[idx3[2]][2]);
+        console.log("\n");0
+      }
+      console.log("\n");
     }
 
     else if (op == "m1") {
