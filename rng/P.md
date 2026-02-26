@@ -150,20 +150,8 @@ In a little more detail.
 Consider a point $p$ that we'll call the *anchor*.
 Call the cells that are within $r$ distance the cell collection.
 
-There are four cases for 3d:
-
-* the cell collection is completely interior
-* the cell collection is on an edge
-* the cell collection is on a ridge
-* the cell collection is on a corner
-
 For cell collections on an edge, we add a mirror point, $p'$, perpendicular to
 the edge face and at the same distance of $p$ to the face but on the other side.
-
-For cell collections on a ridge, we add the edge mirror points as an additional
-point, $p''$, diagonal on the other side.
-We do a similar action if the cell collection is on a corner.
-
 We add all other points, $q$, inside of the cell collection.
 
 With all the points, $q$, in the cell collection and any added mirror points,

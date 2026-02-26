@@ -10,6 +10,116 @@
 //
 
 
+var njs = require("./numeric.js");
+
+// convention?
+// H : half plane
+// s : sign
+// P : plane
+// L : line
+// t : time
+// 
+
+// return sign of which side u is to half plane defined
+// by Nxyzd.
+//
+// Nxyzd is 4x1 vector, where first three entries are
+// normal and last entry is distance from origin to point
+// on notrmal plane.
+//
+// Consider v as the point on the plane defined by Nxyzd.
+//
+// (u-v) is direction to u with v as origin.
+// Nxyz . (u-v) gives the sign of which side u is on
+// Nxyzd, with 0 being u on plane.
+//
+function _Hs(u, Nxyzd) {
+  let d = Nxyzd[3];
+
+  let _Nv = [
+    Nxyzd[0],
+    Nxyzd[1],
+    Nxyzd[2]
+  ];
+
+  let v = [
+    d*Nxyzd[0],
+    d*Nxyzd[1],
+    d*Nxyzd[2]
+  ];
+
+  return njs.dot( _Nv, njs.sub(u, v) );
+}
+
+// return "time" value of line to plane intersection
+// line(t) = v0 + t v
+// plane(u) = Np . ( u - p )
+//
+// -> Np . ( v0 + t v - p ) = 0
+// -> t = ( (Np . p) - (Np . v0) ) / (Np . v)
+//
+function _PLt(Np, p, v0, v) {
+  let _eps = 1/(1024*1024*1024);
+  let _d = njs.dot(Np,v);
+  if (Math.abs(_d) < _eps) { return NaN; }
+
+  let t = (njs.dot(Np,p) - njs.dot(Np,v0)) / _d;
+  return t;
+}
+
+// evaluate line: V(t) = v0 + t v
+//
+function _Lt( v0, v, t ) { return njs.add(v0, njs.mul(t, v)); }
+
+
+// Three points to plane equation,
+// returns 4x1 vector,
+// where first three elemenst are normal,
+// last is distance to plane from origin.
+//
+function _v3H(p0, p1, p2) {
+  let _eps = 1/(1024*1024*1024);
+  let p10 = njs.sub(p1,p0);
+  let p20 = njs.sub(p2,p0);
+  let Np = cross3(p10,p20);
+  let Pk = -njs.dot(Np, p0);
+  return [ Np[0], Np[1], Np[2], Pk ]
+}
+
+
+
+// 3d cross product.
+//
+function cross3(p,q) {
+  let c0 = ((p[1]*q[2]) - (p[2]*q[1])),
+      c1 = ((p[2]*q[0]) - (p[0]*q[2])),
+      c2 = ((p[0]*q[1]) - (p[1]*q[0]));
+
+  return [c0,c1,c2];
+}
+
+// tst_c in lune created by pnt_a, pnt_b?
+//
+function in_lune(pnt_a, pnt_b, tst_c) {
+  let dist_ca = njs.norm2( njs.sub(tst_c, pnt_a) );
+  let dist_cb = njs.norm2( njs.sub(tst_c, pnt_b) );
+  let dist_ab = njs.norm2( njs.sub(pnt_a, pnt_b) );
+
+  if ((dist_ca <= dist_ab) &&
+      (dist_cb <= dist_ab)) {
+    return 1;
+  }
+
+  return 0;
+}
+
+
+
+//----
+//----
+//----
+
+
 function _clamp(a, l,u) {
   if (a <  l) { return l; }
   if (a >= u) { return u; }
@@ -141,27 +251,58 @@ function lunech3d(P) {
         console.log("#p_idx:", p_idx, "g_idx:", g_idx, "ixyz:", ixyz, "se_ixyz:", se_ixyz);
       }
 
-      let p_list = [];
-      let i_list = [];
+      let pnt_list = [];
+      let idx_list = [];
+
+      let mirror_point = [ -1,-1, -1,-1, -1,-1 ];
 
       for (let iz=se_ixyz[2][0]; iz<se_ixyz[2][1]; iz++) {
         for (let iy=se_ixyz[1][0]; iy<se_ixyz[1][1]; iy++) {
           for (let ix=se_ixyz[0][0]; ix<se_ixyz[0][1]; ix++) {
+
+            if (ix == (nxyz[0]-1))  { mirror_point[0] = 1; }
+            if (ix == 0)            { mirror_point[1] = 1; }
+
+            if (iy == (nxyz[1]-1))  { mirror_point[2] = 1; }
+            if (iy == 0)            { mirror_point[3] = 1; }
+
+            if (iz == (nxyz[2]-1))  { mirror_point[4] = 1; }
+            if (iz == 0)            { mirror_point[5] = 1; }
 
             let _t_ixyz = [ix,iy,iz];
             let _tg = ixyz2idx(_t_ixyz, nxyz);
 
             for (let i=0; i<grid_idx[_tg].length; i++) {
               let vidx = grid_idx[_tg][i];
-              i_list.push( vidx );
-              p_list.push( P[vidx] );
+              idx_list.push( vidx );
+              pnt_list.push( P[vidx] );
             }
 
           }
         }
       }
 
-      console.log("## g_idx:", g_idx, "winr:", win_radius, "i_list[", i_list.length, "]:", JSON.stringify(i_list));
+      // wip
+      //
+      for (let idir=0; idir<mirror_point.length; idir++) {
+        if (mirror_point[idir] == 1) {
+        }
+      }
+
+      if (pnt_list.length < 4) { continue; }
+
+      let ch_idx = CHA(pnt_list);
+      for (let i=0; i<ch_idx.length; i++) {
+
+        let _u = njs.sub( pnt_list[ch_idx[0]], pnt_list[ch_idx[1]] );
+        let _v = njs.sub( pnt_list[ch_idx[2]], pnt_list[ch_idx[1]] );
+
+        //let _s = njs.dot
+
+      }
+
+
+      console.log("## g_idx:", g_idx, "winr:", win_radius, "idx_list[", idx_list.length, "]:", JSON.stringify(idx_list));
 
     }
 
