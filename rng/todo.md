@@ -3,7 +3,7 @@ TODO
 
 ###### 2026-02-28
 
-* normalize vertex triple return of cocha (ccw rel. face normal)
+* ~normalize vertex triple return of cocha (ccw rel. face normal)~
 * add mirror point on boundary for convex hull test
 * test $p$ inside/outside convex hull
 

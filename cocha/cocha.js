@@ -17,6 +17,9 @@ var COCHA_VERSION = "0.2.0";
 var _rnd = Math.random;
 var printf = require("printf");
 
+var njs = require("./numeric.js");
+var fasslib = require("./fasslib.js");
+
 function pnt_cmp(a,b) {
   if (a[0] < b[0]) { return -1; }
   if (a[0] > b[0]) { return  1; }
@@ -537,7 +540,6 @@ function cocha_hull3d(ctx) {
     let m_idx = ctx.P[idx][3];
     let r_idx = ctx.P[ctx.H_nei[idx][1]][3];
 
-    //vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
     vtx_list.push( [ l_idx, m_idx, r_idx ] );
     cocha_H_indel(ctx, idx);
   }
@@ -558,15 +560,139 @@ function cocha_hull3d(ctx) {
     let m_idx = ctx.P[idx][3];
     let r_idx = ctx.P[ctx.H_nei[idx][1]][3];
 
-    //vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
     vtx_list.push( [ l_idx, m_idx, r_idx ] );
     cocha_H_indel(ctx, idx);
   }
 
   for (let i=0; i<ctx.P.length; i++) { ctx.P[i][2] = -ctx.P[i][2]; }
 
+
+  // normalize index vertex list
+  // ccw of vertex list for each face, relative
+  // to normal pointing outwards.
+  //
+
+  let normalize_face_orientation = true;
+  if (normalize_face_orientation) {
+
+
+    //DEBUG
+    let com = [0,0,0];
+    if (ctx._debug) {
+      console.log("#before orientation normalization:");
+      for (let i=0; i<vtx_list.length; i++) {
+        com[0] += ctx.P[ vtx_list[i][0] ][0];
+        com[1] += ctx.P[ vtx_list[i][1] ][1];
+        com[2] += ctx.P[ vtx_list[i][2] ][2];
+      }
+      com[0] /= vtx_list.length;
+      com[1] /= vtx_list.length;
+      com[2] /= vtx_list.length;
+      for (let i=0; i<vtx_list.length; i++) {
+        let u = ctx.P[vtx_list[i][0]];
+        let v = ctx.P[vtx_list[i][1]];
+        let w = ctx.P[vtx_list[i][2]];
+        let c3 = fasslib.cross3( njs.sub(v,u), njs.sub(w,u) );
+        let s = njs.dot(c3, njs.sub(u,com));
+        console.log("# vtx[", i, "]:", vtx_list[i], "com:", com, "n:", c3,  "n.(u-com):", s);
+      }
+    }
+
+    // take first face as 'anchor'
+    // make sure the orientation of vertices is ccw by comparing
+    // it's normal to the second face.
+    // Once we've oriented the anchor normal away from the center,
+    // go through each face, calculate the normal and take a point on the
+    // face that isn't shared with the anchor.
+    // If the sign is the same of the point to anchor point and the face normal,
+    // we know it's oriented wrong and flip.
+    //
+
+    let anchor_face = vtx_list[0];
+    let anchor_p_idx = anchor_face[0];
+    let anchor_p = [ ctx.P[ anchor_p_idx ][0], ctx.P[ anchor_p_idx ][1], ctx.P[ anchor_p_idx ][2] ];
+
+    let anchor_n = fasslib.cross3( njs.sub( ctx.P[ anchor_face[1] ], ctx.P[ anchor_face[0] ] ),
+                                   njs.sub( ctx.P[ anchor_face[2] ], ctx.P[ anchor_face[0] ] ) );
+
+
+    for (let j=0; j<vtx_list[1].length; j++) {
+
+      if ( (vtx_list[1][j] == anchor_face[0]) ||
+           (vtx_list[1][j] == anchor_face[1]) ||
+           (vtx_list[1][j] == anchor_face[2]) ) {
+        continue;
+      }
+
+      // flip initial face if necessary
+      //
+      let v = [ ctx.P[vtx_list[1][j]][0], ctx.P[vtx_list[1][j]][1], ctx.P[vtx_list[1][j]][2] ];
+      let dv = njs.sub( v, anchor_p );
+      let s = njs.dot( anchor_n, dv );
+      if (s > 0) {
+        let _t = vtx_list[0][1];
+        vtx_list[0][1] = vtx_list[0][2];
+        vtx_list[0][2] = _t;
+        anchor_n[0] = -anchor_n[0];
+        anchor_n[1] = -anchor_n[1];
+        anchor_n[2] = -anchor_n[2];
+      }
+    }
+
+
+    for (let i=1; i<vtx_list.length; i++) {
+
+      let f_idx = -1;
+      for (let j=0; j<vtx_list[i].length; j++) {
+
+        if ( (vtx_list[i][j] == anchor_face[0]) ||
+             (vtx_list[i][j] == anchor_face[1]) ||
+             (vtx_list[i][j] == anchor_face[2]) ) {
+          continue;
+        }
+        f_idx = j;
+        break;
+      }
+
+      let u = [ ctx.P[ vtx_list[i][f_idx] ][0],
+                ctx.P[ vtx_list[i][f_idx] ][1],
+                ctx.P[ vtx_list[i][f_idx] ][2] ];
+      let v = [ ctx.P[ vtx_list[i][(f_idx+1)%3] ][0],
+                ctx.P[ vtx_list[i][(f_idx+1)%3] ][1],
+                ctx.P[ vtx_list[i][(f_idx+1)%3] ][2] ];
+      let w = [ ctx.P[ vtx_list[i][(f_idx+2)%3] ][0],
+                ctx.P[ vtx_list[i][(f_idx+2)%3] ][1],
+                ctx.P[ vtx_list[i][(f_idx+2)%3] ][2] ];
+
+      let dau = njs.sub( anchor_p, u );
+
+      let n_uvw = fasslib.cross3( njs.sub(v,u), njs.sub(w,u) );
+      if (njs.dot(dau,n_uvw) > 0) {
+        let _t = vtx_list[i][1];
+        vtx_list[i][1] = vtx_list[i][2];
+        vtx_list[i][2] = _t;
+      }
+
+    }
+
+    if (ctx._debug) {
+      //DEBUG
+      console.log("#after orientation normalization:");
+      for (let i=0; i<vtx_list.length; i++) {
+        let u = ctx.P[vtx_list[i][0]].slice(0,3);
+        let v = ctx.P[vtx_list[i][1]].slice(0,3);
+        let w = ctx.P[vtx_list[i][2]].slice(0,3);
+        let c3 = fasslib.cross3( njs.sub(v,u), njs.sub(w,u) );
+        let s = njs.dot(c3, njs.sub(u,com));
+        console.log("# vtx[", i, "]:", vtx_list[i],"com:", com,  "n:", c3, "n.(u-com):", s);
+      }
+    }
+
+  }
+
   return vtx_list;
 }
+
 
 function HULL3D(P) {
   let ctx = cocha_init(P);
