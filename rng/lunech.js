@@ -195,6 +195,24 @@ function gnuplot_print_grid(ds, grid_n) {
 
 }
 
+function _p_inside_convex_hull_3d(p, Q, face_idx_list) {
+
+  for (let face_idx=0; face_idx<face_idx_list.length; face_idx++) {
+    let fv = face_idx_list[face_idx];
+
+    let u = [ Q[fv[0]][0], Q[fv[0]][1], Q[fv[0]][2] ] ;
+    let v = [ Q[fv[1]][0], Q[fv[1]][1], Q[fv[1]][2] ] ;
+    let w = [ Q[fv[2]][0], Q[fv[2]][1], Q[fv[2]][2] ] ;
+
+    let c3 = fasslib.cross3( njs.sub(v,u), njs.sub(w,u) );
+    let s = njs.dot( c3, njs.sub(u,p) );
+    if (s < 0) { return false; }
+
+  }
+
+  return true;
+}
+
 // WIP!!
 //
 // - collect all points in window centered at grid point (done)
@@ -207,6 +225,8 @@ function gnuplot_print_grid(ds, grid_n) {
 function lunech3d(P) {
   let _debug = 1;
 
+  CHA = cocha.HULL3D;
+
   let n = P.length;
 
 
@@ -217,6 +237,12 @@ function lunech3d(P) {
   let nxyz = [grid_n, grid_n, grid_n];
 
   let M = grid_n*grid_n*grid_n;
+
+  // we assume points within a 1x1x1 cube for now
+  //
+  let mx = 0,  Mx = 1,
+      my = 0,  My = 1,
+      mz = 0,  Mz = 1;
 
   let grid_idx = [];
   for (let i=0; i<M; i++) { grid_idx.push([]); }
@@ -235,26 +261,38 @@ function lunech3d(P) {
     grid_idx[g_idx].push(i);
   }
 
-  for (let p_idx=0; p_idx<P.length; p_idx++) {
-    let g_idx = xyz2idx(P[p_idx], nxyz);
-    let ixyz = idx2xyz(g_idx, nxyz);
+  let winFactor = 1.25;
+
+  for (let anchor_idx=0; anchor_idx<P.length; anchor_idx++) {
+    let anchor_grid_idx = xyz2idx(P[anchor_idx], nxyz);
+    let anchor_ixyz = idx2xyz(g_idx, nxyz);
+
+    let anchor_p = P[anchor_idx];
 
     for (let win_radius=1; win_radius<grid_n; win_radius++) {
-      let se_ixyz = [ [-1,-1], [-1,-1], [-1,-1] ];
 
+      let _f = winFactor;
+      let grid_mM = [
+        [ Math.floor(anchor_ixyz[0] - (_f*win_radius)), Math.floor(anchor_ixyz[0] + (_f*win_radius)) ],
+        [ Math.floor(anchor_ixyz[1] - (_f*win_radius)), Math.floor(anchor_ixyz[1] + (_f*win_radius)) ],
+        [ Math.floor(anchor_ixyz[2] - (_f*win_radius)), Math.floor(anchor_ixyz[2] + (_f*win_radius)) ]
+      ];
+
+      let se_ixyz = [ [-1,-1], [-1,-1], [-1,-1] ];
       for (let d=0; d<3; d++) {
-        se_ixyz[d][0] = _clamp(ixyz[d]-win_radius, 0, nxyz[d]);
-        se_ixyz[d][1] = _clamp(ixyz[d]+win_radius, 0, nxyz[d]);
+        se_ixyz[d][0] = _clamp(anchor_ixyz[d]-win_radius, 0, nxyz[d]);
+        se_ixyz[d][1] = _clamp(anchor_ixyz[d]+win_radius, 0, nxyz[d]);
       }
 
       if (_debug) {
-        console.log("#p_idx:", p_idx, "g_idx:", g_idx, "ixyz:", ixyz, "se_ixyz:", se_ixyz);
+        console.log("#anchor_idx:", anchor_idx, "g_idx:", g_idx, "anchor_ixyz:", anchor_ixyz, "se_ixyz:", se_ixyz);
       }
 
       let pnt_list = [];
       let idx_list = [];
 
       let mirror_point = [ -1,-1, -1,-1, -1,-1 ];
+      let mirror_base_idx = -1;
 
       for (let iz=se_ixyz[2][0]; iz<se_ixyz[2][1]; iz++) {
         for (let iy=se_ixyz[1][0]; iy<se_ixyz[1][1]; iy++) {
@@ -274,6 +312,12 @@ function lunech3d(P) {
 
             for (let i=0; i<grid_idx[_tg].length; i++) {
               let vidx = grid_idx[_tg][i];
+
+              // ignore the current point we're considering from
+              // convex hull calculation.
+              //
+              if (vidx == anchor_idx) { continue; }
+
               idx_list.push( vidx );
               pnt_list.push( P[vidx] );
             }
@@ -282,27 +326,59 @@ function lunech3d(P) {
         }
       }
 
-      // wip
+      mirror_base_idx = pnt_list.length;
+
+      // add in mirror points, with placeholder -1 for index
       //
-      for (let idir=0; idir<mirror_point.length; idir++) {
-        if (mirror_point[idir] == 1) {
-        }
-      }
+      if (mirror_point[0] == 1) { pnt_list.push([mx, anchor_p[1], anchor_p[2]]); }
+      if (mirror_point[1] == 1) { pnt_list.push([Mx, anchor_p[1], anchor_p[2]]); }
+      if (mirror_point[2] == 1) { pnt_list.push([anchor_p[0], my, anchor_p[2]]); }
+      if (mirror_point[3] == 1) { pnt_list.push([anchor_p[0], My, anchor_p[2]]); }
+      if (mirror_point[4] == 1) { pnt_list.push([anchor_p[0], anchor_p[1], mz]); }
+      if (mirror_point[5] == 1) { pnt_list.push([anchor_p[0], anchor_p[1], Mz]); }
+      for (let idir=0; idir<6; idir++) { if (mirror_point[idir]==1) { idx_list.push(-1); } }
 
       if (pnt_list.length < 4) { continue; }
 
-      let ch_idx = CHA(pnt_list);
-      for (let i=0; i<ch_idx.length; i++) {
+      // find convex hull
+      //
+      let face_vtx_idx_list = CHA(pnt_list);
 
-        let _u = njs.sub( pnt_list[ch_idx[0]], pnt_list[ch_idx[1]] );
-        let _v = njs.sub( pnt_list[ch_idx[2]], pnt_list[ch_idx[1]] );
-
-        //let _s = njs.dot
-
+      // if convex hull doesn't completely encompass our current point (anchor_p),
+      // try again.
+      //
+      if (!_p_inside_convex_hull_3d(anchor_p, pnt_list, face_vtx_idx_list)) {
+        continue;
       }
 
+      // otherwise, take the dual of of the convex hull (intersection
+      // of points taken as normals from anchor_p) then see if the dual
+      // convex hull is within threshold grid distance
+      //
+      let pnt_dual = _convex_hull_dual(anchor_p, pnt_list, face_vtx_idx_list);
+      let bbox = boundingBox(pnt_dual);
 
-      console.log("## g_idx:", g_idx, "winr:", win_radius, "idx_list[", idx_list.length, "]:", JSON.stringify(idx_list));
+      let ibbox = [
+        [ Math.floor( grid_n * (bbox[0][0] + anchor_p[0] ) ), Math.floor( grid_n * (bbox[0][1] + anchor_p[0] ) ) ],
+        [ Math.floor( grid_n * (bbox[1][1] + anchor_p[1] ) ), Math.floor( grid_n * (bbox[1][1] + anchor_p[1] ) ) ],
+        [ Math.floor( grid_n * (bbox[2][2] + anchor_p[2] ) ), Math.floor( grid_n * (bbox[2][1] + anchor_p[2] ) ) ]
+      ];
+
+      let within_threshold = true;
+      for (let i=0; i<3; i++) {
+        if ((ibbox[i][0]  < grid_mM[0]) ||
+            (ibbox[i][1] >= grid_mM[1])) { 
+          within_threshold = false;
+          break;
+        }
+      }
+
+      if (!within_threshold) { continue; }
+
+      // rng of threshold grid
+      //
+
+
 
     }
 
