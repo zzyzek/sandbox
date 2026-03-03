@@ -197,6 +197,8 @@ function gnuplot_print_grid(ds, grid_n) {
 
 }
 
+// lightly tested
+//
 function _p_inside_convex_hull_3d(p, Q, face_idx_list) {
   for (let face_idx=0; face_idx<face_idx_list.length; face_idx++) {
     let fv = face_idx_list[face_idx];
@@ -212,6 +214,25 @@ function _p_inside_convex_hull_3d(p, Q, face_idx_list) {
   }
 
   return true;
+}
+
+//WIP!!!
+function _convex_hull_dual_3d(p, Q, face_idx_list) {
+
+  for (let face_idx=0; face_idx<face_idx_list.length; face_idx++) {
+    let fv = face_idx_list[face_idx];
+
+    let u = njs.sub( [ Q[fv[0]][0], Q[fv[0]][1], Q[fv[0]][2] ], p );
+    let v = njs.sub( [ Q[fv[1]][0], Q[fv[1]][1], Q[fv[1]][2] ], p );
+    let w = njs.sub( [ Q[fv[2]][0], Q[fv[2]][1], Q[fv[2]][2] ], p ) ;
+
+    //...
+
+
+
+  }
+
+  
 }
 
 // WIP!!
@@ -367,7 +388,7 @@ function lunech3d(P) {
       //
 
       // WIP!!!
-      let pnt_dual = _convex_hull_dual(anchor_p, pnt_list, face_vtx_idx_list);
+      let pnt_dual = _convex_hull_dual_3d(anchor_p, pnt_list, face_vtx_idx_list);
       let bbox = boundingBox(pnt_dual);
 
       let ibbox = [
