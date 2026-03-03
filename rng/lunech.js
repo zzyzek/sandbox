@@ -11,6 +11,8 @@
 
 
 var njs = require("./numeric.js");
+var cocha = require("./cocha.js");
+var fasslib = require("./fasslib.js");
 
 // convention?
 // H : half plane
@@ -225,7 +227,7 @@ function _p_inside_convex_hull_3d(p, Q, face_idx_list) {
 function lunech3d(P) {
   let _debug = 1;
 
-  CHA = cocha.HULL3D;
+  CHA = cocha.hull3d;
 
   let n = P.length;
 
@@ -263,6 +265,15 @@ function lunech3d(P) {
 
   let winFactor = 1.25;
 
+  // for each anchor point, take the collection of grid cells
+  // in an increasing radius until we've found a convex hull that
+  // encompases the anchor point and whose dual does not exceed
+  // winFactor * radius.
+  // To make sure we have a chance of creating a convex hull for
+  // anchor points near the edge, put a virtual 'mirror point'
+  // on the edge face if the cell collection butts up against
+  // the edge.
+  //
   for (let anchor_idx=0; anchor_idx<P.length; anchor_idx++) {
     let anchor_grid_idx = xyz2idx(P[anchor_idx], nxyz);
     let anchor_ixyz = idx2xyz(g_idx, nxyz);
@@ -355,6 +366,8 @@ function lunech3d(P) {
       // of points taken as normals from anchor_p) then see if the dual
       // convex hull is within threshold grid distance
       //
+
+      // WIP!!!
       let pnt_dual = _convex_hull_dual(anchor_p, pnt_list, face_vtx_idx_list);
       let bbox = boundingBox(pnt_dual);
 
@@ -404,12 +417,64 @@ if ((typeof require !== "undefined") &&
 
   function _main(argv) {
 
-    let n = 200;
-    let P = [];
-    for (let i=0; i<n; i++) {
-      P.push([Math.random(),Math.random(),Math.random()]);
+
+    let op = 'lunech3d';
+    op = 'inside_ch_test';
+
+    if (op == 'inside_ch_test') {
+
+      let n = 20;
+      let pnt = [];
+      for (let i=0; i<n; i++) {
+        pnt.push( njs.sub( njs.random([3]), [0.5, 0.5, 0.5] ) );
+      }
+
+      let fv_idx = cocha.hull3d(pnt);
+
+      // print out convex hull lines
+      //
+      for (let i=0; i<fv_idx.length; i++) {
+        let vi = fv_idx[i];
+        for (let j=0; j<vi.length; j++) {
+          console.log( pnt[vi[0]][0], pnt[vi[0]][1], pnt[vi[0]][2] );
+          console.log( pnt[vi[1]][0], pnt[vi[1]][1], pnt[vi[1]][2] );
+          console.log( pnt[vi[2]][0], pnt[vi[2]][1], pnt[vi[2]][2] );
+          console.log( pnt[vi[0]][0], pnt[vi[0]][1], pnt[vi[0]][2] );
+          console.log("\n");
+        }
+      }
+
+      let iN = 32;
+      for (let iz=0; iz<iN; iz++) {
+        for (let iy=0; iy<iN; iy++) {
+          for (let ix=0; ix<iN; ix++) {
+
+            let x = 2.0 * ((ix / iN) - 0.5);
+            let y = 2.0 * ((iy / iN) - 0.5);
+            let z = 2.0 * ((iz / iN) - 0.5);
+
+            if (_p_inside_convex_hull_3d( [x,y,z], pnt, fv_idx )) {
+              console.log(x,y,z);
+              console.log("\n");
+            }
+
+          }
+        }
+      }
+
+
+      //console.log(fv_idx);
+
     }
-    lunech3d(P);
+
+    else if (op == 'lunech3d') {
+      let n = 200;
+      let P = [];
+      for (let i=0; i<n; i++) {
+        P.push([Math.random(),Math.random(),Math.random()]);
+      }
+      lunech3d(P);
+    }
   }
 
   _main(process.argv.slice(2));
