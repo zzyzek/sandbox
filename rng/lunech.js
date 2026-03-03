@@ -218,6 +218,23 @@ function _p_inside_convex_hull_3d(p, Q, face_idx_list) {
 
 // return intersection of half planes
 //
+// this won't work as laid out here.
+// I made the mistake of thinking the cloud points of intersections
+// of (Q,face_idx_list) was good enough to bound the dual convex hull
+// (or that it actually was the convex hull).
+// It's not.
+// The cloud points can span a large area for half planes that are
+// on opposite sides, say, of the convex hull.
+// There are probably faster algorithms but a naive O(n^4) is to
+// solve for the point intersection of half planes, then take
+// that point and compare to all other half planes, rejecting
+// if it's not inside.
+//
+// ...
+//
+// WIP!!!
+//
+//
 function _convex_hull_dual_points_3d(p, Q, face_idx_list) {
 
   let pnt = [];
