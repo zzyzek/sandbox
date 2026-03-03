@@ -198,9 +198,6 @@ function gnuplot_print_grid(ds, grid_n) {
 }
 
 function _p_inside_convex_hull_3d(p, Q, face_idx_list) {
-
-  let s_count = [0,0];
-
   for (let face_idx=0; face_idx<face_idx_list.length; face_idx++) {
     let fv = face_idx_list[face_idx];
 
@@ -211,16 +208,8 @@ function _p_inside_convex_hull_3d(p, Q, face_idx_list) {
     let c3 = fasslib.cross3( njs.sub(v,u), njs.sub(w,u) );
     let s = njs.dot( c3, njs.sub(u,p) );
 
-    if (s < 0) { s_count[0]++; }
-    else { s_count[1]++; }
-
-    //if (s < 0) { return false; }
-
+    if (s < 0) { return false; }
   }
-
-  console.log("# p:", p, "s_count:", JSON.stringify(s_count));
-
-  if (s_count[0] > 0) { return false; }
 
   return true;
 }
@@ -431,6 +420,8 @@ if ((typeof require !== "undefined") &&
     let op = 'lunech3d';
     op = 'inside_ch_test';
 
+    // test _p_inside_convex_hull_3d function
+    //
     if (op == 'inside_ch_test') {
 
       let n = 20;
@@ -440,9 +431,6 @@ if ((typeof require !== "undefined") &&
 
         console.log(pnt[i][0], pnt[i][1], pnt[i][2], "\n\n");
       }
-
-
-
 
       let fv_idx = cocha.hull3d(pnt);
 
@@ -459,12 +447,7 @@ if ((typeof require !== "undefined") &&
         }
       }
 
-      console.log("###????", _p_inside_convex_hull_3d( [0,0,0], pnt, fv_idx) );
-      console.log(0,0,0,"\n\n");
-      return;
-
-
-      let iN = 16;
+      let iN = 32;
       for (let iz=0; iz<iN; iz++) {
         for (let iy=0; iy<iN; iy++) {
           for (let ix=0; ix<iN; ix++) {
@@ -473,14 +456,9 @@ if ((typeof require !== "undefined") &&
             let y = 2.0 * ((iy / iN) - 0.5);
             let z = 2.0 * ((iz / iN) - 0.5);
 
-            console.log(x,y,z,"\n\n");
-
             if (_p_inside_convex_hull_3d( [x,y,z], pnt, fv_idx )) {
               console.log(x,y,z);
               console.log("\n");
-            }
-            else {
-              console.log("#no?", x,y,z, _p_inside_convex_hull_3d( [x,y,z], pnt, fv_idx ));
             }
 
           }
