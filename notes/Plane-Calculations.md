@@ -70,28 +70,20 @@ $$
 Which resolves to three simultaneous equations:
 
 $$
-\left[
- \begin{array}{lll} 
+\left\[ \begin{array}{lll}
 P _ x & P _ y & P _ z \\
 Q _ x & Q _ y & Q _ z  \\
 R _ x & R _ y & R _ z
-\end{array}
-\right]
-\left[
-\begin{array}{l}
+\end{array} \right\] \left\[ \begin{array}{l}
 v _ x \\
 v _ y \\
 v _ z
-\end{array}
-\right]
-=
-\left[
-\begin{array}{l}
+\end{array} \right\]
+= \left\[ \begin{array}{l}
 P _ d \\
 Q _ d \\
 R _ d \\
-\end{array}
-\right]
+\end{array} \right\]
 $$
 
 ###### 2026-03-03
