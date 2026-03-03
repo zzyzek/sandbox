@@ -40,7 +40,7 @@ $$
 
 Where any $p _ 0$ can be taken on the plane, including $p _ 0$ from above.
 
-If $u$ is on the plane, The difference, $u - p _ 0$, will be orthogonal to the plane, so the
+If $u$ is on the plane, The difference, $(u - p _ 0)$, will be orthogonal to the plane, so the
 dot product with $\vec{n}$ must be 0.
 
 To find the distance of the normal to the plane, given a point $p _ 0$:
