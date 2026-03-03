@@ -524,6 +524,27 @@ function cocha_lower_hull_3d_recur(ctx, s_idx, e_idx_ni, q_idx_cur, q_s) {
   return q_n;
 }
 
+function _pick_uv_idx(a_list, b_list) {
+  let ij = [-1,-1];
+
+  for (let i=0; i<a_list.length; i++) {
+    let found = false;
+    for (let j=0; j<b_list.length; j++) {
+      if (a_list[i] == b_list[j]) { found = true; break; }
+    }
+    if (!found) { ij[0] = a_list[i]; break; }
+  }
+
+  for (let j=0; j<b_list.length; j++) {
+    let found = false;
+    for (let i=0; i<a_list.length; i++) {
+      if (a_list[i] == b_list[j]) { found = true; break; }
+    }
+    if (!found) { ij[1] = b_list[j]; }
+  }
+  return ij;
+}
+
 function cocha_hull3d(ctx) {
   let n = cocha_lower_hull_3d_recur(ctx, 0, ctx.P.length,0,0,0);
   ctx.q_n = n;
@@ -532,7 +553,8 @@ function cocha_hull3d(ctx) {
     console.log("# got:", n, "Q[0]:", JSON.stringify(ctx.Q[0].slice(0,n)));
   }
 
-  let vtx_list = [];
+  let map_vtx_list = [],
+      vtx_list = [];
   for (let i=0; i<n; i++) {
     let idx = ctx.Q[0][i];
 
@@ -540,7 +562,9 @@ function cocha_hull3d(ctx) {
     let m_idx = ctx.P[idx][3];
     let r_idx = ctx.P[ctx.H_nei[idx][1]][3];
 
-    vtx_list.push( [ l_idx, m_idx, r_idx ] );
+    vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
+    map_vtx_list.push( [ l_idx, m_idx, r_idx ] );
+
     cocha_H_indel(ctx, idx);
   }
 
@@ -560,7 +584,9 @@ function cocha_hull3d(ctx) {
     let m_idx = ctx.P[idx][3];
     let r_idx = ctx.P[ctx.H_nei[idx][1]][3];
 
-    vtx_list.push( [ l_idx, m_idx, r_idx ] );
+    vtx_list.push( [ ctx.H_nei[idx][0], idx, ctx.H_nei[idx][1] ] );
+    map_vtx_list.push( [ l_idx, m_idx, r_idx ] );
+
     cocha_H_indel(ctx, idx);
   }
 
@@ -581,9 +607,11 @@ function cocha_hull3d(ctx) {
     if (ctx._debug) {
       console.log("#before orientation normalization:");
       for (let i=0; i<vtx_list.length; i++) {
-        com[0] += ctx.P[ vtx_list[i][0] ][0];
-        com[1] += ctx.P[ vtx_list[i][1] ][1];
-        com[2] += ctx.P[ vtx_list[i][2] ][2];
+        for (let j=0; j<vtx_list[i].length; j++) {
+          com[0] += ctx.P[ vtx_list[i][j] ][0];
+          com[1] += ctx.P[ vtx_list[i][j] ][1];
+          com[2] += ctx.P[ vtx_list[i][j] ][2];
+        }
       }
       com[0] /= vtx_list.length;
       com[1] /= vtx_list.length;
@@ -609,50 +637,45 @@ function cocha_hull3d(ctx) {
     //
 
     let anchor_face = vtx_list[0];
-    let anchor_p_idx = anchor_face[0];
-    let anchor_p = [ ctx.P[ anchor_p_idx ][0], ctx.P[ anchor_p_idx ][1], ctx.P[ anchor_p_idx ][2] ];
+    //let anchor_p_idx = anchor_face[0];
+    //let anchor_p = [ ctx.P[ anchor_p_idx ][0], ctx.P[ anchor_p_idx ][1], ctx.P[ anchor_p_idx ][2] ];
 
     let anchor_n = fasslib.cross3( njs.sub( ctx.P[ anchor_face[1] ], ctx.P[ anchor_face[0] ] ),
                                    njs.sub( ctx.P[ anchor_face[2] ], ctx.P[ anchor_face[0] ] ) );
 
+    let uv_idx = _pick_uv_idx( anchor_face, vtx_list[1] );
 
-    for (let j=0; j<vtx_list[1].length; j++) {
+    let anchor_p_idx = uv_idx[0];
+    let anchor_p = [ ctx.P[ anchor_p_idx ][0], ctx.P[ anchor_p_idx ][1], ctx.P[ anchor_p_idx ][2] ];
 
-      if ( (vtx_list[1][j] == anchor_face[0]) ||
-           (vtx_list[1][j] == anchor_face[1]) ||
-           (vtx_list[1][j] == anchor_face[2]) ) {
-        continue;
-      }
 
-      // flip initial face if necessary
-      //
-      let v = [ ctx.P[vtx_list[1][j]][0], ctx.P[vtx_list[1][j]][1], ctx.P[vtx_list[1][j]][2] ];
-      let dv = njs.sub( v, anchor_p );
-      let s = njs.dot( anchor_n, dv );
-      if (s > 0) {
-        let _t = vtx_list[0][1];
-        vtx_list[0][1] = vtx_list[0][2];
-        vtx_list[0][2] = _t;
-        anchor_n[0] = -anchor_n[0];
-        anchor_n[1] = -anchor_n[1];
-        anchor_n[2] = -anchor_n[2];
-      }
+    // flip initial face if necessary
+    //
+    let v = [ ctx.P[uv_idx[1]][0], ctx.P[uv_idx[1]][1], ctx.P[uv_idx[1]][2] ];
+    let dv = njs.sub( v, anchor_p );
+    let s = njs.dot( anchor_n, dv );
+    if (s > 0) {
+      let _t = vtx_list[0][1];
+      vtx_list[0][1] = vtx_list[0][2];
+      vtx_list[0][2] = _t;
+      anchor_n[0] = -anchor_n[0];
+      anchor_n[1] = -anchor_n[1];
+      anchor_n[2] = -anchor_n[2];
     }
 
 
     for (let i=1; i<vtx_list.length; i++) {
 
+      let uv_idx = _pick_uv_idx( anchor_face, vtx_list[i] );
+
       let f_idx = -1;
       for (let j=0; j<vtx_list[i].length; j++) {
-
-        if ( (vtx_list[i][j] == anchor_face[0]) ||
-             (vtx_list[i][j] == anchor_face[1]) ||
-             (vtx_list[i][j] == anchor_face[2]) ) {
-          continue;
-        }
-        f_idx = j;
-        break;
+        if (uv_idx[1] == vtx_list[i][j]) { f_idx = j; break; }
       }
+
+      anchor_p_idx = uv_idx[0];
+      anchor_p = [ ctx.P[ anchor_p_idx ][0], ctx.P[ anchor_p_idx ][1], ctx.P[ anchor_p_idx ][2] ];
+
 
       let u = [ ctx.P[ vtx_list[i][f_idx] ][0],
                 ctx.P[ vtx_list[i][f_idx] ][1],
@@ -684,8 +707,10 @@ function cocha_hull3d(ctx) {
         let w = ctx.P[vtx_list[i][2]].slice(0,3);
         let c3 = fasslib.cross3( njs.sub(v,u), njs.sub(w,u) );
         let s = njs.dot(c3, njs.sub(u,com));
-        console.log("# vtx[", i, "]:", vtx_list[i],"com:", com,  "n:", c3, "n.(u-com):", s);
+        console.log("# vtx[", i, "]:", JSON.stringify(vtx_list[i]), "com:", JSON.stringify(com),  "n:", JSON.stringify(c3), "n.(u-com):", JSON.stringify(s));
       }
+
+      console.log("\n\n#com:\n", com[0], com[1], com[2], "\n\n");
     }
 
   }
@@ -696,7 +721,17 @@ function cocha_hull3d(ctx) {
 
 function HULL3D(P) {
   let ctx = cocha_init(P);
-  return cocha_hull3d(ctx);
+  let _v_list = cocha_hull3d(ctx);
+
+  let map_v_list = [];
+  for (let i=0; i<_v_list.length; i++) {
+    map_v_list.push([]);
+    for (let j=0; j<_v_list[i].length; j++) {
+      map_v_list[i].push( ctx.P[ _v_list[i][j] ][3] );
+    }
+  }
+
+  return map_v_list;
 }
 
 //----
@@ -906,6 +941,7 @@ var long_opt = [
   //"u", "(print-vertex)",
   "I", ":(input-format)",
   "O", ":(output-format)",
+  "H", "(HULL3D)",
   "s", "(sort-index)",
   "i", ":(input-file)",
 ];
@@ -918,6 +954,7 @@ var long_opt_desc = [
   //"print index vertex points (default print Euclidean points)",
   "input format (2d,3d)",
   "output format (faces,point,point-faces,index,json,gnuplot)",
+  "do HULL3D",
   "print index in sorted order",
   "input file (first line number of points proceeding by each 3d point on a line)",
   ""
@@ -993,6 +1030,7 @@ function _main() {
   let _opt = {
     //"print_point": false,
     //"print_index": false,
+    "do_hull3d": false,
     "input_format": "3d",
     "output_format": "faces",
     "sort_index" : false,
@@ -1011,6 +1049,7 @@ function _main() {
       //case 'u': _opt.print_index = true; break;
       case 'I': _opt.input_format = arg_opt.optarg; break;
       case 'O': _opt.output_format = arg_opt.optarg; break;
+      case 'H': _opt.do_hull3d = true; break;
       case 's': _opt.sort_index = true; break;
       case 'i': _opt.ifn = arg_opt.optarg; break;
       default:
@@ -1056,6 +1095,22 @@ function _main() {
   if (P.length == 0) {
     process.stderr.write("no points\n");
     return -1;
+  }
+
+  if (_opt.do_hull3d) {
+    let vlist = HULL3D(P);
+    for (let i=0; i<vlist.length; i++) {
+      let u = P[ vlist[i][0] ];
+      let v = P[ vlist[i][1] ];
+      let w = P[ vlist[i][2] ];
+
+      console.log(u[0], u[1], u[2]);
+      console.log(v[0], v[1], v[2]);
+      console.log(w[0], w[1], w[2]);
+      console.log(u[0], u[1], u[2]);
+      console.log("\n\n");
+    }
+    return;
   }
 
   let cocha_ctx = cocha_init(P);
