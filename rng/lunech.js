@@ -216,9 +216,11 @@ function _p_inside_convex_hull_3d(p, Q, face_idx_list) {
   return true;
 }
 
-//WIP!!!
-function _convex_hull_dual_3d(p, Q, face_idx_list) {
+// return intersection of half planes
+//
+function _convex_hull_dual_points_3d(p, Q, face_idx_list) {
 
+  let pnt = [];
   for (let face_idx=0; face_idx<face_idx_list.length; face_idx++) {
     let fv = face_idx_list[face_idx];
 
@@ -226,13 +228,70 @@ function _convex_hull_dual_3d(p, Q, face_idx_list) {
     let v = njs.sub( [ Q[fv[1]][0], Q[fv[1]][1], Q[fv[1]][2] ], p );
     let w = njs.sub( [ Q[fv[2]][0], Q[fv[2]][1], Q[fv[2]][2] ], p ) ;
 
-    //...
+    let d_u = njs.norm2(u);
+    let d_v = njs.norm2(v);
+    let d_w = njs.norm2(w);
 
+    u = njs.mul( 1 / d_u, u );
+    v = njs.mul( 1 / d_v, v );
+    w = njs.mul( 1 / d_w, w );
 
+    let s = njs.solve( [ u, v, w ], [ d_u, d_v, d_w ] );
 
+    pnt.push(s);
   }
 
-  
+  return pnt;
+
+  /*
+  let sv_list = cocha.hull3d(pnt);
+
+  let flat_sv = [];
+  for (let i=0; i<sv_list.length; i++) {
+    for (let j=0; j<sv_list[i].length; j++) {
+      flat_sv.push( sv_list[i][j] );
+    }
+  }
+
+  flat_sv.sort( (a,b) => { if (a<b) { return 1; } if (a>b) { return -1; } return 0; } );
+
+  let uniq_sv = [];
+  for (let i=0; i<(flat_sv.length-1); i++) {
+    if (flat_sv[i] != flat_sv[i+1]) {
+      uniq_sv.push(flat_sv[i]);
+    }
+  }
+
+  let uniq_pnt = [];
+  for (let i=0; i<uniq_sv.length; i++) {
+    uniq_pnt.push( pnt[ uniq_sv[i] ] );
+  }
+
+  return uniq_pnt;
+  */
+}
+
+function boundingBox(pnt) {
+  let mM = [ [0,0], [0,0], [0,0] ];
+  if (pnt.length==0) { return mM; }
+
+  mM[0][0] = pnt[0][0];
+  mM[0][1] = pnt[0][0];
+
+  mM[1][0] = pnt[0][1];
+  mM[1][1] = pnt[0][1];
+
+  mM[2][0] = pnt[0][2];
+  mM[2][1] = pnt[0][2];
+
+  for (let i=1; i<pnt.length; i++) {
+    for (let j=0; j<3; j++) {
+      mM[j][0] = Math.min( pnt[i][j], mM[j][0] );
+      mM[j][1] = Math.max( pnt[i][j], mM[j][1] );
+    }
+  }
+
+  return mM;
 }
 
 // WIP!!
@@ -296,7 +355,7 @@ function lunech3d(P) {
   //
   for (let anchor_idx=0; anchor_idx<P.length; anchor_idx++) {
     let anchor_grid_idx = xyz2idx(P[anchor_idx], nxyz);
-    let anchor_ixyz = idx2xyz(g_idx, nxyz);
+    let anchor_ixyz = idx2xyz(anchor_grid_idx, nxyz);
 
     let anchor_p = P[anchor_idx];
 
@@ -316,7 +375,7 @@ function lunech3d(P) {
       }
 
       if (_debug) {
-        console.log("#anchor_idx:", anchor_idx, "g_idx:", g_idx, "anchor_ixyz:", anchor_ixyz, "se_ixyz:", se_ixyz);
+        console.log("#anchor_idx:", anchor_idx, "g_idx:", anchor_grid_idx, "anchor_ixyz:", anchor_ixyz, "se_ixyz:", se_ixyz);
       }
 
       let pnt_list = [];
@@ -373,6 +432,9 @@ function lunech3d(P) {
 
       // find convex hull
       //
+
+      //BUG HERE!!!!!
+      console.log("...", pnt_list);
       let face_vtx_idx_list = CHA(pnt_list);
 
       // if convex hull doesn't completely encompass our current point (anchor_p),
@@ -388,7 +450,7 @@ function lunech3d(P) {
       //
 
       // WIP!!!
-      let pnt_dual = _convex_hull_dual_3d(anchor_p, pnt_list, face_vtx_idx_list);
+      let pnt_dual = _convex_hull_dual_points_3d(anchor_p, pnt_list, face_vtx_idx_list);
       let bbox = boundingBox(pnt_dual);
 
       let ibbox = [
@@ -439,7 +501,7 @@ if ((typeof require !== "undefined") &&
 
 
     let op = 'lunech3d';
-    op = 'inside_ch_test';
+    op = 'lunech3d';
 
     // test _p_inside_convex_hull_3d function
     //
