@@ -257,6 +257,7 @@ function _convex_hull_dual_points_3d(p, Q, face_idx_list) {
   }
 
   let candidate_pnt = [];
+  let nei_ijk = [];
   for (let i=0; i<uniq_idx.length; i++) {
     for (let j=(i+1); j<uniq_idx.length; j++) {
       for (let k=(j+1); k<uniq_idx.length; k++) {
@@ -278,6 +279,8 @@ function _convex_hull_dual_points_3d(p, Q, face_idx_list) {
         let s = njs.solve( [ u, v, w ], [ d_u, d_v, d_w ] );
 
         candidate_pnt.push(s);
+
+        nei_ijk.push( [uniq_idx[i],uniq_idx[j],uniq_idx[k]] );
       }
     }
   }
@@ -292,7 +295,6 @@ function _convex_hull_dual_points_3d(p, Q, face_idx_list) {
       let idx = uniq_idx[j];
       let v = njs.sub( [ Q[idx][0], Q[idx][1], Q[idx][2] ], p );
 
-
       let s = njs.norm2(v);
       let Nv = njs.mul( 1/s, v );
 
@@ -306,7 +308,21 @@ function _convex_hull_dual_points_3d(p, Q, face_idx_list) {
     }
 
     if (valid) {
-      valid_pnt.push( njs.add( candidate_pnt[i], p ) );
+      let dp = njs.add( candidate_pnt[i], p );
+      valid_pnt.push( dp );
+
+      //DEBUG
+      let u  = Q[ nei_ijk[i][0] ];
+      let v  = Q[ nei_ijk[i][1] ];
+      let w  = Q[ nei_ijk[i][2] ];
+      console.log(dp[0], dp[1], dp[2]);
+      console.log(u[0], u[1], u[2], "\n\n");
+
+      console.log(dp[0], dp[1], dp[2]);
+      console.log(v[0], v[1], v[2], "\n\n");
+
+      console.log(dp[0], dp[1], dp[2]);
+      console.log(w[0], w[1], w[2], "\n\n");
     }
   }
 
