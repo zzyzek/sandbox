@@ -4,7 +4,7 @@
 // To the extent possible under law, the person who associated CC0 with
 // this project has waived all copyright and related or neighboring rights
 // to this project.
-// 
+//
 // You should have received a copy of the CC0 legalcode along with this
 // work.  If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
@@ -20,7 +20,7 @@ var fasslib = require("./fasslib.js");
 // P : plane
 // L : line
 // t : time
-// 
+//
 
 // return sign of which side u is to half plane defined
 // by Nxyzd.
@@ -154,7 +154,7 @@ function idx2xyz(idx, nxyz) {
   let nx = nxyz[0];
   let ny = ((typeof nxyz[1] === "undefined") ? nx : nxyz[1]);
   let nz = ((typeof nxyz[2] === "undefined") ? nx : nxyz[2]);
-  
+
   let xyz = [-1,-1,-1];
 
   xyz[0] = idx%nx;
@@ -237,55 +237,80 @@ function _p_inside_convex_hull_3d(p, Q, face_idx_list) {
 //
 function _convex_hull_dual_points_3d(p, Q, face_idx_list) {
 
-  let pnt = [];
+  // plan:
+  // - dedup points
+  // - consider points as planes from p orogin
+  // - do O(n^3) to catalogue points
+  // - do O(n^4) rejecting/accepting points
+  // - return accepted points
+
+  let idx_list = [];
   for (let face_idx=0; face_idx<face_idx_list.length; face_idx++) {
     let fv = face_idx_list[face_idx];
+    for (let i=0; i<fv.length; i++) { idx_list.push(fv[i]); }
+  }
+  idx_list.sort( (a,b) => { return ( (a<b) ? -1 : ((a>b) ? 1 : 0 )); });
 
-    let u = njs.sub( [ Q[fv[0]][0], Q[fv[0]][1], Q[fv[0]][2] ], p );
-    let v = njs.sub( [ Q[fv[1]][0], Q[fv[1]][1], Q[fv[1]][2] ], p );
-    let w = njs.sub( [ Q[fv[2]][0], Q[fv[2]][1], Q[fv[2]][2] ], p ) ;
-
-    let d_u = njs.norm2(u);
-    let d_v = njs.norm2(v);
-    let d_w = njs.norm2(w);
-
-    u = njs.mul( 1 / d_u, u );
-    v = njs.mul( 1 / d_v, v );
-    w = njs.mul( 1 / d_w, w );
-
-    let s = njs.solve( [ u, v, w ], [ d_u, d_v, d_w ] );
-
-    pnt.push(s);
+  let uniq_idx = [];
+  for (let i=0; i<(idx_list.length-1); i++) {
+    if (idx_list[i] != idx_list[i+1]) { uniq_idx.push(idx_list[i]); }
   }
 
-  return pnt;
+  let candidate_pnt = [];
+  for (let i=0; i<uniq_idx.length; i++) {
+    for (let j=(i+1); j<uniq_idx.length; j++) {
+      for (let k=(j+1); k<uniq_idx.length; k++) {
 
-  /*
-  let sv_list = cocha.hull3d(pnt);
+        let fv = [ uniq_idx[i], uniq_idx[j], uniq_idx[k] ];
 
-  let flat_sv = [];
-  for (let i=0; i<sv_list.length; i++) {
-    for (let j=0; j<sv_list[i].length; j++) {
-      flat_sv.push( sv_list[i][j] );
+        let u = njs.sub( [ Q[fv[0]][0], Q[fv[0]][1], Q[fv[0]][2] ], p );
+        let v = njs.sub( [ Q[fv[1]][0], Q[fv[1]][1], Q[fv[1]][2] ], p );
+        let w = njs.sub( [ Q[fv[2]][0], Q[fv[2]][1], Q[fv[2]][2] ], p ) ;
+
+        let d_u = njs.norm2(u);
+        let d_v = njs.norm2(v);
+        let d_w = njs.norm2(w);
+
+        u = njs.mul( 1 / d_u, u );
+        v = njs.mul( 1 / d_v, v );
+        w = njs.mul( 1 / d_w, w );
+
+        let s = njs.solve( [ u, v, w ], [ d_u, d_v, d_w ] );
+
+        candidate_pnt.push(s);
+      }
     }
   }
 
-  flat_sv.sort( (a,b) => { if (a<b) { return 1; } if (a>b) { return -1; } return 0; } );
+  let _eps = (1.0 / (1024.0*1024.0));
+  let valid_pnt = [];
+  for (let i=0; i<candidate_pnt.length; i++) {
 
-  let uniq_sv = [];
-  for (let i=0; i<(flat_sv.length-1); i++) {
-    if (flat_sv[i] != flat_sv[i+1]) {
-      uniq_sv.push(flat_sv[i]);
+    let valid = true;
+
+    for (let j=0; j<uniq_idx.length; j++) {
+      let idx = uniq_idx[j];
+      let v = njs.sub( [ Q[idx][0], Q[idx][1], Q[idx][2] ], p );
+
+
+      let s = njs.norm2(v);
+      let Nv = njs.mul( 1/s, v );
+
+      let d = njs.dot( candidate_pnt[i], Nv );
+
+      if ( d > (s+_eps) ) {
+        valid = false;
+        break;
+      }
+
+    }
+
+    if (valid) {
+      valid_pnt.push( njs.add( candidate_pnt[i], p ) );
     }
   }
 
-  let uniq_pnt = [];
-  for (let i=0; i<uniq_sv.length; i++) {
-    uniq_pnt.push( pnt[ uniq_sv[i] ] );
-  }
-
-  return uniq_pnt;
-  */
+  return valid_pnt;
 }
 
 function boundingBox(pnt) {
@@ -392,7 +417,7 @@ function lunech3d(P) {
       }
 
       if (_debug) {
-        console.log("#anchor_idx:", anchor_idx, "g_idx:", anchor_grid_idx, "anchor_ixyz:", anchor_ixyz, "se_ixyz:", se_ixyz);
+        console.log("#anchor_idx:", anchor_idx, "wr:", win_radius, "g_idx:", anchor_grid_idx, "anchor_ixyz:", anchor_ixyz, "se_ixyz:", se_ixyz);
       }
 
       let pnt_list = [];
@@ -490,7 +515,7 @@ function lunech3d(P) {
       let within_threshold = true;
       for (let i=0; i<3; i++) {
         if ((ibbox[i][0]  < grid_mM[0]) ||
-            (ibbox[i][1] >= grid_mM[1])) { 
+            (ibbox[i][1] >= grid_mM[1])) {
           within_threshold = false;
           break;
         }
@@ -530,6 +555,7 @@ if ((typeof require !== "undefined") &&
 
     let op = 'lunech3d';
     op = 'lunech3d';
+    op = 'dual3d_test';
 
     // test _p_inside_convex_hull_3d function
     //
@@ -578,6 +604,84 @@ if ((typeof require !== "undefined") &&
 
 
       //console.log(fv_idx);
+
+    }
+
+    else if (op == 'dual3d_test') {
+      let n = 20;
+      let pnt = [];
+
+
+      for (let i=0; i<n; i++) {
+        //pnt.push( njs.sub( njs.random([3]), [0.5, 0.5, 0.5] ) );
+        pnt.push( njs.add( njs.random([3]), [0.5, 0.5, 0.5] ) );
+        //console.log(pnt[i][0], pnt[i][1], pnt[i][2], "\n\n");
+      }
+
+      let fv_idx = cocha.hull3d(pnt);
+
+      /*
+      for (let i=0; i<fv_idx.length; i++) {
+        let fv = fv_idx[i];
+
+        console.log(pnt[fv[0]][0], pnt[fv[0]][1], pnt[fv[0]][2]);
+        console.log(pnt[fv[1]][0], pnt[fv[1]][1], pnt[fv[1]][2]);
+        console.log(pnt[fv[2]][0], pnt[fv[2]][1], pnt[fv[2]][2]);
+        console.log(pnt[fv[0]][0], pnt[fv[0]][1], pnt[fv[0]][2]);
+        console.log("\n\n");
+      }
+      */
+
+      let com = [0,0,0];
+      for (let j=0; j<pnt.length; j++) {
+        com[0] += pnt[j][0];
+        com[1] += pnt[j][1];
+        com[2] += pnt[j][2];
+      }
+      com = njs.mul( 1/pnt.length, com );
+      console.log("#com:", JSON.stringify(com));
+      console.log(com[0], com[1], com[2], "\n\n");
+
+      let dual_pnt = _convex_hull_dual_points_3d(com, pnt, fv_idx);
+      dual_pnt.sort( (a,b) => { return (a[0] < b[0]) ? -1 : ((a[0] > b[0]) ? 1 : 0); });
+
+      //console.log(dual_pnt);
+
+      /*
+      for (let i=0; i<dual_pnt.length; i++) {
+        let q = dual_pnt[i];
+        let p = com;
+        let v = njs.add( njs.mul( 1/8, njs.sub( q, p ) ), q );
+
+        console.log(q[0], q[1], q[2]);
+        console.log(v[0], v[1], v[2]);
+        console.log("\n\n");
+      }
+      */
+
+
+      //let wtf = [];
+      //for (let i=0; i<n; i++) { wtf.push( njs.add( njs.random([3]), [0.5, 0.5, 0.5] ) ); }
+      //dual_pnt= wtf;
+
+      for (let i=0; i<dual_pnt.length; i++) {
+        console.log(dual_pnt[i][0], dual_pnt[i][1], dual_pnt[i][2], "\n\n" );
+      }
+
+      return;
+
+      let dual_idx = cocha.hull3d(dual_pnt);
+
+      //console.log(dual_idx);
+
+      for (let i=0; i<dual_idx.length; i++) {
+        let fv = dual_idx[i];
+        console.log(dual_pnt[fv[0]][0], dual_pnt[fv[0]][1], dual_pnt[fv[0]][2]);
+        console.log(dual_pnt[fv[1]][0], dual_pnt[fv[1]][1], dual_pnt[fv[1]][2]);
+        console.log(dual_pnt[fv[2]][0], dual_pnt[fv[2]][1], dual_pnt[fv[2]][2]);
+        console.log(dual_pnt[fv[0]][0], dual_pnt[fv[0]][1], dual_pnt[fv[0]][2]);
+        console.log("\n\n");
+      }
 
     }
 
