@@ -549,8 +549,13 @@ function cocha_hull3d(ctx) {
   let n = cocha_lower_hull_3d_recur(ctx, 0, ctx.P.length,0,0,0);
   ctx.q_n = n;
 
+
   if (ctx._debug > 0) {
     console.log("# got:", n, "Q[0]:", JSON.stringify(ctx.Q[0].slice(0,n)));
+    console.log("#ctx.P[", ctx.P.length,"]:");
+    for (let i=0; i<ctx.P.length; i++) {
+      console.log("#ctx.P[", i, "]:", JSON.stringify(ctx.P[i]));
+    }
   }
 
   let map_vtx_list = [],

@@ -435,23 +435,34 @@ function lunech3d(P) {
 
       mirror_base_idx = pnt_list.length;
 
+      // issues happen when coordinates are exactly the same (esp. x), so add in a fudge factor
+      //
+      let fr = njs.mul( 1/(1024.0*1024.0), njs.sub( njs.random([3]), [0.5,0.5,0.5] )  );
+      if (mirror_point[0] == 1) { pnt_list.push([mx+fr[0], anchor_p[1]+fr[1], anchor_p[2]+fr[2]]); }
+
+      fr = njs.mul( 1/(1024.0*1024.0), njs.sub( njs.random([3]), [0.5,0.5,0.5] )  );
+      if (mirror_point[1] == 1) { pnt_list.push([Mx+fr[0], anchor_p[1]+fr[1], anchor_p[2]+fr[2]]); }
+
+      fr = njs.mul( 1/(1024.0*1024.0), njs.sub( njs.random([3]), [0.5,0.5,0.5] )  );
+      if (mirror_point[2] == 1) { pnt_list.push([anchor_p[0]+fr[0], my+fr[1], anchor_p[2]+fr[2]]); }
+
+      fr = njs.mul( 1/(1024.0*1024.0), njs.sub( njs.random([3]), [0.5,0.5,0.5] )  );
+      if (mirror_point[3] == 1) { pnt_list.push([anchor_p[0]+fr[0], My+fr[1], anchor_p[2]+fr[2]]); }
+
+      fr = njs.mul( 1/(1024.0*1024.0), njs.sub( njs.random([3]), [0.5,0.5,0.5] )  );
+      if (mirror_point[4] == 1) { pnt_list.push([anchor_p[0]+fr[0], anchor_p[1]+fr[1], mz+fr[2]]); }
+
+      fr = njs.mul( 1/(1024.0*1024.0), njs.sub( njs.random([3]), [0.5,0.5,0.5] )  );
+      if (mirror_point[5] == 1) { pnt_list.push([anchor_p[0]+fr[0], anchor_p[1]+fr[1], Mz+fr[2]]); }
+
       // add in mirror points, with placeholder -1 for index
       //
-      if (mirror_point[0] == 1) { pnt_list.push([mx, anchor_p[1], anchor_p[2]]); }
-      if (mirror_point[1] == 1) { pnt_list.push([Mx, anchor_p[1], anchor_p[2]]); }
-      if (mirror_point[2] == 1) { pnt_list.push([anchor_p[0], my, anchor_p[2]]); }
-      if (mirror_point[3] == 1) { pnt_list.push([anchor_p[0], My, anchor_p[2]]); }
-      if (mirror_point[4] == 1) { pnt_list.push([anchor_p[0], anchor_p[1], mz]); }
-      if (mirror_point[5] == 1) { pnt_list.push([anchor_p[0], anchor_p[1], Mz]); }
-      for (let idir=0; idir<6; idir++) { if (mirror_point[idir]==1) { idx_list.push(-1); } }
+      for (let idir=0; idir<6; idir++) { if (mirror_point[idir]==1) {idx_list.push(-1); } }
 
       if (pnt_list.length < 4) { continue; }
 
       // find convex hull
       //
-
-      //BUG HERE!!!!!
-      console.log("...", pnt_list);
       let face_vtx_idx_list = CHA(pnt_list);
 
       // if convex hull doesn't completely encompass our current point (anchor_p),
