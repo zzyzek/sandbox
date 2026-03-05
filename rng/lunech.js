@@ -686,7 +686,6 @@ function lunech3d(P) {
 
       let _rng_idx = lunech_rng_point_naive(anchor_p, candidate_point);
 
-      console.log("# anchor_idx:", anchor_idx, "nei:", JSON.stringify(_rng_idx));
 
       //console.log(">>>", _rng_idx);
 
@@ -695,7 +694,31 @@ function lunech3d(P) {
         anchor_p_rng.push( candidate_point_idx[ _rng_idx[i] ] );
       }
 
+      //DEBUG
+      //DEBUG
+      //DEBUG
+      let pnt_mp = [];
+      let pnt_mp_idx = [];
+      for (let i=0; i<P.length; i++) {
+        if (i == anchor_idx) { continue; }
+        pnt_mp.push(P[i]);
+        pnt_mp_idx.push(i);
+      }
+      let _debug_rng_nei = lunech_rng_point_naive(anchor_p, pnt_mp);
 
+      let _debug_nei = [];
+      for (let i=0; i<_debug_rng_nei.length; i++) {
+        _debug_nei.push( pnt_mp_idx[_debug_rng_nei[i]] );
+      }
+
+      console.log("# anchor_idx:", anchor_idx, "nei:", JSON.stringify(candidate_point_idx), "verify:", JSON.stringify(_debug_nei));
+      console.log("# anchor_idx:", anchor_idx, "nei:", JSON.stringify(anchor_p_rng), "verify:", JSON.stringify(_debug_nei));
+      //DEBUG
+      //DEBUG
+      //DEBUG
+
+      //DEBUG
+      //DEBUG
       //DEBUG
       for (let i=0; i<anchor_p_rng.length; i++) {
         let nei_idx = anchor_p_rng[i];
@@ -703,7 +726,11 @@ function lunech3d(P) {
         console.log(anchor_p[0], anchor_p[1], anchor_p[2]);
         console.log(nei_q[0], nei_q[1], nei_q[2], "\n\n");
       }
-
+      return;
+      //DEBUG
+      //DEBUG
+      //DEBUG
+      
 
       break;
     }
