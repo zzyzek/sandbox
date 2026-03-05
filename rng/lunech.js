@@ -311,6 +311,7 @@ function _convex_hull_dual_points_3d(p, Q, face_idx_list) {
       let dp = njs.add( candidate_pnt[i], p );
       valid_pnt.push( dp );
 
+      /*
       //DEBUG
       let u  = Q[ nei_ijk[i][0] ];
       let v  = Q[ nei_ijk[i][1] ];
@@ -323,11 +324,120 @@ function _convex_hull_dual_points_3d(p, Q, face_idx_list) {
 
       console.log(dp[0], dp[1], dp[2]);
       console.log(w[0], w[1], w[2], "\n\n");
+      */
     }
   }
 
   return valid_pnt;
 }
+
+// return:
+//
+//   true  : tst_c in lune of pnt_a and pnt_b
+//   false : otherwise
+//
+function in_lune(pnt_a, pnt_b, tst_c) {
+  let dist_ca = njs.norm2( njs.sub(tst_c, pnt_a) );
+  let dist_cb = njs.norm2( njs.sub(tst_c, pnt_b) );
+  let dist_ab = njs.norm2( njs.sub(pnt_a, pnt_b) );
+
+  if ((dist_ca <= dist_ab) &&
+      (dist_cb <= dist_ab)) {
+    return true;
+  }
+
+  return false;
+}
+
+// run O(n^2) naive relative neighborhood graph calculation
+// for a single point, anchor_p
+//
+// return:
+//
+//   array of index neigbors
+//
+function lunech_rng_point_naive(anchor_p, pnt) {
+  let n = pnt.length;
+
+  //console.log("rng_pnt:", n);
+
+  let nei_idx = [];
+
+  for (let j=0; j<n; j++) {
+    let is_nei = true;
+    for (let k=0; k<n; k++) {
+      if (j==k) { continue; }
+
+
+      //DEBUG
+      //console.log("rng_pnt: anchor:", JSON.stringify(anchor_p), "p[", j, "]:", JSON.stringify(pnt[j]),
+      //  "tst[", k, "]:", JSON.stringify(pnt[k]),
+      //  in_lune(anchor_p, pnt[j], pnt[k]) );
+
+      if (in_lune(anchor_p, pnt[j], pnt[k])) {
+        is_nei = false;
+        break;
+      }
+    }
+    if (is_nei) { nei_idx.push(j); }
+  }
+
+  return nei_idx;
+}
+
+
+
+// run O(n^3) naive relative neighborhood graph calculation
+// on array of points `pnt`
+//
+// return:
+//
+// {
+//   "P" : pnt,
+//   "A" : adjacency matrix,
+//         1 if pnt[i] and pnt[j] connected,
+//         0 otherwise
+//   "E" : array of edges (index tuples)
+// }
+//
+function relative_neighborhood_graph_naive(pnt) {
+  let n = pnt.length;
+
+  let A = [];
+
+  for (let i=0; i<n; i++) {
+    A.push([]);
+    for (let j=0; j<n; j++) {
+      A[i].push( (i==j) ? 0 : 1 );
+    }
+  }
+
+  for (let i=0; i<pnt.length; i++) {
+    for (let j=0; j<pnt.length; j++) {
+      if (i==j) { continue; }
+      for (let k=0; k<n; k++) {
+        if ((i==k) || (j==k)) { continue; }
+        if (in_lune(pnt[i], pnt[j], pnt[k])) {
+          A[i][j] = 0;
+          A[j][i] = 0;
+        }
+      }
+    }
+
+  }
+
+  let E = [];
+
+  for (let i=0; i<n; i++) {
+    for (let j=0; j<n; j++) {
+      if (A[i][j] > 0.5) { E.push([i,j]); }
+    }
+  }
+
+  return { "P": pnt, "E": E, "A": A };
+}
+
+
 
 function boundingBox(pnt) {
   let mM = [ [0,0], [0,0], [0,0] ];
@@ -515,18 +625,34 @@ function lunech3d(P) {
 
       // otherwise, take the dual of of the convex hull (intersection
       // of points taken as normals from anchor_p) then see if the dual
-      // convex hull is within threshold grid distance
+      // points are within threshold grid distance.
+      // We can't run COCHA on the dual as more than 3 points could be co-planar
+      // now.
       //
 
       // WIP!!!
       let pnt_dual = _convex_hull_dual_points_3d(anchor_p, pnt_list, face_vtx_idx_list);
       let bbox = boundingBox(pnt_dual);
 
+      //console.log("bbox:", JSON.stringify(bbox), pnt_dual);
+
       let ibbox = [
         [ Math.floor( grid_n * (bbox[0][0] + anchor_p[0] ) ), Math.floor( grid_n * (bbox[0][1] + anchor_p[0] ) ) ],
-        [ Math.floor( grid_n * (bbox[1][1] + anchor_p[1] ) ), Math.floor( grid_n * (bbox[1][1] + anchor_p[1] ) ) ],
-        [ Math.floor( grid_n * (bbox[2][2] + anchor_p[2] ) ), Math.floor( grid_n * (bbox[2][1] + anchor_p[2] ) ) ]
+        [ Math.floor( grid_n * (bbox[1][0] + anchor_p[1] ) ), Math.floor( grid_n * (bbox[1][1] + anchor_p[1] ) ) ],
+        [ Math.floor( grid_n * (bbox[2][0] + anchor_p[2] ) ), Math.floor( grid_n * (bbox[2][1] + anchor_p[2] ) ) ]
       ];
+
+      ibbox = [
+        [ Math.floor( grid_n * bbox[0][0] ), Math.floor( grid_n * bbox[0][1] ) ],
+        [ Math.floor( grid_n * bbox[1][0] ), Math.floor( grid_n * bbox[1][1] ) ],
+        [ Math.floor( grid_n * bbox[2][0] ), Math.floor( grid_n * bbox[2][1] ) ]
+      ];
+      for (let i=0; i<3; i++) {
+        ibbox[i][0] = _clamp(ibbox[i][0], 0, grid_n-1);
+        ibbox[i][1] = _clamp(ibbox[i][1], 0, grid_n-1);
+      }
+
+      //console.log("ibbox:", ibbox);
 
       let within_threshold = true;
       for (let i=0; i<3; i++) {
@@ -539,17 +665,53 @@ function lunech3d(P) {
 
       if (!within_threshold) { continue; }
 
-      // rng of threshold grid
-      //
+      let candidate_point = [],
+          candidate_point_idx = [];
+      for (let iz=ibbox[2][0]; iz<ibbox[2][1]; iz++) {
+        for (let iy=ibbox[1][0]; iy<ibbox[1][1]; iy++) {
+          for (let ix=ibbox[0][0]; ix<ibbox[0][1]; ix++) {
+            let ig = ixyz2idx([ix,iy,iz], [grid_n,grid_n,grid_n]);
+            for (let j=0; j<grid_idx[ig].length; j++) {
+              let ip = grid_idx[ig][j];
+              if (ip == anchor_idx) { continue; }
+              candidate_point.push( P[ip] );
+              candidate_point_idx.push( ip );
+            }
+          }
+        }
+      }
+
+      //console.log("candidate_point:", candidate_point, JSON.stringify(ibbox));
 
 
+      let _rng_idx = lunech_rng_point_naive(anchor_p, candidate_point);
 
+      console.log("# anchor_idx:", anchor_idx, "nei:", JSON.stringify(_rng_idx));
+
+      //console.log(">>>", _rng_idx);
+
+      let anchor_p_rng = [];
+      for (let i=0; i<_rng_idx.length; i++) {
+        anchor_p_rng.push( candidate_point_idx[ _rng_idx[i] ] );
+      }
+
+
+      //DEBUG
+      for (let i=0; i<anchor_p_rng.length; i++) {
+        let nei_idx = anchor_p_rng[i];
+        let nei_q = P[nei_idx];
+        console.log(anchor_p[0], anchor_p[1], anchor_p[2]);
+        console.log(nei_q[0], nei_q[1], nei_q[2], "\n\n");
+      }
+
+
+      break;
     }
 
   }
 
 
-  if (_debug) {
+  if (_debug > 1) {
     gnuplot_print_grid(ds, grid_n);
     for (let i=0; i<P.length; i++) {
       console.log(P[i][0], P[i][1], P[i][2]);
@@ -572,6 +734,7 @@ if ((typeof require !== "undefined") &&
     let op = 'lunech3d';
     op = 'lunech3d';
     op = 'dual3d_test';
+    op = 'lunech3d';
 
     // test _p_inside_convex_hull_3d function
     //
