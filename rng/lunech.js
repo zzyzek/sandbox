@@ -121,6 +121,24 @@ function in_lune(pnt_a, pnt_b, tst_c) {
 //----
 //----
 
+function _icmp(a,b) {
+  if (a<b) { return -1; }
+  if (a>b) { return 1; }
+  return 0;
+}
+
+function _pcmp(a,b) {
+  let M = [a.length, b.length];
+  let m = Math.min(m[0],m[1]);
+  let idx = 0;
+  for (idx=0; idx<m; idx++) {
+    if (a[idx] < b[idx]) { return -1; }
+    if (a[idx] > b[idx]) { return 1; }
+  }
+  if (a.length < b.length) { return -1; }
+  if (a.length > b.length) { return 1; }
+  return 0;
+}
 
 function _clamp(a, l,u) {
   if (a <  l) { return l; }
@@ -210,7 +228,15 @@ function _p_inside_convex_hull_3d(p, Q, face_idx_list) {
     let c3 = fasslib.cross3( njs.sub(v,u), njs.sub(w,u) );
     let s = njs.dot( c3, njs.sub(u,p) );
 
-    if (s < 0) { return false; }
+    if (s < 0) {
+
+      //DEBUG
+      //DEBUG
+      //DEBUG
+      console.log("#bang:", s, "face:", JSON.stringify(fv));
+      
+      return false;
+    }
   }
 
   return true;
@@ -510,6 +536,18 @@ function lunech3d(P) {
     grid_idx[g_idx].push(i);
   }
 
+  //DEBUG
+  //DEBUG
+  //DEBUG
+  for (let i=0; i<M; i++) {
+    let ixyz = idx2xyz(i, nxyz);
+    console.log("#grid[", i, "/", M, "](", JSON.stringify(ixyz), "):", JSON.stringify(grid_idx[i]));
+  }
+
+  //DEBUG
+  //DEBUG
+  //DEBUG
+
   let winFactor = 1.25;
 
   // for each anchor point, take the collection of grid cells
@@ -539,7 +577,7 @@ function lunech3d(P) {
       let se_ixyz = [ [-1,-1], [-1,-1], [-1,-1] ];
       for (let d=0; d<3; d++) {
         se_ixyz[d][0] = _clamp(anchor_ixyz[d]-win_radius, 0, nxyz[d]);
-        se_ixyz[d][1] = _clamp(anchor_ixyz[d]+win_radius, 0, nxyz[d]);
+        se_ixyz[d][1] = _clamp(anchor_ixyz[d]+win_radius+1, 0, nxyz[d]);
       }
 
       if (_debug) {
@@ -620,6 +658,14 @@ function lunech3d(P) {
       // try again.
       //
       if (!_p_inside_convex_hull_3d(anchor_p, pnt_list, face_vtx_idx_list)) {
+
+        //DEBUG
+        //DEBUG
+        console.log("#CH large (", _p_inside_convex_hull_3d(anchor_p, pnt_list, face_vtx_idx_list), "),",
+          "anchorp:", JSON.stringify(anchor_p),
+          "(mirror:", JSON.stringify(mirror_point), ")",
+          "vtx:", JSON.stringify(face_vtx_idx_list));
+
         continue;
       }
 
@@ -663,13 +709,22 @@ function lunech3d(P) {
         }
       }
 
-      if (!within_threshold) { continue; }
+      if (!within_threshold) {
+
+        //DEBUG
+        //DEBUG
+        console.log("#out of threshold:", JSON.stringify(ibbox), "gridmM:", JSON.stringify(grid_mM));
+        //DEBUG
+        //DEBUG
+
+        continue;
+      }
 
       let candidate_point = [],
           candidate_point_idx = [];
-      for (let iz=ibbox[2][0]; iz<ibbox[2][1]; iz++) {
-        for (let iy=ibbox[1][0]; iy<ibbox[1][1]; iy++) {
-          for (let ix=ibbox[0][0]; ix<ibbox[0][1]; ix++) {
+      for (let iz=ibbox[2][0]; iz<=ibbox[2][1]; iz++) {
+        for (let iy=ibbox[1][0]; iy<=ibbox[1][1]; iy++) {
+          for (let ix=ibbox[0][0]; ix<=ibbox[0][1]; ix++) {
             let ig = ixyz2idx([ix,iy,iz], [grid_n,grid_n,grid_n]);
             for (let j=0; j<grid_idx[ig].length; j++) {
               let ip = grid_idx[ig][j];
@@ -681,13 +736,17 @@ function lunech3d(P) {
         }
       }
 
+      //console.log("#ibbox:", JSON.stringify(ibbox));
+
       //console.log("candidate_point:", candidate_point, JSON.stringify(ibbox));
 
 
       let _rng_idx = lunech_rng_point_naive(anchor_p, candidate_point);
 
 
-      //console.log(">>>", _rng_idx);
+      //console.log("#???candidate_point:", JSON.stringify(candidate_point));
+      //console.log("#???candidate_point_idx:", JSON.stringify(candidate_point_idx));
+      //console.log("# rng_idx:", JSON.stringify(_rng_idx));
 
       let anchor_p_rng = [];
       for (let i=0; i<_rng_idx.length; i++) {
@@ -697,6 +756,7 @@ function lunech3d(P) {
       //DEBUG
       //DEBUG
       //DEBUG
+      /*
       let pnt_mp = [];
       let pnt_mp_idx = [];
       for (let i=0; i<P.length; i++) {
@@ -710,23 +770,36 @@ function lunech3d(P) {
       for (let i=0; i<_debug_rng_nei.length; i++) {
         _debug_nei.push( pnt_mp_idx[_debug_rng_nei[i]] );
       }
-
-      console.log("# anchor_idx:", anchor_idx, "nei:", JSON.stringify(candidate_point_idx), "verify:", JSON.stringify(_debug_nei));
-      console.log("# anchor_idx:", anchor_idx, "nei:", JSON.stringify(anchor_p_rng), "verify:", JSON.stringify(_debug_nei));
-      //DEBUG
-      //DEBUG
-      //DEBUG
+      */
 
       //DEBUG
       //DEBUG
       //DEBUG
+      //DEBUG
+      /*
+      anchor_p_rng.sort(_icmp);
+      candidate_point_idx.sort(_icmp);
+      console.log("# anchor_idx:", anchor_idx,
+        "candidate:", JSON.stringify(candidate_point_idx));
+      console.log("# anchor_idx:", anchor_idx,
+        "nei:", JSON.stringify(anchor_p_rng),
+        "verify:", JSON.stringify(_debug_nei));
+        */
+      //DEBUG
+      //DEBUG
+      //DEBUG
+
+      //DEBUG
+      //DEBUG
+      //DEBUG
+
       for (let i=0; i<anchor_p_rng.length; i++) {
         let nei_idx = anchor_p_rng[i];
         let nei_q = P[nei_idx];
         console.log(anchor_p[0], anchor_p[1], anchor_p[2]);
         console.log(nei_q[0], nei_q[1], nei_q[2], "\n\n");
       }
-      return;
+
       //DEBUG
       //DEBUG
       //DEBUG
