@@ -1,11 +1,19 @@
 TODO
 ===
 
+###### 2026-03-05
+
+* algorithm implemented but something looks clearly wrong, testing needs to be done
+  - make sure single point rng works (`lunech_rng_point_naive`)
+  - do a comparison test with full naive rng
+  - focus on one point for visualization to see what's going on
+
 ###### 2026-02-28
 
 * ~normalize vertex triple return of cocha (ccw rel. face normal)~
-* add mirror point on boundary for convex hull test
-* test $p$ inside/outside convex hull
+* ~add mirror point on boundary for convex hull test~
+  - needed to be randomized because of x-sorting for cocha
+* ~test $p$ inside/outside convex hull~
 
 ###### 2026-01-15
 
