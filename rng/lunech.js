@@ -13,6 +13,7 @@
 var njs = require("./numeric.js");
 var cocha = require("./cocha.js");
 var fasslib = require("./fasslib.js");
+var printf = require("./printf.js");
 
 // convention?
 // H : half plane
@@ -272,7 +273,11 @@ function _p_inside_convex_hull_3d(p, Q, face_idx_list) {
 // WIP!!!
 //
 //
-function _convex_hull_dual_points_3d(p, Q, face_idx_list) {
+function _convex_hull_dual_points_3d(p, Q, face_idx_list, _debug) {
+  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+
+  if (Q.length == 0) { return []; }
+  if (face_idx_list.length == 0) { return []; }
 
   // plan:
   // - dedup points
@@ -288,9 +293,10 @@ function _convex_hull_dual_points_3d(p, Q, face_idx_list) {
   }
   idx_list.sort( (a,b) => { return ( (a<b) ? -1 : ((a>b) ? 1 : 0 )); });
 
-  let uniq_idx = [];
-  for (let i=0; i<(idx_list.length-1); i++) {
-    if (idx_list[i] != idx_list[i+1]) { uniq_idx.push(idx_list[i]); }
+
+  let uniq_idx = [ idx_list[0] ];
+  for (let i=1; i<(idx_list.length); i++) {
+    if (idx_list[i] != idx_list[i-1]) { uniq_idx.push(idx_list[i]); }
   }
 
   let candidate_pnt = [];
@@ -322,11 +328,64 @@ function _convex_hull_dual_points_3d(p, Q, face_idx_list) {
     }
   }
 
+  if (_debug) {
+    console.log("#???", candidate_pnt.length);
+
+    let fs = require("fs");
+    let c_lines = [ ];
+
+    c_lines.push( printf("#p: %f %f %f", p[0], p[1], p[2]));
+
+    for (let i=0; i<candidate_pnt.length; i++) {
+      let _p = njs.add( candidate_pnt[i], p );
+      if (njs.norm2(_p) > 5) { continue; }
+      c_lines.push( printf("%f %f %f\n\n", _p[0], _p[1], _p[2] ) );
+    }
+
+    for (let i=0; i<Q.length; i++) {
+      c_lines.push( printf("#Q[%i] |Q[%i]-p| %f", i, i, njs.norm2(njs.sub(Q[i],p))) );
+      c_lines.push( printf("%f %f %f\n\n\n", Q[i][0],  Q[i][1],  Q[i][2] )); 
+    }
+
+    for (let i=0; i<debug_q.length; i++) {
+      //c_lines.push(printf("#|u| %f", njs.norm2(debug_q[i][0])));
+      c_lines.push(printf("%f %f %f", p[0], p[1], p[2]));
+      c_lines.push(printf("%f %f %f", debug_q[i][0][0], debug_q[i][0][1], debug_q[i][0][2]));
+      c_lines.push("\n\n");
+
+      //c_lines.push(printf("#|v| %f", njs.norm2(debug_q[i][1])));
+      c_lines.push(printf("%f %f %f", p[0], p[1], p[2]));
+      c_lines.push(printf("%f %f %f", debug_q[i][1][0], debug_q[i][1][1], debug_q[i][1][2]));
+      c_lines.push("\n\n");
+
+      //c_lines.push(printf("#|w| %f", njs.norm2(debug_q[i][2])));
+      c_lines.push(printf("%f %f %f", p[0], p[1], p[2]));
+      c_lines.push(printf("%f %f %f", debug_q[i][2][0], debug_q[i][2][1], debug_q[i][2][2]));
+      c_lines.push("\n\n");
+    }
+
+    c_lines.push("\n\n");
+    for (let i=0; i<face_idx_list.length; i++) {
+      let fv = face_idx_list[i];
+
+      c_lines.push(printf("%f %f %f", Q[fv[0]][0], Q[fv[0]][1], Q[fv[0]][2] ));
+      c_lines.push(printf("%f %f %f", Q[fv[1]][0], Q[fv[1]][1], Q[fv[1]][2] ));
+      c_lines.push(printf("%f %f %f", Q[fv[2]][0], Q[fv[2]][1], Q[fv[2]][2] ));
+      c_lines.push(printf("%f %f %f", Q[fv[0]][0], Q[fv[0]][1], Q[fv[0]][2] ));
+      c_lines.push("\n\n");
+
+    }
+
+    fs.writeFileSync("dbg_cp.gp", c_lines.join("\n"));
+  }
+
   let _eps = (1.0 / (1024.0*1024.0));
   let valid_pnt = [];
   for (let i=0; i<candidate_pnt.length; i++) {
 
     let valid = true;
+
+    let u = njs.sub( candidate_pnt[i], p );
 
     for (let j=0; j<uniq_idx.length; j++) {
       let idx = uniq_idx[j];
@@ -342,6 +401,10 @@ function _convex_hull_dual_points_3d(p, Q, face_idx_list) {
         break;
       }
 
+    }
+
+    if (_debug) {
+      console.log("#", valid, u[0], u[1], u[2]);
     }
 
     if (valid) {
@@ -613,28 +676,34 @@ function lunech3d(P) {
   // the edge.
   //
   for (let anchor_idx=0; anchor_idx<P.length; anchor_idx++) {
+
+    //DEBUG
+    //DEBUG
+    //if (anchor_idx == 70) { _debug = 2; } 
+    //else { _debug = 0; }
+    //DEBUG
+    //DEBUG
+
     let anchor_grid_idx = xyz2idx(P[anchor_idx], nxyz);
     let anchor_ixyz = idx2xyz(anchor_grid_idx, nxyz);
 
     let anchor_p = P[anchor_idx];
 
-    for (let win_radius=1; win_radius<grid_n; win_radius++) {
-
-      let _f = winFactor;
-      let grid_mM = [
-        [ Math.floor(anchor_ixyz[0] - (_f*win_radius)), Math.floor(anchor_ixyz[0] + (_f*win_radius)) ],
-        [ Math.floor(anchor_ixyz[1] - (_f*win_radius)), Math.floor(anchor_ixyz[1] + (_f*win_radius)) ],
-        [ Math.floor(anchor_ixyz[2] - (_f*win_radius)), Math.floor(anchor_ixyz[2] + (_f*win_radius)) ]
-      ];
+    for (let iwin_radius=1; iwin_radius<grid_n; iwin_radius++) {
 
       let se_ixyz = [ [-1,-1], [-1,-1], [-1,-1] ];
       for (let d=0; d<3; d++) {
-        se_ixyz[d][0] = _clamp(anchor_ixyz[d]-win_radius, 0, nxyz[d]);
-        se_ixyz[d][1] = _clamp(anchor_ixyz[d]+win_radius+1, 0, nxyz[d]);
+        se_ixyz[d][0] = _clamp(anchor_ixyz[d]-iwin_radius, 0, nxyz[d]);
+        se_ixyz[d][1] = _clamp(anchor_ixyz[d]+iwin_radius+1, 0, nxyz[d]);
       }
 
       if (_debug) {
-        console.log("#anchor_idx:", anchor_idx, "wr:", win_radius, "g_idx:", anchor_grid_idx, "anchor_ixyz:", anchor_ixyz, "se_ixyz:", se_ixyz);
+        console.log("#anchor_idx:", anchor_idx,
+          "wr:", iwin_radius,
+          "g_idx:", anchor_grid_idx,
+          "anchor_ixyz:", anchor_ixyz,
+          "se_ixyz:", se_ixyz,
+          "grid_n:", grid_n);
       }
 
       let pnt_list = [];
@@ -707,6 +776,57 @@ function lunech3d(P) {
       //
       let face_vtx_idx_list = CHA(pnt_list);
 
+      if (_debug) {
+
+        var fs = require("fs");
+
+        let p_lines = [ printf("%f %f %f", anchor_p[0], anchor_p[1], anchor_p[2]) ];
+        fs.writeFileSync("dbg_p.gp", p_lines.join("\n"));
+
+        let bad0_lines = [ printf("%f %f %f", P[109][0], P[109][1], P[109][2]) ];
+        fs.writeFileSync("dbg_b0.gp", bad0_lines.join("\n"));
+
+        let bad1_lines = [
+          printf("%f %f %f\n", P[30][0], P[30][1], P[30][2]),
+          printf("%f %f %f\n", P[94][0], P[94][1], P[94][2])
+        ];
+        fs.writeFileSync("dbg_b1.gp", bad1_lines.join("\n"));
+
+        let q_lines = [];
+        console.log("#pnt_list:", pnt_list.length, "mirror_point:", JSON.stringify(mirror_point));
+        for (let _i=0; _i<pnt_list.length; _i++) {
+          console.log("#@", pnt_list[_i][0], pnt_list[_i][1], pnt_list[_i][2]);
+          console.log("#@");
+          console.log("#@");
+
+          q_lines.push( printf("#pnt_list: %i, mirror_point: %s, se %s",
+            pnt_list.length,
+            JSON.stringify(mirror_point),
+            JSON.stringify(se_ixyz) ) );
+          q_lines.push( printf("%f %f %f", pnt_list[_i][0], pnt_list[_i][1], pnt_list[_i][2]) );
+          q_lines.push("\n");
+        }
+        fs.writeFileSync("dbg_q.gp", q_lines.join("\n"));
+
+        let f_lines = [];
+        for (let _i=0; _i<face_vtx_idx_list.length; _i++) {
+          let fv = face_vtx_idx_list[_i];
+          console.log("#@", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]);
+          console.log("#@", pnt_list[fv[1]][0], pnt_list[fv[1]][1], pnt_list[fv[1]][2]);
+          console.log("#@", pnt_list[fv[2]][0], pnt_list[fv[2]][1], pnt_list[fv[2]][2]);
+          console.log("#@", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]);
+          console.log("#@");
+          console.log("#@");
+
+          f_lines.push(printf("%f %f %f", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]));
+          f_lines.push(printf("%f %f %f",  pnt_list[fv[1]][0], pnt_list[fv[1]][1], pnt_list[fv[1]][2]));
+          f_lines.push(printf("%f %f %f", pnt_list[fv[2]][0], pnt_list[fv[2]][1], pnt_list[fv[2]][2]));
+          f_lines.push(printf("%f %f %f", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]));
+          f_lines.push("\n");
+        }
+        fs.writeFileSync("dbg_f.gp", f_lines.join("\n"));
+      }
+
       // if convex hull doesn't completely encompass our current point (anchor_p),
       // try again.
       //
@@ -753,12 +873,6 @@ function lunech3d(P) {
       let bbox = boundingBox(pnt_dual);
 
       let ibbox = [
-        [ Math.floor( grid_n * (bbox[0][0] + anchor_p[0] ) ), Math.floor( grid_n * (bbox[0][1] + anchor_p[0] ) ) ],
-        [ Math.floor( grid_n * (bbox[1][0] + anchor_p[1] ) ), Math.floor( grid_n * (bbox[1][1] + anchor_p[1] ) ) ],
-        [ Math.floor( grid_n * (bbox[2][0] + anchor_p[2] ) ), Math.floor( grid_n * (bbox[2][1] + anchor_p[2] ) ) ]
-      ];
-
-      ibbox = [
         [ Math.floor( grid_n * bbox[0][0] ), Math.floor( grid_n * bbox[0][1] ) ],
         [ Math.floor( grid_n * bbox[1][0] ), Math.floor( grid_n * bbox[1][1] ) ],
         [ Math.floor( grid_n * bbox[2][0] ), Math.floor( grid_n * bbox[2][1] ) ]
@@ -768,18 +882,42 @@ function lunech3d(P) {
         ibbox[i][1] = _clamp(ibbox[i][1], 0, grid_n-1);
       }
 
-      //console.log("ibbox:", ibbox);
+      let _wf = winFactor;
+      let thresh_mM = [
+        [ Math.floor(anchor_ixyz[0] - (_wf*iwin_radius)), Math.floor(anchor_ixyz[0] + (_wf*iwin_radius)) ],
+        [ Math.floor(anchor_ixyz[1] - (_wf*iwin_radius)), Math.floor(anchor_ixyz[1] + (_wf*iwin_radius)) ],
+        [ Math.floor(anchor_ixyz[2] - (_wf*iwin_radius)), Math.floor(anchor_ixyz[2] + (_wf*iwin_radius)) ]
+      ];
+
 
       let within_threshold = true;
       for (let i=0; i<3; i++) {
-        if ((ibbox[i][0]  < grid_mM[0]) ||
-            (ibbox[i][1] >= grid_mM[1])) {
+        if ((ibbox[i][0]  < thresh_mM[i][0]) ||
+            (ibbox[i][1] >= thresh_mM[i][1])) {
           within_threshold = false;
           break;
         }
       }
 
-      if (!within_threshold) { continue; }
+      if (!within_threshold) {
+
+        if (_debug) {
+          console.log("# not within threshold, extending...",
+            "bbox(pnt_dual):", JSON.stringify(bbox),
+            "ibbox:", JSON.stringify(ibbox),
+            "thresh_mM:", JSON.stringify(thresh_mM));
+          console.log("####");
+
+          let fs = require("fs");
+          let d_lines = [ printf("#ibbox: %s, thresh_mM: %s", JSON.stringify(ibbox), JSON.stringify(thresh_mM)) ];
+          for (let _i=0; _i<pnt_dual.length; _i++) {
+            d_lines.push( printf("%f %f %f\n\n", pnt_dual[_i][0], pnt_dual[_i][1], pnt_dual[_i][2] ));
+          }
+          fs.writeFileSync("dbg_d.gp", d_lines.join("\n"));
+        }
+        
+        continue;
+      }
 
       let candidate_point = [],
           candidate_point_idx = [];
@@ -795,6 +933,19 @@ function lunech3d(P) {
             }
           }
         }
+      }
+
+      if (_debug) {
+        console.log("#ibbox:", JSON.stringify(ibbox));
+
+        /*
+        let fs = require("fs");
+        let d_lines = [ printf("#ibbox: %s, thresh_mM: %s", JSON.stringify(ibbox), JSON.stringify(thresh_mM)) ];
+        for (let _i=0; _i<candidate_point.length; _i++) {
+          d_lines.push( printf("%f %f %f\n\n", candidate_point[_i][0], candidate_point[_i][1], candidate_point[_i][2] ));
+        }
+        fs.writeFileSync("dbg_d.gp", d_lines.join("\n"));
+        */
       }
 
       let _rng_idx = lunech_rng_point_naive(anchor_p, candidate_point);
@@ -835,11 +986,33 @@ if ((typeof require !== "undefined") &&
 
   function _main(argv) {
 
+    var fs = require("fs");
+
+    let ifn = "./data/p200.gp";
 
     let op = 'lunech3d';
     op = 'lunech3d';
     op = 'dual3d_test';
     op = 'lunech3d';
+
+    let Porig = [];
+    if (ifn.length > 0) {
+      let dat = fs.readFileSync(ifn, 'utf8');
+      let lines = dat.split("\n");
+      for (let line_no=0; line_no<lines.length; line_no++) {
+        let line = lines[line_no].trim();
+        if (line.length == 0) { continue; }
+        if (line[0] == '#') { continue; }
+
+        let tok = line.split(" ");
+        if (tok.length != 3) { continue; }
+
+        let x = parseFloat(tok[0]);
+        let y = parseFloat(tok[1]);
+        let z = parseFloat(tok[2]);
+        Porig.push([x,y,z]);
+      }
+    }
 
     // test _p_inside_convex_hull_3d function
     //
@@ -972,11 +1145,12 @@ if ((typeof require !== "undefined") &&
     else if (op == 'lunech3d') {
       let n = 200;
       let P = [];
-      for (let i=0; i<n; i++) {
-        P.push([Math.random(),Math.random(),Math.random()]);
-      }
-      let rng_nei_idx = lunech3d(P);
+      //for (let i=0; i<n; i++) { P.push([Math.random(),Math.random(),Math.random()]); }
 
+      n = Porig.length;
+      P = Porig;
+
+      let rng_nei_idx = lunech3d(P);
 
 
       for (let i=0; i<rng_nei_idx.length; i++) {
@@ -991,15 +1165,27 @@ if ((typeof require !== "undefined") &&
         console.log("#[v", i, "]:", JSON.stringify(rng_nei_idx[i]), JSON.stringify(slow_rng_nei_idx[i]));
       }
 
+      let p_lines = ["#P"];
+      for (let i=0; i<P.length; i++) {
+        p_lines.push( printf("%f %f %f\n\n", P[i][0], P[i][1], P[i][2]) );
+      }
+      //fs.writeFileSync("dbg_p" + n.toString() + ".gp", p_lines.join("\n"));
+      console.log(p_lines.join("\n"));
+
+      let ch_lines = ["#CH"];
       for (let i=0; i<rng_nei_idx.length; i++) {
         let p = P[i];
         for (let j=0; j<rng_nei_idx[i].length; j++) {
           let q = P[ rng_nei_idx[i][j] ];
-          console.log(p[0], p[1], p[2]);
-          console.log(q[0], q[1], q[2]);
-          console.log("\n\n");
+          ch_lines.push( printf("%f %f %f", p[0], p[1], p[2]));
+          ch_lines.push( printf("%f %f %f\n\n", q[0], q[1], q[2]));
+          //console.log(p[0], p[1], p[2]);
+          //console.log(q[0], q[1], q[2]);
+          //console.log("\n\n");
         }
       }
+      console.log(ch_lines.join("\n"));
+
 
     }
   }
