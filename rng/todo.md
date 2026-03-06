@@ -4,9 +4,12 @@ TODO
 ###### 2026-03-05
 
 * algorithm implemented but something looks clearly wrong, testing needs to be done
-  - make sure single point rng works (`lunech_rng_point_naive`)
+  - looks better but still has bugs
+  - ~make sure single point rng works (`lunech_rng_point_naive`)~
   - do a comparison test with full naive rng
+    + in progress, still has bugs
   - focus on one point for visualization to see what's going on
+* get meta data so we can visualize
 
 ###### 2026-02-28
 
