@@ -627,22 +627,22 @@ function lunech3d(P) {
       // issues happen when coordinates are exactly the same (esp. x), so add in a fudge factor
       //
       let fr = njs.mul( 1/(1024.0*1024.0), njs.sub( njs.random([3]), [0.5,0.5,0.5] )  );
-      if (mirror_point[0] == 1) { pnt_list.push([mx+fr[0], anchor_p[1]+fr[1], anchor_p[2]+fr[2]]); }
+      if (mirror_point[0] == 1) { pnt_list.push([Mx+2*fr[0], anchor_p[1]+fr[1], anchor_p[2]+fr[2]]); }
 
       fr = njs.mul( 1/(1024.0*1024.0), njs.sub( njs.random([3]), [0.5,0.5,0.5] )  );
-      if (mirror_point[1] == 1) { pnt_list.push([Mx+fr[0], anchor_p[1]+fr[1], anchor_p[2]+fr[2]]); }
+      if (mirror_point[1] == 1) { pnt_list.push([mx-2*fr[0], anchor_p[1]+fr[1], anchor_p[2]+fr[2]]); }
 
       fr = njs.mul( 1/(1024.0*1024.0), njs.sub( njs.random([3]), [0.5,0.5,0.5] )  );
-      if (mirror_point[2] == 1) { pnt_list.push([anchor_p[0]+fr[0], my+fr[1], anchor_p[2]+fr[2]]); }
+      if (mirror_point[2] == 1) { pnt_list.push([anchor_p[0]+fr[0], My+2*fr[1], anchor_p[2]+fr[2]]); }
 
       fr = njs.mul( 1/(1024.0*1024.0), njs.sub( njs.random([3]), [0.5,0.5,0.5] )  );
-      if (mirror_point[3] == 1) { pnt_list.push([anchor_p[0]+fr[0], My+fr[1], anchor_p[2]+fr[2]]); }
+      if (mirror_point[3] == 1) { pnt_list.push([anchor_p[0]+fr[0], my-2*fr[1], anchor_p[2]+fr[2]]); }
 
       fr = njs.mul( 1/(1024.0*1024.0), njs.sub( njs.random([3]), [0.5,0.5,0.5] )  );
-      if (mirror_point[4] == 1) { pnt_list.push([anchor_p[0]+fr[0], anchor_p[1]+fr[1], mz+fr[2]]); }
+      if (mirror_point[4] == 1) { pnt_list.push([anchor_p[0]+fr[0], anchor_p[1]+fr[1], Mz+2*fr[2]]); }
 
       fr = njs.mul( 1/(1024.0*1024.0), njs.sub( njs.random([3]), [0.5,0.5,0.5] )  );
-      if (mirror_point[5] == 1) { pnt_list.push([anchor_p[0]+fr[0], anchor_p[1]+fr[1], Mz+fr[2]]); }
+      if (mirror_point[5] == 1) { pnt_list.push([anchor_p[0]+fr[0], anchor_p[1]+fr[1], mz-2*fr[2]]); }
 
       // add in mirror points, with placeholder -1 for index
       //
@@ -665,6 +665,30 @@ function lunech3d(P) {
           "anchorp:", JSON.stringify(anchor_p),
           "(mirror:", JSON.stringify(mirror_point), ")",
           "vtx:", JSON.stringify(face_vtx_idx_list));
+
+        //DEBUG
+        //DEBUG
+        /*
+        console.log("#annchor_p");
+        console.log("#@", anchor_p[0], anchor_p[1], anchor_p[2]);
+        console.log("#@\n#@");
+        console.log("#pnt_list[", pnt_list.length, "]:");
+        for (let i=0; i<pnt_list.length; i++) {
+          console.log("#@", pnt_list[i][0], pnt_list[i][1], pnt_list[i][2]);
+          console.log("#@\n#@");
+        }
+
+        for (let i=0; i<face_vtx_idx_list.length; i++) {
+          let fv = face_vtx_idx_list[i];
+          console.log("#@", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]);
+          console.log("#@", pnt_list[fv[1]][0], pnt_list[fv[1]][1], pnt_list[fv[1]][2]);
+          console.log("#@", pnt_list[fv[2]][0], pnt_list[fv[2]][1], pnt_list[fv[2]][2]);
+          console.log("#@", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]);
+          console.log("#@\n#@");
+        }
+        */
+        //DEBUG
+        //DEBUG
 
         continue;
       }
@@ -713,7 +737,26 @@ function lunech3d(P) {
 
         //DEBUG
         //DEBUG
+        /*
         console.log("#out of threshold:", JSON.stringify(ibbox), "gridmM:", JSON.stringify(grid_mM));
+        console.log("#annchor_p");
+        console.log("#@", anchor_p[0], anchor_p[1], anchor_p[2]);
+        console.log("#@\n#@");
+        console.log("#pnt_list[", pnt_list.length, "]:");
+        for (let i=0; i<pnt_list.length; i++) {
+          console.log("#@", pnt_list[i][0], pnt_list[i][1], pnt_list[i][2]);
+          console.log("#@\n#@");
+        }
+
+        for (let i=0; i<face_vtx_idx_list.length; i++) {
+          let fv = face_vtx_idx_list[i];
+          console.log("#@", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]);
+          console.log("#@", pnt_list[fv[1]][0], pnt_list[fv[1]][1], pnt_list[fv[1]][2]);
+          console.log("#@", pnt_list[fv[2]][0], pnt_list[fv[2]][1], pnt_list[fv[2]][2]);
+          console.log("#@", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]);
+          console.log("#@\n#@");
+        }
+        */
         //DEBUG
         //DEBUG
 
@@ -965,7 +1008,7 @@ if ((typeof require !== "undefined") &&
     }
 
     else if (op == 'lunech3d') {
-      let n = 200;
+      let n = 20000;
       let P = [];
       for (let i=0; i<n; i++) {
         P.push([Math.random(),Math.random(),Math.random()]);
