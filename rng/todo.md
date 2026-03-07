@@ -1,14 +1,28 @@
 TODO
 ===
 
+###### 2026-03-06
+
+* profiling
+  - parts are very slow. I suspect it's the dual calculation but first
+    step is to confirm, then figure out how to optimize
+* automated tests
+  - comparitive examples
+  - timing (plots)
+* description, visualization, figures
+* code cleanup
+* still should get some meta data for visualization (low priority)
+
 ###### 2026-03-05
 
 * algorithm implemented but something looks clearly wrong, testing needs to be done
-  - looks better but still has bugs
+  - ~looks better but still has bugs~
+    + bugs look cleared
+    + needs some automated testing
   - ~make sure single point rng works (`lunech_rng_point_naive`)~
-  - do a comparison test with full naive rng
-    + in progress, still has bugs
-  - focus on one point for visualization to see what's going on
+  - ~do a comparison test with full naive rng~ (done)
+    + ~in progress, still has bugs~
+  - ~focus on one point for visualization to see what's going on~
 * get meta data so we can visualize
 
 ###### 2026-02-28

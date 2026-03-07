@@ -621,7 +621,7 @@ function boundingBox(pnt) {
 // - naive rng
 //
 function lunech3d(P) {
-  let _debug = 1;
+  let _debug = 0;
 
   CHA = cocha.hull3d;
 
@@ -1006,43 +1006,80 @@ if ((typeof require !== "undefined") &&
 
     var fs = require("fs");
 
-    let ifn = "./data/p200.gp";
+    //let ifn = "./data/p200.gp";
+    let ifn = "";
+    let op = '',
+        op_val = '20';
+    let N = -1;
 
-    let op = 'lunech3d';
-    op = 'lunech3d';
-    op = 'dual3d_test';
-    op = 'lunech3d';
-
-    let Porig = [];
-    if (ifn.length > 0) {
-      let dat = fs.readFileSync(ifn, 'utf8');
-      let lines = dat.split("\n");
-      for (let line_no=0; line_no<lines.length; line_no++) {
-        let line = lines[line_no].trim();
-        if (line.length == 0) { continue; }
-        if (line[0] == '#') { continue; }
-
-        let tok = line.split(" ");
-        if (tok.length != 3) { continue; }
-
-        let x = parseFloat(tok[0]);
-        let y = parseFloat(tok[1]);
-        let z = parseFloat(tok[2]);
-        Porig.push([x,y,z]);
+    if (argv.length > 0) {
+      op = argv[0];
+      if (argv.length > 1) {
+        op_val = argv[1];
+        //N = parseInt(argv[1]);
       }
     }
+
+    if (op == 'help') {
+      console.log("");
+      console.log("provide op [N|ifn]");
+      console.log("");
+      console.log("  op     one of (lunech3d|file|help|inside_ch_test|dual3d_test)");
+      console.log("\n");
+      return 0;
+    }
+
+    let Porig = [];
+    if (op == 'file') {
+      ifn = op_val;
+
+      if (ifn.length > 0) {
+        let dat = fs.readFileSync(ifn, 'utf8');
+        let lines = dat.split("\n");
+        for (let line_no=0; line_no<lines.length; line_no++) {
+          let line = lines[line_no].trim();
+          if (line.length == 0) { continue; }
+          if (line[0] == '#') { continue; }
+
+          let tok = line.split(" ");
+          if (tok.length != 3) { continue; }
+
+          let x = parseFloat(tok[0]);
+          let y = parseFloat(tok[1]);
+          let z = parseFloat(tok[2]);
+          Porig.push([x,y,z]);
+        }
+      }
+      else {
+        console.log("provide filename");
+        return -1;
+      }
+
+      N = Porig.length;
+    }
+
+    else {
+      N = parseInt(op_val);
+      for (let i=0; i<N; i++) {
+        Porig.push([Math.random(),Math.random(),Math.random()]);
+      }
+    }
+
 
     // test _p_inside_convex_hull_3d function
     //
     if (op == 'inside_ch_test') {
 
+      /*
       let n = 20;
       let pnt = [];
       for (let i=0; i<n; i++) {
         pnt.push( njs.sub( njs.random([3]), [0.5, 0.5, 0.5] ) );
-
         console.log(pnt[i][0], pnt[i][1], pnt[i][2], "\n\n");
       }
+      */
+
+      let pnt = Porig;
 
       let fv_idx = cocha.hull3d(pnt);
 
@@ -1083,6 +1120,7 @@ if ((typeof require !== "undefined") &&
     }
 
     else if (op == 'dual3d_test') {
+      /*
       let n = 20;
       let pnt = [];
 
@@ -1092,6 +1130,9 @@ if ((typeof require !== "undefined") &&
         pnt.push( njs.add( njs.random([3]), [0.5, 0.5, 0.5] ) );
         //console.log(pnt[i][0], pnt[i][1], pnt[i][2], "\n\n");
       }
+      */
+
+      let pnt = Porig;
 
       let fv_idx = cocha.hull3d(pnt);
 
@@ -1161,12 +1202,13 @@ if ((typeof require !== "undefined") &&
     }
 
     else if (op == 'lunech3d') {
-      let n = 16000;
-      let P = [];
-      for (let i=0; i<n; i++) { P.push([Math.random(),Math.random(),Math.random()]); }
+      //let n = 16000;
+      //let n = N;
+      //let P = [];
+      //for (let i=0; i<n; i++) { P.push([Math.random(),Math.random(),Math.random()]); }
 
-      //n = Porig.length;
-      //P = Porig;
+      n = Porig.length;
+      P = Porig;
 
       let rng_nei_idx = lunech3d(P);
 
