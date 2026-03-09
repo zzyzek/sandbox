@@ -15,6 +15,8 @@ var cocha = require("./cocha.js");
 var fasslib = require("./fasslib.js");
 var printf = require("./printf.js");
 
+var ch = require("convex-hull");
+
 // convention?
 // H : half plane
 // s : sign
@@ -159,6 +161,46 @@ function _vnei_eq(A,B) {
 
   return 1;
 }
+
+
+function prof_s(ctx, name) {
+  if (!(name in ctx)) {
+    ctx[name] = { "s": 0, "e": 0, "c": 0, "t":0 };
+  }
+  ctx[name].s = Date.now();
+  return ctx[name].s
+}
+
+function prof_e(ctx, name) {
+  ctx[name].e = Date.now();
+  ctx[name].t += (ctx[name].e - ctx[name].s);
+  ctx[name].c++;
+  return ctx[name].e;
+}
+
+function prof_avg(ctx, name) {
+  if (!(name in ctx)) { return 0; }
+  if (ctx[name].c == 0) { return 0; }
+  return ctx[name].t / (1000*ctx[name].c);
+}
+
+function prof_reset(ctx) {
+  for (let name in ctx) {
+    ctx[name].s = 0;
+    ctx[name].e = 0;
+    ctx[name].t = 0;
+    ctx[name].c = 0;
+  }
+  return ctx;
+}
+
+function prof_print(ctx) {
+  for (let name in ctx) {
+    console.log("#", name, (ctx[name].t / ctx[name].c) / 1000, "s", "(", ctx[name].t, "ms /", ctx[name].c, ")");
+  }
+}
+
+var PROF_CTX = {};
 
 function _clamp(a, l,u) {
   if (a <  l) { return l; }
@@ -305,6 +347,10 @@ function _convex_hull_dual_points_3d(p, Q, face_idx_list, _debug) {
     if (idx_list[i] != idx_list[i-1]) { uniq_idx.push(idx_list[i]); }
   }
 
+  //PROFILING
+  prof_s(PROF_CTX,"dual:candidate_collect");
+  //PROFILING
+
   let candidate_pnt = [];
   let nei_ijk = [];
   for (let i=0; i<uniq_idx.length; i++) {
@@ -333,6 +379,10 @@ function _convex_hull_dual_points_3d(p, Q, face_idx_list, _debug) {
       }
     }
   }
+
+  //PROFILING
+  prof_e(PROF_CTX,"dual:candidate_collect");
+  //PROFILING
 
   if (_debug > 1) {
     console.log("#???", candidate_pnt.length);
@@ -367,6 +417,11 @@ function _convex_hull_dual_points_3d(p, Q, face_idx_list, _debug) {
 
     fs.writeFileSync("dbg_cp.gp", c_lines.join("\n"));
   }
+
+  //PROFILING
+  prof_s(PROF_CTX,"dual:candidate_test");
+  //PROFILING
+
 
   let _eps = (1.0 / (1024.0*1024.0));
   let valid_pnt = [];
@@ -424,6 +479,10 @@ function _convex_hull_dual_points_3d(p, Q, face_idx_list, _debug) {
       */
     }
   }
+
+  //PROFILING
+  prof_e(PROF_CTX,"dual:candidate_test");
+  //PROFILING
 
   if (_debug > 1) {
     let fs = require("fs");
@@ -777,9 +836,18 @@ function lunech3d(P) {
 
       if (pnt_list.length < 4) { continue; }
 
+      //PROFILING
+      prof_s(PROF_CTX, "cha");
+      //PROFILING
+
+
       // find convex hull
       //
       let face_vtx_idx_list = CHA(pnt_list);
+
+      //PROFILING
+      prof_e(PROF_CTX, "cha");
+      //PROFILING
 
       /*
       if (_debug) {
@@ -834,10 +902,22 @@ function lunech3d(P) {
       }
       */
 
+      //PROFILING
+      prof_s(PROF_CTX, "p_inside_ch");
+      //PROFILING
+
+      let p_inside = _p_inside_convex_hull_3d(anchor_p, pnt_list, face_vtx_idx_list);
+
+      //PROFILING
+      prof_e(PROF_CTX, "p_inside_ch");
+      //PROFILING
+
+
       // if convex hull doesn't completely encompass our current point (anchor_p),
       // try again.
       //
-      if (!_p_inside_convex_hull_3d(anchor_p, pnt_list, face_vtx_idx_list)) {
+      //if (!_p_inside_convex_hull_3d(anchor_p, pnt_list, face_vtx_idx_list)) {
+      if (!p_inside) {
 
         /*
         if (_debug > 1) {
@@ -876,8 +956,16 @@ function lunech3d(P) {
       // now.
       //
 
+      //PROFILING
+      prof_s(PROF_CTX,"dual");
+      //PROFILING
+
       let pnt_dual = _convex_hull_dual_points_3d(anchor_p, pnt_list, face_vtx_idx_list, _debug);
       let bbox = boundingBox(pnt_dual);
+
+      //PROFILING
+      prof_e(PROF_CTX,"dual");
+      //PROFILING
 
       let ibbox = [
         [ Math.floor( grid_n * bbox[0][0] ), Math.floor( grid_n * bbox[0][1] ) ],
@@ -966,7 +1054,15 @@ function lunech3d(P) {
         */
       }
 
+      //PROFILING
+      prof_s(PROF_CTX,"rng_point_naive");
+      //PROFILING
+
       let _rng_idx = lunech_rng_point_naive(anchor_p, candidate_point);
+
+      //PROFILING
+      prof_e(PROF_CTX,"rng_point_naive");
+      //PROFILING
 
       let anchor_p_rng = [];
       for (let i=0; i<_rng_idx.length; i++) {
@@ -1210,7 +1306,15 @@ if ((typeof require !== "undefined") &&
       n = Porig.length;
       P = Porig;
 
+      //PROFILING
+      prof_s(PROF_CTX, "lunech3d");
+      //PROFILING
+
       let rng_nei_idx = lunech3d(P);
+
+      //PROFILING
+      prof_e(PROF_CTX, "lunech3d");
+      //PROFILING
 
 
       for (let i=0; i<rng_nei_idx.length; i++) {
@@ -1248,6 +1352,10 @@ if ((typeof require !== "undefined") &&
       }
       console.log(ch_lines.join("\n"));
 
+
+      //PROFILING
+      prof_print(PROF_CTX);
+      //PROFILING
 
     }
   }
