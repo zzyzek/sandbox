@@ -312,16 +312,121 @@ function _p_inside_convex_hull_3d(p, Q, face_idx_list) {
 //
 // ...
 //
-// WIP!!!
 //
-//
+
+function _convex_hull_dual_points_3d(p, Q, face_idx_list, _debug) {
+  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+
+  if (Q.length == 0) { return []; }
+  if (face_idx_list.length == 0) { return []; }
+
+  //PROFILING
+  prof_s(PROF_CTX,"dual:face_experiment");
+  //PROFILING
+
+
+  let E = {};
+
+  let dual_pnt = [];
+  for (let _fi=0; _fi < face_idx_list.length; _fi++) {
+    let fv = face_idx_list[_fi];
+
+
+    let u = njs.sub( [ Q[fv[0]][0], Q[fv[0]][1], Q[fv[0]][2] ], p );
+    let v = njs.sub( [ Q[fv[1]][0], Q[fv[1]][1], Q[fv[1]][2] ], p );
+    let w = njs.sub( [ Q[fv[2]][0], Q[fv[2]][1], Q[fv[2]][2] ], p ) ;
+
+    let d_u = njs.norm2(u);
+    let d_v = njs.norm2(v);
+    let d_w = njs.norm2(w);
+
+    u = njs.mul( 1 / d_u, u );
+    v = njs.mul( 1 / d_v, v );
+    w = njs.mul( 1 / d_w, w );
+
+    let s = njs.solve( [ u, v, w ], [ d_u, d_v, d_w ] );
+
+    let ds = njs.norm2(s);
+
+    console.log("# _fi:", _fi, "u:", JSON.stringify(u), "d_u:", d_u);
+    console.log("# _fi:", _fi, "u:", JSON.stringify(v), "d_u:", d_v);
+    console.log("# _fi:", _fi, "u:", JSON.stringify(w), "d_u:", d_w);
+    console.log("# _fi:", _fi, "s:", JSON.stringify(s), "d_s:", ds);
+    console.log("#");
+
+    //let s0 = njs.mul( 1/ds, s );
+    //let s1 = njs.mul( 1/(ds*ds), s );
+    //dual_pnt.push(njs.add(s0, p));
+    //dual_pnt.push(njs.add(s1, p));
+
+    dual_pnt.push(njs.add(s, p));
+
+    //????
+    //let t = njs.mul( 1/njs.norm2(s), s );
+    //dual_pnt.push(njs.add(t, p));
+
+    //DEBUG
+    //DEBUG
+    //DEBUG
+    let _fv = [ fv[0], fv[1], fv[2] ];
+    _fv.sort(_icmp);
+
+    let e0 = _fv[0] + ":" + _fv[1];
+    let e1 = _fv[0] + ":" + _fv[2];
+    let e2 = _fv[1] + ":" + _fv[2];
+
+    if (!(e0 in E)) { E[e0] = []; }
+    if (!(e1 in E)) { E[e1] = []; }
+    if (!(e2 in E)) { E[e2] = []; }
+
+    E[e0].push(_fi);
+    E[e1].push(_fi);
+    E[e2].push(_fi);
+
+  }
+
+  let DVnei = [];
+  for (let i=0; i<dual_pnt.length; i++) { DVnei.push([]); }
+  for (let key in E) {
+    let dv0 = E[key][0];
+    let dv1 = E[key][1];
+
+    DVnei[dv0].push(dv1);
+    DVnei[dv1].push(dv0);
+
+  }
+
+  let DE_lines = [];
+  for (let i=0; i<dual_pnt.length; i++) {
+
+    for (let j=0; j<DVnei[i].length; j++) {
+      let vnei = dual_pnt[ DVnei[i][j] ];
+      DE_lines.push( printf("%f %f %f", dual_pnt[i][0], dual_pnt[i][1], dual_pnt[i][2]) );
+      DE_lines.push( printf("%f %f %F", vnei[0], vnei[1], vnei[2]) );
+      DE_lines.push("\n\n");
+    }
+  }
+  var fs = require("fs");
+  fs.writeFileSync("dvn.gp", DE_lines.join("\n"));
+
+
+  //DEBUG
+  //DEBUG
+  //DEBUG
+
+  //PROFILING
+  prof_e(PROF_CTX,"dual:face_experiment");
+  //PROFILING
+
+  return dual_pnt;
+}
 
 // it's clunky but face_idx_list are the faces of the convex hull,
 // which have indices of Q. Q holds the original points, so
 // the convex hull points are a subset of Q, held within the unique
 // indices of face_idx_list
 //
-function _convex_hull_dual_points_3d(p, Q, face_idx_list, _debug) {
+function _convex_hull_dual_points_3d_On4(p, Q, face_idx_list, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
   if (Q.length == 0) { return []; }
@@ -1294,6 +1399,45 @@ if ((typeof require !== "undefined") &&
         console.log(dual_pnt[fv[0]][0], dual_pnt[fv[0]][1], dual_pnt[fv[0]][2]);
         console.log("\n\n");
       }
+
+    }
+
+    else if (op == 'dual_cmp') {
+
+      n = Porig.length;
+      P = Porig;
+
+      let F = cocha.hull3d(P);
+
+      let anchor_p = [0.5, 0.5, 0.5];
+
+      let slo = _convex_hull_dual_points_3d_On4(anchor_p, P, F);
+      let fst = _convex_hull_dual_points_3d(anchor_p, P, F);
+
+      let ch_lines = [ printf("%f %f %f\n\n", anchor_p[0], anchor_p[1], anchor_p[2]) ];
+      for (let i=0; i<F.length; i++) {
+        let fv = F[i];
+        ch_lines.push( printf("%f %f %f", P[fv[0]][0], P[fv[0]][1], P[fv[0]][2]) );
+        ch_lines.push( printf("%f %f %f", P[fv[1]][0], P[fv[1]][1], P[fv[1]][2]) );
+        ch_lines.push( printf("%f %f %f", P[fv[2]][0], P[fv[2]][1], P[fv[2]][2]) );
+        ch_lines.push( printf("%f %f %f", P[fv[0]][0], P[fv[0]][1], P[fv[0]][2]) );
+        ch_lines.push("\n\n");
+      }
+
+      let slo_lines = [];
+      for (let i=0; i<slo.length; i++) {
+        slo_lines.push( printf("%f %f %f\n\n", slo[i][0], slo[i][1], slo[i][2]) );
+      }
+
+      let fst_lines = [];
+      for (let i=0; i<fst.length; i++) {
+        fst_lines.push( printf("%f %f %f\n\n", fst[i][0], fst[i][1], fst[i][2]) );
+      }
+
+      fs.writeFileSync("ch.gp",ch_lines.join("\n"));
+      fs.writeFileSync("slo.gp",slo_lines.join("\n"));
+      fs.writeFileSync("fst.gp",fst_lines.join("\n"));
+
 
     }
 
