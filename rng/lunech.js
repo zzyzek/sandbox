@@ -201,6 +201,9 @@ function prof_print(ctx) {
 }
 
 var PROF_CTX = {};
+var STAT_CTX = {
+  "win_r":[]
+};
 
 function _clamp(a, l,u) {
   if (a <  l) { return l; }
@@ -805,6 +808,12 @@ function lunech3d(P) {
 
   let M = grid_n*grid_n*grid_n;
 
+  //STAT
+  STAT_CTX.win_r = [];
+  for (let i=0; i<grid_n; i++) { STAT_CTX.win_r.push(0); }
+  //STAT
+
+
   // we assume points within a 1x1x1 cube for now
   //
   let mx = 0,  Mx = 1,
@@ -848,19 +857,16 @@ function lunech3d(P) {
   //
   for (let anchor_idx=0; anchor_idx<P.length; anchor_idx++) {
 
-    //DEBUG
-    //DEBUG
-    //if (anchor_idx == 0) { _debug = 2; } 
-    //else { _debug = 0; process.exit(); }
-    //DEBUG
-    //DEBUG
-
     let anchor_grid_idx = xyz2idx(P[anchor_idx], nxyz);
     let anchor_ixyz = idx2xyz(anchor_grid_idx, nxyz);
 
     let anchor_p = P[anchor_idx];
 
     for (let iwin_radius=1; iwin_radius<grid_n; iwin_radius++) {
+
+      //STAT
+      STAT_CTX.win_r[iwin_radius]++;
+      //STAT
 
       let se_ixyz = [ [-1,-1], [-1,-1], [-1,-1] ];
       for (let d=0; d<3; d++) {
@@ -956,59 +962,6 @@ function lunech3d(P) {
       prof_e(PROF_CTX, "cha");
       //PROFILING
 
-      /*
-      if (_debug) {
-
-        var fs = require("fs");
-
-        let p_lines = [ printf("%f %f %f", anchor_p[0], anchor_p[1], anchor_p[2]) ];
-        fs.writeFileSync("dbg_p.gp", p_lines.join("\n"));
-
-        let bad0_lines = [ printf("%f %f %f", P[109][0], P[109][1], P[109][2]) ];
-        fs.writeFileSync("dbg_b0.gp", bad0_lines.join("\n"));
-
-        let bad1_lines = [
-          printf("%f %f %f\n", P[30][0], P[30][1], P[30][2]),
-          printf("%f %f %f\n", P[94][0], P[94][1], P[94][2])
-        ];
-        fs.writeFileSync("dbg_b1.gp", bad1_lines.join("\n"));
-
-        let q_lines = [];
-        console.log("#pnt_list:", pnt_list.length, "mirror_point:", JSON.stringify(mirror_point));
-        for (let _i=0; _i<pnt_list.length; _i++) {
-          console.log("#@", pnt_list[_i][0], pnt_list[_i][1], pnt_list[_i][2]);
-          console.log("#@");
-          console.log("#@");
-
-          q_lines.push( printf("#pnt_list: %i, mirror_point: %s, se %s",
-            pnt_list.length,
-            JSON.stringify(mirror_point),
-            JSON.stringify(se_ixyz) ) );
-          q_lines.push( printf("%f %f %f", pnt_list[_i][0], pnt_list[_i][1], pnt_list[_i][2]) );
-          q_lines.push("\n");
-        }
-        fs.writeFileSync("dbg_q.gp", q_lines.join("\n"));
-
-        let f_lines = [];
-        for (let _i=0; _i<face_vtx_idx_list.length; _i++) {
-          let fv = face_vtx_idx_list[_i];
-          console.log("#@", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]);
-          console.log("#@", pnt_list[fv[1]][0], pnt_list[fv[1]][1], pnt_list[fv[1]][2]);
-          console.log("#@", pnt_list[fv[2]][0], pnt_list[fv[2]][1], pnt_list[fv[2]][2]);
-          console.log("#@", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]);
-          console.log("#@");
-          console.log("#@");
-
-          f_lines.push(printf("%f %f %f", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]));
-          f_lines.push(printf("%f %f %f",  pnt_list[fv[1]][0], pnt_list[fv[1]][1], pnt_list[fv[1]][2]));
-          f_lines.push(printf("%f %f %f", pnt_list[fv[2]][0], pnt_list[fv[2]][1], pnt_list[fv[2]][2]));
-          f_lines.push(printf("%f %f %f", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]));
-          f_lines.push("\n");
-        }
-        fs.writeFileSync("dbg_f.gp", f_lines.join("\n"));
-      }
-      */
-
       //PROFILING
       prof_s(PROF_CTX, "p_inside_ch");
       //PROFILING
@@ -1023,38 +976,7 @@ function lunech3d(P) {
       // if convex hull doesn't completely encompass our current point (anchor_p),
       // try again.
       //
-      //if (!_p_inside_convex_hull_3d(anchor_p, pnt_list, face_vtx_idx_list)) {
-      if (!p_inside) {
-
-        /*
-        if (_debug > 1) {
-          console.log("#CH large (", _p_inside_convex_hull_3d(anchor_p, pnt_list, face_vtx_idx_list), "),",
-            "anchorp:", JSON.stringify(anchor_p),
-            "(mirror:", JSON.stringify(mirror_point), ")",
-            "vtx:", JSON.stringify(face_vtx_idx_list));
-
-          console.log("#annchor_p");
-          console.log("#@", anchor_p[0], anchor_p[1], anchor_p[2]);
-          console.log("#@\n#@");
-          console.log("#pnt_list[", pnt_list.length, "]:");
-          for (let i=0; i<pnt_list.length; i++) {
-            console.log("#@", pnt_list[i][0], pnt_list[i][1], pnt_list[i][2]);
-            console.log("#@\n#@");
-          }
-
-          for (let i=0; i<face_vtx_idx_list.length; i++) {
-            let fv = face_vtx_idx_list[i];
-            console.log("#@", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]);
-            console.log("#@", pnt_list[fv[1]][0], pnt_list[fv[1]][1], pnt_list[fv[1]][2]);
-            console.log("#@", pnt_list[fv[2]][0], pnt_list[fv[2]][1], pnt_list[fv[2]][2]);
-            console.log("#@", pnt_list[fv[0]][0], pnt_list[fv[0]][1], pnt_list[fv[0]][2]);
-            console.log("#@\n#@");
-          }
-        }
-        */
-
-        continue;
-      }
+      if (!p_inside) { continue; }
 
       // otherwise, take the dual of of the convex hull (intersection
       // of points taken as normals from anchor_p) then see if the dual
@@ -1119,16 +1041,6 @@ function lunech3d(P) {
           fs.writeFileSync("dbg_d.gp", d_lines.join("\n"));
         }
 
-        //DEBUG
-        //DEBUG
-        //DEBUG
-        //DEBUG
-        if (iwin_radius == 3) { process.exit(); }
-        //DEBUG
-        //DEBUG
-        //DEBUG
-        //DEBUG
-        
         continue;
       }
 
@@ -1150,15 +1062,6 @@ function lunech3d(P) {
 
       if (_debug > 1) {
         console.log("#ibbox:", JSON.stringify(ibbox));
-
-        /*
-        let fs = require("fs");
-        let d_lines = [ printf("#ibbox: %s, thresh_mM: %s", JSON.stringify(ibbox), JSON.stringify(thresh_mM)) ];
-        for (let _i=0; _i<candidate_point.length; _i++) {
-          d_lines.push( printf("%f %f %f\n\n", candidate_point[_i][0], candidate_point[_i][1], candidate_point[_i][2] ));
-        }
-        fs.writeFileSync("dbg_d.gp", d_lines.join("\n"));
-        */
       }
 
       //PROFILING
