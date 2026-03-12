@@ -1,11 +1,25 @@
 TODO
 ===
 
+###### 2026-03-12
+
+* We need to get a better handle on the steeple cut and dual
+  - do some simpler tests to see if the steeple cut points are always
+    on the steeple face scaffold graph
+
 ###### 2026-03-06
 
 * profiling
-  - parts are very slow. I suspect it's the dual calculation but first
-    step is to confirm, then figure out how to optimize
+  - ~parts are very slow. I suspect it's the dual calculation but first
+    step is to confirm, then figure out how to optimize~
+  - From a spot test of 2k random points:
+    + around 55s total
+    + 60% in dual calculation, 1/3 of that in candidate collect, 2/3 in candidate test
+    + 30% in naive rng
+  - naive rng can probably have a few heuristics to speed it up (initial half plane tests to exclude
+    points) but the focus now should be the dual calculation
+  - I suspect the dual calculation (what I'm calling the 'steeple cut') can be sped up dramatically
+  - 3d convex hull is also relatively slow, but a much lower priority than the steeple cut and the naive rng
 * automated tests
   - comparitive examples
   - timing (plots)

@@ -314,7 +314,7 @@ function _p_inside_convex_hull_3d(p, Q, face_idx_list) {
 //
 //
 
-function _convex_hull_dual_points_3d(p, Q, face_idx_list, _debug) {
+function _convex_hull_dual_points_3d_experiment(p, Q, face_idx_list, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
   if (Q.length == 0) { return []; }
@@ -600,6 +600,8 @@ function _convex_hull_dual_points_3d_On4(p, Q, face_idx_list, _debug) {
 
   return valid_pnt;
 }
+
+var _convex_hull_dual_points_3d = _convex_hull_dual_points_3d_On4;
 
 // return:
 //
@@ -1320,6 +1322,8 @@ if ((typeof require !== "undefined") &&
 
     }
 
+    // this is all experimental...
+    //
     else if (op == 'dual3d_test') {
       /*
       let n = 20;
@@ -1412,7 +1416,7 @@ if ((typeof require !== "undefined") &&
       let anchor_p = [0.5, 0.5, 0.5];
 
       let slo = _convex_hull_dual_points_3d_On4(anchor_p, P, F);
-      let fst = _convex_hull_dual_points_3d(anchor_p, P, F);
+      let fst = _convex_hull_dual_points_3d_experiment(anchor_p, P, F);
 
       let ch_lines = [ printf("%f %f %f\n\n", anchor_p[0], anchor_p[1], anchor_p[2]) ];
       for (let i=0; i<F.length; i++) {
