@@ -1406,6 +1406,13 @@ if ((typeof require !== "undefined") &&
 
       //PROFILING
       prof_print(PROF_CTX);
+      let s_tok = [ [], [] ];
+      for (let i=0; i<STAT_CTX.win_r.length; i++) {
+        s_tok[0].push( STAT_CTX.win_r[i].toString() );
+        s_tok[1].push( (STAT_CTX.win_r[i] / P.length).toString() );
+      }
+      console.log("# stat.win_r:", s_tok[0].slice(1).join(" "));
+      console.log("# stat.win_r/n:", s_tok[1].slice(1).join(" "));
       //PROFILING
 
     }

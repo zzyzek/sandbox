@@ -1,11 +1,18 @@
 TODO
 ===
 
-###### 2026-03-12
+
+###### 2026-03-13
 
 * We need to get a better handle on the steeple cut and dual
   - do some simpler tests to see if the steeple cut points are always
     on the steeple face scaffold graph
+    + run 10k+ experiments with varying N random points around origin
+      comparing steeple optimization against naive steeple cut, see if
+      there are any scenarios they dont' match up
+    + will offer a spot test to see if there are any obvious contradictions
+      and will give at least a little evidence if the steeple optimization can
+      be done
 
 ###### 2026-03-06
 
