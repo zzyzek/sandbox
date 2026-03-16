@@ -64,13 +64,13 @@ Algorithms
 
 NOTE: I don't know what JT is smoking but it looks like $d=2, L _ 2, O(n)$ is completely missed in the table, even
 though he talks about it explicitly.
-I also don't trust that a generic condition $d=3, L _ 2, O(n)$ hadn't been discovered at that point.
+I also don't trust that a general position condition $d=3, L _ 2, O(n)$ hadn't been discovered at that point.
 
 ### KN85
 
-I'm only going to talk about the generic case.
+I'm only going to talk about the general position case.
 
-Assume $|V|=n$ points in the unit square, distributed generically (Poisson point process).
+Assume $|V|=n$ points in the unit square, distributed in general position (Poisson point process).
 
 The bulk of the KN85 algorithm works by considering radial regions for each point, computing the nearest neighbor in
 the six radial slices and noticing that this graph, called the "geographic neighborhood graph" (GNG), is a super set of the
@@ -89,16 +89,16 @@ The outer region cells are defined to be the cells in the band of $C \log(n)$ fr
 The middle region are from $2C \log(n)$ to the outer band.
 The inner cells are the rest.
 
-In some "generic" configuration,
+In some "general position" configuration,
 the outer cells (and maybe the middle cells?) only contain a small number of points, so I think
 the idea is that you can just run a naive algorithm on those points without blowing your budget.
 
-Under generic conditions (for $d=2$, $L _ 2$), the algorithm works in expected linear time ( $O(n)$ ).
+Under general position conditions (for $d=2$, $L _ 2$), the algorithm works in expected linear time ( $O(n)$ ).
 
 Some takeaways:
 
 * $RNG(v) \subseteq GNG(v)$ ($v$ a single point)
-* There are six regions, most likely due to the maximum (generic) neighbor count
+* There are six regions, most likely due to the maximum (general position) neighbor count
 * The special handling of border cells/points is handled in another algorithm/paper which
   I'm trying to find
 * The worst case complexity comes from "pathological" cases when the points are exactly on the circle
@@ -132,10 +132,10 @@ This happens for both 6 and 8 regions.
     8 regions allows for an additional heuristic to stop the spiral search
 * GNG has now turned into ARN (all region neighbors)
 
-On further reading, I suspect this gives an $O(n)$ algorithm for $d=2, L _ 2$, and points in generic position.
+On further reading, I suspect this gives an $O(n)$ algorithm for $d=2, L _ 2$, and points in general position.
 I also suspect that this can be adapted pretty easily to 3d, but I need to investigate more.
 
-The following focuses on $d=2, L _ 2$ and generic point positions.
+The following focuses on $d=2, L _ 2$ and general point positions.
 
 The basis of the algorithm is:
 
@@ -232,7 +232,7 @@ Here's an idea for an algorithm:
 * $n = |V|$, $v \in [0, 1)^2$ uniformly random
 * Construct a grid, $G$, with cell size $(\sqrt{n},\sqrt{n})$
   - fill grid with points from $V$, with a linear linked list for duplicates
-  - call the grid cells centered at $v$ of grid (integral) radius $r$ $G _ r (v)$
+  - call the grid cells centered at $v$ of grid (integral) radius $r$, $G _ r (v)$
 * For each point $v \in V$:
   - $P = \{v\}$
   - grid fence relative radius resolution point $F _ {r,u,l,d} = \{\infty\}$
@@ -300,10 +300,10 @@ appropriate and make appropriate estimates for when the plane secures the fence 
 
 As a review, we only consider 2d and 3d with uniform random points in space restricted
 to a unit cube.
-Since the points are random, this ensures generic point configurations.
+Since the points are random, this ensures general point configurations.
 In particular, no three points lie on a line, no three points create an equilateral triangle.
 
-The generic conditions ensures finite RNG degree in 2d and 3d.
+The general position conditions ensures finite RNG degree in 2d and 3d.
 
 There are two algorithms for 2d and 3d.
 The 2d case is simpler so we'll focus on the 3d case.
@@ -435,7 +435,7 @@ Some points:
 
 * JT and KN85 are really only specified for random 2d points restricted to the square
 * Given a Delaunay triangulation on random points (2d/3d), expected linear or $O(N \lg N)$ algorithms exist
-  but the DT triangulation itself can be tricky as even for generic points the maximum degree can be
+  but the DT triangulation itself can be tricky as even for general position points the maximum degree can be
   unbounded ($O(N)$ in some cases) meaning that both the DT will require super linear time to compute
 * JT can potentially be extended to 3d but it's not clear how to do this naturally or simply
 * StIF gives a conceptually simple expected $O(N)$ time on square/cube restricted random points
