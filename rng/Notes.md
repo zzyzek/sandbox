@@ -637,6 +637,115 @@ set of the convex hull.
 Call this set $H \subseteq V$.
 For every point, $h \in H$, if **all** points in $V / h$ lie to one side of a half plane cut, 
 
+---
+
+###### 2026-03-17
+
+Context: speeding up the steeple point set convex hull calculation.
+
+As a reminder, we're doing a rube-goldberg-esque method to restrict the point set for
+the relative neighborhood graph:
+
+* consider a point $p$ in the bin grid
+* take a bin grid window of increasing size
+  - for a particular size:
+  - collect all points
+  - calculate the vertex convex hull, which we will call the primal convex hull
+  - from the vertex convex hull, calculate the steeple vertex hull
+  - if the steeple vertex hull is within some factor of the current window size (e.g. 3),
+    collect all points within the factor and do naive rng
+
+A steeple cut is defined to be the half plane cut of the space, relative to some anchor point $p$,
+at a point $q$, with normal $(q-p)/|q-p|$ with $q$ on the plane.
+The plane version is called a steeple plane.
+
+The steeple hull of a collection of points $Q = (q _ 0, q _ 1, q _ 2, \dots, q _ {m-1} )$ relative
+to an anchor point $p$ is the intersection of all the steeple cuts.
+The steeple hull, if non-empty and compact, represents a convex hull.
+The steeple hull does not necessarily contain the anchor point $p$.
+
+The above algorithm has an implicit rejection condition if the anchor point isn't within the steeple
+hull.
+
+Currently, we're trying to speed up the steeple vertex hull calculation as this is the major bottleneck
+for the implementation.
+The naive version takes all 3 combinations of steeple planes defined from the primal convex hull to calculate
+the intersection point and then compares that intersection point against all other steeple planes to see if
+it's outside of the steeple cut, for an $O(M^4)$ algorithm.
+$M$ is effecitively constant but large enough so that we'd like to speed this up.
+
+As a reminder, the primal convex hull is in general position because we're choosing points randomely, and thus
+has triangular faces.
+
+The first observation is that if we take the three steeple cuts for each of the three vertices around a face
+of the primal convex hull, and find their intersection point, that point is very likely to be part of the steeple
+hull.
+The steeple hull can have more or fewer points than the number of faces of the primal as the steeple hull
+is *not* the dual (polar or otherwise), but probably because of convexity, the faces relative to each
+other are somewhat smooth, so don't undulate too wildly most of the time. Note that this is a non-rigourous statement,
+this is my feeling from observation, I'm not making any hard claims.
+
+From this, we know that $O(M^4)$ is way overkill as we would expect something more on the order of $O(M)$.
+
+
+One idea to try and speed the steeple hull vertex enumeration is to reject points early when considering
+a steeple plane.
+Without loss of generality, assume the steeple plane has an anchor point of the origin.
+Further assume the steeple plane, $H _ q$, has point $q$ on it's plane, $q/|q|$ is the normal, $H _ q$ is part
+of the steeple hull and $q$ is on the steeple hull boundary.
+
+* Other steeple planes intersecting $H _ q$ create a projected (2d) convex hull
+* The steeple hull must be a subset of the projected convex hull on $H _ q$
+  - if projected convex hull not convex, wouldn't be convex in 3d
+  - if projected convex hull strict subet of steeple hull, steeple hull larger then should be
+* Take bounding circle enclosing current guess at projected convex hull, we can now reject
+  primal hull points if they're not in the critical lunate
+
+
+Consider a circle at $z=1$ of radius $r$, taking the origin as the anchor.
+We ask for all points $p$ whose tangent plane does not intersect the circle.
+
+If we take a cross section and ask for all points that have a tangent that intersects the top circle,
+now projected as a line, we get a lunate region of admissible points.
+
+![lunate region](img/lunate.png)
+
+The region is a little complicated but we can take a coarse cylinder that tells us any point outside
+can never be part of the projected convex region, and thus can can be excluded from consideration.
+
+The general strategy is then, for every point $q$, start doing a breadth first search around $H _ q$
+of neighboring triangular faces from the primal and construct the projected steeple convex hull.
+When the projected convex hull is compact, start getting a cylinder heuristic that, when skinny enough,
+will be able to exclude all other points.
+At worst, one needs to consider all steeple points but, most likely, the projected convex hull will
+be small relative to the steeple hull and the cylinder exclusion heuristic will be able to quickly
+remove all but the nearest neighbors of the $q$ in question.
+
+Sometimes steeple points, and the respective planes, might be completely cut off, so we'll have to
+think about how to detect when that happens or how to extend this heuristic to when $q$ isn't
+on the steeple cut but $H _ q$ still is.
+
+Ignoring that for now and with the simplifying assumptions on $q$ and $H _ q$ above, here is the width and height of the cylinder:
+
+* $p$ and the anchor point, $q$ as the steeple cut point, $H _ q$ as the steeple plane
+* $r$ as the radius of the circle, centered at $q$, that fully encloses the current projected projected convex hull on $H _ q$
+
+$$
+\begin{array}{ll}
+\ell = |p - q|, & u = (r/2, \ell/2) \\
+S _ R = \sqrt{ (r/2)^2 + (\ell/2)^2 } & = (1/2) \sqrt{ r^2 + \ell^2 } \\
+C _ R =  (S _ R / 2) + (r / 2) & = (1/2) \sqrt{r ^ 2 + \ell ^ 2} + r \\
+C _ H = \ell + \frac{r^2}{2 \ell} & \\
+\end{array}
+$$
+
+Where $C _ R$ is the cylinder radius and $C _ H$ is the cylinder height, taken from the $H _ q$ plane downards to the anchor $p$.
+$C _ H$ can be calculated using similar triangles.
+
+![cylinder calculation](img/cyl-calc.png)
+
+
+
 
 References
 ---
