@@ -1,6 +1,22 @@
 Current Focus
 ---
 
+###### 2026-03-22
+
+| Task | Effort | Priority | Notes | Block |
+|---|---|---|---|---|
+| Rectangular 2D $k=2$ zig-zag numberlink (R2K2-ZZN) | `d` | `b` | More general problem needed for st-Gilbert  | |
+| st-Gilbert | `9` | `a` | blocking on some type of R2K2-ZZN result | R2KK2-ZZN |
+| 3D Relative Neighborhood Graph, Convex Hull Heuristic | `a` | `a` | a.s. $O(n)$ relative neighborhood graph for random 3D points | |
+| MIRPRP Writeup | `b` | `9` | wait too long and we'll lose context | |
+| cloister and liminal interface method (POMS) | `c` | `8` | simple first, get some artifacts | Composotile |
+| Merrell Communication | `9` | `7` | | |
+| SGG HC and SGG s-t HP | `f` | `6` | Subsumed in this is SGG:HC writeup, RSGG:HP writeup and communication | |
+| Template optimizations (POMS) | `b` | `5` | Can't do larger models without it | Composotile |
+| Compositile | `7` | `6` | Can't do larger models without it | |
+| West Hubbard | `a` | `3` | blocking on understanding external rays | |
+
+
 ###### 2026-01-02
 
 | Task | Effort | Priority | Notes | Block |

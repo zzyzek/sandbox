@@ -1102,6 +1102,8 @@ function lunech3d(P) {
 }
 
 if (typeof module !== "undefined") {
+
+  module.exports["steeple_cut_3d_On4"] = _convex_hull_dual_points_3d_On4;
 }
 
 
