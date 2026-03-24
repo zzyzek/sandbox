@@ -13,7 +13,7 @@
 var njs = require("../lib/numeric.js");
 
 
-let N = 1000;
+let N = 100;
 let sn = Math.ceil( Math.sqrt(N) );
 let face_sn = Math.ceil( Math.sqrt( Math.ceil(N/6) ) );
 let face_n_bin = face_sn*face_sn;
@@ -72,28 +72,72 @@ function idx2xy(idx, nxy, ds) {
   return [x,y];
 }
 
+function xyz2cubemap(p) {
+  let idir = p_idir(p);
+  let u = [0,0,0];
+  let _s = ( ((idir%2)==0) ? 1 : -1);
+  if      ((idir == 0) || (idir == 1)) { u = [ _s, _s*p[1]/p[0], _s*p[2]/p[0] ]; }
+  else if ((idir == 2) || (idir == 3)) { u = [ _s*p[0]/p[1], _s, _s*p[2]/p[1] ]; }
+  else if ((idir == 4) || (idir == 5)) { u = [ _s*p[0]/p[2], _s*p[1]/p[2], _s ]; }
+  return u;
+}
+
 function xy2idir_plane(xy, idir) {
   let xyz = [0,0,0];
 
   if ((idir == 0) || (idir == 1)) {
-    xyz[0] = ( (idir == 0) ? 1 : -1 );
-    xyz[1] = xy[0];
-    xyz[2] = xy[1];
+    let _s = ( (idir == 0) ? 1 : -1 );
+    xyz[0] = _s;
+    xyz[1] = _s*xy[0];
+    xyz[2] = _s*xy[1];
   }
 
   else if ((idir == 2) || (idir == 3)) {
-    xyz[0] = xy[0];
-    xyz[1] = ( (idir == 2) ? 1 : -1 );
-    xyz[2] = xy[1];
+    let _s = ((idir == 2) ? 1 : -1);
+    xyz[0] = _s*xy[0];
+    xyz[1] = _s;
+    xyz[2] = _s*xy[1];
   }
 
   else if ((idir == 4) || (idir == 5)) {
-    xyz[0] = xy[0];
-    xyz[1] = xy[1];
-    xyz[2] = ( (idir == 4) ? 1 : -1 );
+    let _s = ((idir == 4) ? 1 : -1);
+    xyz[0] = _s*xy[0];
+    xyz[1] = _s*xy[1];
+    xyz[2] = _s;
   }
 
   return xyz;
+}
+
+function _bin_p(p, grid_bin, nxy) {
+
+  let idir = p_idir(p);
+  let _idx = -1;
+
+  let u = [0,0,0];
+  if ((idir == 0) || (idir == 1)) {
+    let _s = sgn(p[0]);
+    u = [ _s, _s*p[1]/p[0], _s*p[2]/p[0] ];
+    _idx = xy2idx( [u[1], u[2]], nxy );
+  }
+
+  else if ((idir == 2) || (idir == 3)) {
+    let _s = sgn(p[1]);
+    u = [ _s*p[0]/p[1], _s, _s*p[2]/p[1] ];
+    _idx = xy2idx( [u[0], u[2]], nxy );
+  }
+
+  else if ((idir == 4) || (idir == 5)) {
+    let _s = sgn(p[2]);
+    u = [ _s*p[0]/p[2], _s*p[1]/p[2], _s ];
+    _idx = xy2idx( [u[0], u[1]], nxy );
+  }
+
+  else { return -1; }
+
+  grid_bin[idir][_idx].push(p);
+
+  return 0;
 }
 
 
@@ -108,34 +152,6 @@ function __debug() {
     }
   }
   process.exit();
-}
-
-function _bin_p(p, grid_bin, nxy) {
-
-  let idir = p_idir(p);
-  let _idx = -1;
-
-  let u = [0,0,0];
-  if ((idir == 0) || (idir == 1)) {
-    u = [ sgn(p[0]), p[1]/p[0], p[2]/p[0] ];
-    _idx = xy2idx( [u[1], u[2]], nxy );
-  }
-
-  else if ((idir == 2) || (idir == 3)) {
-    u = [ p[0]/p[1], sgn(p[1]), p[2]/p[1] ];
-    _idx = xy2idx( [u[0], u[2]], nxy );
-  }
-
-  else if ((idir == 4) || (idir == 5)) {
-    u = [ p[0]/p[2], p[1]/p[2], sgn(p[2]) ];
-    _idx = xy2idx( [u[0], u[1]], nxy );
-  }
-
-  else { return -1; }
-
-  grid_bin[idir][_idx].push(p);
-
-  return 0;
 }
 
 function _debug1() {
@@ -161,25 +177,56 @@ function _debug1() {
   let _count = 0;
   let _max = -1;
   for (let idir=0; idir<6; idir++) {
-
     for (let i=0; i<B[idir].length; i++) {
-
       if (B[idir][i].length > _max) { _max = B[idir][i].length; }
-
-      console.log(B[idir][i].length);
-
       _count += B[idir][i].length;
     }
   }
 
   console.log("#P:", P.length, "_count:", _count, "(max:", _max, ")");
 
-  return;
+  let nxy = [face_sn, face_sn];
+  let ds = 2/face_sn;
 
-  for (let i=0; i<B[0].length; i++) {
-    console.log("#B[0][", i, "]:", JSON.stringify(B[0][i]));
+  for (let idir=0; idir<6; idir++) {
+
+    for (let iy=0; iy<face_sn; iy++) {
+      for (let ix=0; ix<face_sn; ix++) {
+        let idx = ixy2idx([ix,iy], nxy );
+        let xy = idx2xy(idx, nxy, ds);
+        let xyz = xy2idir_plane(xy, idir);
+        console.log(xyz[0], xyz[1], xyz[2]);
+      }
+      console.log("\n\n");
+    }
+
+    for (let ix=0; ix<face_sn; ix++) {
+      for (let iy=0; iy<face_sn; iy++) {
+        let idx = ixy2idx([ix,iy], nxy );
+        let xy = idx2xy(idx, nxy, ds);
+        let xyz = xy2idir_plane(xy, idir);
+        console.log(xyz[0], xyz[1], xyz[2]);
+      }
+      console.log("\n\n");
+    }
+
+    for (let i=0; i<B[idir].length; i++) {
+
+      for (let j=0; j<B[idir][i].length; j++) {
+        let p = B[idir][i][j];
+
+        let xy = idx2xy(i, nxy, ds);
+        let xyz = xy2idir_plane(xy, idir);
+
+        let pxyz = xyz2cubemap(p);
+
+        console.log(p[0], p[1], p[2]);
+        console.log(pxyz[0], pxyz[1], pxyz[2], "\n\n");
+        //console.log(xyz[0], xyz[1], xyz[2], "\n\n");
+
+      }
+    }
   }
-
 
 }
 
