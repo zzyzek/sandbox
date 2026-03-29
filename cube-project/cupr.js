@@ -140,6 +140,187 @@ function _bin_p(p, grid_bin, nxy) {
   return 0;
 }
 
+function CM_flood_step(cm_ctx, cixy) {
+
+  let ns = cm_ctx.Ns;
+
+  Nxy = [ns,ns];
+
+  if (typeof cixy !== "undefined") {
+    cm_ctx.Q = [ [ cixy[0], cixy[1], cixy[2] ] ];
+
+    //brute force unwind for now...
+    //
+    cm_ctx.B = [ [], [], [], [], [], [] ];
+    for (let idir=0; idir<6; idir++) {
+      for (let i=0; i<cm_ctx.Nf; i++) {
+        cm_ctx.B[idir].push(-1);
+      }
+    }
+
+    let idx = ixy2idx([cixy[0], cixy[1]], Nxy);
+    cm_ctx.B[cixy[2]][idx] = 0;
+
+  }
+
+  let nei_dxy = [
+    [ 1, 0], [ 1, 1], [ 0, 1], [-1, 1],
+    [-1, 0], [-1,-1], [ 0,-1], [ 1,-1]
+  ];
+
+  let dstQ = [];
+  for (let qi=0; qi<cm_ctx.Q.length; qi++) {
+
+    let qele = cm_ctx.Q[qi];
+    let ix = qele[0];
+    let iy = qele[1];
+    let face_idx = qele[2];
+
+    let cell_idx = ixy2idx([ix,iy], Nxy);
+
+    //console.log(qi, cm_ctx.Q);
+    //console.log("...", cell_idx, ix, iy, face_idx, Nxy);
+
+    let v = cm_ctx.B[face_idx][cell_idx];
+
+    for (let _ni=0; _ni<nei_dxy.length; _ni++) {
+      let dxy = nei_dxy[_ni];
+
+      let nei_ix = ix + dxy[0];
+      let nei_iy = iy + dxy[1];
+
+      if ((nei_ix < 0) || (nei_iy < 0) ||
+          (nei_ix >= ns) || (nei_iy >= ns)) { continue; }
+
+      let nei_idx = ixy2idx([nei_ix,nei_iy], Nxy);
+
+      if (cm_ctx.B[face_idx][nei_idx] < 0) {
+        cm_ctx.B[face_idx][nei_idx] = v+1;
+        dstQ.push( [nei_ix, nei_iy, face_idx ] );
+      }
+    }
+
+  }
+
+  cm_ctx.Q = dstQ;
+
+}
+
+function CM_debug_print(cm_ctx) {
+
+  var printf = require("../lib/printf");
+
+  let ns = cm_ctx.Ns;
+  for (let idir=0; idir<6; idir++) {
+
+    console.log("#idir:", idir);
+    for (let iy=0; iy<ns; iy++) {
+      let s_line = [];
+      for (let ix=0; ix<ns; ix++) {
+        let idx = ixy2idx([ix,iy], [ns,ns]);
+
+        s_line.push( (cm_ctx.B[idir][idx] < 0) ? ' .' : printf("%2i", cm_ctx.B[idir][idx]) );
+
+      }
+      console.log(s_line.join(" "));
+    }
+    console.log("\n\n");
+
+  }
+}
+
+function cm_debug() {
+
+  let cm_ctx = {
+    "B": [ [], [], [], [], [], [] ],
+    "Q": [],
+    "H": [],
+    "Ns": -1,
+    "Nf": -1
+  };
+
+  cm_ctx.Ns = face_sn;
+  cm_ctx.Nf = face_sn*face_sn;
+  for (let idir=0; idir<6; idir++) {
+    for (let i=0; i<cm_ctx.Nf; i++) {
+      cm_ctx.B[idir].push(-1);
+    }
+  }
+
+
+  CM_debug_print(cm_ctx);
+
+  CM_flood_step(cm_ctx, [1,3,0]);
+  CM_debug_print(cm_ctx);
+
+  CM_flood_step(cm_ctx);
+  CM_debug_print(cm_ctx);
+
+  //CM_flood_step(cm_ctx);
+  //CM_debug_print(cm_ctx);
+
+}
+
+
+
+//cm_debug();
+
+
+function enum_spiral(ixy, nxy) {
+
+  let _di = [1,0];
+  let r = 1;
+
+  let n_it = 100;
+
+  let ixy_cur = [ixy[0], ixy[1]];
+  let ixy_nxt = [ixy[0], ixy[1]];
+  let ixy_c   = [ixy[0], ixy[1]];
+
+  let dir_idx = 0;
+  let dir_dxy = [ [1,0], [0,1], [-1,0], [0,-1] ];
+
+  for (let it=0; it<n_it; it++) {
+
+    console.log(ixy_cur[0], ixy_cur[1]);
+
+    ixy_nxt[0] = ixy_cur[0] + dir_dxy[dir_idx][0];
+    ixy_nxt[1] = ixy_cur[1] + dir_dxy[dir_idx][1];
+
+    let dxy = [
+      Math.abs(ixy_nxt[0]-ixy_c[0]),
+      Math.abs(ixy_nxt[1]-ixy_c[1])
+    ];
+
+
+    if ((dxy[0] > r) ||
+        (dxy[1] > r)) {
+      dir_idx++;
+
+      if (dir_idx==4) {
+
+
+        r++;
+        dir_idx=0;
+
+        console.log("#bang", r, dir_idx);
+      }
+
+      ixy_nxt[0] = ixy_cur[0] + dir_dxy[dir_idx][0];
+      ixy_nxt[1] = ixy_cur[1] + dir_dxy[dir_idx][1];
+
+    }
+
+    ixy_cur[0] = ixy_nxt[0];
+    ixy_cur[1] = ixy_nxt[1];
+
+
+  }
+}
+
+//enum_spiral([0,0], [5,5]);
+//process.exit();
+
 
 function __debug() {
   //DEBUG
@@ -230,7 +411,7 @@ function _debug1() {
 
 }
 
-_debug1();
+//_debug1();
 
 
 function _main() {
