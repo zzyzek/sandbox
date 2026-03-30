@@ -19,6 +19,23 @@
 // We go from a half plane reprsentation to a point representation,
 // so the output wil necessary be (2d) points.
 //
+// Not designed for ergonomic usage but many functions exposed
+// for hackability.
+//
+// Standard usage:
+//
+// var chzu = require("./chzhu.js");
+//
+// let H = [];
+// ...
+// for (let i=0; i<N; i++) {
+//   ...
+//   H.push({"p": p, "v": v, "theta": theta });
+//   ...
+// }
+//
+// let chp = chzhu.hull(H);
+//
 
 // See Convex-Hull-Zhu.md for a brief description
 //
@@ -238,7 +255,7 @@ if (typeof module !== "undefined") {
   module.exports["_cross2"] = _cross2;
   module.exports["_out_halfplane"] = _out_halfplane;
   module.exports["_intersect_halfplane"] = _intersect_halfplane;
-  module.exports["dequeu"] = _DQ;
+  module.exports["dequeue"] = _DQ;
 
   module.exports["EPS"] = function(_e) { if (typeof _e !== "undefined") { _EPS = _e; } return _EPS; };
   module.exports["INF"] = function(_i) { if (typeof _i !== "undefined") { _INF = _i; } return _INF; };
