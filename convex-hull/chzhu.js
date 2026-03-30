@@ -16,6 +16,9 @@
 // http://zeyuan.allen-zhu.com/paper/2006-thesis.pdf
 // https://cp-algorithms.com/geometry/halfplane-intersection.html
 //
+// We go from a half plane reprsentation to a point representation,
+// so the output wil necessary be (2d) points.
+//
 
 // See Convex-Hull-Zhu.md for a brief description
 //
@@ -24,7 +27,6 @@ var _EPS = 1e-9;
 var _INF = 1e9;
 
 var njs = require("../lib/numeric.js");
-var fasslib = require("../lib/fasslib.js");
 var printf = require("../lib/printf.js");
 
 
@@ -150,29 +152,6 @@ class _DQ {
 
 }
 
-function _main_dq_spot_test() {
-  let dq = new _DQ(20);
-
-  let op_name = [ "push_front", " push_back", " pop_front", "  pop_back" ];
-
-  let n_it = 20;
-  for (let it=0; it<n_it; it++) {
-
-    let op = Math.floor( 4*Math.random() );
-    let v = Math.floor( 100*Math.random() );
-    if      (op == 0) { dq.push_front(v); }
-    else if (op == 1) { dq.push_back(v); }
-    else if (op == 2) { v = dq.pop_front(); }
-    else if (op == 3) { v = dq.pop_back(); }
-
-    let _s = " _";
-    if (typeof v !== "undefined") { _s = printf("%2i", v); }
-
-    console.log("[", printf("%2i", it), "/", n_it, "]: op:", op_name[op], "v:", _s, dq._debug_string())
-  }
-
-}
-
 
 function chzhu(H) {
 
@@ -259,58 +238,86 @@ function chzhu(H) {
   return ch_pnt;
 }
 
+//
 
-
-function _main(argv) {
-
-  var fs = require("fs");
-
-  let n = 30;
-  let H = [];
-
-  for (let i=0; i<n; i++) {
-
-    let p = njs.mul(2, njs.sub( njs.random([2]), [0.5, 0.5] ) )
-    let v = [ -p[1], p[0] ];
-    let d = njs.norm2(v);
-    v[0] /= d;
-    v[1] /= d;
-
-    H.push({
-      "p": p,
-      "v": v,
-      "theta": Math.atan2(v[1], v[0])
-    });
-  }
-
-  let chp = chzhu(H);
-
-  hp_lines = [];
-  for (let i=0; i<H.length; i++) {
-    let u0 = njs.add(H[i].p, H[i].v);
-    let u1 = njs.add(H[i].p, njs.mul(-1, H[i].v));
-
-    hp_lines.push( printf("%f %f", u0[0], u0[1]) );
-    hp_lines.push( printf("%f %f\n\n", u1[0], u1[1]) );
-
-  }
-  fs.writeFileSync("hp.gp", hp_lines.join("\n"));
-
-
-  chp_lines = [];
-
-  //console.log("#chp[", chp.length, "]:");
-  chp_lines.push( printf("#chp[%i]", chp.length) );
-  for (let i=0; i<chp.length; i++) {
-    //console.log(chp[i][0], chp[i][1]);
-    chp_lines.push( printf("%f %f", chp[i][0], chp[i][1]) );
-  }
-  if (chp.length > 0) {
-    //console.log(chp[0][0], chp[0][1]);
-    chp_lines.push( printf("%f %f", chp[0][0], chp[0][1]) );
-  }
-  fs.writeFileSync("chp.gp", chp_lines.join("\n"));
-
+if (typeof module !== "undefined") {
+  module.exports["hull"] = chzhu;
+  module.exports["_cross2"] = _cross2;
+  module.exports["_out_halfplane"] = _out_halfplane;
+  module.exports["_intersect_halfplane"] = _intersect_halfplane;
+  module.exports["dequeu"] = _DQ;
 }
 
-_main();
+if ((typeof require !== "undefined") &&
+    (require.main === module)) {
+
+  function _main_dq_spot_test() {
+    let dq = new _DQ(20);
+    let op_name = [ "push_front", " push_back", " pop_front", "  pop_back" ];
+    let n_it = 20;
+    for (let it=0; it<n_it; it++) {
+      let op = Math.floor( 4*Math.random() );
+      let v = Math.floor( 100*Math.random() );
+      if      (op == 0) { dq.push_front(v); }
+      else if (op == 1) { dq.push_back(v); }
+      else if (op == 2) { v = dq.pop_front(); }
+      else if (op == 3) { v = dq.pop_back(); }
+      let _s = " _";
+      if (typeof v !== "undefined") { _s = printf("%2i", v); }
+      console.log("[", printf("%2i", it), "/", n_it, "]: op:", op_name[op], "v:", _s, dq._debug_string())
+    }
+  }
+
+  function _main(argv) {
+    var fs = require("fs");
+
+    let n = 30;
+    let H = [];
+
+    for (let i=0; i<n; i++) {
+
+      let p = njs.mul(2, njs.sub( njs.random([2]), [0.5, 0.5] ) )
+      let v = [ -p[1], p[0] ];
+      let d = njs.norm2(v);
+      v[0] /= d;
+      v[1] /= d;
+
+      H.push({
+        "p": p,
+        "v": v,
+        "theta": Math.atan2(v[1], v[0])
+      });
+    }
+
+    let chp = chzhu(H);
+
+    hp_lines = [];
+    for (let i=0; i<H.length; i++) {
+      let u0 = njs.add(H[i].p, H[i].v);
+      let u1 = njs.add(H[i].p, njs.mul(-1, H[i].v));
+
+      hp_lines.push( printf("%f %f", u0[0], u0[1]) );
+      hp_lines.push( printf("%f %f\n\n", u1[0], u1[1]) );
+
+    }
+    fs.writeFileSync("hp.gp", hp_lines.join("\n"));
+
+
+    chp_lines = [];
+
+    //console.log("#chp[", chp.length, "]:");
+    chp_lines.push( printf("#chp[%i]", chp.length) );
+    for (let i=0; i<chp.length; i++) {
+      //console.log(chp[i][0], chp[i][1]);
+      chp_lines.push( printf("%f %f", chp[i][0], chp[i][1]) );
+    }
+    if (chp.length > 0) {
+      //console.log(chp[0][0], chp[0][1]);
+      chp_lines.push( printf("%f %f", chp[0][0], chp[0][1]) );
+    }
+    fs.writeFileSync("chp.gp", chp_lines.join("\n"));
+
+  }
+
+  _main(process.argv.slice(1));
+}
