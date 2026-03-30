@@ -30,6 +30,8 @@ var njs = require("../lib/numeric.js");
 var printf = require("../lib/printf.js");
 
 
+// template of halfplane strcutrue:
+//
 // hp = {
 //   p : [x,y],
 //   v : [dx,dy],
@@ -163,23 +165,8 @@ function chzhu(H) {
   for (let i=0; i<H.length; i++) { L.push(H[i]); }
   L.sort( _theta_cmp );
 
-  //for (let i=0; i<L.length; i++) { console.log(printf("%2i", i), JSON.stringify(L[i])); }
-
   let dq_idx = new _DQ(L.length);
   for (let idx=0; idx<L.length; idx++) {
-
-    /*
-    console.log("idx:", printf("%2i", idx), dq_idx._debug_string(),
-      dq_idx.peek(0), dq_idx.peek(1),
-      dq_idx.peek(-1), dq_idx.peek(-2) );
-
-    if (dq_idx.n > 1) {
-      console.log("  A:", 
-        JSON.stringify(L[ dq_idx.peek(-1) ]), JSON.stringify(L[ dq_idx.peek(-2) ]),
-        _intersect_halfplane( L[ dq_idx.peek(-1) ], L[ dq_idx.peek(-2) ] ),
-                          _out_halfplane( L[idx], _intersect_halfplane( L[ dq_idx.peek(-1) ], L[ dq_idx.peek(-2) ] ) )) ;
-    }
-    */
 
     while ( (dq_idx.n > 1) &&
             (_out_halfplane( L[idx],
@@ -206,7 +193,6 @@ function chzhu(H) {
     }
 
     dq_idx.push_back( idx );
-
   }
 
 
@@ -238,7 +224,14 @@ function chzhu(H) {
   return ch_pnt;
 }
 
-//
+//---------------------
+//               _    
+//   __ _  ___ _(_)__ 
+//  /  ' \/ _ `/ / _ \
+// /_/_/_/\_,_/_/_//_/
+//                    
+//---------------------
+
 
 if (typeof module !== "undefined") {
   module.exports["hull"] = chzhu;
@@ -246,6 +239,9 @@ if (typeof module !== "undefined") {
   module.exports["_out_halfplane"] = _out_halfplane;
   module.exports["_intersect_halfplane"] = _intersect_halfplane;
   module.exports["dequeu"] = _DQ;
+
+  module.exports["EPS"] = function(_e) { if (typeof _e !== "undefined") { _EPS = _e; } return _EPS; };
+  module.exports["INF"] = function(_i) { if (typeof _i !== "undefined") { _INF = _i; } return _INF; };
 }
 
 if ((typeof require !== "undefined") &&
@@ -268,10 +264,43 @@ if ((typeof require !== "undefined") &&
     }
   }
 
+  function _show_help() {
+    console.log("");
+    console.log("Zhu's 2d convex hull from half plane intersections usage:");
+    console.log("");
+    console.log("  chzhu.js [op] [val]");
+    console.log("");
+    console.log("  op:      (help|stdout|gnuplot)");
+    console.log("  val:     number of vertices (default 30)");
+    console.log("");
+    console.log(" gnuplot output will be to hp.gp and chp.gp output files");
+    console.log("");
+  }
+
   function _main(argv) {
     var fs = require("fs");
 
-    let n = 30;
+    let op = "",
+        op_val = 30;
+
+    if (argv.length > 1) {
+      op = argv[1];
+      if (argv.length > 2) {
+        op_val = parseInt(argv[2]);
+      }
+    }
+
+    if (op == "") {
+      _show_help();
+      return;
+    }
+
+    else if (op == "help") {
+      _show_help();
+      return;
+    }
+
+    let n = op_val;
     let H = [];
 
     for (let i=0; i<n; i++) {
@@ -291,7 +320,8 @@ if ((typeof require !== "undefined") &&
 
     let chp = chzhu(H);
 
-    hp_lines = [];
+    hp_lines = [ printf("#halfplane[%i]:", H.length) ];
+
     for (let i=0; i<H.length; i++) {
       let u0 = njs.add(H[i].p, H[i].v);
       let u1 = njs.add(H[i].p, njs.mul(-1, H[i].v));
@@ -300,7 +330,12 @@ if ((typeof require !== "undefined") &&
       hp_lines.push( printf("%f %f\n\n", u1[0], u1[1]) );
 
     }
-    fs.writeFileSync("hp.gp", hp_lines.join("\n"));
+    if (op == "gnuplot") {
+      fs.writeFileSync("hp.gp", hp_lines.join("\n"));
+    }
+    else {
+      console.log(hp_lines.join("\n"));
+    }
 
 
     chp_lines = [];
@@ -315,7 +350,13 @@ if ((typeof require !== "undefined") &&
       //console.log(chp[0][0], chp[0][1]);
       chp_lines.push( printf("%f %f", chp[0][0], chp[0][1]) );
     }
-    fs.writeFileSync("chp.gp", chp_lines.join("\n"));
+
+    if (op == "gnuplot") {
+      fs.writeFileSync("chp.gp", chp_lines.join("\n"));
+    }
+    else {
+      console.log(chp_lines.join("\n"));
+    }
 
   }
 
