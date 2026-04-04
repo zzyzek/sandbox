@@ -293,6 +293,7 @@ function ochzhu_add(ctx, hp, _debug) {
     return ctx;
   }
 
+
   console.log("#cp.3");
 
   let nod_gt = ctx.T.above(hp.theta);
@@ -302,6 +303,40 @@ function ochzhu_add(ctx, hp, _debug) {
   let nod_lt = ctx.T.below(hp.theta);
   if (nod_lt == null) { nod_lt = ctx.T.maxNode(); }
   let hp_lt = nod_lt.data;
+
+  if ((ctx.T.size > 0) &&
+      ( (Math.abs( _cross2( hp.v, hp_gt.v ) ) < _EPS) ||
+        (Math.abs( _cross2( hp.v, hp_lt.v ) ) < _EPS) ) ) {
+
+    if ((njs.dot( hp.v, hp_lt.v ) < 0.0) ||
+        (njs.dot( hp.v, hp_gt.v ) < 0.0)) {
+
+      console.log("# parallel, EMPTY");
+
+      ctx.empty = true;
+      return ctx;
+    }
+
+    if ( _out_halfplane(hp, hp_lt.p) ) {
+
+      console.log("# parallel, remove hp_lt (", hp_lt.theta, ")");
+
+      ctx.T.remove( hp_lt.key );
+    }
+    else if ( _out_halfplane(hp, hp_gt.p) ) {
+
+      console.log("# parallel, remove hp_gt (", hp_gt.theta, ")");
+
+      ctx.T.remove( hp_gt.key );
+    }
+    else {
+
+      console.log("# parallel, ignore");
+
+      return ctx;
+    }
+
+  }
 
   console.log("## _int(gt:", hp_gt.theta, "lt:", hp_lt.theta, "):",
                       _intersect_halfplane( hp_gt, hp_lt ),
