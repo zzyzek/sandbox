@@ -33,6 +33,36 @@ sort on angle is used.
 
 ---
 
+Online Version
+---
+
+*Warning, speculative*
+
+Here is the idea for an online version of the algorithm:
+
+* Instead of sorting initially, keep halfplanes in a self balancing tree (e.g. AVL)
+  whose key is angle
+* Start off with large square (four halfplanes)
+* When considering new halfplane:
+  - find neighboring two halfplanes (by angle, wrapping around if necessary)
+  - walk in each direction removing half planes as necessary
+  - you'll be left with a half plane and two neighboring half planes whose angles are greater/less than respectively
+  - see if the halfplane is under the lt,gt neighbor intersection point, if so, discard halfplane
+  - otherwise add it
+* At any point you can walk the tree and find neighboring intersection points to find the convex hull
+  point representation
+
+I'm still a little fuzzy on correctness and run-time but I think there's the same guarantee as the offline
+version in that each half plane is only ever inserted or removed at most once.
+If I'm not completely wrong, the run-time should now be $O( n \log n )$, inheriting the run-time from insert/delete
+into the AVL tree.
+
+Notes on my implementation:
+
+* I twisted the four half planes at "infinity" to try and overcome some pathologies of parallel lines
+  - I may need to take care of parallel lines more intentionally
+* I had to do a final pass to discard nearly identical convex hull points
+  - I suspect this is an artifact of using twisted half planes at infinity, but I need to confirm
 
 
 References
