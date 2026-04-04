@@ -185,6 +185,13 @@ function ochzhu_init() {
     [ _INF-1,-_INF ]
   ];
 
+  sq = [
+    [ _INF, _INF ],
+    [-_INF, _INF ],
+    [-_INF,-_INF ],
+    [ _INF,-_INF ]
+  ];
+
   for (let i=0; i<sq.length; i++) {
     let p = sq[i];
 
@@ -247,6 +254,11 @@ function ochzhu_add(ctx, hp, _debug) {
     let nod_m2 = ctx.T.prev(nod_lt);
     if (nod_m2 == null) { nod_m2 = ctx.T.maxNode(); }
 
+    let c2 = _cross2( nod_lt.data.v, nod_m2.data.v );
+
+    console.log("## lt:", nod_lt.data.theta, "m2:", nod_m2.data.theta, "hp:", hp.theta, "cross:", c2);
+    console.log("## _int(lt,m2):", _intersect_halfplane( nod_lt.data, nod_m2.data ) );
+
     if (_out_halfplane( hp,
                         _intersect_halfplane( nod_lt.data, nod_m2.data ) ) ){
 
@@ -268,7 +280,9 @@ function ochzhu_add(ctx, hp, _debug) {
     let nod_p2 = ctx.T.next(nod_gt);
     if (nod_p2 == null) { nod_p2 = ctx.T.minNode(); }
 
-    console.log("## gt:", nod_gt.data.theta, "p2:", nod_p2.data.theta, "hp:", hp.theta);
+    let c2 = _cross2( nod_gt.data.v, nod_p2.data.v );
+
+    console.log("## gt:", nod_gt.data.theta, "p2:", nod_p2.data.theta, "hp:", hp.theta, "cross:", c2);
     console.log("## _int(gt,p2):", _intersect_halfplane( nod_gt.data, nod_p2.data ) );
 
     if (_out_halfplane( hp,
@@ -296,6 +310,53 @@ function ochzhu_add(ctx, hp, _debug) {
 
   console.log("#cp.3");
 
+  if (ctx.T.size > 0) {
+
+    let nod_eq = ctx.T.find(hp.theta);
+    if (nod_eq != null) {
+
+      console.log("#cp.nod_eq");
+
+      let hp_eq = nod_eq.data;
+
+      // half plane creates empty space
+      //
+      if (njs.dot( hp.v, hp_eq.v ) < 0.0) {
+
+        console.log("#cp.nod_eq.empty");
+
+        ctx.empty = true;
+        return ctx;
+      }
+
+      // remove the redundant half plane (on wrong
+      // side of current hp)
+      // hp will be added below
+      //
+      if ( _out_halfplane(hp, hp_eq.p) ) {
+
+        console.log("#cp.nod_eq.rem");
+
+
+        ctx.T.remove( hp_eq.theta );
+      }
+
+      // parallel and outside of the convex hull, ignore hp
+      //
+      else {
+
+        console.log("#cp.nod_eq.ignore");
+
+        return ctx;
+      }
+
+      console.log("#cp.nod_eq.continue");
+
+
+    }
+
+  }
+
   let nod_gt = ctx.T.above(hp.theta);
   if (nod_gt == null) { nod_gt = ctx.T.minNode(); }
   let hp_gt = nod_gt.data;
@@ -304,9 +365,14 @@ function ochzhu_add(ctx, hp, _debug) {
   if (nod_lt == null) { nod_lt = ctx.T.maxNode(); }
   let hp_lt = nod_lt.data;
 
+  console.log("# hp.theta:", hp.theta, "gt.theta:", hp_gt.theta, "lt.theta:", hp_lt.theta);
+  console.log("#??? cross2:", _cross2( hp.v, hp_gt.v ), _cross2( hp.v, hp_lt.v ));
+
   if ((ctx.T.size > 0) &&
       ( (Math.abs( _cross2( hp.v, hp_gt.v ) ) < _EPS) ||
         (Math.abs( _cross2( hp.v, hp_lt.v ) ) < _EPS) ) ) {
+
+    console.log("# xxx");
 
     if ((njs.dot( hp.v, hp_lt.v ) < 0.0) ||
         (njs.dot( hp.v, hp_gt.v ) < 0.0)) {
@@ -338,6 +404,20 @@ function ochzhu_add(ctx, hp, _debug) {
 
   }
 
+  let cross_gtlt = _cross2( hp_gt.v, hp_lt.v );
+
+  // special case where hp_gt, hp_lt are parallel,
+  // add hp
+  //
+  if (Math.abs(cross_gtlt) < _EPS) {
+
+    console.log("#hp.insert. (|cross_gtlt| == 0)");
+
+    ctx.T.insert( hp.theta, hp );
+    return ctx;
+  }
+
+  console.log("## cross_gtlt:", cross_gtlt);
   console.log("## _int(gt:", hp_gt.theta, "lt:", hp_lt.theta, "):",
                       _intersect_halfplane( hp_gt, hp_lt ),
     "out:", _out_halfplane( hp,
@@ -431,6 +511,8 @@ function ochzhu_hull(ctx) {
     }
   }
 
+  //if (ch_pnt.length < 3) { return []; }
+
   return ch_pnt;
 }
 
@@ -448,28 +530,60 @@ function chzhu(H) {
   let dq_idx = new _DQ(L.length);
   for (let idx=0; idx<L.length; idx++) {
 
+    console.log("\n#chzu, theta:", L[idx].theta, printf("[%f,%f]", L[idx].p[0], L[idx].p[1]), "dq.n:", dq_idx.n);
+
+    if (dq_idx.n>1) {
+      console.log("#chzhu, -1,-2, cross:", _cross2(L[dq_idx.peek(-1)].v, L[dq_idx.peek(-2)].v),
+        L[dq_idx.peek(-1)].v, L[dq_idx.peek(-2)].v);
+    }
+
     while ( (dq_idx.n > 1) &&
             (_out_halfplane( L[idx],
                             _intersect_halfplane( L[ dq_idx.peek(-1) ], L[ dq_idx.peek(-2) ] ) )) ) {
+
+      console.log("#chzu.pop_back");
+
       dq_idx.pop_back();
+    }
+
+    if (dq_idx.n>1) {
+      console.log("#chzhu, 0,1, cross:", _cross2(L[dq_idx.peek(0)].v, L[dq_idx.peek(1)].v),
+        L[dq_idx.peek(0)].v, L[dq_idx.peek(1)].v);
     }
 
     while ( (dq_idx.n > 1) &&
             (_out_halfplane( L[idx],
                              _intersect_halfplane( L[ dq_idx.peek(0) ], L[ dq_idx.peek(1) ] ) )) ) {
+
+      console.log("#chzu.pop_front");
+
       dq_idx.pop_front();
     }
 
     if ( (dq_idx.n > 0) &&
          (Math.abs( _cross2( L[idx].v, L[ dq_idx.peek(-1) ].v ) ) < _EPS) ) {
+
+      console.log("#chzhu cp.a");
+
       if (njs.dot( L[idx].v, L[ dq_idx.peek(-1) ].v ) < 0.0) {
+
+        console.log("#chzhu cp.b");
+
         return [];
       }
 
       if ( _out_halfplane( L[idx], L[ dq_idx.peek(-1) ].p ) ) {
+
+        console.log("#chzhu cp.c");
+
         dq_idx.pop_back();
       }
-      else { continue; }
+      else {
+ 
+        console.log("#chzhu cp.d");
+
+        continue;
+      }
     }
 
     dq_idx.push_back( idx );
@@ -671,6 +785,70 @@ if ((typeof require !== "undefined") &&
         }
 
       }
+
+      else if (op_tok[2] == 'stdin') {
+        let TXT = fs.readFileSync('/dev/stdin', 'utf8');
+        let lines = TXT.split("\n");
+
+        let pq_a = [];
+        let _p = [0,0],
+            _q = [0,0];
+        let _state_idx = 0;
+
+        for (let line_no=0; line_no<lines.length; line_no++) {
+
+          let line = lines[line_no].trim();
+          if (line.length == 0) {
+            _state_idx = 0;
+            continue; 
+          }
+          if (line[0] == '#') { continue; }
+
+          let tok = line.split(" ");
+          if (tok.length < 2) {
+            console.log("#WARNING: line_no:", line_no, "mangled line, ignoring");
+            continue;
+          }
+
+          let x = parseFloat(tok[0]);
+          let y = parseFloat(tok[1]);
+
+          if (_state_idx==0) {
+            _p[0] = x;
+            _p[1] = y;
+            _state_idx++;
+          }
+          else if (_state_idx == 1) {
+            _q[0] = x;
+            _q[1] = y;
+            pq_a.push( [[_p[0],_p[1]],[_q[0], _q[1]]] );
+            _state_idx++;
+          }
+          else {
+            console.log("#WARNING: line_no:", line_no, "runaway line");
+          }
+
+
+        }
+
+        for (let i=0; i<pq_a.length; i++) {
+          console.log(pq_a[i][0], pq_a[i][1]);
+
+          let _p = [ pq_a[i][0][0], pq_a[i][0][1] ];
+          let _v = njs.sub( pq_a[i][1], pq_a[i][0] );
+          _v = njs.mul( 1/njs.norm2(_v), _v );
+          let _theta = Math.atan2( _v[1], _v[0] );
+          let hp = {
+            "p": _p,
+            "v": _v,
+            "theta": _theta
+          };
+
+          H.push(hp);
+        }
+
+      }
+
       else {
 
         let H_sched = [
@@ -746,7 +924,7 @@ if ((typeof require !== "undefined") &&
       for (let i=0; i<H.length; i++) {
 
 
-        ochzhu_add(ochz, H[i], i==6);
+        ochzhu_add(ochz, H[i]);
 
         let chp = ochzhu_hull(ochz);
 
@@ -760,6 +938,9 @@ if ((typeof require !== "undefined") &&
 
 
       }
+
+      console.log("## empty:", ochz.empty);
+
       let chp = ochzhu_hull(ochz);
 
       for (let i=0; i<chp.length; i++) {
@@ -785,6 +966,10 @@ if ((typeof require !== "undefined") &&
 
       if (op_tok[1] == "gnuplot") { fs.writeFileSync("c_chp.gp", chp_lines.join("\n")); }
       else { console.log(chp_lines.join("\n")); }
+
+      for (let i=0; i<chp.length; i++) {
+        console.log("#chzu[", i, "]:", chp[i][0], chp[i][1]);
+      }
 
     }
 
