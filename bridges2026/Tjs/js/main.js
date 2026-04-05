@@ -48,6 +48,11 @@ var colormap_f = mk_colormap_f(COLOR_IDX, PAL12);
 function init() {
   let offset = [0,0,0];
   offset = [0,0,-50000];
+  offset = [0,0,1000];
+
+  let Lx = 10000;
+  let Ly = 10000;
+  let Lz = -10000;
 
   let _width = window.innerWidth;
   let _height = window.innerHeight;
@@ -61,7 +66,7 @@ function init() {
   g_ctx.scene.add( g_ctx.ambient_light );
 
   g_ctx.directional_light = new THREE.DirectionalLight( 0xffffff, 2.0 );
-  g_ctx.directional_light.position.set(1,1,-10);
+  g_ctx.directional_light.position.set(Lx,Ly,Lz);
   g_ctx.directional_light.target.position.set(0,0,0);
   g_ctx.directional_light.castShadow = true;
 
@@ -81,7 +86,7 @@ function init() {
 
 
   g_ctx.directional_light1 = new THREE.DirectionalLight( 0xffffff, 2.0 );
-  g_ctx.directional_light1.position.set(0,1,-10);
+  g_ctx.directional_light1.position.set(0,Ly,Lz);
   g_ctx.directional_light1.target.position.set(0,0,0);
   g_ctx.directional_light1.castShadow = true;
 
@@ -106,7 +111,7 @@ function init() {
 
 
   g_ctx.pass_render = new RenderPass( g_ctx.scene, g_ctx.camera );
-  g_ctx.pass_bloom = new BloomPass( 1.0, 10, 0.5 );
+  g_ctx.pass_bloom = new BloomPass( 1.05, 10, 0.5 );
   g_ctx.pass_output = new OutputPass();
 
   g_ctx.composer = new EffectComposer(g_ctx.renderer);
@@ -185,9 +190,9 @@ function init() {
       //b_mesh.position.y = (F*(P[i][1] + P[i-1][1])/2) + offset[1];
       //b_mesh.position.z = (F*(P[i][2] + P[i-1][2])/2) + offset[2];
 
-      b_mesh.position.x = (F*(P[i][0] + P[i-1][0])/2) + 0;
-      b_mesh.position.y = (F*(P[i][1] + P[i-1][1])/2) + 0;
-      b_mesh.position.z = (F*(P[i][2] + P[i-1][2])/2) - 1000;
+      b_mesh.position.x = (F*(P[i][0] + P[i-1][0])/2) ;
+      b_mesh.position.y = (F*(P[i][1] + P[i-1][1])/2) ;
+      b_mesh.position.z = (F*(P[i][2] + P[i-1][2])/2) ;
 
       g_ctx.scene.add( b_mesh );
 
@@ -201,7 +206,7 @@ function init() {
 
   //}
 
-  g_ctx.camera.position.z = 5;
+  //g_ctx.camera.position.z = 5;
 
   g_ctx.renderer.setAnimationLoop( animate );
 }
