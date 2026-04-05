@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { BloomPass } from 'three/addons/postprocessing/BloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 //import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 var g_ctx = {
@@ -8,6 +12,13 @@ var g_ctx = {
   "scene": null,
   "camera": null,
   "renderer": null,
+
+  "pass_render": null,
+  "pass_bloom": null,
+  "pass_output": null,
+
+  "composer": null,
+
   "ambient_light": null,
   "directional_light": null,
   "directional_light1": null,
@@ -50,23 +61,59 @@ function init() {
   g_ctx.scene.add( g_ctx.ambient_light );
 
   g_ctx.directional_light = new THREE.DirectionalLight( 0xffffff, 2.0 );
-  g_ctx.directional_light.position.set(1,1,-1);
+  g_ctx.directional_light.position.set(1,1,-10);
   g_ctx.directional_light.target.position.set(0,0,0);
   g_ctx.directional_light.castShadow = true;
+
+  g_ctx.directional_light.shadow.camera.near = -4096;
+  g_ctx.directional_light.shadow.camera.far = 4096;
+  g_ctx.directional_light.shadow.camera.top =  2048;
+  g_ctx.directional_light.shadow.camera.bottom = -2048;
+  g_ctx.directional_light.shadow.camera.left = -2048;
+  g_ctx.directional_light.shadow.camera.right =  2048;
+
+  g_ctx.directional_light.shadow.mapSize.width = 1024;
+  g_ctx.directional_light.shadow.mapSize.height = 1024;
+  g_ctx.directional_light.shadow.radius = 4;
+  g_ctx.directional_light.shadow.bias = -0.0005;
+
   g_ctx.scene.add( g_ctx.directional_light );
 
 
   g_ctx.directional_light1 = new THREE.DirectionalLight( 0xffffff, 2.0 );
-  g_ctx.directional_light1.position.set(0,1,-1);
+  g_ctx.directional_light1.position.set(0,1,-10);
   g_ctx.directional_light1.target.position.set(0,0,0);
   g_ctx.directional_light1.castShadow = true;
-  g_ctx.scene.add( g_ctx.directional_light1 );
 
+  g_ctx.directional_light1.shadow.camera.near = -4096;
+  g_ctx.directional_light1.shadow.camera.far = 4096;
+  g_ctx.directional_light1.shadow.camera.top =  2048;
+  g_ctx.directional_light1.shadow.camera.bottom = -2048;
+  g_ctx.directional_light1.shadow.camera.left = -2048;
+  g_ctx.directional_light1.shadow.camera.right =  2048;
+
+  g_ctx.directional_light1.shadow.mapSize.width = 1024;
+  g_ctx.directional_light1.shadow.mapSize.height = 1024;
+  g_ctx.directional_light1.shadow.radius = 4;
+  g_ctx.directional_light1.shadow.bias = -0.0005;
+
+  g_ctx.scene.add( g_ctx.directional_light1 );
 
   g_ctx.renderer = new THREE.WebGLRenderer();
   g_ctx.renderer.setSize( window.innerWidth, window.innerHeight );
   g_ctx.renderer.shadowMap.enabled = true;
   document.body.appendChild( g_ctx.renderer.domElement );
+
+
+  g_ctx.pass_render = new RenderPass( g_ctx.scene, g_ctx.camera );
+  g_ctx.pass_bloom = new BloomPass( 1.0, 10, 0.5 );
+  g_ctx.pass_output = new OutputPass();
+
+  g_ctx.composer = new EffectComposer(g_ctx.renderer);
+  g_ctx.composer.addPass( g_ctx.pass_render );
+  g_ctx.composer.addPass( g_ctx.pass_bloom );
+  g_ctx.composer.addPass( g_ctx.pass_output );
+
 
 
 
@@ -159,21 +206,17 @@ function init() {
   g_ctx.renderer.setAnimationLoop( animate );
 }
 
-console.log("bridges2026:", bridges2026.length);
-
-var light_idx = 0;
+//var light_idx = 0;
 function animate( time ) {
-  light_idx ++;
-
-  g_ctx.directional_light.position.set( Math.cos( light_idx ), Math.sin( light_idx ), -1 );
-
+  //light_idx ++;
+  //g_ctx.directional_light.position.set( Math.cos( light_idx ), Math.sin( light_idx ), -1 );
 
   g_ctx.controls.update();
-  g_ctx.renderer.render( g_ctx.scene, g_ctx.camera );
+  //g_ctx.renderer.render( g_ctx.scene, g_ctx.camera );
+  g_ctx.composer.render();
 }
 
 init();
 
 window["foo"] = g_ctx;
 
-console.log("...");
