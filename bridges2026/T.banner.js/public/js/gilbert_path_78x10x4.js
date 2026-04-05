@@ -1,1 +1,0 @@
-../../js/gilbert_path_78x10x4.js
