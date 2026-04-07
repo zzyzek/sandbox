@@ -172,24 +172,30 @@ class _DQ {
 
 }
 
-function ochzhu_init() {
+function ochzhu_init(opt) {
+  opt = ((typeof opt === "undefined") ? {} : opt);
+
   let ctx = {
+    "debug": 0,
     "empty": false,
+    "unbounded": true,
+    "INF": _INF,
+    "EPS": _EPS,
+    "inf_seg_count": 4,
     "T": new avljs.AVLTree()
   };
 
-  let sq = [
-    [ _INF, _INF ],
-    [-_INF, _INF+1 ],
-    [-_INF+1,-_INF-1 ],
-    [ _INF-1,-_INF ]
-  ];
+  if (typeof opt.debug !== "undefined") { ctx.debug = opt.debug; }
+  if (typeof opt.EPS !== "undefined") { ctx.EPS = opt.EPS; }
+  if (typeof opt.INF !== "undefined") { ctx.INF = opt.INF; }
 
-  sq = [
-    [ _INF, _INF ],
-    [-_INF, _INF ],
-    [-_INF,-_INF ],
-    [ _INF,-_INF ]
+  let _inf = ctx.INF;
+
+  let sq = [
+    [ _inf, _inf ],
+    [-_inf, _inf ],
+    [-_inf,-_inf ],
+    [ _inf,-_inf ]
   ];
 
   for (let i=0; i<sq.length; i++) {
@@ -201,17 +207,11 @@ function ochzhu_init() {
     let theta = Math.atan2( v[1], v[0] );
 
     let hp = { "p": p, "v": v, "theta": theta };
-    console.log("#init:", JSON.stringify(hp));
+
+    if (ctx.debug) { console.log("#init:", JSON.stringify(hp)); }
 
     ctx.T.insert( theta, { "p": p, "v": v, "theta": theta } );
   }
-
-  /*
-  ctx.T.insert( Math.PI,       { "p": [ _INF, _INF], "v": [-1, 0], "theta": Math.PI } );
-  ctx.T.insert( -Math.PI/2.0,  { "p": [-_INF, _INF], "v": [ 0,-1], "theta": -Math.PI/2.0 } );
-  ctx.T.insert( 0,             { "p": [-_INF,-_INF], "v": [ 1, 0], "theta": 0 });
-  ctx.T.insert( Math.PI/2.0,   { "p": [ _INF,-_INF], "v": [ 0, 1], "theta": Math.PI/2.0 });
-  */
 
   return ctx;
 }
@@ -226,21 +226,25 @@ function ochzhu_init() {
 //       --     --   0 > theta > -pi
 //         \___/
 //
-function ochzhu_add(ctx, hp, _debug) {
-  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+function ochzhu_add(ctx, hp) {
   if (typeof ctx === "undefined") { ctx = ochzhu_init(); }
 
+  let _inf = ((typeof ctx.INF === "undefined") ? _INF : ctx.INF);
+  let _eps = ((typeof ctx.EPS === "undefined") ? _EPS : ctx.EPS);
+  let _debug = ((typeof ctx.debug === "undefined") ? 0 : ctx.debug);
 
-  if (_debug) { console.log("#DEBUG"); }
-  console.log("#hp:", JSON.stringify(hp));
-  console.log("#T:\n", ctx.T.toString());
+
+  if (_debug) {
+    console.log("#hp:", JSON.stringify(hp));
+    console.log("#T:\n", ctx.T.toString());
+  }
 
 
   if (ctx.empty) { return ctx; }
 
   if (ctx.T.size < 2) {
 
-    console.log("# T.size < 2 (", ctx.T.size, "), inserting", JSON.stringify(hp));
+    if (_debug) { console.log("# T.size < 2 (", ctx.T.size, "), inserting", JSON.stringify(hp)); }
 
     ctx.T.insert( hp.theta, hp );
     return ctx;
@@ -256,13 +260,21 @@ function ochzhu_add(ctx, hp, _debug) {
 
     let c2 = _cross2( nod_lt.data.v, nod_m2.data.v );
 
-    console.log("## lt:", nod_lt.data.theta, "m2:", nod_m2.data.theta, "hp:", hp.theta, "cross:", c2);
-    console.log("## _int(lt,m2):", _intersect_halfplane( nod_lt.data, nod_m2.data ) );
+    if (_debug) {
+      console.log("## lt:", nod_lt.data.theta, "m2:", nod_m2.data.theta, "hp:", hp.theta, "cross:", c2);
+      console.log("## _int(lt,m2):", _intersect_halfplane( nod_lt.data, nod_m2.data ) );
+    }
 
     if (_out_halfplane( hp,
                         _intersect_halfplane( nod_lt.data, nod_m2.data ) ) ){
 
-      console.log("#lt.rem:", nod_lt.key);
+      if (_debug) { console.log("#lt.rem:", nod_lt.key); }
+
+      if ((nod_lt.data.p[0] == _inf) || (nod_lt.data.p[0] == -_inf) ||
+          (nod_lt.data.p[1] == _inf) || (nod_lt.data.p[1] == -_inf)) {
+        ctx.inf_seg_count--;
+        if (ctx.inf_seg_count==0) { ctx.unbounded = false; }
+      }
 
       ctx.T.remove( nod_lt.key );
       continue;
@@ -271,7 +283,7 @@ function ochzhu_add(ctx, hp, _debug) {
     break;
   }
 
-  console.log("#cp.1");
+  if (_debug) { console.log("#cp.1"); }
 
   while (ctx.T.size > 1) {
     let nod_gt = ctx.T.above(hp.theta);
@@ -282,13 +294,21 @@ function ochzhu_add(ctx, hp, _debug) {
 
     let c2 = _cross2( nod_gt.data.v, nod_p2.data.v );
 
-    console.log("## gt:", nod_gt.data.theta, "p2:", nod_p2.data.theta, "hp:", hp.theta, "cross:", c2);
-    console.log("## _int(gt,p2):", _intersect_halfplane( nod_gt.data, nod_p2.data ) );
+    if (_debug) {
+      console.log("## gt:", nod_gt.data.theta, "p2:", nod_p2.data.theta, "hp:", hp.theta, "cross:", c2);
+      console.log("## _int(gt,p2):", _intersect_halfplane( nod_gt.data, nod_p2.data ) );
+    }
 
     if (_out_halfplane( hp,
                         _intersect_halfplane( nod_gt.data, nod_p2.data ) ) ){
 
-      console.log("#gt.rem:", nod_gt.key);
+      if (_debug) { console.log("#gt.rem:", nod_gt.key); }
+
+      if ((nod_gt.data.p[0] == _inf) || (nod_gt.data.p[0] == -_inf) ||
+          (nod_gt.data.p[1] == _inf) || (nod_gt.data.p[1] == -_inf)) {
+        ctx.inf_seg_count--;
+        if (ctx.inf_seg_count==0) { ctx.unbounded = false; }
+      }
 
       ctx.T.remove( nod_gt.key );
       continue;
@@ -297,25 +317,25 @@ function ochzhu_add(ctx, hp, _debug) {
     break;
   }
 
-  console.log("#cp.2");
+  if (_debug) { console.log("#cp.2"); }
 
   if (ctx.T.size < 2) {
 
-    console.log("#T.sz<2 (", ctx.T.size, "), insert:", JSON.stringify(hp));
+    if (_debug) { console.log("#T.sz<2 (", ctx.T.size, "), insert:", JSON.stringify(hp)); }
 
     ctx.T.insert( hp.theta, hp );
     return ctx;
   }
 
 
-  console.log("#cp.3");
+  if (_debug) { console.log("#cp.3"); }
 
   if (ctx.T.size > 0) {
 
     let nod_eq = ctx.T.find(hp.theta);
     if (nod_eq != null) {
 
-      console.log("#cp.nod_eq");
+      if (_debug) { console.log("#cp.nod_eq"); }
 
       let hp_eq = nod_eq.data;
 
@@ -323,7 +343,7 @@ function ochzhu_add(ctx, hp, _debug) {
       //
       if (njs.dot( hp.v, hp_eq.v ) < 0.0) {
 
-        console.log("#cp.nod_eq.empty");
+        if (_debug) { console.log("#cp.nod_eq.empty"); }
 
         ctx.empty = true;
         return ctx;
@@ -335,8 +355,13 @@ function ochzhu_add(ctx, hp, _debug) {
       //
       if ( _out_halfplane(hp, hp_eq.p) ) {
 
-        console.log("#cp.nod_eq.rem");
+        if (_debug) { console.log("#cp.nod_eq.rem"); }
 
+        if ((hp_eq.p[0] == _inf) || (hp_eq.p[0] == -_inf) ||
+            (hp_eq.p[1] == _inf) || (hp_eq.p[1] == -_inf)) {
+          ctx.inf_seg_count--;
+          if (ctx.inf_seg_count==0) { ctx.unbounded = false; }
+        }
 
         ctx.T.remove( hp_eq.theta );
       }
@@ -345,12 +370,12 @@ function ochzhu_add(ctx, hp, _debug) {
       //
       else {
 
-        console.log("#cp.nod_eq.ignore");
+        if (_debug) { console.log("#cp.nod_eq.ignore"); }
 
         return ctx;
       }
 
-      console.log("#cp.nod_eq.continue");
+      if (_debug) { console.log("#cp.nod_eq.continue"); }
 
 
     }
@@ -365,19 +390,21 @@ function ochzhu_add(ctx, hp, _debug) {
   if (nod_lt == null) { nod_lt = ctx.T.maxNode(); }
   let hp_lt = nod_lt.data;
 
-  console.log("# hp.theta:", hp.theta, "gt.theta:", hp_gt.theta, "lt.theta:", hp_lt.theta);
-  console.log("#??? cross2:", _cross2( hp.v, hp_gt.v ), _cross2( hp.v, hp_lt.v ));
+  if (_debug) {
+    console.log("# hp.theta:", hp.theta, "gt.theta:", hp_gt.theta, "lt.theta:", hp_lt.theta);
+    console.log("#??? cross2:", _cross2( hp.v, hp_gt.v ), _cross2( hp.v, hp_lt.v ));
+  }
 
   if ((ctx.T.size > 0) &&
       ( (Math.abs( _cross2( hp.v, hp_gt.v ) ) < _EPS) ||
         (Math.abs( _cross2( hp.v, hp_lt.v ) ) < _EPS) ) ) {
 
-    console.log("# xxx");
+    if (_debug) { console.log("# xxx"); }
 
     if ((njs.dot( hp.v, hp_lt.v ) < 0.0) ||
         (njs.dot( hp.v, hp_gt.v ) < 0.0)) {
 
-      console.log("# parallel, EMPTY");
+      if (_debug) { console.log("# parallel, EMPTY"); }
 
       ctx.empty = true;
       return ctx;
@@ -385,19 +412,31 @@ function ochzhu_add(ctx, hp, _debug) {
 
     if ( _out_halfplane(hp, hp_lt.p) ) {
 
-      console.log("# parallel, remove hp_lt (", hp_lt.theta, ")");
+      if (_debug) { console.log("# parallel, remove hp_lt (", hp_lt.theta, ")"); }
 
-      ctx.T.remove( hp_lt.key );
+      if ((hp_lt.p[0] == _inf) || (hp_lt.p[0] == -_inf) ||
+          (hp_lt.p[1] == _inf) || (hp_lt.p[1] == -_inf)) {
+        ctx.inf_seg_count--;
+        if (ctx.inf_seg_count==0) { ctx.unbounded = false; }
+      }
+
+      ctx.T.remove( hp_lt.theta );
     }
     else if ( _out_halfplane(hp, hp_gt.p) ) {
 
-      console.log("# parallel, remove hp_gt (", hp_gt.theta, ")");
+      if (_debug) { console.log("# parallel, remove hp_gt (", hp_gt.theta, ")"); }
 
-      ctx.T.remove( hp_gt.key );
+      if ((hp_gt.p[0] == _inf) || (hp_gt.p[0] == -_inf) ||
+          (hp_gt.p[1] == _inf) || (hp_gt.p[1] == -_inf)) {
+        ctx.inf_seg_count--;
+        if (ctx.inf_seg_count==0) { ctx.unbounded = false; }
+      }
+
+      ctx.T.remove( hp_gt.theta );
     }
     else {
 
-      console.log("# parallel, ignore");
+      if (_debug) { console.log("# parallel, ignore"); }
 
       return ctx;
     }
@@ -411,17 +450,19 @@ function ochzhu_add(ctx, hp, _debug) {
   //
   if (Math.abs(cross_gtlt) < _EPS) {
 
-    console.log("#hp.insert. (|cross_gtlt| == 0)");
+    if (_debug) { console.log("#hp.insert. (|cross_gtlt| == 0)"); }
 
     ctx.T.insert( hp.theta, hp );
     return ctx;
   }
 
-  console.log("## cross_gtlt:", cross_gtlt);
-  console.log("## _int(gt:", hp_gt.theta, "lt:", hp_lt.theta, "):",
-                      _intersect_halfplane( hp_gt, hp_lt ),
-    "out:", _out_halfplane( hp,
-                      _intersect_halfplane( hp_gt, hp_lt ) ) );
+  if (_debug) {
+    console.log("## cross_gtlt:", cross_gtlt);
+    console.log("## _int(gt:", hp_gt.theta, "lt:", hp_lt.theta, "):",
+                        _intersect_halfplane( hp_gt, hp_lt ),
+      "out:", _out_halfplane( hp,
+                        _intersect_halfplane( hp_gt, hp_lt ) ) );
+  }
 
   // Find intersection point of neighboring (left/right)
   // halfplanes, hp_lt, hp_gt, call it pnt_nei.
@@ -444,17 +485,19 @@ function ochzhu_add(ctx, hp, _debug) {
   let pnt_hp = _intersect_halfplane( {"p": pnt_nei, "v": n_mhp, "theta": 0 },
                                      hp );
 
-  console.log("## pnt_nei:", JSON.stringify(pnt_nei));
-  console.log("## pnt_hp:", JSON.stringify(pnt_hp));
-  console.log("##", "n_lt:", JSON.stringify(n_lt), "n_gt:", JSON.stringify(n_gt));
-  console.log("##", "n_nei:", JSON.stringify(n_nei) );
-  console.log("##", "pnt_nei-hp.p:", JSON.stringify(njs.sub(pnt_nei,hp.p)));
-  console.log("##", "pnt_nei-pnt_hp:", JSON.stringify(njs.sub(pnt_nei,pnt_hp)));
-  console.log("##", "dot(n_nei, pnt_nei-hp.p):", njs.dot( n_nei, njs.sub( pnt_nei, hp.p ) ) );
-  console.log("##", "dot(n_nei, pnt_nei-npt_hp):", njs.dot( n_nei, njs.sub( pnt_nei, pnt_hp ) ) );
+  if (_debug) {
+    console.log("## pnt_nei:", JSON.stringify(pnt_nei));
+    console.log("## pnt_hp:", JSON.stringify(pnt_hp));
+    console.log("##", "n_lt:", JSON.stringify(n_lt), "n_gt:", JSON.stringify(n_gt));
+    console.log("##", "n_nei:", JSON.stringify(n_nei) );
+    console.log("##", "pnt_nei-hp.p:", JSON.stringify(njs.sub(pnt_nei,hp.p)));
+    console.log("##", "pnt_nei-pnt_hp:", JSON.stringify(njs.sub(pnt_nei,pnt_hp)));
+    console.log("##", "dot(n_nei, pnt_nei-hp.p):", njs.dot( n_nei, njs.sub( pnt_nei, hp.p ) ) );
+    console.log("##", "dot(n_nei, pnt_nei-npt_hp):", njs.dot( n_nei, njs.sub( pnt_nei, pnt_hp ) ) );
+  }
 
   if (njs.dot( n_nei, njs.sub( pnt_nei, pnt_hp ) ) < -_EPS) {
-    console.log("#hp.insert:", JSON.stringify(hp));
+    if (_debug) { console.log("#hp.insert:", JSON.stringify(hp)); }
     ctx.T.insert( hp.theta, hp );
   }
 
@@ -467,8 +510,10 @@ function ochzhu_add(ctx, hp, _debug) {
   }
   */
 
-  console.log("#T.fin:\n", ctx.T.toString());
-  console.log("#cp.4\n\n");
+  if (_debug) {
+    console.log("#T.fin:\n", ctx.T.toString());
+    console.log("#cp.4\n\n");
+  }
 
   return ctx;
 }
@@ -517,70 +562,89 @@ function ochzhu_hull(ctx) {
 }
 
 
-function chzhu(H) {
+// 'offline' algorithm of Zhu's 2d half plane intersection.
+// return points on convex hull.
+//
+// Note:
+//
+// * does not deduplicate points
+// * does not check for pathological cases
+//   - could degrade to two (unique) points
+//   - could have infinite box as point
+//
+// caller will need to check these conditions if desired
+//
+function chzhu(H, opt) {
+  opt = ((typeof opt === "undefined") ? { "debug": 0, "INF": _INF, "EPS": _EPS } : opt);
+  let _inf = ((typeof opt.INF === "undefined") ? _INF : opt.INF );
+  let _eps = ((typeof opt.EPS === "undefined") ? _EPS : opt.EPS );
+  let _debug = ((typeof opt.debug === "undefined") ? 0 : opt.debug );
 
   let L = [];
-  L.push( {"p": [ _INF, _INF], "v": [-1, 0], "theta": Math.PI } );
-  L.push( {"p": [-_INF, _INF], "v": [ 0,-1], "theta": -Math.PI/2.0 } );
-  L.push( {"p": [-_INF,-_INF], "v": [ 1, 0], "theta": 0 });
-  L.push( {"p": [ _INF,-_INF], "v": [ 0, 1], "theta": Math.PI/2.0  });
+  L.push( {"p": [ _inf, _inf], "v": [-1, 0], "theta": Math.PI } );
+  L.push( {"p": [-_inf, _inf], "v": [ 0,-1], "theta": -Math.PI/2.0 } );
+  L.push( {"p": [-_inf,-_inf], "v": [ 1, 0], "theta": 0 });
+  L.push( {"p": [ _inf,-_inf], "v": [ 0, 1], "theta": Math.PI/2.0  });
   for (let i=0; i<H.length; i++) { L.push(H[i]); }
   L.sort( _theta_cmp );
 
   let dq_idx = new _DQ(L.length);
   for (let idx=0; idx<L.length; idx++) {
 
-    console.log("\n#chzu, theta:", L[idx].theta, printf("[%f,%f]", L[idx].p[0], L[idx].p[1]), "dq.n:", dq_idx.n);
-
-    if (dq_idx.n>1) {
-      console.log("#chzhu, -1,-2, cross:", _cross2(L[dq_idx.peek(-1)].v, L[dq_idx.peek(-2)].v),
-        L[dq_idx.peek(-1)].v, L[dq_idx.peek(-2)].v);
+    if (_debug) {
+      console.log("\n#chzu, theta:", L[idx].theta, printf("[%f,%f]", L[idx].p[0], L[idx].p[1]), "dq.n:", dq_idx.n);
+      if (dq_idx.n>1) {
+        console.log("#chzhu, -1,-2, cross:", _cross2(L[dq_idx.peek(-1)].v, L[dq_idx.peek(-2)].v),
+          L[dq_idx.peek(-1)].v, L[dq_idx.peek(-2)].v);
+      }
     }
 
     while ( (dq_idx.n > 1) &&
             (_out_halfplane( L[idx],
                             _intersect_halfplane( L[ dq_idx.peek(-1) ], L[ dq_idx.peek(-2) ] ) )) ) {
 
-      console.log("#chzu.pop_back");
+      if (_debug > 1) { console.log("#chzu.pop_back"); }
 
       dq_idx.pop_back();
     }
 
-    if (dq_idx.n>1) {
-      console.log("#chzhu, 0,1, cross:", _cross2(L[dq_idx.peek(0)].v, L[dq_idx.peek(1)].v),
-        L[dq_idx.peek(0)].v, L[dq_idx.peek(1)].v);
+    if (_debug > 1) {
+      if (dq_idx.n>1) {
+        console.log("#chzhu, 0,1, cross:", _cross2(L[dq_idx.peek(0)].v, L[dq_idx.peek(1)].v),
+          L[dq_idx.peek(0)].v, L[dq_idx.peek(1)].v);
+      }
     }
 
     while ( (dq_idx.n > 1) &&
             (_out_halfplane( L[idx],
                              _intersect_halfplane( L[ dq_idx.peek(0) ], L[ dq_idx.peek(1) ] ) )) ) {
 
-      console.log("#chzu.pop_front");
+      if (_debug > 1) { console.log("#chzu.pop_front"); }
 
       dq_idx.pop_front();
     }
 
     if ( (dq_idx.n > 0) &&
-         (Math.abs( _cross2( L[idx].v, L[ dq_idx.peek(-1) ].v ) ) < _EPS) ) {
+         (Math.abs( _cross2( L[idx].v, L[ dq_idx.peek(-1) ].v ) ) < _eps) ) {
 
-      console.log("#chzhu cp.a");
+      if (_debug > 1) { console.log("#chzhu cp.a"); }
 
       if (njs.dot( L[idx].v, L[ dq_idx.peek(-1) ].v ) < 0.0) {
 
-        console.log("#chzhu cp.b");
+        if (_debug > 1) { console.log("#chzhu cp.b"); }
 
         return [];
       }
 
       if ( _out_halfplane( L[idx], L[ dq_idx.peek(-1) ].p ) ) {
 
-        console.log("#chzhu cp.c");
+        if (_debug > 1) { console.log("#chzhu cp.c"); }
 
         dq_idx.pop_back();
       }
       else {
  
-        console.log("#chzhu cp.d");
+        if (_debug > 1) { console.log("#chzhu cp.d"); }
 
         continue;
       }
@@ -664,15 +728,104 @@ if ((typeof require !== "undefined") &&
     console.log("");
     console.log("  chzhu.js [op] [val]");
     console.log("");
-    console.log("  op:      (help|stdout|gnuplot)");
+    console.log("  op:      (offline|online)\.(stdout|gnuplot)\.(stdin|random)");
     console.log("  val:     number of vertices (default 30)");
     console.log("");
     console.log(" gnuplot output will be to hp.gp and chp.gp output files");
     console.log("");
   }
 
-  function _main(argv) {
+  function _read_halfplanes(fn) {
+    let _debug = 0;
     var fs = require("fs");
+
+    let H = [];
+
+    let TXT = fs.readFileSync(fn, 'utf8');
+    let lines = TXT.split("\n");
+
+    let pq_a = [];
+    let _p = [0,0],
+        _q = [0,0];
+    let _state_idx = 0;
+
+    for (let line_no=0; line_no<lines.length; line_no++) {
+
+      let line = lines[line_no].trim();
+      if (line.length == 0) {
+        _state_idx = 0;
+        continue; 
+      }
+      if (line[0] == '#') { continue; }
+
+      let tok = line.split(" ");
+      if (tok.length < 2) {
+        console.log("#WARNING: line_no:", line_no, "mangled line, ignoring");
+        continue;
+      }
+
+      let x = parseFloat(tok[0]);
+      let y = parseFloat(tok[1]);
+
+      if (_state_idx==0) {
+        _p[0] = x;
+        _p[1] = y;
+        _state_idx++;
+      }
+      else if (_state_idx == 1) {
+        _q[0] = x;
+        _q[1] = y;
+        pq_a.push( [[_p[0],_p[1]],[_q[0], _q[1]]] );
+        _state_idx++;
+      }
+      else {
+        console.log("#WARNING: line_no:", line_no, "runaway line");
+      }
+
+
+    }
+
+    for (let i=0; i<pq_a.length; i++) {
+      
+      if (_debug) { console.log(pq_a[i][0], pq_a[i][1]); }
+
+      let _p = [ pq_a[i][0][0], pq_a[i][0][1] ];
+      let _v = njs.sub( pq_a[i][1], pq_a[i][0] );
+      _v = njs.mul( 1/njs.norm2(_v), _v );
+      let _theta = Math.atan2( _v[1], _v[0] );
+      let hp = {
+        "p": _p,
+        "v": _v,
+        "theta": _theta
+      };
+
+      H.push(hp);
+    }
+
+    return H;
+  }
+
+  function _rand_halfplanes(n) {
+    let H = [];
+
+    for (let i=0; i<n; i++) {
+      let p = njs.mul(2, njs.sub( njs.random([2]), [0.5, 0.5] ) )
+      let v = [ -p[1], p[0] ];
+      let d = njs.norm2(v);
+      v[0] /= d;
+      v[1] /= d;
+      H.push({
+        "p": p,
+        "v": v,
+        "theta": Math.atan2(v[1], v[0])
+      });
+    }
+    return H;
+  }
+
+  function _main(argv) {
+
+    let _debug = 0;
 
     let op = "",
         op_val = 20;
@@ -687,7 +840,6 @@ if ((typeof require !== "undefined") &&
     let op_tok = op.split(".");
     if (op_tok.length < 2) { op_tok.push("gnuplot"); }
     if (op_tok.length < 3) { op_tok.push(""); }
-    console.log("###", op_tok);
 
     if (op == "") {
       _show_help();
@@ -704,60 +856,28 @@ if ((typeof require !== "undefined") &&
       let n = op_val;
       let H = [];
 
-      for (let i=0; i<n; i++) {
-
-        let p = njs.mul(2, njs.sub( njs.random([2]), [0.5, 0.5] ) )
-        let v = [ -p[1], p[0] ];
-        let d = njs.norm2(v);
-        v[0] /= d;
-        v[1] /= d;
-
-        H.push({
-          "p": p,
-          "v": v,
-          "theta": Math.atan2(v[1], v[0])
-        });
-      }
+      if (op_tok[2] == 'stdin') { H = _read_halfplanes('/dev/stdin'); }
+      else                      { H = _rand_halfplanes(n); }
 
       let chp = chzhu(H);
 
-      hp_lines = [ printf("#halfplane[%i]:", H.length) ];
-
+      hp_lines = [ printf("#line segments of halfplane[%i]:", H.length) ];
       for (let i=0; i<H.length; i++) {
         let u0 = njs.add(H[i].p, H[i].v);
         let u1 = njs.add(H[i].p, njs.mul(-1, H[i].v));
-
         hp_lines.push( printf("%f %f", u0[0], u0[1]) );
         hp_lines.push( printf("%f %f\n\n", u1[0], u1[1]) );
-
       }
-      if (op_tok[1] == "gnuplot") {
-        fs.writeFileSync("hp.gp", hp_lines.join("\n"));
-      }
-      else {
-        console.log(hp_lines.join("\n"));
-      }
-
+      if (op_tok[1] == "gnuplot") { fs.writeFileSync("hp.gp", hp_lines.join("\n")); }
+      else                        { console.log(hp_lines.join("\n")); }
 
       chp_lines = [];
-
-      //console.log("#chp[", chp.length, "]:");
       chp_lines.push( printf("#chp[%i]", chp.length) );
-      for (let i=0; i<chp.length; i++) {
-        //console.log(chp[i][0], chp[i][1]);
-        chp_lines.push( printf("%f %f", chp[i][0], chp[i][1]) );
-      }
-      if (chp.length > 0) {
-        //console.log(chp[0][0], chp[0][1]);
-        chp_lines.push( printf("%f %f", chp[0][0], chp[0][1]) );
-      }
+      for (let i=0; i<chp.length; i++) { chp_lines.push( printf("%f %f", chp[i][0], chp[i][1]) ); }
+      if (chp.length > 0) { chp_lines.push( printf("%f %f", chp[0][0], chp[0][1]) ); }
 
-      if (op_tok[1] == "gnuplot") {
-        fs.writeFileSync("chp.gp", chp_lines.join("\n"));
-      }
-      else {
-        console.log(chp_lines.join("\n"));
-      }
+      if (op_tok[1] == "gnuplot") { fs.writeFileSync("chp.gp", chp_lines.join("\n")); }
+      else                        { console.log(chp_lines.join("\n")); }
 
     }
 
@@ -765,89 +885,8 @@ if ((typeof require !== "undefined") &&
       let n = op_val;
       let H = [];
 
-      if (op_tok[2] == "random") {
-
-        for (let i=0; i<n; i++) {
-
-          let p = njs.mul(2, njs.sub( njs.random([2]), [0.5, 0.5] ) )
-          let v = [ -p[1], p[0] ];
-          let d = njs.norm2(v);
-          v[0] /= d;
-          v[1] /= d;
-
-          H.push({
-            "p": p,
-            "v": v,
-            "theta": Math.atan2(v[1], v[0])
-          });
-
-          console.log(JSON.stringify(H[i]));
-        }
-
-      }
-
-      else if (op_tok[2] == 'stdin') {
-        let TXT = fs.readFileSync('/dev/stdin', 'utf8');
-        let lines = TXT.split("\n");
-
-        let pq_a = [];
-        let _p = [0,0],
-            _q = [0,0];
-        let _state_idx = 0;
-
-        for (let line_no=0; line_no<lines.length; line_no++) {
-
-          let line = lines[line_no].trim();
-          if (line.length == 0) {
-            _state_idx = 0;
-            continue; 
-          }
-          if (line[0] == '#') { continue; }
-
-          let tok = line.split(" ");
-          if (tok.length < 2) {
-            console.log("#WARNING: line_no:", line_no, "mangled line, ignoring");
-            continue;
-          }
-
-          let x = parseFloat(tok[0]);
-          let y = parseFloat(tok[1]);
-
-          if (_state_idx==0) {
-            _p[0] = x;
-            _p[1] = y;
-            _state_idx++;
-          }
-          else if (_state_idx == 1) {
-            _q[0] = x;
-            _q[1] = y;
-            pq_a.push( [[_p[0],_p[1]],[_q[0], _q[1]]] );
-            _state_idx++;
-          }
-          else {
-            console.log("#WARNING: line_no:", line_no, "runaway line");
-          }
-
-
-        }
-
-        for (let i=0; i<pq_a.length; i++) {
-          console.log(pq_a[i][0], pq_a[i][1]);
-
-          let _p = [ pq_a[i][0][0], pq_a[i][0][1] ];
-          let _v = njs.sub( pq_a[i][1], pq_a[i][0] );
-          _v = njs.mul( 1/njs.norm2(_v), _v );
-          let _theta = Math.atan2( _v[1], _v[0] );
-          let hp = {
-            "p": _p,
-            "v": _v,
-            "theta": _theta
-          };
-
-          H.push(hp);
-        }
-
-      }
+      if (op_tok[2] == "random")      { H = _random_halfplanes(n); }
+      else if (op_tok[2] == 'stdin')  { H = _read_halfplanes('/dev/stdin'); }
 
       else {
 
@@ -902,14 +941,16 @@ if ((typeof require !== "undefined") &&
         H = H_sched;
       }
 
-      console.log("let H = [");
-      for (let i=0; i<H.length; i++) {
-        console.log("      ", JSON.stringify(H[i]), ",");
+      if (_debug) {
+        console.log("let H = [");
+        for (let i=0; i<H.length; i++) {
+          console.log("      ", JSON.stringify(H[i]), ",");
+        }
+        console.log("];");
       }
-      console.log("];");
 
 
-      hp_lines = [ printf("#halfplane[%i]:", H.length) ];
+      hp_lines = [ printf("#line segments of halfplane[%i]:", H.length) ];
       for (let i=0; i<H.length; i++) {
         let u0 = njs.add(H[i].p, H[i].v);
         let u1 = njs.add(H[i].p, njs.mul(-1, H[i].v));
@@ -926,30 +967,34 @@ if ((typeof require !== "undefined") &&
 
         ochzhu_add(ochz, H[i]);
 
-        let chp = ochzhu_hull(ochz);
+        if (_debug > 1) {
+          let chp = ochzhu_hull(ochz);
 
-        chp_lines = [];
-        chp_lines.push( printf("#chp[%i]", chp.length) );
-        for (let i=0; i<chp.length; i++) { chp_lines.push( printf("%f %f", chp[i][0], chp[i][1]) ); }
-        if (chp.length > 0) { chp_lines.push( printf("%f %f", chp[0][0], chp[0][1]) ); }
+          chp_lines = [];
+          chp_lines.push( printf("#chp[%i]", chp.length) );
+          for (let i=0; i<chp.length; i++) { chp_lines.push( printf("%f %f", chp[i][0], chp[i][1]) ); }
+          if (chp.length > 0) { chp_lines.push( printf("%f %f", chp[0][0], chp[0][1]) ); }
 
-        if (op_tok[1] == "gnuplot") { fs.writeFileSync("o_chp." + i.toString() + ".gp", chp_lines.join("\n")); }
-        else { console.log(chp_lines.join("\n")); }
+          if (op_tok[1] == "gnuplot") { fs.writeFileSync("o_chp." + i.toString() + ".gp", chp_lines.join("\n")); }
+          else { console.log(chp_lines.join("\n")); }
+        }
 
 
       }
 
-      console.log("## empty:", ochz.empty);
+      if (_debug) { console.log("## empty:", ochz.empty); }
 
       let chp = ochzhu_hull(ochz);
 
-      for (let i=0; i<chp.length; i++) {
-        console.log("#[", i, "]:", JSON.stringify(chp[i]));
+      if (_debug) {
+        for (let i=0; i<chp.length; i++) {
+          console.log("#[", i, "]:", JSON.stringify(chp[i]));
+        }
       }
 
 
       chp_lines = [];
-      chp_lines.push( printf("#chp[%i]", chp.length) );
+      chp_lines.push( printf("#chp[%i] (empty:%i,unbounded:%i,_m:%i)", chp.length, ochz.empty ? 1 : 0, ochz.unbounded ? 1 : 0, ochz.inf_seg_count) );
       for (let i=0; i<chp.length; i++) { chp_lines.push( printf("%f %f", chp[i][0], chp[i][1]) ); }
       if (chp.length > 0) { chp_lines.push( printf("%f %f", chp[0][0], chp[0][1]) ); }
 
@@ -957,19 +1002,16 @@ if ((typeof require !== "undefined") &&
       else { console.log(chp_lines.join("\n")); }
 
 
+      /*
       chp = chzhu(H);
-
       chp_lines = [];
       chp_lines.push( printf("#chp[%i]", chp.length) );
       for (let i=0; i<chp.length; i++) { chp_lines.push( printf("%f %f", chp[i][0], chp[i][1]) ); }
       if (chp.length > 0) { chp_lines.push( printf("%f %f", chp[0][0], chp[0][1]) ); }
-
       if (op_tok[1] == "gnuplot") { fs.writeFileSync("c_chp.gp", chp_lines.join("\n")); }
       else { console.log(chp_lines.join("\n")); }
-
-      for (let i=0; i<chp.length; i++) {
-        console.log("#chzu[", i, "]:", chp[i][0], chp[i][1]);
-      }
+      for (let i=0; i<chp.length; i++) { console.log("#chzu[", i, "]:", chp[i][0], chp[i][1]); }
+      */
 
     }
 
