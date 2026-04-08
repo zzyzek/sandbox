@@ -824,6 +824,7 @@ if ((typeof require !== "undefined") &&
   }
 
   function _main(argv) {
+    var fs = require("fs");
 
     let _debug = 0;
 
@@ -861,7 +862,7 @@ if ((typeof require !== "undefined") &&
 
       let chp = chzhu(H);
 
-      hp_lines = [ printf("#line segments of halfplane[%i]:", H.length) ];
+      hp_lines = [ printf("#offline: line segments of halfplane[%i]:", H.length) ];
       for (let i=0; i<H.length; i++) {
         let u0 = njs.add(H[i].p, H[i].v);
         let u1 = njs.add(H[i].p, njs.mul(-1, H[i].v));
@@ -950,7 +951,7 @@ if ((typeof require !== "undefined") &&
       }
 
 
-      hp_lines = [ printf("#line segments of halfplane[%i]:", H.length) ];
+      hp_lines = [ printf("#online: line segments of halfplane[%i]:", H.length) ];
       for (let i=0; i<H.length; i++) {
         let u0 = njs.add(H[i].p, H[i].v);
         let u1 = njs.add(H[i].p, njs.mul(-1, H[i].v));
