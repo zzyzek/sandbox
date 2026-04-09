@@ -1,5 +1,15 @@
 #!/usr/bin/env node
 
+// vector runs COUNTERCLOCKWISE
+//
+// Halfplanes are defined as:
+//
+//   p + vt
+//
+// where the included space is to
+// the left of the v vector.
+//
+
 let N = 20;
 
 if (process.argv.length > 2) {
