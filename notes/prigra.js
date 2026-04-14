@@ -11,7 +11,7 @@
 // priority graph
 
 
-var printf = require("./printf.js");
+var printf = require("../lib/printf.js");
 var fs = require("fs");
 var FN = "Focus.md";
 var data = fs.readFileSync(FN, "utf8");
