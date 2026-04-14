@@ -12,8 +12,12 @@ var CANVAS_ID = 'twojs_canvas';
 var _rnd = Math.random;
 
 var g_ctx = {
+  "T_prv": null,
   "two": null,
   "S": []
+}
+
+function _MoI() {
 }
 
 function updateS(s) {
@@ -37,6 +41,7 @@ function dispS(s) {
   let l = two.makeLine(s.p[0], s.p[1], u[0], u[1] );
   l.noFill();
   l.stroke = "rgb(255,200,200)";
+  l.linewidth = 3;
 }
 
 function initTwoJS() {
@@ -61,8 +66,12 @@ function initTwoJS() {
   for (let y=0; y<8; y++) {
     for (let x = 0; x<10; x++) {
       g_ctx.S.push({
+        "m": 1,
         "p": [ 2*r + x*stride, 2*r + y*stride],
         "r": r,
+        "T_prv": 0,
+        "T": 0,
+        "w_prv" : 0,
         "w" : (_rnd()-0.5)*2/30,
         "theta": 2*Math.PI*_rnd()
       });
@@ -71,18 +80,20 @@ function initTwoJS() {
     }
   }
 
-
-
-
+  g_ctx.T_prv = Date.now();
   two.update();
-
   requestAnimationFrame(anim);
-
   return two;
 }
 
+function update(dt) {
+  for (let i=0; i<g_ctx.S.length; i++) {
+    updateS( g_ctx.S[i] );
+  }
 
-function anim() {
+}
+
+function redraw() {
   let two = g_ctx.two;
 
   let w = two.width;
@@ -96,11 +107,27 @@ function anim() {
   R.stroke = "rgb(50,32,60)";
 
   for (let i=0; i<g_ctx.S.length; i++) {
-    updateS( g_ctx.S[i] );
     dispS( g_ctx.S[i] );
   }
 
   two.update();
+}
+
+
+function anim() {
+  let two = g_ctx.two;
+
+  let w = two.width;
+  let h = two.height;
+
+  let T = Date.now();
+  let dt_s = (T - g_ctx.T_prv) / 1000;
+
+
+  update(dt_s);
+  redraw();
+
+  g_ctx.T_prv = T;
 
   requestAnimationFrame(anim);
 }
