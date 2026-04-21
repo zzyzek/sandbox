@@ -5,7 +5,7 @@ notes for potential future reference.
 Some rough criteria:
 
 * The algorithm is fairly well contained, without needing a lot of context
-* The algorithm is no widely known, talked about or implemented
+* The algorithm is not widely known, talked about or implemented
 * The algorithm is interesting
 
 I make no claims about objectivity of the above points.
@@ -16,6 +16,20 @@ I've found a good rule of thumb that flag it as a candidate for an esoteric algo
   (blog posts, reviews, etc.)
 * If the algorithm is talked about but has no FOSS implementation that's easily accessible
 
+Tracts should be short, less than 100 pages, with maybe 20-50 pages as a good goal.
+
+Some proposed structure:
+
+* Introduction
+  - context
+  - terminology
+* Algorithm
+  - pseudo code
+* Proof
+  - runtime analysis
+  - any auxiliary mathematical exposition
+* Examples
+  - pictures and usage
 
 I find myself implementing a lot of algorithms that are not well known,
 so the list below is mostly what I've been working on.
@@ -41,12 +55,18 @@ Candidates:
   - 2d/3d
 * (2d) Hamiltonian paths in rectangles
   - polynomial time algorithm
+* GJK `(X)`
+  - I don't have a good sense for when this algorithm fails
+* Hyperplane Separation Theorem Algorithm (Separation of Axis Theorem) `(X)`
+  - Naively $O(n^2)$, I'm not sure if that can be sped up or there are some heuristics to help
+* Hobby curve `(XX)`
 * WikiSort `(XX)`
 * GrailSort `(XX)`
 * Strong generating sets / Schreier-sims `(X)`
 * median of medians
   - in-place linear algorithm to find k'th largest element in an unsorted array
 * distinct elements in streams `(XX)` (Chakraborty, Vinodchandran, Meel)
+* root finding in the complex plane (epsilon bounds) (?) `(X)`
 
 
 Where:
