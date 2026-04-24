@@ -60,9 +60,12 @@ $$
 
 With $Q ^ T = Q ^{-1}$ since $Q$ is orthogonal (and real).
 
+---
+
 
 
 References
 ---
 
 * [Game Physics: Motion Dynamics Fundamentals - Allen Chou (2013)](https://allenchou.net/2013/12/game-physics-motion-dynamics-fundamentals/)
+* [Game Physics: Motion Dynamics Implementations - Allen Chou (2013)](https://allenchou.net/2013/12/game-physics-motion-dynamics-implementations/)
