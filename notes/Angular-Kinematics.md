@@ -22,7 +22,7 @@ $$
 Using Euler's method:
 
 $$
-Q(t + \Delta t) = R( \hat{\omega}{t}, |\omega(t)| \Delta t ) Q(t)
+Q(t + \Delta t) = R( \hat{\omega}(t), |\omega(t)| \Delta t ) Q(t)
 $$
 
 
