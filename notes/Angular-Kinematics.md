@@ -55,6 +55,7 @@ $$
 \begin{array}{l}
 \Delta L = \tau(t) \Delta t \\
 \Delta \omega = Q I ^{-1} Q ^{-1} \Delta L
+\end{array}
 $$
 
 With $Q ^ T = Q ^{-1}$ since $Q$ is orthogonal (and real).
