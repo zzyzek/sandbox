@@ -13,7 +13,7 @@ R( \hat{n}, \theta ) \in \mathbb{R}^{3,3} &, \text{ rotation matrix about axis }
 r(t) \in \mathbb{R}^3 &, \text{ relative position of point from center of mass } \\
 F(t) \in \mathbb{R}^3 &, \text{ force } \\
 \tau(t) = r(t) \times F(t) &, \text{ torque } \\
-I \in \mathbb{R}^3 &, \text{ inertial tensor } \\
+I \in \mathbb{R}^{3,3} &, \text{ inertial tensor } \\
 I _ {\hat{n}} = \hat{n}^T I \hat{n} &, \text{ moment of inertial about } \hat{n} \\
 L(t) = I \omega(t) &, \text{ angular momemtum } \\
 \end{array}
