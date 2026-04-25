@@ -10,19 +10,20 @@ Q(t) \in \mathbb{R}^{3,3} &, \text{ orientation, local axis } \\
 \ \ \hat{\omega(t)} \in \mathbb{R}^3 &, \text{ normalized axis of rotation } \\
 \ \ |\omega(t)| \in \mathbb{R} &, \text{ angle of rotation } \\
 R( \hat{n}, \theta ) \in \mathbb{R}^{3,3} &, \text{ rotation matrix about axis } \hat{n}, \theta \text{ angle } \\
-r(t) \in \mathbb{R}^3 &, \text{ relative position of point from center of mass } \\
+\mu(t) \in \mathbb{R}^3 &, \text{ center of mass in world coordinates } \\
+r(t) \in \mathbb{R}^3 &, \text{ position of point in world coordinates } \\
 F(t) \in \mathbb{R}^3 &, \text{ force } \\
 \tau(t) = r(t) \times F(t) &, \text{ torque } \\
 \Im   \in \mathbb{R}^{3,3} &, \text{ inertial tensor } \\
-\Im _ {\hat{n}} = \hat{n}^T \Im \hat{n} &, \text{ moment of inertial about } \hat{n} \\
-L(t) = \Im \omega(t) &, \text{ angular momemtum } \\
+\Im _ {\hat{n}} = \hat{n}^T \cdot \Im \cdot \hat{n} &, \text{ moment of inertial about } \hat{n} \\
+L(t) = \Im \cdot \omega(t) &, \text{ angular momemtum } \\
 \end{array}
 $$
 
 Using Euler's method:
 
 $$
-Q(t + \Delta t) = R( \hat{\omega}(t), |\omega(t)| \Delta t ) Q(t)
+Q(t + \Delta t) = R( \hat{\omega}(t), |\omega(t)| \Delta t ) \cdot Q(t)
 $$
 
 
@@ -54,7 +55,7 @@ Angular impulse $\Delta L$:
 $$
 \begin{array}{l}
 \Delta L = \tau(t) \Delta t \\
-\Delta \omega = Q \Im ^{-1} Q ^{-1} \Delta L
+\Delta \omega = Q \cdot \Im ^{-1} \cdot Q ^{-1} \cdot \Delta L
 \end{array}
 $$
 
@@ -62,8 +63,32 @@ With $Q ^ T = Q ^{-1}$ since $Q$ is orthogonal (and real).
 
 ---
 
-For a rigid body, the inertial tensor, $\Im$, relative to the center of mass,
+For a rigid body, the inertial tensor, $\Im _ { \ell }$, relative to the center of mass,
 need only be calculated once at initialization.
+
+Call the global inertial tensor $\Im _ { G }$.
+
+Initialize $\Im _ {\ell}$, $Q(t)$, $\tau(t)$, $\omega(t)$.
+
+$$
+\Im _ {G} = Q \Im _ {\ell} ^ {-1} Q ^T
+$$
+
+If we consider forces $F _ k (t)$ acting on a rigid body at world coordinates $r _ k (t)$,
+then the update loop is as follows:
+
+$$
+\begin{array}{ll}
+\tau(t + \Delta t) & = \sum _ k (r _ k(t) - \mu(t)) \times F _ k(t) \\
+\Delta L (t + \Delta t) & = \tau(t + \Delta t) \Delta t \\
+\Delta \omega ( t + \Delta t) & = Q(t) \Im _ {\ell} ^ {-1} Q(t) ^ T \Delta L(t + \Delta t) \\
+ & = Q(t) \Im _ {\ell} ^ {-1} Q(t) ^ T \tau(t + \Delta t)  \Delta t \\
+\to \omega (t + \Delta t) - \omega(t) & = Q(t) \Im _ {\ell} ^ {-1} Q(t) ^ T \tau(t + \Delta t)  \Delta t \\
+\to  \omega(t + \Delta t) & =  \omega(t) + Q(t) \Im _ {\ell} ^ {-1} Q(t) ^ T \tau(t + \Delta t)  \Delta t \\
+\theta(t + \Delta t) & = | \omega(t + \Delta t)| \\
+Q(t + \Delta t) & = R( \omega(t + \Delta t) / \theta( t + \Delta t), \theta(t + \Delta t) \Delta t) Q(t) \\
+\end{array}
+$$
 
 
 
