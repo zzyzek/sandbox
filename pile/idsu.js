@@ -6,6 +6,12 @@
 // work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
 
+// Integer Disjoint Set data structure.
+// See https://en.wikipedia.org/wiki/Disjoint-set_data_structure
+//
+// Implements find, union
+//
+
 `use strict`
 
 function IntDisjointSetUnion(n) {
