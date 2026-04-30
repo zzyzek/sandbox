@@ -18,6 +18,45 @@ var _EPS = (1/(1024*1024));
 
 let _rnd = new sr(123);
 
+
+function prof_s(ctx, name) {
+  if (!(name in ctx)) {
+    ctx[name] = { "s": 0, "e": 0, "c": 0, "t":0 };
+  }
+  ctx[name].s = Date.now();
+  return ctx[name].s
+}
+
+function prof_e(ctx, name) {
+  ctx[name].e = Date.now();
+  ctx[name].t += (ctx[name].e - ctx[name].s);
+  ctx[name].c++;
+  return ctx[name].e;
+}
+
+function prof_avg(ctx, name) {
+  if (!(name in ctx)) { return 0; }
+  if (ctx[name].c == 0) { return 0; }
+  return ctx[name].t / (1000*ctx[name].c);
+}
+
+function prof_reset(ctx) {
+  for (let name in ctx) {
+    ctx[name].s = 0;
+    ctx[name].e = 0;
+    ctx[name].t = 0;
+    ctx[name].c = 0;
+  }
+  return ctx;
+}
+
+function prof_print(ctx) {
+  for (let name in ctx) {
+    console.log("#", name, (ctx[name].t / ctx[name].c) / 1000, "s", "(", ctx[name].t, "ms /", ctx[name].c, ")");
+  }
+}
+
+
 function print_grid(g) {
   for (let iz=0; iz<g.length; iz++) {
     for (let iy=0; iy<g[iz].length; iy++) {
@@ -248,7 +287,13 @@ function _cruft() {
   }
 }
 
+let prof_ctx = {};
+prof_s(prof_ctx, "naive");
+
 let V = naive_3d_halfplane_convex_hull_bounds(HP, bounds_relative, p0);
+
+prof_e(prof_ctx, "naive");
+prof_print(prof_ctx);
 
 let v_lines = [];
 for (let i=0; i<V.length; i++) {
