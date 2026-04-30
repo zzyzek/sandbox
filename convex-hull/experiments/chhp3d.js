@@ -14,6 +14,8 @@ var njs = require("../../lib/numeric.js");
 var printf = require("../../lib/printf.js");
 var fs = require("fs");
 
+var _EPS = (1/(1024*1024));
+
 let _rnd = new sr(123);
 
 function print_grid(g) {
@@ -64,7 +66,8 @@ function print_P(p) {
 //   { "p" : [ x_{n-1},y_{n-1},z_{n-1} ], "v" : [ vx_{n-1},vy_{n-1},vz_{n-1} ] },
 // ]
 //
-function naive_3d_halfplane_convex_hull_bounds(HP) {
+function naive_3d_halfplane_convex_hull_bounds(HP, B, p0) {
+  p0 = ((typeof p0 === "undefined") ? [0,0,0] : p0);
 
   let candidate_point = [];
 
@@ -75,10 +78,51 @@ function naive_3d_halfplane_convex_hull_bounds(HP) {
       for (let i2=(i1+1); i2<HP.length; i2++) {
         let np2 = njs.dot( HP[i2].v, HP[i2].p );
         let s = njs.solve( [ HP[i0].v, HP[i1].v, HP[i2].v ], [ np0, np1, np2 ] );
+
+        if ((s[0] < B[0][0]) || (s[1] < B[1][0]) || (s[2] < B[2][0]) ||
+            (s[0] > B[0][1]) || (s[1] > B[1][1]) || (s[2] > B[2][1])) { continue; }
+
         candidate_point.push(s);
       }
     }
   }
+
+  console.log("####", candidate_point.length, HP.length);
+
+  let sched = [];
+  for (let hp_idx=0; hp_idx<HP.length; hp_idx++) {
+    sched.push( [ njs.norm2(HP[hp_idx].p), hp_idx ] );
+  }
+  sched.sort( _dist_cmp );
+
+  for (let sched_idx=0; sched_idx < sched.length; sched_idx++) {
+    let hp_idx = sched[sched_idx][1];
+    let hp = HP[hp_idx];
+
+    for (let ci=0; ci<candidate_point.length; ci++) {
+      let cp = candidate_point[ci];
+      //if ( njs.dot( hp.v, njs.sub( cp, hp.p ) ) > 0.000001 ) {
+      if ( njs.dot( hp.v, njs.sub( cp, hp.p ) ) > _EPS ) {
+        candidate_point[ ci ] = candidate_point[ candidate_point.length-1 ];
+        candidate_point.pop();
+        ci--;
+        continue;
+      }
+    }
+  }
+
+  return candidate_point;
+
+  /*
+
+  let _lines = [];
+  _lines.push("#candidate_point: " +  candidate_point.length.toString());
+  for (let i=0; i<candidate_point.length; i++) {
+    let p = candidate_point[i];
+    _lines.push( printf("%f %f %f\n\n", p[0]+p0[0], p[1]+p0[1], p[2] +p0[2]) );
+  }
+  _lines.push("\n\n");
+  fs.writeFileSync("cand.gp", _lines.join("\n"));
 
   let fin_point = [];
 
@@ -91,18 +135,28 @@ function naive_3d_halfplane_convex_hull_bounds(HP) {
       if (t > 0) { valid = false; break; }
     }
 
-    if (valid) { fin_point.push(candidate_point[i]); }
+    if (valid) { fin_point.push(njs.add(p0, candidate_point[i])); }
   }
 
+  _lines = [];
+  for (let i=0; i<fin_point.length; i++) {
+    _lines.push( printf("%f %f %f\n\n", fin_point[i][0], fin_point[i][1], fin_point[i][2]) ) ;
+  }
+  _lines.push("\n\n");
+  fs.writeFileSync("fin.gp", _lines.join("\n") );
+
   return fin_point;
+  */
 }
 
 //---
 //---
 //---
 
-let grid_s = 3;
+let grid_s = 5;
 let grid = [];
+
+let bounds = [ [0,grid_s], [0,grid_s], [0,grid_s]];
 
 let N = grid_s * grid_s * grid_s;
 
@@ -122,6 +176,12 @@ let m = Math.floor(grid_s/2);
 let p0 = njs.add( [m,m,m], [ _rnd(), _rnd(), _rnd() ] );
 grid[m][m][m].push(0);
 P.push(p0);
+
+let bounds_relative = [
+  [ bounds[0][0] - p0[0], bounds[0][1] - p0[0] ],
+  [ bounds[1][0] - p0[1], bounds[1][1] - p0[1] ],
+  [ bounds[2][0] - p0[2], bounds[2][1] - p0[2] ]
+];
 
 console.log("#p0:", printf("%f %f %f", p0[0], p0[1], p0[2]));
 
@@ -188,7 +248,7 @@ function _cruft() {
   }
 }
 
-let V = naive_3d_halfplane_convex_hull_bounds(HP);
+let V = naive_3d_halfplane_convex_hull_bounds(HP, bounds_relative, p0);
 
 let v_lines = [];
 for (let i=0; i<V.length; i++) {
@@ -198,6 +258,8 @@ for (let i=0; i<V.length; i++) {
 }
 fs.writeFileSync("v.gp", v_lines.join("\n"));
 
+
+fs.writeFileSync("p0.gp", printf("%f %f %f\n\n", p0[0], p0[1], p0[2]));
 
 //console.log(HP_candidate);
 
