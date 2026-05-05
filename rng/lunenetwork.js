@@ -1135,7 +1135,7 @@ function alloc_info_3d(n, B, pnts) {
 function lune_network_3d_SPoIF(point) {
   let n = point.length;
 
-  let _debug = 0;
+  let _debug = 4;
 
   let _eps = 1 / (1024*1024*1024);
 
@@ -1296,7 +1296,8 @@ function lune_network_3d_SPoIF(point) {
 
     if (_debug) {
       console.log("#ds:", ds, "grid_n:", grid_n);
-      console.log("#cell_center:", JSON.stringify(cell_origin));
+      console.log("#cell_center:", JSON.stringify(cell_origin),
+        "grid_occ:", info.grid[ip[2]][ip[1]][ip[0]].length);
       console.log("#win_center:", JSON.stringify(win_center));
       console.log("#p:", JSON.stringify(p), "(", p_idx, ")");
       console.log("#dp:", JSON.stringify(dp) );
@@ -1447,10 +1448,12 @@ function lune_network_3d_SPoIF(point) {
 //DEBUG
 //DEBUG
 //DEBUG
+// seed random here
+//
 let _n = 10000;
 let _P = [];
 for (let i=0; i<_n; i++) {
-  _P.push( njs.random([3]) );
+  _P.push( [ _rnd(), _rnd(), _rnd() ] );
 }
 lune_network_3d_SPoIF(_P);
 process.exit();
