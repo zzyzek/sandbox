@@ -105,11 +105,105 @@ function print_P(p) {
 //   { "p" : [ x_{n-1},y_{n-1},z_{n-1} ], "v" : [ vx_{n-1},vy_{n-1},vz_{n-1} ] },
 // ]
 //
+function heuristic0_3d_halfplane_convex_hull_bounds(HP, B, p0) {
+  p0 = ((typeof p0 === "undefined") ? [0,0,0] : p0);
+
+  let cube_corner = [
+    [ B[0][0] - p0[0], B[1][0] - p0[1], B[2][0] - p0[2] ],
+    [ B[0][1] - p0[0], B[1][0] - p0[1], B[2][0] - p0[2] ],
+
+    [ B[0][0] - p0[0], B[1][1] - p0[1], B[2][0] - p0[2] ],
+    [ B[0][1] - p0[0], B[1][1] - p0[1], B[2][0] - p0[2] ],
+
+    [ B[0][0] - p0[0], B[1][0] - p0[1], B[2][1] - p0[2] ],
+    [ B[0][1] - p0[0], B[1][0] - p0[1], B[2][1] - p0[2] ],
+
+    [ B[0][0] - p0[0], B[1][1] - p0[1], B[2][1] - p0[2] ],
+    [ B[0][1] - p0[0], B[1][1] - p0[1], B[2][1] - p0[2] ]
+  ];
+
+  let maxR = 0;
+  for (let i=0; i<cube_corner.length; i++) {
+    let cc = cube_corner[i];
+    let _r = Math.sqrt( (cc[0]*cc[0]) + (cc[1]*cc[1]) + (cc[2]*cc[2]) );
+    if (_r > maxR) { maxR = _r; }
+  }
+
+  console.log("#maxR:", maxR);
+
+  let candidate_point = [];
+  for (let i0=0; i0<HP.length; i0++) {
+    let np0 = njs.dot( HP[i0].v, HP[i0].p );
+    for (let i1=(i0+1); i1<HP.length; i1++) {
+      let np1 = njs.dot( HP[i1].v, HP[i1].p );
+      for (let i2=(i1+1); i2<HP.length; i2++) {
+        let np2 = njs.dot( HP[i2].v, HP[i2].p );
+        let s = njs.solve( [ HP[i0].v, HP[i1].v, HP[i2].v ], [ np0, np1, np2 ] );
+
+        if ((s[0] < B[0][0]) || (s[1] < B[1][0]) || (s[2] < B[2][0]) ||
+            (s[0] > B[0][1]) || (s[1] > B[1][1]) || (s[2] > B[2][1])) { continue; }
+
+        candidate_point.push(s);
+      }
+    }
+  }
+
+  console.log("####", candidate_point.length, HP.length);
+
+  let sched = [];
+  for (let hp_idx=0; hp_idx<HP.length; hp_idx++) {
+    sched.push( [ njs.norm2(HP[hp_idx].p), hp_idx ] );
+  }
+  sched.sort( _dist_cmp );
+
+  for (let sched_idx=0; sched_idx < sched.length; sched_idx++) {
+    let hp_idx = sched[sched_idx][1];
+    let hp = HP[hp_idx];
+
+    for (let ci=0; ci<candidate_point.length; ci++) {
+      let cp = candidate_point[ci];
+      //if ( njs.dot( hp.v, njs.sub( cp, hp.p ) ) > 0.000001 ) {
+      if ( njs.dot( hp.v, njs.sub( cp, hp.p ) ) > _EPS ) {
+        candidate_point[ ci ] = candidate_point[ candidate_point.length-1 ];
+        candidate_point.pop();
+        ci--;
+        continue;
+      }
+    }
+  }
+
+  return candidate_point;
+
+
+}
+
 function naive_3d_halfplane_convex_hull_bounds(HP, B, p0) {
   p0 = ((typeof p0 === "undefined") ? [0,0,0] : p0);
 
-  let candidate_point = [];
+  let cube_corner = [
+    [ B[0][0] - p0[0], B[1][0] - p0[1], B[2][0] - p0[2] ],
+    [ B[0][1] - p0[0], B[1][0] - p0[1], B[2][0] - p0[2] ],
 
+    [ B[0][0] - p0[0], B[1][1] - p0[1], B[2][0] - p0[2] ],
+    [ B[0][1] - p0[0], B[1][1] - p0[1], B[2][0] - p0[2] ],
+
+    [ B[0][0] - p0[0], B[1][0] - p0[1], B[2][1] - p0[2] ],
+    [ B[0][1] - p0[0], B[1][0] - p0[1], B[2][1] - p0[2] ],
+
+    [ B[0][0] - p0[0], B[1][1] - p0[1], B[2][1] - p0[2] ],
+    [ B[0][1] - p0[0], B[1][1] - p0[1], B[2][1] - p0[2] ]
+  ];
+
+  let maxR = 0;
+  for (let i=0; i<cube_corner.length; i++) {
+    let cc = cube_corner[i];
+    let _r = Math.sqrt( (cc[0]*cc[0]) + (cc[1]*cc[1]) + (cc[2]*cc[2]) );
+    if (_r > maxR) { maxR = _r; }
+  }
+
+  console.log("#maxR:", maxR);
+
+  let candidate_point = [];
   for (let i0=0; i0<HP.length; i0++) {
     let np0 = njs.dot( HP[i0].v, HP[i0].p );
     for (let i1=(i0+1); i1<HP.length; i1++) {
