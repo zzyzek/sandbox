@@ -745,6 +745,56 @@ $C _ H$ can be calculated using similar triangles.
 ![cylinder calculation](img/cyl-calc.png)
 
 
+Secure Posts of Increasing Fence (SPoIF)
+---
+
+An attempt at a conceptually simpler algorithm that addresses the drawbacks of StIF, keeps the benefits of SWIF
+and doesn't have the complexity of the convex hull idea.
+
+As in StIF, test each orthogonal plane made from the point $q$ inside of the fence relative to the anchor $p$.
+Instead of only considering whether it partitions one of the fence faces (StIF) or doing complicated bookeeping (SWIF),
+take post representatives at the four corners of the plane with an additional post point in the center of the plane.
+
+For each orthogonal plane, $N _ q$, test to see if 4-cluster of posts in a face plane land on the other side of $N _ q$.
+If so, mark them as secured and continue until all posts are secured.
+
+```
+V - vertices
+G - grid
+RNG - output RNG graph
+
+M = |V|^{1/3}
+s = 1 / |V|^{1/3}
+
+Create grid, G, of grid cell size s, ( each dimension of integral value ceil(M) )
+Foreach p in V:
+  Place p in G, using a linear linked list for grid collisions
+
+Foreach p in V:
+  fencePost = [
+    [ 0,0,0, 0,0,0, 0,0,0 ], [ 0,0,0, 0,0,0, 0,0,0 ],
+    [ 0,0,0, 0,0,0, 0,0,0 ], [ 0,0,0, 0,0,0, 0,0,0 ],
+    [ 0,0,0, 0,0,0, 0,0,0 ], [ 0,0,0, 0,0,0, 0,0,0 ]
+  ]
+
+  for R=0 to M:
+    if (\sum _ {i,j} fencePost[i][j]) == 6*9: break
+    Take square sub-grid, H, of grid G that has Manhattan radius of R with p at it's center
+    L_0 = minimum absolute distance of p to sub-grid H
+    ... WIP!!
+```
+
+StIF would fail for a specific pathological case where the admissible region of points wouldn't
+cut off one of the planes.
+We assume that the inadmissible region marks the grid bins as inadmissible if wholly contained
+in an inadmissible region.
+This wouldn't affect StIF as it would only touch a corner but now allows SPoIF to terminate
+because the pathological case for StIF will cut off a 4-cluster with the other 4-cluster
+now wholly in the inadmissible region.
+
+All the complicated bookkeeping of SWIF is now replaced by the representatives.
+
+Hopefully a more succinct algorithmic description will follow after implementation.
 
 
 References
