@@ -1121,6 +1121,12 @@ function alloc_info_3d(n, B, pnts) {
 
 // WIP!!!
 //
+// 2026-05-05: ir gets up to max (22 for 10k test)
+// which shouldn't really be possible.
+// it also shows 1/3 or so as having ir 0, which is suspicious.
+// we need to verify that fence posts are being secured the way
+// we think they are.
+//
 
 // secure posts of increasing fence
 //
@@ -1128,6 +1134,8 @@ function alloc_info_3d(n, B, pnts) {
 //
 function lune_network_3d_SPoIF(point) {
   let n = point.length;
+
+  let _debug = 0;
 
   let _eps = 1 / (1024*1024*1024);
 
@@ -1199,6 +1207,8 @@ function lune_network_3d_SPoIF(point) {
     "E": []
   };
 
+  let BB = info.bbox;
+
   // init grid
   //
   for (let i=0; i<grid_n; i++) {
@@ -1210,6 +1220,7 @@ function lune_network_3d_SPoIF(point) {
       }
     }
   }
+
 
   // populate grid with index,
   // point_grid_bp maps index to 3d grid index
@@ -1223,8 +1234,47 @@ function lune_network_3d_SPoIF(point) {
     info.point_grid_bp.push( [ix,iy,iz] );
   }
 
+  if (_debug > 0) {
+    //grid stats (debugging)
+    //
+    let grid_occ = [];
+    let grid_occ_mM = [-1,-1];
+    let grid_occ_mean = 0.0;
+    let grid_occ_freq = {};
+    for (let k=0; k<grid_n; k++) {
+      for (let j=0; j<grid_n; j++) {
+        for (let i=0; i<grid_n; i++) {
+          let m = info.grid[k][j][i].length;
+          grid_occ.push( m );
+          if (grid_occ_mM[0] < 0) { grid_occ_mM[0] = m; }
+          if (grid_occ_mM[1] < 0) { grid_occ_mM[1] = m; }
+          if (grid_occ_mM[0] > m) { grid_occ_mM[0] = m; }
+          if (grid_occ_mM[1] < m) { grid_occ_mM[1] = m; }
+          grid_occ_mean += m;
+
+          if (!(m in grid_occ_freq)) { grid_occ_freq[m] = 0; }
+          grid_occ_freq[m]++;
+        }
+      }
+    }
+    grid_occ_mean /= (grid_n*grid_n*grid_n);
+    grid_occ.sort( function(a,b) { if (a<b) { return -1; } if (a>b) { return 1; } return 0; } );
+    console.log("# grid mM:", grid_occ_mM[0], grid_occ_mM[1],
+                "grid_mean:", grid_occ_mean, 
+                "grid_med:", grid_occ[ Math.floor( grid_occ.length/2 ) ],
+                "grid_freq:", JSON.stringify(grid_occ_freq) );
+  }
+
+
   for (let p_idx = 0; p_idx < info.P.length; p_idx++) {
     let p = info.P[p_idx];
+
+    //PROFILING
+    //PROFILING
+    let prof_ctx = {};
+    prof_s( prof_ctx, p_idx.toString() );
+    //PROFILING
+    //PROFILING
 
     let Wp = [ p[0]*grid_n, p[1]*grid_n, p[2]*grid_n ];
     let ip = Wp.map( Math.floor );
@@ -1244,11 +1294,13 @@ function lune_network_3d_SPoIF(point) {
 
     let dp = njs.sub( p, win_center );
 
-    console.log("#ds:", ds, "grid_n:", grid_n);
-    console.log("#cell_center:", JSON.stringify(cell_origin));
-    console.log("#win_center:", JSON.stringify(win_center));
-    console.log("#p:", JSON.stringify(p), "(", p_idx, ")");
-    console.log("#dp:", JSON.stringify(dp) );
+    if (_debug) {
+      console.log("#ds:", ds, "grid_n:", grid_n);
+      console.log("#cell_center:", JSON.stringify(cell_origin));
+      console.log("#win_center:", JSON.stringify(win_center));
+      console.log("#p:", JSON.stringify(p), "(", p_idx, ")");
+      console.log("#dp:", JSON.stringify(dp) );
+    }
 
     let sweep_q_idx = [];
 
@@ -1265,10 +1317,29 @@ function lune_network_3d_SPoIF(point) {
     //not to choke on some cases that might show up naturally.
     //----
 
-    for (let ir=0; ir<grid_n; ir++) {
+    let ir = 0;
+    for (ir=0; ir<grid_n; ir++) {
       let sweep = grid_sweep_perim_3d(info, p, ir);
 
-      console.log(sweep.path.length, sweep);
+      for (let idir=0; idir<6; idir++) {
+        for (let fpi=0; fpi<fencePost_v[idir].length; fpi++) {
+          let v = njs.add( win_center, njs.mul( ds*(ir+1), fencePost_v[idir][fpi] ) );
+
+          if ( (v[0] < BB[0][0]) || (v[0] > BB[1][0]) ||
+               (v[1] < BB[0][1]) || (v[1] > BB[1][1]) ||
+               (v[2] < BB[0][2]) || (v[2] > BB[1][2]) ) {
+
+            //DEBUG
+            if (_debug > 1) {
+              console.log("# oob secure idir:", idir, "fpi:", fpi, "(v:", JSON.stringify(v), ")", JSON.stringify(BB));
+            }
+            
+            fencePostSecure[idir][fpi] = 1;
+          }
+        }
+      }
+
+      if (_debug > 2) { console.log(sweep.path.length, sweep); }
 
       // collect q indicies.
       // previous q points might secure more portions of the fence, so
@@ -1302,7 +1373,7 @@ function lune_network_3d_SPoIF(point) {
             let n_cluster_secure = 0;
             for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
               let fpi = fencePostCluster[cluster_idx][fpci];
-              let fpv = fencePost_v[idir][fpi];
+              let fpv = njs.add( win_center, njs.mul( ds*(ir+1), fencePost_v[idir][fpi] ) );
               let u = njs.sub( fpv, qt );
               let s = njs.dot( Nqt, u );
               if (s > 0) { n_cluster_secure++; }
@@ -1312,7 +1383,12 @@ function lune_network_3d_SPoIF(point) {
             //
             if (n_cluster_secure == fencePostCluster[cluster_idx].length) {
 
-              console.log("#q_idx:", q_idx, "securing idir:", idir, "cluster:", cluster_idx, "(", JSON.stringify(fencePostCluster[cluster_idx]), ")");
+              if (_debug > 2) {
+                console.log("#q_idx:", q_idx,
+                  "securing idir:", idir,
+                  "cluster:", cluster_idx,
+                  "(", JSON.stringify(fencePostCluster[cluster_idx]), ")");
+              }
 
               for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
                 let fpi = fencePostCluster[cluster_idx][fpci];
@@ -1333,11 +1409,21 @@ function lune_network_3d_SPoIF(point) {
         }
       }
 
-      console.log("#fpsecure (", n_secure, "):", fencePostSecure);
+      if (_debug > 1) { console.log("#fpsecure (", n_secure, "):", fencePostSecure); }
+
 
       if (n_secure == n_secure_max) {
-        console.log("#SECURE");
-        //break;
+        if (_debug > 2) { console.log("#SECURE"); }
+        console.log("#SECURE", "ir:", ir, "p_idx:", p_idx);
+
+        //PROFILING
+        //PROFILING
+        prof_e( prof_ctx, p_idx.toString() );
+        prof_print(prof_ctx);
+        //PROFILING
+        //PROFILING
+
+        break;
       }
 
 
@@ -1345,13 +1431,14 @@ function lune_network_3d_SPoIF(point) {
       //DEBUG
       //DEBUG
       //DEBUG
-      if (ir > 2) { return; }
+      //if (ir > 2) { return; }
       //DEBUG
       //DEBUG
       //DEBUG
 
     }
 
+    console.log("###IR!!!:", ir);
 
   }
 
