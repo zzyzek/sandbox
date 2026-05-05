@@ -1122,6 +1122,255 @@ function alloc_info_3d(n, B, pnts) {
 // WIP!!!
 //
 
+// secure posts of increasing fence
+//
+// point - array of points, assumed to be within [0,1]^3 cube (uniform)
+//
+function lune_network_3d_SPoIF(point) {
+  let n = point.length;
+
+  let _eps = 1 / (1024*1024*1024);
+
+  let s3 = 1/Math.sqrt(3);
+
+  let v_idir = [
+    [1,0,0], [-1,0,0],
+    [0,1,0], [0,-1,0],
+    [0,0,1], [0,0,-1]
+  ];
+
+  let frustum_v = [
+    [ [ s3, s3, s3 ], [ s3,-s3, s3 ], [ s3,-s3,-s3 ], [ s3, s3,-s3 ] ],
+    [ [-s3, s3, s3 ], [-s3, s3,-s3 ], [-s3,-s3,-s3 ], [-s3,-s3, s3 ] ],
+
+    [ [ s3, s3, s3 ], [ s3, s3,-s3 ], [-s3, s3,-s3 ], [-s3, s3, s3 ] ],
+    [ [ s3,-s3, s3 ], [-s3,-s3, s3 ], [-s3,-s3,-s3 ], [ s3,-s3,-s3 ] ],
+
+    [ [ s3, s3, s3 ], [-s3, s3, s3 ], [-s3,-s3, s3 ], [ s3,-s3, s3 ] ],
+    [ [ s3, s3,-s3 ], [ s3,-s3,-s3 ], [-s3,-s3,-s3 ], [-s3, s3,-s3 ] ]
+  ];
+
+  let fencePost_v = [
+    [ [ s3,-s3,-s3 ], [ s3,  0,-s3 ], [ s3, s3,-s3 ],
+      [ s3,-s3,  0 ], [ s3,  0,  0 ], [ s3, s3,  0 ], 
+      [ s3,-s3, s3 ], [ s3,  0, s3 ], [ s3, s3, s3 ] ],
+    [ [-s3,-s3,-s3 ], [-s3,  0,-s3 ], [-s3, s3,-s3 ],
+      [-s3,-s3,  0 ], [-s3,  0,  0 ], [-s3, s3,  0 ], 
+      [-s3,-s3, s3 ], [-s3,  0, s3 ], [-s3, s3, s3 ] ],
+
+    [ [-s3, s3,-s3 ], [  0, s3,-s3 ], [ s3, s3,-s3 ],
+      [-s3, s3,  0 ], [  0, s3,  0 ], [ s3, s3,  0 ],
+      [-s3, s3, s3 ], [  0, s3, s3 ], [ s3, s3, s3 ] ],
+    [ [-s3,-s3,-s3 ], [  0,-s3,-s3 ], [ s3,-s3,-s3 ],
+      [-s3,-s3,  0 ], [  0,-s3,  0 ], [ s3,-s3,  0 ],
+      [-s3,-s3, s3 ], [  0,-s3, s3 ], [ s3,-s3, s3 ] ],
+
+    [ [-s3,-s3, s3 ], [-s3,  0, s3 ], [-s3, s3, s3 ],
+      [  0,-s3, s3 ], [  0,  0, s3 ], [  0, s3, s3 ],
+      [ s3,-s3, s3 ], [ s3,  0, s3 ], [ s3, s3, s3 ] ],
+    [ [-s3,-s3,-s3 ], [-s3,  0,-s3 ], [-s3, s3,-s3 ],
+      [  0,-s3,-s3 ], [  0,  0,-s3 ], [  0, s3,-s3 ],
+      [ s3,-s3,-s3 ], [ s3,  0,-s3 ], [ s3, s3,-s3 ] ]
+  ];
+
+  let idir_v = [ [1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1] ];
+
+  let grid_s = Math.cbrt(n);
+  let grid_n = Math.ceil(grid_s);
+  let ds = 1 / grid_n;
+
+  let info = {
+    "n": n,
+    "dim": 3,
+    "start": [0,0,0],
+    "size": [1,1,1],
+    "point_grid_bp": [],
+    "grid_cell_size": [-1,-1,-1],
+    "bbox": [[0,0,0], [1,1,1]],
+
+    "grid": [],
+    "grid_s": grid_s,
+    "grid_n": grid_n,
+    "grid_cell_size": [ ds, ds, ds],
+    "grid_start": [0,0,0],
+    "grid_size": [1,1,1],
+
+    "P": [],
+    "E": []
+  };
+
+  // init grid
+  //
+  for (let i=0; i<grid_n; i++) {
+    info.grid.push([]);
+    for (let j=0; j<grid_n; j++) {
+      info.grid[i].push([]);
+      for (let k=0; k<grid_n; k++) {
+        info.grid[i][j].push([]);
+      }
+    }
+  }
+
+  // populate grid with index,
+  // point_grid_bp maps index to 3d grid index
+  //
+  for (let i=0; i<n; i++) {
+    info.P.push( [ point[i][0], point[i][1], point[i][2] ] );
+    let ix = Math.floor(info.P[i][0]*grid_n);
+    let iy = Math.floor(info.P[i][1]*grid_n);
+    let iz = Math.floor(info.P[i][2]*grid_n);
+    info.grid[iz][iy][ix].push(i);
+    info.point_grid_bp.push( [ix,iy,iz] );
+  }
+
+  for (let p_idx = 0; p_idx < info.P.length; p_idx++) {
+    let p = info.P[p_idx];
+
+    let Wp = [ p[0]*grid_n, p[1]*grid_n, p[2]*grid_n ];
+    let ip = Wp.map( Math.floor );
+
+    let fencePostSecure = [
+      [0,0,0, 0,0,0, 0,0,0], [0,0,0, 0,0,0, 0,0,0],
+      [0,0,0, 0,0,0, 0,0,0], [0,0,0, 0,0,0, 0,0,0],
+      [0,0,0, 0,0,0, 0,0,0], [0,0,0, 0,0,0, 0,0,0]
+    ];
+
+    let fencePostCluster = [ [0,1,3,4], [1,2,4,5], [3,4,6,7], [4,5,7,8] ];
+
+    let sweep0 = grid_sweep_perim_3d(info, p, 0);
+    let cell_origin = sweep0.path[0];
+
+    let win_center = njs.add( [ds/2,ds/2,ds/2], njs.mul( ds, cell_origin ) );
+
+    let dp = njs.sub( p, win_center );
+
+    console.log("#ds:", ds, "grid_n:", grid_n);
+    console.log("#cell_center:", JSON.stringify(cell_origin));
+    console.log("#win_center:", JSON.stringify(win_center));
+    console.log("#p:", JSON.stringify(p), "(", p_idx, ")");
+    console.log("#dp:", JSON.stringify(dp) );
+
+    let sweep_q_idx = [];
+
+    //----
+    //WIP!!! ## 2026-05-05
+    //STILL TODO:
+    //major testing
+    //current issue is when p is near edge, we need
+    //to makre the fence post as secured if it crosses the boundary.
+    //eventually we want to check to make sure if the post is outside
+    //the convex hull, it's also marked (maybe a callback that takes
+    //in the context, maybe marking cells as a preprocessing step).
+    //Still the idea of pairwise visibility to consider and how
+    //not to choke on some cases that might show up naturally.
+    //----
+
+    for (let ir=0; ir<grid_n; ir++) {
+      let sweep = grid_sweep_perim_3d(info, p, ir);
+
+      console.log(sweep.path.length, sweep);
+
+      // collect q indicies.
+      // previous q points might secure more portions of the fence, so
+      // we keep q points from previous radius and append the current
+      // perimeter.
+      //
+      for (let path_idx=0; path_idx<sweep.path.length; path_idx++) {
+        let ixyz = sweep.path[path_idx];
+        let grid_bin = info.grid[ ixyz[2] ][ ixyz[1] ][ ixyz[0] ];
+        for (let bin_idx=0; bin_idx<grid_bin.length; bin_idx++) {
+          let q_idx = grid_bin[bin_idx];
+          if (q_idx == p_idx) { continue; }
+          sweep_q_idx.push(q_idx);
+        }
+      }
+
+      // for all q points, test to see if it secures the fence posts.
+      //
+      for (let sqi=0; sqi<sweep_q_idx.length; sqi++) {
+        let q_idx = sweep_q_idx[sqi];
+        let q = info.P[q_idx];
+
+        let qt = njs.sub( njs.sub( p, q ), dp );
+        let Nqt = njs.mul( 1 / njs.norm2(qt), qt );
+
+        for (let idir=0; idir<6; idir++) {
+          for (let cluster_idx=0; cluster_idx < fencePostCluster.length; cluster_idx++) {
+
+            // count the number of secured posts in this fence cluster
+            //
+            let n_cluster_secure = 0;
+            for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
+              let fpi = fencePostCluster[cluster_idx][fpci];
+              let fpv = fencePost_v[idir][fpi];
+              let u = njs.sub( fpv, qt );
+              let s = njs.dot( Nqt, u );
+              if (s > 0) { n_cluster_secure++; }
+            }
+
+            // if we've secured all posts, mark the relevant posts as secure
+            //
+            if (n_cluster_secure == fencePostCluster[cluster_idx].length) {
+
+              console.log("#q_idx:", q_idx, "securing idir:", idir, "cluster:", cluster_idx, "(", JSON.stringify(fencePostCluster[cluster_idx]), ")");
+
+              for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
+                let fpi = fencePostCluster[cluster_idx][fpci];
+                fencePostSecure[idir][fpi] = 1;
+              }
+            }
+
+          }
+        }
+
+      }
+
+      let n_secure = 0, n_secure_max = 0;
+      for (let idir=0; idir<6; idir++) {
+        for (let fpsi=0; fpsi<fencePostSecure[idir].length; fpsi++) {
+          n_secure += fencePostSecure[idir][fpsi];
+          n_secure_max++;
+        }
+      }
+
+      console.log("#fpsecure (", n_secure, "):", fencePostSecure);
+
+      if (n_secure == n_secure_max) {
+        console.log("#SECURE");
+        //break;
+      }
+
+
+
+      //DEBUG
+      //DEBUG
+      //DEBUG
+      if (ir > 2) { return; }
+      //DEBUG
+      //DEBUG
+      //DEBUG
+
+    }
+
+
+  }
+
+}
+
+//DEBUG
+//DEBUG
+//DEBUG
+let _n = 10000;
+let _P = [];
+for (let i=0; i<_n; i++) {
+  _P.push( njs.random([3]) );
+}
+lune_network_3d_SPoIF(_P);
+process.exit();
+//DEBUG
+//DEBUG
+//DEBUG
+
 function lune_network_3d_shrinking_fence(n, B, _point) {
   let _iter = _lune_network_3d_shrinking_fence(n, B, _point);
   let _res = _iter.next();
