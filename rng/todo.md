@@ -9,6 +9,8 @@ TODO
     + sweep is 1 more side length than it should be? fixed from above (double size overlapped and caused visual artifact
       to make it look like it was whole grid)
     + frustrum fence posts aren't as long as they need to be
+      - hacked lengths that look right, I'll have to go back and justify them
+
 
 
 ###### 2026-03-13
