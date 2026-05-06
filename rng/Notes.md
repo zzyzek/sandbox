@@ -796,6 +796,32 @@ All the complicated bookkeeping of SWIF is now replaced by the representatives.
 
 Hopefully a more succinct algorithmic description will follow after implementation.
 
+---
+
+Some thoughts I'd like to record before I forget them:
+
+* there are three main issues
+  - linear runtime for random points in a cube
+  - linear runtime for random points in a rotated cube
+  - reasonable expectation of linear runtime for complex, but not advesarial,
+    geometry (fingers of a leaf, say)
+* SPoIF, with the grid cell marking as out of bounds from initial convex hull
+  check, (should) take care of the first two
+  - classic algorithms are complicated for points in a cube, SPoIF uses the
+    hyperplane trick to make things simpler
+  - StIF will fail for rotated cubes whereas SPoIF should take care of it
+    because grid cell marking and fence post marking is resilient to these
+    types of issues
+  - third issue needs some additional assumptions or ideas
+* to take care of the third point, one idea is to assume grid cells are significantly
+  smaller than whatever minimum feature (as in, grid cells are much smaller than spaces
+  between fingers of leaves) and then do visibility checks on grid cells from the anchor
+  point to label them as out of bounds, which allows the fence posts to then be marked
+  as appropriate
+  - so do a post processing step after sweep cells have been collected, marking which
+    are out of bounds from the source distribution, and then doing another pass to mark
+    cells that aren't visible
+
 
 References
 ---
