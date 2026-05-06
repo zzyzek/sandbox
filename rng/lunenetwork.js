@@ -1246,49 +1246,43 @@ function lune_network_3d_SPoIF(point) {
 
   let _debug = 0;
 
+  //DEBUG
+  //DEBUG
+  //DEBUG
+  _debug = 4;
+  //DEBUG
+  //DEBUG
+  //DEBUG
+
   let _eps = 1 / (1024*1024*1024);
-
-  let s3 = 1/Math.sqrt(3);
-  s3 = 1/(2*Math.sqrt(3));
-
   let v_idir = [
     [1,0,0], [-1,0,0],
     [0,1,0], [0,-1,0],
     [0,0,1], [0,0,-1]
   ];
 
-  let frustum_v = [
-    [ [ s3, s3, s3 ], [ s3,-s3, s3 ], [ s3,-s3,-s3 ], [ s3, s3,-s3 ] ],
-    [ [-s3, s3, s3 ], [-s3, s3,-s3 ], [-s3,-s3,-s3 ], [-s3,-s3, s3 ] ],
-
-    [ [ s3, s3, s3 ], [ s3, s3,-s3 ], [-s3, s3,-s3 ], [-s3, s3, s3 ] ],
-    [ [ s3,-s3, s3 ], [-s3,-s3, s3 ], [-s3,-s3,-s3 ], [ s3,-s3,-s3 ] ],
-
-    [ [ s3, s3, s3 ], [-s3, s3, s3 ], [-s3,-s3, s3 ], [ s3,-s3, s3 ] ],
-    [ [ s3, s3,-s3 ], [ s3,-s3,-s3 ], [-s3,-s3,-s3 ], [-s3, s3,-s3 ] ]
-  ];
-
+  let fL = 1/2;
   let fencePost_v = [
-    [ [ s3,-s3,-s3 ], [ s3,  0,-s3 ], [ s3, s3,-s3 ],
-      [ s3,-s3,  0 ], [ s3,  0,  0 ], [ s3, s3,  0 ], 
-      [ s3,-s3, s3 ], [ s3,  0, s3 ], [ s3, s3, s3 ] ],
-    [ [-s3,-s3,-s3 ], [-s3,  0,-s3 ], [-s3, s3,-s3 ],
-      [-s3,-s3,  0 ], [-s3,  0,  0 ], [-s3, s3,  0 ], 
-      [-s3,-s3, s3 ], [-s3,  0, s3 ], [-s3, s3, s3 ] ],
+    [ [ fL,-fL,-fL ], [ fL,  0,-fL ], [ fL, fL,-fL ],
+      [ fL,-fL,  0 ], [ fL,  0,  0 ], [ fL, fL,  0 ], 
+      [ fL,-fL, fL ], [ fL,  0, fL ], [ fL, fL, fL ] ],
+    [ [-fL,-fL,-fL ], [-fL,  0,-fL ], [-fL, fL,-fL ],
+      [-fL,-fL,  0 ], [-fL,  0,  0 ], [-fL, fL,  0 ], 
+      [-fL,-fL, fL ], [-fL,  0, fL ], [-fL, fL, fL ] ],
 
-    [ [-s3, s3,-s3 ], [  0, s3,-s3 ], [ s3, s3,-s3 ],
-      [-s3, s3,  0 ], [  0, s3,  0 ], [ s3, s3,  0 ],
-      [-s3, s3, s3 ], [  0, s3, s3 ], [ s3, s3, s3 ] ],
-    [ [-s3,-s3,-s3 ], [  0,-s3,-s3 ], [ s3,-s3,-s3 ],
-      [-s3,-s3,  0 ], [  0,-s3,  0 ], [ s3,-s3,  0 ],
-      [-s3,-s3, s3 ], [  0,-s3, s3 ], [ s3,-s3, s3 ] ],
+    [ [-fL, fL,-fL ], [  0, fL,-fL ], [ fL, fL,-fL ],
+      [-fL, fL,  0 ], [  0, fL,  0 ], [ fL, fL,  0 ],
+      [-fL, fL, fL ], [  0, fL, fL ], [ fL, fL, fL ] ],
+    [ [-fL,-fL,-fL ], [  0,-fL,-fL ], [ fL,-fL,-fL ],
+      [-fL,-fL,  0 ], [  0,-fL,  0 ], [ fL,-fL,  0 ],
+      [-fL,-fL, fL ], [  0,-fL, fL ], [ fL,-fL, fL ] ],
 
-    [ [-s3,-s3, s3 ], [-s3,  0, s3 ], [-s3, s3, s3 ],
-      [  0,-s3, s3 ], [  0,  0, s3 ], [  0, s3, s3 ],
-      [ s3,-s3, s3 ], [ s3,  0, s3 ], [ s3, s3, s3 ] ],
-    [ [-s3,-s3,-s3 ], [-s3,  0,-s3 ], [-s3, s3,-s3 ],
-      [  0,-s3,-s3 ], [  0,  0,-s3 ], [  0, s3,-s3 ],
-      [ s3,-s3,-s3 ], [ s3,  0,-s3 ], [ s3, s3,-s3 ] ]
+    [ [-fL,-fL, fL ], [-fL,  0, fL ], [-fL, fL, fL ],
+      [  0,-fL, fL ], [  0,  0, fL ], [  0, fL, fL ],
+      [ fL,-fL, fL ], [ fL,  0, fL ], [ fL, fL, fL ] ],
+    [ [-fL,-fL,-fL ], [-fL,  0,-fL ], [-fL, fL,-fL ],
+      [  0,-fL,-fL ], [  0,  0,-fL ], [  0, fL,-fL ],
+      [ fL,-fL,-fL ], [ fL,  0,-fL ], [ fL, fL,-fL ] ]
   ];
 
   let idir_v = [ [1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1] ];
@@ -1381,7 +1375,7 @@ function lune_network_3d_SPoIF(point) {
     //DEBUG
     //DEBUG
     //DEBUG
-    //if (p_idx > 0) { return; }
+    if (p_idx > 0) { return; }
     //DEBUG
     //DEBUG
     //DEBUG
@@ -1470,7 +1464,8 @@ function lune_network_3d_SPoIF(point) {
 
       for (let idir=0; idir<6; idir++) {
         for (let fpi=0; fpi<fencePost_v[idir].length; fpi++) {
-          let v = njs.add( win_center, njs.mul( ds*(ir+1), fencePost_v[idir][fpi] ) );
+          //let v = njs.add( win_center, njs.mul( ds*(ir+1), fencePost_v[idir][fpi] ) );
+          let v = njs.add( win_center, njs.mul( ds*((2*ir)+1), fencePost_v[idir][fpi] ) );
 
           if ( (v[0] < BB[0][0]) || (v[0] > BB[1][0]) ||
                (v[1] < BB[0][1]) || (v[1] > BB[1][1]) ||
@@ -1493,7 +1488,10 @@ function lune_network_3d_SPoIF(point) {
         let _flines = [];
         for (let idir=0; idir<6; idir++) {
           for (let fpi=0; fpi<fencePost_v[idir].length; fpi++) {
-            let v = njs.mul( Math.sqrt(3)*ds*((2*ir)+1), fencePost_v[idir][fpi] );
+            //let v = njs.mul( Math.sqrt(3)*ds*((2*ir)+1), fencePost_v[idir][fpi] );
+            //let v = njs.mul( ds*(ir+1), fencePost_v[idir][fpi] );
+            let v = njs.mul( ds*((2*ir)+1), fencePost_v[idir][fpi] );
+
             let vt = njs.add( v, win_center );
             //_flines.push("0 0 0");
             //_flines.push(printf("%f %f %f\n\n", v[0], v[1], v[2]));
@@ -1602,8 +1600,9 @@ function lune_network_3d_SPoIF(point) {
             for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
               let fpi = fencePostCluster[cluster_idx][fpci];
               //let fpv = njs.add( win_center, njs.mul( ds*(ir+1), fencePost_v[idir][fpi] ) );
-              let fpv = njs.mul( ds*(ir+1), fencePost_v[idir][fpi] );
-              fpv = njs.mul( Math.sqrt(3)*ds*((2*ir)+1), fencePost_v[idir][fpi] );
+              //let fpv = njs.mul( ds*(ir+1), fencePost_v[idir][fpi] );
+              let fpv = njs.mul( ds*((2*ir)+1), fencePost_v[idir][fpi] );
+              //fpv = njs.mul( Math.sqrt(3)*ds*((2*ir)+1), fencePost_v[idir][fpi] );
 
               //let u = njs.sub( fpv, qt );
               //let s = njs.dot( Nqt, u );
@@ -1700,7 +1699,6 @@ function lune_network_3d_SPoIF(point) {
 // seed random here
 //
 let _n = 10000;
-    _n = 100000;
 let _P = [];
 for (let i=0; i<_n; i++) {
   _P.push( [ _rnd(), _rnd(), _rnd() ] );

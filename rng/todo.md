@@ -8,8 +8,26 @@ TODO
     + sweep is not perimeter but whole sub grid? fixed, `gnuplot_cube` needs to be radius ds/2, not ds
     + sweep is 1 more side length than it should be? fixed from above (double size overlapped and caused visual artifact
       to make it look like it was whole grid)
-    + frustrum fence posts aren't as long as they need to be
+    + frustrum fence posts aren't as long as they need to be, fixed (see below)
       - hacked lengths that look right, I'll have to go back and justify them
+      - sqrt(3) is the length of the diagonal, the actual side lengths should be 1/2 (1 total span),
+        with a gotcha of needing to scale the radius by 2*ir + 1 in the appropriate places
+* add naive rng
+  - get the basics working even if slow
+  - once working, we can optimize
+* optimize
+  - measure, don't guess
+  - some likely places (but make sure to confirm before implementing):
+    + early breakout for cluster collection (as soon as one fails, can break)
+    + only test subset of directions based on direction of Nq plane normal
+    + sort q points by distance and maybe max discrepency angle (?) to try
+      and find representative points that will secure the fence (posts)
+    + naive rng can maybe be sped up by ordering by distance (and maybe
+      max discrepency angle) and using the partition trick to discard
+      points
+
+        
+        
 
 
 
