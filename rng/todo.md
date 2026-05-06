@@ -1,6 +1,15 @@
 TODO
 ===
 
+###### 2026-05-06
+
+* debugging SPoIF
+  - looks like there's multiple things wrong:
+    + sweep is not perimeter but whole sub grid? fixed, `gnuplot_cube` needs to be radius ds/2, not ds
+    + sweep is 1 more side length than it should be? fixed from above (double size overlapped and caused visual artifact
+      to make it look like it was whole grid)
+    + frustrum fence posts aren't as long as they need to be
+
 
 ###### 2026-03-13
 
