@@ -121,6 +121,9 @@
 var njs = require("./numeric.js");
 var srand = require("./seedrandom.js");
 var fs = require("fs");
+var printf = require("./printf.js");
+
+var fasslib = require("./fasslib.js");
 
 var _rnd = srand("lunenetwork");
 
@@ -150,6 +153,112 @@ function poisson_point(N, D) {
     pnt.push(p);
   }
   return pnt;
+}
+
+function gnuplot_plane(ofn, Np, p0, r, nseg) {
+  p0 = ((typeof p0 === "undefined") ? [0,0,0] : p0);
+  r = ((typeof r === "undefined") ? 1 : r);
+  nseg = ((typeof nseg === "undefined") ? 32 : nseg);
+
+  let q = njs.random([3]);
+  let Nq = njs.mul( 1 / njs.norm2(q), q );
+
+  let u = njs.sub( Nq, njs.mul( njs.dot(Np,Nq), Np ) );
+  let Nu = njs.mul( 1 / njs.norm2(u) , u );
+
+  let _lines = [];
+  for (let i=0; i<=nseg; i++) {
+    let theta =2 * Math.PI * i / nseg; 
+
+    let v = fasslib.rodrigues(Nu, Np, theta);
+    let vt = njs.add(p0, njs.mul( r, v ) );
+
+    _lines.push( printf("%f %f %f", vt[0], vt[1], vt[2]) );
+  }
+
+  _lines.push("\n\n");
+  _lines.push( printf("%f %f %f", p0[0], p0[1], p0[2]));
+  _lines.push( printf("%f %f %f",
+    r*Np[0] + p0[0],
+    r*Np[1] + p0[1],
+    r*Np[2] + p0[2]));
+  _lines.push("\n\n");
+
+  let u0 = njs.add(p0, njs.mul(r, Nu));
+  let u1 = njs.add(p0, njs.mul(r, fasslib.rodrigues(Nu, Np, Math.PI/2) ));
+  let u2 = njs.add(p0, njs.mul(r, fasslib.rodrigues(Nu, Np, Math.PI) ));
+  let u3 = njs.add(p0, njs.mul(r, fasslib.rodrigues(Nu, Np, -Math.PI/2) ));
+
+  _lines.push( printf("%f %f %f", u0[0], u0[1], u0[2]) );
+  _lines.push( printf("%f %f %f", u2[0], u2[1], u2[2]) );
+  _lines.push("\n\n");
+
+  _lines.push( printf("%f %f %f", u1[0], u1[1], u1[2]) );
+  _lines.push( printf("%f %f %f", u3[0], u3[1], u3[2]) );
+  _lines.push("\n\n");
+
+  fs.writeFileSync(ofn, _lines.join("\n"));
+}
+
+function gnuplot_cube(ofn, p0, r) {
+  p0 = ((typeof p0 === "undefined") ? [0,0,0] : p0);
+  r = ((typeof r === "undefined") ? 1 : r);
+
+  let _lines = [];
+
+  _lines.push( printf("%f %f %f", p0[0] + r, p0[1] + r, p0[2] + r) );
+  _lines.push( printf("%f %f %f", p0[0] - r, p0[1] + r, p0[2] + r) );
+  _lines.push("\n\n");
+
+  _lines.push( printf("%f %f %f", p0[0] + r, p0[1] - r, p0[2] + r) );
+  _lines.push( printf("%f %f %f", p0[0] - r, p0[1] - r, p0[2] + r) );
+  _lines.push("\n\n");
+
+  _lines.push( printf("%f %f %f", p0[0] + r, p0[1] - r, p0[2] - r) );
+  _lines.push( printf("%f %f %f", p0[0] - r, p0[1] - r, p0[2] - r) );
+  _lines.push("\n\n");
+
+  _lines.push( printf("%f %f %f", p0[0] + r, p0[1] + r, p0[2] - r) );
+  _lines.push( printf("%f %f %f", p0[0] - r, p0[1] + r, p0[2] - r) );
+  _lines.push("\n\n");
+
+  //---
+
+  _lines.push( printf("%f %f %f", p0[0] + r, p0[1] + r, p0[2] + r) );
+  _lines.push( printf("%f %f %f", p0[0] + r, p0[1] - r, p0[2] + r) );
+  _lines.push("\n\n");
+
+  _lines.push( printf("%f %f %f", p0[0] - r, p0[1] + r, p0[2] + r) );
+  _lines.push( printf("%f %f %f", p0[0] - r, p0[1] - r, p0[2] + r) );
+  _lines.push("\n\n");
+
+  _lines.push( printf("%f %f %f", p0[0] - r, p0[1] + r, p0[2] - r) );
+  _lines.push( printf("%f %f %f", p0[0] - r, p0[1] - r, p0[2] - r) );
+  _lines.push("\n\n");
+
+  _lines.push( printf("%f %f %f", p0[0] + r, p0[1] + r, p0[2] - r) );
+  _lines.push( printf("%f %f %f", p0[0] + r, p0[1] - r, p0[2] - r) );
+  _lines.push("\n\n");
+
+  //---
+
+  _lines.push( printf("%f %f %f", p0[0] + r, p0[1] + r, p0[2] + r) );
+  _lines.push( printf("%f %f %f", p0[0] + r, p0[1] + r, p0[2] - r) );
+  _lines.push("\n\n");
+
+  _lines.push( printf("%f %f %f", p0[0] - r, p0[1] + r, p0[2] + r) );
+  _lines.push( printf("%f %f %f", p0[0] - r, p0[1] + r, p0[2] - r) );
+  _lines.push("\n\n");
+
+  _lines.push( printf("%f %f %f", p0[0] - r, p0[1] - r, p0[2] + r) );
+  _lines.push( printf("%f %f %f", p0[0] - r, p0[1] - r, p0[2] - r) );
+  _lines.push("\n\n");
+
+  _lines.push( printf("%f %f %f", p0[0] + r, p0[1] - r, p0[2] + r) );
+  _lines.push( printf("%f %f %f", p0[0] + r, p0[1] - r, p0[2] - r) );
+  _lines.push("\n\n");
+
+  fs.writeFileSync(ofn, _lines.join("\n"));
 }
 
 function print_point(pnt, disconnect) {
@@ -1267,6 +1376,16 @@ function lune_network_3d_SPoIF(point) {
 
 
   for (let p_idx = 0; p_idx < info.P.length; p_idx++) {
+
+    //DEBUG
+    //DEBUG
+    //DEBUG
+    if (p_idx > 0) { return; }
+    //DEBUG
+    //DEBUG
+    //DEBUG
+
+
     let p = info.P[p_idx];
 
     //PROFILING
@@ -1290,9 +1409,32 @@ function lune_network_3d_SPoIF(point) {
     let sweep0 = grid_sweep_perim_3d(info, p, 0);
     let cell_origin = sweep0.path[0];
 
-    let win_center = njs.add( [ds/2,ds/2,ds/2], njs.mul( ds, cell_origin ) );
+    // we do calculations relative to the window center, which is the halfway
+    // point inside of the center cell.
+    // win_center : center point inside center cell
+    // del_p      : the amount to translate win_center to reach p (p should be
+    //              inside the center cell).
+    // dpp        : vector from p to q
+    // Nqp        : normal vector from p to q
+    // dq         : vector from win_center to q
+    // fpv        : fence post vector, centered at 0, scaled to the size of
+    //              the current cell fence
+    //
+    //
 
+    let win_center = njs.add( [ds/2,ds/2,ds/2], njs.mul( ds, cell_origin ) );
     let dp = njs.sub( p, win_center );
+    let del_p = njs.sub( win_center, p );
+
+    //DEBUG
+    //DEBUG
+    //DEBUG
+    //DEBUG
+    fs.writeFileSync("data/p" + p_idx.toString() + ".gp", printf("%f %f %f", dp[0], dp[1], dp[2]));
+    //DEBUG
+    //DEBUG
+    //DEBUG
+    //DEBUG
 
     if (_debug) {
       console.log("#ds:", ds, "grid_n:", grid_n);
@@ -1310,7 +1452,7 @@ function lune_network_3d_SPoIF(point) {
     //STILL TODO:
     //major testing
     //current issue is when p is near edge, we need
-    //to makre the fence post as secured if it crosses the boundary.
+    //to mark the fence post as secured if it crosses the boundary.
     //eventually we want to check to make sure if the post is outside
     //the convex hull, it's also marked (maybe a callback that takes
     //in the context, maybe marking cells as a preprocessing step).
@@ -1340,6 +1482,24 @@ function lune_network_3d_SPoIF(point) {
         }
       }
 
+      //DEBUG
+      //DEBUG
+      //DEBUG
+      let _flines = [];
+      for (let idir=0; idir<6; idir++) {
+        for (let fpi=0; fpi<fencePost_v[idir].length; fpi++) {
+          let v = njs.mul( ds*(ir+1), fencePost_v[idir][fpi] );
+          _flines.push("0 0 0");
+          _flines.push(printf("%f %f %f\n\n", v[0], v[1], v[2]));
+        }
+      }
+      fs.writeFileSync("data/f" + ir.toString() + ".gp", _flines.join("\n"));
+
+
+      //DEBUG
+      //DEBUG
+      //DEBUG
+
       if (_debug > 2) { console.log(sweep.path.length, sweep); }
 
       // collect q indicies.
@@ -1362,9 +1522,30 @@ function lune_network_3d_SPoIF(point) {
       for (let sqi=0; sqi<sweep_q_idx.length; sqi++) {
         let q_idx = sweep_q_idx[sqi];
         let q = info.P[q_idx];
+        let dq = njs.sub( q, win_center );
 
-        let qt = njs.sub( njs.sub( p, q ), dp );
-        let Nqt = njs.mul( 1 / njs.norm2(qt), qt );
+        //let qt = njs.sub( njs.sub( p, q ), dp );
+        let dqp = njs.sub(q,p);
+        let Nqp = njs.mul( 1 / njs.norm2(dqp), dqp );
+
+        //DEBUG
+        //DEBUG
+        //DEBUG
+        //DEBUG
+        gnuplot_plane("data/qp" + sqi.toString() + ".gp", Nqp, dq, ds, 32);
+        //DEBUG
+        //DEBUG
+        //DEBUG
+        //DEBUG
+
+        //let qt = njs.add( njs.sub( p, q ), del_p );
+        //let Nqt = njs.mul( 1 / njs.norm2(qt), qt );
+
+        if (_debug) {
+          console.log("#q[", sqi, "]:", JSON.stringify(q));
+          //console.log("#qt:", JSON.stringify(qt), "Nqt:", JSON.stringify(Nqt), "(", njs.norm2(Nqt), ")");
+          console.log("#dq:", JSON.stringify(dq), "Nqp:", JSON.stringify(Nqp), "(", njs.norm2(Nqp), ")");
+        }
 
         for (let idir=0; idir<6; idir++) {
           for (let cluster_idx=0; cluster_idx < fencePostCluster.length; cluster_idx++) {
@@ -1374,9 +1555,26 @@ function lune_network_3d_SPoIF(point) {
             let n_cluster_secure = 0;
             for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
               let fpi = fencePostCluster[cluster_idx][fpci];
-              let fpv = njs.add( win_center, njs.mul( ds*(ir+1), fencePost_v[idir][fpi] ) );
-              let u = njs.sub( fpv, qt );
-              let s = njs.dot( Nqt, u );
+              //let fpv = njs.add( win_center, njs.mul( ds*(ir+1), fencePost_v[idir][fpi] ) );
+              let fpv = njs.mul( ds*(ir+1), fencePost_v[idir][fpi] );
+
+              //let u = njs.sub( fpv, qt );
+              //let s = njs.dot( Nqt, u );
+
+              let s = njs.dot( Nqp, njs.sub( fpv, dq ) );
+
+              if (_debug > 0) {
+                //console.log("# u:", JSON.stringify(u), "s:", s);
+                console.log("# s:", s);
+                console.log( printf("# fpci: %i, fpi: %i, fpv: [%f %f %f] (wc: [%f %f %f] + (ds:%f * (ir+1):%f) fP_v:[%f %f %f])",
+                  fpci, fpi, fpv[0], fpv[1], fpv[2],
+                  win_center[0], win_center[1], win_center[2],
+                  ds, ir+1,
+                  fencePost_v[idir][fpi][0],
+                  fencePost_v[idir][fpi][1],
+                  fencePost_v[idir][fpi][2]) );
+              }
+
               if (s > 0) { n_cluster_secure++; }
             }
 
@@ -1386,6 +1584,7 @@ function lune_network_3d_SPoIF(point) {
 
               if (_debug > 2) {
                 console.log("#q_idx:", q_idx,
+                  "n_cluster_secure:", n_cluster_secure, "/", fencePostCluster[cluster_idx].length, ",",
                   "securing idir:", idir,
                   "cluster:", cluster_idx,
                   "(", JSON.stringify(fencePostCluster[cluster_idx]), ")");
