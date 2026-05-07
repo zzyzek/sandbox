@@ -11,7 +11,7 @@
 // Some motivation for this program:
 //
 // The Relative Neighborhood Graph (RNG) is calculated from a set of points
-// in (Euclidean0 space by joining any two points that don't have another
+// in (Euclidean) space by joining any two points that don't have another
 // in the middle of their lune.
 //
 // If the distance between two points is $d$, the lune is the intersection
@@ -44,10 +44,10 @@
 // edge count is bounded by O(n^2), so in the aggregate, doing the same
 // greedy algorithm will yield O(n^2) to extract the RNG.
 //
-// When the points are in generic (e.g. random) position, some optimizations
+// When the points are in general position (e.g. random) position, some optimizations
 // can be employed as the maximum vertex degree of a neighborhood graph
-// is almost surely bounded. Note that this *not* true for generic points
-// for the DT, and for the DT with generic points, the maximum degree is
+// is almost surely bounded. Note that this *not* true for general position points
+// for the DT, and for the DT with general position points, the maximum degree is
 // bounded by O( lg n / lg lg n ).
 //
 // The idea that we're trying to implement here is an expected linear
