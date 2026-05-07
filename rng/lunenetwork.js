@@ -1250,6 +1250,7 @@ function lune_network_3d_SPoIF(point) {
   //DEBUG
   //DEBUG
   _debug = 4;
+  _debug = -1;
   //DEBUG
   //DEBUG
   //DEBUG
@@ -1375,7 +1376,7 @@ function lune_network_3d_SPoIF(point) {
     //DEBUG
     //DEBUG
     //DEBUG
-    if (p_idx > 0) { return; }
+    //if (p_idx > 0) { return; }
     //DEBUG
     //DEBUG
     //DEBUG
@@ -1434,7 +1435,7 @@ function lune_network_3d_SPoIF(point) {
     //DEBUG
     //DEBUG
 
-    if (_debug) {
+    if (_debug > 0) {
       console.log("#ds:", ds, "grid_n:", grid_n);
       console.log("#cell_center:", JSON.stringify(cell_origin),
         "grid_occ:", info.grid[ip[2]][ip[1]][ip[0]].length);
@@ -1585,7 +1586,7 @@ function lune_network_3d_SPoIF(point) {
         //let qt = njs.add( njs.sub( p, q ), del_p );
         //let Nqt = njs.mul( 1 / njs.norm2(qt), qt );
 
-        if (_debug) {
+        if (_debug > 0) {
           console.log("#q[", sqi, "]:", JSON.stringify(q));
           //console.log("#qt:", JSON.stringify(qt), "Nqt:", JSON.stringify(Nqt), "(", njs.norm2(Nqt), ")");
           console.log("#dq:", JSON.stringify(dq), "Nqp:", JSON.stringify(Nqp), "(", njs.norm2(Nqp), ")");
@@ -1660,37 +1661,52 @@ function lune_network_3d_SPoIF(point) {
 
       if (_debug > 1) { console.log("#fpsecure (", n_secure, "):", fencePostSecure); }
 
-
       if (n_secure == n_secure_max) {
-        if (_debug > 2) { console.log("#SECURE"); }
-        console.log("#SECURE", "ir:", ir, "p_idx:", p_idx);
+        if (_debug > 2) {
+          console.log("#SECURE", "ir:", ir, "p_idx:", p_idx);
+        }
 
         //PROFILING
         //PROFILING
         prof_e( prof_ctx, p_idx.toString() );
-        prof_print(prof_ctx);
+        if (_debug > 0) {
+          prof_print(prof_ctx);
+        }
         //PROFILING
         //PROFILING
 
         break;
       }
 
-
-
-      //DEBUG
-      //DEBUG
-      //DEBUG
-      //if (ir > 2) { return; }
-      //DEBUG
-      //DEBUG
-      //DEBUG
-
     }
 
-    console.log("###IR!!!:", ir);
+    if (_debug > 1) { console.log("###IR!!!:", ir); }
+
+    // naive RNG relative to p_idx
+    //
+    let added = 0;
+    for (let sqi=0; sqi<sweep_q_idx.length; sqi++) {
+      let q_idx = sweep_q_idx[sqi];
+      let _found = true;
+      for (let sqj=0; sqj<sweep_q_idx.length; sqj++) {
+        if (sqi == sqj) { continue; }
+        let u_idx = sweep_q_idx[sqj];
+        if (in_lune(info.P[p_idx], info.P[q_idx], info.P[u_idx])) {
+          _found = false;
+          break;
+        }
+      }
+      if (_found) {
+        info.E.push( [p_idx, q_idx] );
+        added++;
+      }
+    }
+
+    if (_debug == -1) { console.log("#", p_idx, "/", info.P.length, "(", added, info.E.length, ")"); }
 
   }
 
+  return info;
 }
 
 //DEBUG
@@ -1698,12 +1714,44 @@ function lune_network_3d_SPoIF(point) {
 //DEBUG
 // seed random here
 //
-let _n = 10000;
-let _P = [];
-for (let i=0; i<_n; i++) {
-  _P.push( [ _rnd(), _rnd(), _rnd() ] );
+
+function gnuplot_rng3d(ofn, ctx) {
+  let _lines =[];
+  for (let i=0; i<ctx.E.length; i++) {
+    let p_idx = ctx.E[i][0];
+    let q_idx = ctx.E[i][1];
+
+    let p = ctx.P[p_idx];
+    let q = ctx.P[q_idx];
+
+    _lines.push( printf("%f %f %f", p[0], p[1], p[2]) );
+    _lines.push( printf("%f %f %f\n\n", q[0], q[1], q[2]) );
+  }
+
+  fs.writeFileSync(ofn, _lines.join("\n"));
 }
-lune_network_3d_SPoIF(_P);
+
+function spoif_spotcheck() {
+
+  let _n = 10000;
+  _n = 1000;
+  let _P = [];
+  for (let i=0; i<_n; i++) {
+    _P.push( [ _rnd(), _rnd(), _rnd() ] );
+  }
+  let info = lune_network_3d_SPoIF(_P);
+
+  gnuplot_rng3d("data/rng_spoif_n1000.gp", info);
+
+  let naive_res = naive_relnei_E(info.P);
+
+  let _cmp_res = check_cmp(info, naive_res.A);
+  console.log(_cmp_res);
+
+}
+
+spoif_spotcheck();
+
 process.exit();
 //DEBUG
 //DEBUG
@@ -2665,7 +2713,7 @@ function gen_instance_3d_fence(n, B, _point) {
     l0 *= ds;
     let t0 = l0*Math.sqrt(3);
 
-    if (_debug) {
+    if (_debug > 0) {
       console.log("# P[", p_idx, "]:", p, "ip:", ip, "Wp:", Wp, "l0:", l0, "(near_idir:", p_near_idir, ")");
 
       console.log(p[0], p[1], p[2]);
@@ -2682,7 +2730,7 @@ function gen_instance_3d_fence(n, B, _point) {
       }
     }
 
-    if (_debug) {
+    if (_debug > 0) {
       //DEBUG
       //DEBUG
       console.log("# local p[", p_idx, "], fence:", p_fence, " frustum:");
@@ -2719,7 +2767,7 @@ function gen_instance_3d_fence(n, B, _point) {
 
     for (let ir = 0; ir < grid_n; ir++) {
 
-      if (_debug) {
+      if (_debug > 0) {
         console.log("# ir:", ir, "fence:", p_fence.join(","));
       }
 
@@ -2730,7 +2778,7 @@ function gen_instance_3d_fence(n, B, _point) {
       }
       if (fenced_in) {
 
-        if (_debug) {
+        if (_debug > 0) {
           console.log("#fenced in (fence:", p_fence, "), breaking");
         }
 
@@ -2748,7 +2796,7 @@ function gen_instance_3d_fence(n, B, _point) {
         }
 
         //DEBUG
-        if (_debug) {
+        if (_debug > 0) {
           console.log("# grid_bin", ixyz, ":", grid_bin.join(","));
         }
         //DEBUG
@@ -2759,7 +2807,7 @@ function gen_instance_3d_fence(n, B, _point) {
         let q_idx = sweep_q_idx[nei_idx];
         if (q_idx == p_idx) { continue; }
 
-        if (_debug) {
+        if (_debug > 0) {
           console.log("# adding q_idx:", q_idx, "to pif_list (", pif_list.join(","), ") (p_idx:", p_idx, ")");
         }
 
@@ -2788,7 +2836,7 @@ function gen_instance_3d_fence(n, B, _point) {
 
             if ( Math.abs(qp_v) < _eps) {
 
-              if (_debug) {
+              if (_debug > 0) {
                 console.log("#skipping p_frustum[", idir, "][", ii, "]: ( (q-p).v =", qp_v, ")");
               }
 
@@ -2800,7 +2848,7 @@ function gen_instance_3d_fence(n, B, _point) {
 
             let tI = Math.floor(t - t0);
 
-            if (_debug) {
+            if (_debug > 0) {
               console.log("##>> F[", idir, "][", ii, "] p:", p, "q:", q, "t:", t, "t0:", t0, "tI:", tI);
             }
 
@@ -2826,7 +2874,7 @@ function gen_instance_3d_fence(n, B, _point) {
 
               //DEBUG
               //DEBUG
-              if (_debug) {
+              if (_debug > 0) {
                 if (_debug_vidx >= 0) {
                   console.log(q[0], q[1], q[2]);
                   let _v = njs.add(p, njs.mul(_debug_t, p_f_v[idir][_debug_vidx])) ;
@@ -2854,7 +2902,7 @@ function gen_instance_3d_fence(n, B, _point) {
     // all points in fence
     //
 
-    if (_debug) {
+    if (_debug > 0) {
       console.log("# naive rng for p_idx:", p_idx, "on pif_list:", pif_list.join(","));
     }
 
