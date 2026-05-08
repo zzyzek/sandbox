@@ -1,9 +1,31 @@
 TODO
 ===
 
+###### 2026-05-08
+
+* optimization of SPoIF
+  - current optimizations give about 10x over naive implementation
+    + cache secure calculation for fence posts from $(p,q)$ cutting plane ( ~ 2x speedup )
+    + early bail out if fence secured ( ~ 1.5x speedup )
+    + skip opposite frustum of $(p,q)$ plane ( ~ 1.25x speedup )
+    + order $q$ points by distance ( ~ 1.15x speedup )
+    + start with ir=1 ( ~ 1.15 speedup )
+    + above estimates don't come out to 10x but 10x is observed
+  - securing the fence and naive rng on the secured points are now roughly equal runtimes
+  - naive rng can probably be sped up by using the cutting plane to remove points, say
+    by an initial pass
+  - we're throwing away a lot of information as each rng relative to the anchor point $p$
+    is done in isolation
+    + isolation makes it embarrassingly parallel, which might be good for hardware speedups
+    + previous rng of neighbors can seed the rng for the next
+    + could do a breadth first search order by how many neighboring points have been seeded
+
+
+
+
 ###### 2026-05-06
 
-* debugging SPoIF
+* debugging SPoIF (resolved)
   - looks like there's multiple things wrong:
     + sweep is not perimeter but whole sub grid? fixed, `gnuplot_cube` needs to be radius ds/2, not ds
     + sweep is 1 more side length than it should be? fixed from above (double size overlapped and caused visual artifact
@@ -12,10 +34,10 @@ TODO
       - hacked lengths that look right, I'll have to go back and justify them
       - sqrt(3) is the length of the diagonal, the actual side lengths should be 1/2 (1 total span),
         with a gotcha of needing to scale the radius by 2*ir + 1 in the appropriate places
-* add naive rng
+* add naive rng (done)
   - get the basics working even if slow
   - once working, we can optimize
-* optimize
+* optimize (wip)
   - measure, don't guess
   - some likely places (but make sure to confirm before implementing):
     + early breakout for cluster collection (as soon as one fails, can break)
