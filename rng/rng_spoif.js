@@ -1410,8 +1410,6 @@ function lune_network_3d_SPoIF_opt(point) {
 
       prof_s( info.prof, "rng.sweep.end");
 
-
-
       // check to see if we've secured all fence posts
       // and stop if we have
       //
