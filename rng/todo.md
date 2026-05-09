@@ -21,6 +21,25 @@ TODO
     + could do a breadth first search order by how many neighboring points have been seeded
 
 
+There are two main sections to speed up:
+
+* Fence securitization
+* RNG realtive to anchor point calculation
+
+For fence securitization:
+
+* partial RNG neighbors of anchor point can be prioritized to secure fence
+  - the idea is that RNG neighbors have a higher likelyhood of securing the fence
+  - obviously a rough heuristic, so we'll see if it helps
+  - might want to consider low discrepency angle order to try and jump around as much as possible
+    + one idea is to use a butterfly sfc ( [ [0,0], [1,0], [0,1], [1,1] ] -> [ [0,0], [1,1], [1,0], [0,1] ])
+      mapped to the unit sphere
+* partial RNG can be used to toss out portions of domain
+  - can order $q$ neighbor points by distance, take top $k$ ( $k=10$ say ), and toss out values that
+    fall on the otherside of the cutting plane
+
+The rough goal is to get 10k points processed within 1s.
+Currently it's at 9s per 10k, so another 10x speedup would be required.
 
 
 ###### 2026-05-06

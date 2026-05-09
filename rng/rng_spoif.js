@@ -91,6 +91,7 @@ var fs = require("fs");
 var printf = require("./printf.js");
 
 var fasslib = require("./fasslib.js");
+var PQ = require("./priority-queue.js");
 
 //var RND = srand("lunenetwork");
 
