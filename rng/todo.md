@@ -1,6 +1,18 @@
 TODO
 ===
 
+###### 2026-05-12
+
+* calling base SPoIF implemented
+  - still slow, but I'd like to focus on features (API, grid marking, convex hull wrapping, etc.)
+* features to be implemented
+  - API
+  - convex hull marking and initial grid marking
+  - grid marking from image bitmask
+* space colonization will give guide on what API to implement and give better scaffolding
+  to test the OOB grid marking
+
+
 ###### 2026-05-08
 
 * optimization of SPoIF
