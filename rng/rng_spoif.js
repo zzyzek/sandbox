@@ -236,17 +236,28 @@ function print_point(pnt, disconnect) {
   console.log("");
 }
 
-function in_lune(pnt_a, pnt_b, tst_c) {
+function __in_lune(pnt_a, pnt_b, tst_c) {
 
   let dist_ca = njs.norm2( njs.sub(tst_c, pnt_a) );
   let dist_cb = njs.norm2( njs.sub(tst_c, pnt_b) );
   let dist_ab = njs.norm2( njs.sub(pnt_a, pnt_b) );
 
-  //console.log("# pnt_a(", pnt_a, "), pnt_b(", pnt_b, "), tst_c(", tst_c, ")");
-  //console.log("# dist_ca:", dist_ca, "dist_cb:", dist_cb, "dist_ab:", dist_ab);
-
   if ((dist_ca <= dist_ab) &&
       (dist_cb <= dist_ab)) {
+    return true;
+  }
+
+  return false;
+}
+
+function in_lune(pnt_a, pnt_b, tst_c) {
+
+  let dist2_ca = njs.norm2Squared( njs.sub(tst_c, pnt_a) );
+  let dist2_cb = njs.norm2Squared( njs.sub(tst_c, pnt_b) );
+  let dist2_ab = njs.norm2Squared( njs.sub(pnt_a, pnt_b) );
+
+  if ((dist2_ca <= dist2_ab) &&
+      (dist2_cb <= dist2_ab)) {
     return true;
   }
 
@@ -1369,22 +1380,9 @@ function lune_network_3d_SPoIF_opt(point) {
 
       // order by distance. helps in combination with running fence post count short
       // circuit.
-      // (worth ~15% speed increase)
+      // (worth ~25% speed increase)
       //
       q_sched.sort( function (a,b) { return ((a[2]<b[2]) ? -1 : ((a[2]>b[2]) ? 1 : 0)); } );
-
-      if (false) {
-      let f_idx = 0;
-      for (let qi=0; qi<q_sched.length; qi++) {
-        let q_idx = q_sched[qi][0];
-        if (q_idx in info.Ve_map[p_idx]) {
-          let t = q_sched[f_idx];
-          q_sched[f_idx] = q_sched[qi];
-          q_sched[qi] = t;
-          f_idx++;
-        }
-      }
-      }
 
       prof_e( info.prof, "rng.sweep.sort");
 
