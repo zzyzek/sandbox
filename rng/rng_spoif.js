@@ -1208,6 +1208,11 @@ function lune_network_3d_SPoIF_opt(point) {
     "P": [],
     "E": [],
 
+    // vertex edge list
+    //
+    "Ve": [],
+    "Ve_map": [],
+
     "prof": {}
   };
 
@@ -1238,6 +1243,9 @@ function lune_network_3d_SPoIF_opt(point) {
     let iz = Math.floor(info.P[i][2]*grid_n);
     info.grid[iz][iy][ix].push(i);
     info.point_grid_bp.push( [ix,iy,iz] );
+
+    info.Ve.push([]);
+    info.Ve_map.push({});
   }
 
   prof_e( info.prof, "init" );
@@ -1315,6 +1323,7 @@ function lune_network_3d_SPoIF_opt(point) {
           if (n_cluster_secure == fencePostCluster[cluster_idx].length) {
             for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
               let fpi = fencePostCluster[cluster_idx][fpci];
+              if (fencePostSecure[idir][fpi] == 0) { n_fp_secure++; }
               fencePostSecure[idir][fpi] = 1;
             }
           }
@@ -1363,6 +1372,19 @@ function lune_network_3d_SPoIF_opt(point) {
       // (worth ~15% speed increase)
       //
       q_sched.sort( function (a,b) { return ((a[2]<b[2]) ? -1 : ((a[2]>b[2]) ? 1 : 0)); } );
+
+      if (false) {
+      let f_idx = 0;
+      for (let qi=0; qi<q_sched.length; qi++) {
+        let q_idx = q_sched[qi][0];
+        if (q_idx in info.Ve_map[p_idx]) {
+          let t = q_sched[f_idx];
+          q_sched[f_idx] = q_sched[qi];
+          q_sched[qi] = t;
+          f_idx++;
+        }
+      }
+      }
 
       prof_e( info.prof, "rng.sweep.sort");
 
@@ -1423,7 +1445,8 @@ function lune_network_3d_SPoIF_opt(point) {
               }
             }
 
-            // if we've secured all fence posts in the cluster,
+            // if we know we've secured all fence posts in the cluster
+            // from the cluster secure count,
             // mark all fence posts in the cluster as secure
             //
             if (n_cluster_secure == fencePostCluster[cluster_idx].length) {
@@ -1487,6 +1510,13 @@ function lune_network_3d_SPoIF_opt(point) {
       }
       if (_found) {
         info.E.push( [p_idx, q_idx] );
+
+        info.Ve[p_idx].push(q_idx);
+        info.Ve[q_idx].push(p_idx);
+
+        info.Ve_map[p_idx][q_idx] = 1;
+        info.Ve_map[q_idx][p_idx] = 1;
+
         added++;
       }
     }
