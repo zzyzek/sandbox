@@ -3,7 +3,7 @@
 // To the extent possible under law, the person who associated CC0 with
 // this project has waived all copyright and related or neighboring rights
 // to this project.
-// 
+//
 // You should have received a copy of the CC0 legalcode along with this
 // work.  If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
@@ -130,7 +130,7 @@ function gnuplot_plane(ofn, Np, p0, r, nseg) {
 
   let _lines = [];
   for (let i=0; i<=nseg; i++) {
-    let theta =2 * Math.PI * i / nseg; 
+    let theta =2 * Math.PI * i / nseg;
 
     let v = fasslib.rodrigues(Nu, Np, theta);
     let vt = njs.add(p0, njs.mul( r, v ) );
@@ -647,10 +647,10 @@ function lune_network_3d_SPoIF(point) {
   let fL = 1/2;
   let fencePost_v = [
     [ [ fL,-fL,-fL ], [ fL,  0,-fL ], [ fL, fL,-fL ],
-      [ fL,-fL,  0 ], [ fL,  0,  0 ], [ fL, fL,  0 ], 
+      [ fL,-fL,  0 ], [ fL,  0,  0 ], [ fL, fL,  0 ],
       [ fL,-fL, fL ], [ fL,  0, fL ], [ fL, fL, fL ] ],
     [ [-fL,-fL,-fL ], [-fL,  0,-fL ], [-fL, fL,-fL ],
-      [-fL,-fL,  0 ], [-fL,  0,  0 ], [-fL, fL,  0 ], 
+      [-fL,-fL,  0 ], [-fL,  0,  0 ], [-fL, fL,  0 ],
       [-fL,-fL, fL ], [-fL,  0, fL ], [-fL, fL, fL ] ],
 
     [ [-fL, fL,-fL ], [  0, fL,-fL ], [ fL, fL,-fL ],
@@ -747,7 +747,7 @@ function lune_network_3d_SPoIF(point) {
     grid_occ_mean /= (grid_n*grid_n*grid_n);
     grid_occ.sort( function(a,b) { if (a<b) { return -1; } if (a>b) { return 1; } return 0; } );
     console.log("# grid mM:", grid_occ_mM[0], grid_occ_mM[1],
-                "grid_mean:", grid_occ_mean, 
+                "grid_mean:", grid_occ_mean,
                 "grid_med:", grid_occ[ Math.floor( grid_occ.length/2 ) ],
                 "grid_freq:", JSON.stringify(grid_occ_freq) );
   }
@@ -858,7 +858,7 @@ function lune_network_3d_SPoIF(point) {
             if (_debug > 1) {
               console.log("# oob secure idir:", idir, "fpi:", fpi, "(v:", JSON.stringify(v), ")", JSON.stringify(BB));
             }
-            
+
             fencePostSecure[idir][fpi] = 1;
           }
         }
@@ -1115,13 +1115,42 @@ function lune_network_3d_SPoIF_opt(point) {
 
   let idir_oppo = [ 1,0, 3,2, 5,4 ];
 
+
+  //          4      7 2
+  //          ^     /
+  //          |   (+y)
+  //        (+z) /
+  //          | /
+  //  1 -(-x)-.-(+x)-> 0
+  //         /|
+  //        / (-z)
+  //     (-y) |
+  //      /   5
+  //     3         2 5 8 (+z)
+  //             1 4 7
+  //           0 3 6
+  //
+  //              6 7 8 (+y)
+  //     8        3 4 5        8
+  //   7 5        0 1 2      7 5
+  // 6 4 2                 6 4 2 (+x)
+  // 3 1    6 7 8          3 1
+  // 0      3 4 5          0
+  //        0 1 2
+  //
+  //               2 5 8
+  //             1 4 7
+  //           0 3 6
+  //
+  //
+
   let fL = 1/2;
   let fencePost_v = [
     [ [ fL,-fL,-fL ], [ fL,  0,-fL ], [ fL, fL,-fL ],
-      [ fL,-fL,  0 ], [ fL,  0,  0 ], [ fL, fL,  0 ], 
+      [ fL,-fL,  0 ], [ fL,  0,  0 ], [ fL, fL,  0 ],
       [ fL,-fL, fL ], [ fL,  0, fL ], [ fL, fL, fL ] ],
     [ [-fL,-fL,-fL ], [-fL,  0,-fL ], [-fL, fL,-fL ],
-      [-fL,-fL,  0 ], [-fL,  0,  0 ], [-fL, fL,  0 ], 
+      [-fL,-fL,  0 ], [-fL,  0,  0 ], [-fL, fL,  0 ],
       [-fL,-fL, fL ], [-fL,  0, fL ], [-fL, fL, fL ] ],
 
     [ [-fL, fL,-fL ], [  0, fL,-fL ], [ fL, fL,-fL ],
@@ -1138,6 +1167,7 @@ function lune_network_3d_SPoIF_opt(point) {
       [  0,-fL,-fL ], [  0,  0,-fL ], [  0, fL,-fL ],
       [ fL,-fL,-fL ], [ fL,  0,-fL ], [ fL, fL,-fL ] ]
   ];
+
 
   // precompute fence post vectors for common ir (0,1,2,3)
   // (worth ~30%-40% speed increase)
@@ -1266,21 +1296,29 @@ function lune_network_3d_SPoIF_opt(point) {
       // mark fence posts that fall out of bounds
       //
       for (let idir=0; idir<6; idir++) {
-        for (let fpi=0; fpi<fencePost_v[idir].length; fpi++) {
+        for (let cluster_idx=0; cluster_idx < fencePostCluster.length; cluster_idx++) {
 
-          let v = [0,0,0];
-          if (ir <= fpR_max_ir) {
-            v = njs.add( win_center, fpR_v[ir][idir][fpi] );
-          } else {
-            v = njs.add( win_center, njs.mul( ds*((2*ir)+1), fencePost_v[idir][fpi] ) );
+          let n_cluster_secure = 0;
+          for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
+            let fpi = fencePostCluster[cluster_idx][fpci];
+
+            let v = [0,0,0];
+            if (ir <= fpR_max_ir) {
+              v = njs.add( win_center, fpR_v[ir][idir][fpi] );
+            } else {
+              v = njs.add( win_center, njs.mul( ds*((2*ir)+1), fencePost_v[idir][fpi] ) );
+            }
+
+            if (oob(v, BB)) { n_cluster_secure++; }
           }
 
-          if ( (v[0] < BB[0][0]) || (v[0] > BB[1][0]) ||
-               (v[1] < BB[0][1]) || (v[1] > BB[1][1]) ||
-               (v[2] < BB[0][2]) || (v[2] > BB[1][2]) ) {
-            if (fencePostSecure[idir][fpi] == 0) { n_fp_secure++; }
-            fencePostSecure[idir][fpi] = 1;
+          if (n_cluster_secure == fencePostCluster[cluster_idx].length) {
+            for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
+              let fpi = fencePostCluster[cluster_idx][fpci];
+              fencePostSecure[idir][fpi] = 1;
+            }
           }
+
         }
       }
 
