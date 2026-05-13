@@ -690,9 +690,10 @@ function lune_network_3d_SPoIF(point) {
     "dim": 3,
     "start": [0,0,0],
     "size": [1,1,1],
-    "point_grid_bp": [],
     "grid_cell_size": [-1,-1,-1],
     "bbox": [[0,0,0], [1,1,1]],
+
+    "P_idx_grid_bp": [],
 
     "grid": [],
     "grid_s": grid_s,
@@ -721,7 +722,7 @@ function lune_network_3d_SPoIF(point) {
 
 
   // populate grid with index,
-  // point_grid_bp maps index to 3d grid index
+  // P_idx_grid_bp maps index to 3d grid index
   //
   for (let i=0; i<n; i++) {
     info.P.push( [ point[i][0], point[i][1], point[i][2] ] );
@@ -729,7 +730,7 @@ function lune_network_3d_SPoIF(point) {
     let iy = Math.floor(info.P[i][1]*grid_n);
     let iz = Math.floor(info.P[i][2]*grid_n);
     info.grid[iz][iy][ix].push(i);
-    info.point_grid_bp.push( [ix,iy,iz] );
+    info.P_idx_grid_bp.push( [ix,iy,iz] );
   }
 
   if (_debug > 0) {
@@ -1102,6 +1103,130 @@ function lune_network_3d_SPoIF(point) {
   return info;
 }
 
+function SPoIF_add(info, pnt) {
+  let grid_n = info.grid_n;
+
+  let idx = info.P.length;
+
+  info.P.push( [ pnt[0], pnt[1], pnt[2] ] );
+  let ix = Math.floor(info.P[idx][0]*grid_n);
+  let iy = Math.floor(info.P[idx][1]*grid_n);
+  let iz = Math.floor(info.P[idx][2]*grid_n);
+  info.grid[iz][iy][ix].push(idx);
+  info.P_idx_grid_bp.push( [ix,iy,iz] );
+
+  return info;
+}
+
+function SPoIF_rem(info, pnt_idx) {
+
+  let _idx = info.P.length-1;
+
+  let _q = info.P[pnt_idx];
+  info.P[pnt_idx] = info.P[_idx];
+  info.P[_idx] = _q;
+
+  info.P.pop();
+
+  let _ixyz = info.P_idx_grid_bp[pnt_idx];
+  info.P_idx_grid_bp[pnt_idx] = info.P_idx_grid_bp[_idx];
+  info.P_idx_grid_bp[_idx] = _ixyz;
+
+  info.P_idx_grid_bp.pop();
+
+  let _n = info.grid[ _ixyz[2] ][ _ixyz[1] ][ _ixyz[0] ].length;
+  for (let i=0; i<_n; i++) {
+    if (info.grid[ _ixyz[2] ][ _ixyz[1] ][ _ixyz[0] ][i] == pnt_idx) {
+
+      let _t = info.grid[ _ixyz[2] ][ _ixyz[1] ][ _ixyz[0] ][_n-1];
+      info.grid[ _ixyz[2] ][ _ixyz[1] ][ _ixyz[0] ][i] =
+        info.grid[ _ixyz[2] ][ _ixyz[1] ][ _ixyz[0] ][_n-1];
+      info.grid[ _ixyz[2] ][ _ixyz[1] ][ _ixyz[0] ][_n-1] = _t;
+      info.grid[ _ixyz[2] ][ _ixyz[1] ][ _ixyz[0] ][_n-1].pop();
+      break;
+    }
+  }
+
+  return info;
+}
+
+function SPoIF_alloc(point) {
+  let n = point.length;
+
+  let _debug = 0;
+
+  let _eps = 1 / (1024*1024*1024);
+
+  let grid_s = Math.cbrt(n);
+  let grid_n = Math.ceil(grid_s);
+  let ds = 1 / grid_n;
+
+  let info = {
+    "n": n,
+    "dim": 3,
+    "start": [0,0,0],
+    "size": [1,1,1],
+    "grid_cell_size": [-1,-1,-1],
+    "bbox": [[0,0,0], [1,1,1]],
+
+    "grid": [],
+    "grid_s": grid_s,
+    "grid_n": grid_n,
+    "grid_cell_size": [ ds, ds, ds],
+    "grid_start": [0,0,0],
+    "grid_size": [1,1,1],
+
+    "P_idx_grid_bp": [],
+
+    "P": [],
+    "E": [],
+
+    // vertex edge list
+    //
+    "Ve": [],
+    "Ve_map": [],
+
+    "prof": {}
+  };
+
+  prof_s( info.prof, "init" );
+
+  let BB = info.bbox;
+
+  // init grid
+  //
+  for (let i=0; i<grid_n; i++) {
+    info.grid.push([]);
+    for (let j=0; j<grid_n; j++) {
+      info.grid[i].push([]);
+      for (let k=0; k<grid_n; k++) {
+        info.grid[i][j].push([]);
+      }
+    }
+  }
+
+
+  // populate grid with index,
+  // P_idx_grid_bp maps index to 3d grid index
+  //
+  for (let i=0; i<n; i++) {
+    info.P.push( [ point[i][0], point[i][1], point[i][2] ] );
+    let ix = Math.floor(info.P[i][0]*grid_n);
+    let iy = Math.floor(info.P[i][1]*grid_n);
+    let iz = Math.floor(info.P[i][2]*grid_n);
+    info.grid[iz][iy][ix].push(i);
+    info.P_idx_grid_bp.push( [ix,iy,iz] );
+
+    info.Ve.push([]);
+    info.Ve_map.push({});
+
+  }
+
+  prof_e( info.prof, "init" );
+
+
+}
+
 
 // secure posts of increasing fence
 //
@@ -1205,7 +1330,7 @@ function lune_network_3d_SPoIF_opt(point) {
     "dim": 3,
     "start": [0,0,0],
     "size": [1,1,1],
-    "point_grid_bp": [],
+    "P_idx_grid_bp": [],
     "grid_cell_size": [-1,-1,-1],
     "bbox": [[0,0,0], [1,1,1]],
 
@@ -1245,7 +1370,7 @@ function lune_network_3d_SPoIF_opt(point) {
 
 
   // populate grid with index,
-  // point_grid_bp maps index to 3d grid index
+  // P_idx_grid_bp maps index to 3d grid index
   //
   for (let i=0; i<n; i++) {
     info.P.push( [ point[i][0], point[i][1], point[i][2] ] );
@@ -1253,7 +1378,7 @@ function lune_network_3d_SPoIF_opt(point) {
     let iy = Math.floor(info.P[i][1]*grid_n);
     let iz = Math.floor(info.P[i][2]*grid_n);
     info.grid[iz][iy][ix].push(i);
-    info.point_grid_bp.push( [ix,iy,iz] );
+    info.P_idx_grid_bp.push( [ix,iy,iz] );
 
     info.Ve.push([]);
     info.Ve_map.push({});
