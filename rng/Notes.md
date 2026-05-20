@@ -822,6 +822,70 @@ Some thoughts I'd like to record before I forget them:
     are out of bounds from the source distribution, and then doing another pass to mark
     cells that aren't visible
 
+---
+
+I'm freezing optimization of SPoIF.
+It's fast enough for now and I'll convert to C to empirically measure runtime.
+I suspect the C version will run quite a bit faster so that I can get better measurements.
+
+Bounds and visibility checks are still unimplemented.
+I'd like to get some basic functionality down to test to make sure things work
+before proceeding with the added complexity of bounds checking.
+
+The goal is to use the relative neighborhood graph as the foundation for closed
+cell space colonization algorithm (CC:SCA).
+During the course of CC:SCA there are two point types, auxin and vein, along
+with the ability to add new vein nodes and remove auxin nodes.
+This means that the basic assumption of general position will be violated.
+It's unclear how much of an effect this will have on the runtime.
+
+A quick review of CC:SCA :
+
+* The RNG is constructed (between auxin-auxin, vein-vein and auxin-vein nodes)
+* For every vein node, $v$, take the average influence of auxin nodes in the neighboring RNG
+  of $v$ and attempt to add a new vein node $r _ d$ from $v$ in the average direction of auxin
+  neighbors :
+    - if there is an auxin node within $r _ { \text{kill} }$ distance away, don't add the new vein node
+    - otherwise add the new vein node
+* For every auxin node, $a$, if there are a non-zero number of vein node neighbors
+  and all vein node neighbors for the RNG of $a$ are within $r _ { \text{kill} }$,
+  remove $a$
+* Proceed until all auxin nodes are removed or some max iteration count is exceeded
+
+There are some pathological cases, so the max iteration count is there just in case.
+
+Some observations:
+
+* Since the RNG is connected (for a set of points in a convex region that's admissible),
+  there must be a connection from a vein node to an auxin node (if there are non-zero vein and auxin nodes)
+* Only vein nodes are added
+* Only auxin nodes are deleted
+* If a vein node, $v$, has a RNG that is comprised of soley vein nodes, it will
+  only ever have vein node neighbors in the future and can be removed from consideration
+  when calculating vein node additions or auxin node deletions
+
+We want to update incrementally, so the complexity comes from trying to do delta updates
+instead of recalculate the whole RNG after every SCA update.
+
+First a high level overview:
+
+* Initially run the RNG on the whole graph, identifying auxin that have vein node neighbors and
+  vein nodes that have auxin neighbors
+* Proceed until no more auxin nodes are left:
+  - BIRTH: add vein nodes
+    + a vein node that gives birth to a new vein node will be called a parent vein node and
+      the node that it gives birth to will be a child node
+    + only vein nodes that have auxin neighbors need be considered
+    + after all birthed vein nodes, remove any child vein nodes that trample over each other
+  - UPDATE: update the RNG
+    + initially, the queue of nodes to process is all parent and child vein nodes from BIRTH process
+    + as the queue is processed, add any auxin or vein nodes who has a neighbor added or removed
+    + only dirtied auxin and vein nodes need be recalculated, which is a local operation
+  - KILL: remove auxin nodes with all neighbor vein nodes within kill distance
+    + mark all neighbors of killed auxin nodes as dirty
+  - CLEANUP: update RNG for all dirtied nodes that were neighbors from removed auxin nodes
+  
+
 
 References
 ---
