@@ -885,6 +885,53 @@ First a high level overview:
     + mark all neighbors of killed auxin nodes as dirty
   - CLEANUP: update RNG for all dirtied nodes that were neighbors from removed auxin nodes
   
+A note on RNG incremental updates:
+
+For a single vertex, $v$, RNG calculation with some type of history or hint about what
+the $v$ RNG neighbors are, one can do an initial sweep, testing all candidate vertices
+against the hinted vertices to see if they can be excluded before hand.
+
+So, something like:
+
+```
+RNGv_heuristic(v, neighbor_list, hint_list) {
+
+  order hint_list by distance to v ascending
+  order neighbor_list by distance to v descending
+  
+  for h in hint_list {
+    for u in neighbor_list {
+      if PlaneEliminationHeuristic(v, h, u) {
+        remove u from neighbor_list
+      }
+    }
+  }
+
+  RNGv_naive(v, neighbor_list)
+  
+}
+```
+
+In other words, try to see if points in `neighbor_list` can be eliminated early
+by considering points in `hint_list` and then run the naive RNG on the remaining
+points.
+
+For vein nodes, the `hint_list` can be the parent of $v$ and all RNG neighbors of $v$ and
+it's parent.
+This will immediately exclude most vein points that have been traced out to the current
+vein point.
+
+For auxin nodes, the `hint_list` is comprised of it's RNG neighbors and the child
+of any vein nodes of it's neighbors.
+
+
+Naive estimeates are $O(n^3)$ for `RNGv_naive` and $O(n^2)$ for the heuristic above,
+disregarding that all points are expected finite.
+Regardless, the initial `RNGv_heuristic` should be an improvement over just running
+the naive `RNGv` and will hopefully significantly reduce the number of vertices
+eventually passed into `RNGv_naive`.
+
+We should measure optimization speedups to confirm.
 
 
 References

@@ -2187,6 +2187,83 @@ function create_A(info) {
   return A;
 }
 
+//----
+//----
+//----
+
+// we're going to assume in unie cube for the time being
+//
+function sca_spoif_3d(A, V) {
+
+  let n_a = A.length;
+  let n_v = V.length;
+
+  let P = [];
+  for (let i=0; i<n_a; i++) { P.push( A[i] ); }
+  for (let i=0; i<n_v; i++) { P.push( V[i] ); }
+
+  let rng_info = lune_network_3d_SPoIF_opt(P);
+
+  // dedup Vertex edge lists
+  //
+  let Ve = rng_info.Ve;
+  for (let i=0; i<Ve.length; i++) {
+    Ve[i].sort( function(a,b) { if (a<b) { return -1; } if (a>b) { return 1; } return 0; } );
+
+    let _a = [ Ve[i][0] ];
+    for (let j=1; j<Ve[i].length; j++) {
+      if (Ve[i][j] != _a[ _a.length-1 ]) {
+        _a.push( Ve[i][j] );
+      }
+    }
+    Ve[i] = _a;
+  }
+
+  let L_A = [],
+      L_V = [];
+
+  for (let i=0; i<n_a; i++) {
+    for (let j=0; j<Ve[i].length; j++) {
+      if (Ve[i][j] >= n_a) { L_A.push(i); break; }
+    }
+  }
+
+  for (let i=n_a; i<(n_a+n_v); i++) {
+    for (let j=0; j<Ve[i].length; j++) {
+      if (Ve[i][j] < n_a) { L_V.push(i); break; }
+    }
+  }
+
+
+
+  console.log(rng_info);
+
+  console.log("L_A:", JSON.stringify(L_A));
+  console.log("L_V:", JSON.stringify(L_V));
+
+  while (L_A.length > 0) {
+
+    let _lvp = [];
+
+    // BIRTH
+    //
+    for (let _idx=0; _idx<L_V.length; _idx++) {
+    }
+
+    // UPDATE
+    //
+    for (let _idx=0; _idx<_lvp.length; _idx++) {
+    }
+  }
+
+
+
+}
+
+//----
+//----
+//----
+
 //DEBUG
 //DEBUG
 //DEBUG
@@ -2253,6 +2330,12 @@ function cli_main(argv) {
     let rng_info = lune_network_3d_SPoIF_opt(P);
 
     prof_print(rng_info.prof);
+  }
+
+  else if (op == 'sca3d') {
+    let A = poisson_point(N, 3, rnd);
+    let V = [ [0, 0, 0] ];
+    sca_spoif_3d(A, V);
   }
 
 }
