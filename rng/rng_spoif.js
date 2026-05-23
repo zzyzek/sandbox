@@ -634,19 +634,12 @@ function prof_print(ctx) {
 //
 // point - array of points, assumed to be within [0,1]^3 cube (uniform)
 //
-function lune_network_3d_SPoIF(point) {
+// this is the 'slow' version, unoptimized but presumably working
+//
+function lune_network_3d_SPoIF_slo(point) {
   let n = point.length;
 
   let _debug = 0;
-
-  //DEBUG
-  //DEBUG
-  //DEBUG
-  //_debug = 4;
-  //_debug = -1;
-  //DEBUG
-  //DEBUG
-  //DEBUG
 
   let _eps = 1 / (1024*1024*1024);
   let v_idir = [
@@ -766,14 +759,6 @@ function lune_network_3d_SPoIF(point) {
 
 
   for (let p_idx = 0; p_idx < info.P.length; p_idx++) {
-
-    //DEBUG
-    //DEBUG
-    //DEBUG
-    //if (p_idx > 0) { return; }
-    //DEBUG
-    //DEBUG
-    //DEBUG
 
 
     let p = info.P[p_idx];
@@ -1224,6 +1209,294 @@ function SPoIF_alloc(point) {
 
   prof_e( info.prof, "init" );
 
+}
+
+// single vertex RNG
+//
+// input:
+//
+// info   : lune_network context
+// p_idx  : index of point (info.P[p_idx])
+//
+// adds edges to info.E, info.Ve
+//
+function lune_network_3d_SPoIF_v(info, p_idx) {
+
+  let ds                = info.ds;
+  let grid_s            = info.grid_s;
+  let grid_n            = info.grid_n;
+  let BB                = info.bbox;
+  let idir_v            = info.idir_v;
+  let fencePostCluster  = info.fencePostCluster;
+  let fencePost_v       = info.fencePost_v;
+  let fpR_v             = info.fpR_v;
+  let fpR_max_ir        = info.fpR_max_ir;
+
+  let p = info.P[p_idx];
+
+  let Wp = [ p[0]*grid_n, p[1]*grid_n, p[2]*grid_n ];
+  let ip = Wp.map( Math.floor );
+
+  let v_idir = [
+    [1,0,0], [-1,0,0],
+    [0,1,0], [0,-1,0],
+    [0,0,1], [0,0,-1]
+  ];
+
+  let idir_oppo = [ 1,0, 3,2, 5,4 ];
+
+  let fencePostSecure = [
+    [0,0,0, 0,0,0, 0,0,0], [0,0,0, 0,0,0, 0,0,0],
+    [0,0,0, 0,0,0, 0,0,0], [0,0,0, 0,0,0, 0,0,0],
+    [0,0,0, 0,0,0, 0,0,0], [0,0,0, 0,0,0, 0,0,0]
+  ];
+
+  // short circuit if we've secured the fence
+  // (worth ~50% speed increase)
+  //
+  let n_fp_secure = 0,
+      n_fp_max = 3*3*6;
+
+  let sweep0 = grid_sweep_perim_3d(info, p, 0);
+  let cell_origin = sweep0.path[0];
+
+  // we do calculations relative to the window center, which is the halfway
+  // point inside of the center cell.
+  //
+  // win_center : center point inside center cell
+  // del_p      : the amount to translate win_center to reach p (p should be
+  //              inside the center cell).
+  // dpp        : vector from p to q
+  // Nqp        : normal vector from p to q
+  // dq         : vector from win_center to q
+  // fpv        : fence post vector, centered at 0, scaled to the size of
+  //              the current cell fence
+  //
+
+  let win_center = njs.add( [ds/2,ds/2,ds/2], njs.mul( ds, cell_origin ) );
+  let dp = njs.sub( p, win_center );
+  let del_p = njs.sub( win_center, p );
+
+  let q_sched = [];
+
+  prof_s( info.prof, "rng.sweep" );
+
+  let ir = 0;
+  for (ir=0; ir<grid_n; ir++) {
+    let sweep = grid_sweep_perim_3d(info, p, ir);
+
+    prof_s( info.prof, "rng.sweep.oob");
+
+    // mark fence posts that fall out of bounds
+    //
+    for (let idir=0; idir<6; idir++) {
+      for (let cluster_idx=0; cluster_idx < fencePostCluster.length; cluster_idx++) {
+
+        let n_cluster_secure = 0;
+        for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
+          let fpi = fencePostCluster[cluster_idx][fpci];
+
+          let v = [0,0,0];
+          if (ir <= fpR_max_ir) {
+            v = njs.add( win_center, fpR_v[ir][idir][fpi] );
+          } else {
+            v = njs.add( win_center, njs.mul( ds*((2*ir)+1), fencePost_v[idir][fpi] ) );
+          }
+
+          if (oob(v, BB)) { n_cluster_secure++; }
+        }
+
+        if (n_cluster_secure == fencePostCluster[cluster_idx].length) {
+          for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
+            let fpi = fencePostCluster[cluster_idx][fpci];
+            if (fencePostSecure[idir][fpi] == 0) { n_fp_secure++; }
+            fencePostSecure[idir][fpi] = 1;
+          }
+        }
+
+      }
+    }
+
+    prof_e( info.prof, "rng.sweep.oob");
+
+    if (n_fp_secure == n_fp_max) { break; }
+
+    prof_s( info.prof, "rng.sweep.collect");
+
+    // collect q indicies.
+    // previous q points might secure more portions of the fence, so
+    // we keep q points from previous radius and append the current
+    // perimeter.
+    //
+    for (let path_idx=0; path_idx<sweep.path.length; path_idx++) {
+      let ixyz = sweep.path[path_idx];
+      let grid_bin = info.grid[ ixyz[2] ][ ixyz[1] ][ ixyz[0] ];
+      for (let bin_idx=0; bin_idx<grid_bin.length; bin_idx++) {
+        let q_idx = grid_bin[bin_idx];
+        if (q_idx == p_idx) { continue; }
+
+        q_sched.push([
+          q_idx,
+          info.P[q_idx],
+          njs.norm2( njs.sub( info.P[q_idx], p ) )
+        ]);
+      }
+    }
+    prof_e( info.prof, "rng.sweep.collect");
+
+    // median is ir == 3, so collect lower than ir but otherwise
+    // skip secure computation until we get to ir == 3
+    // (worth ~15% speed increase)
+    //
+    if (ir < 2) { continue; }
+
+    prof_s( info.prof, "rng.sweep.sort");
+
+    // order by distance. helps in combination with running fence post count short
+    // circuit.
+    // (worth ~25% speed increase)
+    //
+    q_sched.sort( function (a,b) { return ((a[2]<b[2]) ? -1 : ((a[2]>b[2]) ? 1 : 0)); } );
+
+    prof_e( info.prof, "rng.sweep.sort");
+
+    prof_s( info.prof, "rng.sweep.secure");
+
+    // for all q points, test to see if it secures the fence posts.
+    //
+    for (let sqi =0; sqi < q_sched.length; sqi++) {
+      let q_idx = q_sched[sqi][0];
+
+      let q = info.P[q_idx];
+
+      let dq = njs.sub( q, win_center );
+      let dqp = njs.sub(q,p);
+      let Nqp = njs.mul( 1 / njs.norm2(dqp), dqp );
+
+      // don't consider opposite fence post face that can never
+      // be closed off by the {q,Nqp} cutting plane
+      // (worth ~25% speed increase)
+      //
+      let q_idir_oppo = idir_oppo[ v2idir(Nqp) ];
+
+      // cache for secured posts to avoid recomputation
+      // of dot product.
+      // (worth ~100% speedup)
+      //
+      let fps_cache = [
+        [0,0,0, 0,0,0, 0,0,0], [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0], [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0], [0,0,0, 0,0,0, 0,0,0]
+      ];
+
+      for (let idir=0; idir<6; idir++) {
+
+        if (q_idir_oppo == idir) { continue; }
+
+        for (let cluster_idx=0; cluster_idx < fencePostCluster.length; cluster_idx++) {
+
+          // count the number of secured posts in this fence post cluster
+          //
+          let n_cluster_secure = 0;
+          for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
+            let fpi = fencePostCluster[cluster_idx][fpci];
+
+            if (fps_cache[cluster_idx][fpci] == 1) {
+              n_cluster_secure++;
+              continue;
+            }
+
+            let fpv = [0,0,0];
+            if (ir <= fpR_max_ir) { fpv = fpR_v[ir][idir][fpi]; }
+            else                  { fpv = njs.mul( ds*((2*ir)+1), fencePost_v[idir][fpi] ); }
+
+            let s = njs.dot( Nqp, njs.sub( fpv, dq ) );
+            if (s > 0) {
+              fps_cache[cluster_idx][fpci] = 1;
+              n_cluster_secure++;
+            }
+          }
+
+          // if we know we've secured all fence posts in the cluster
+          // from the cluster secure count,
+          // mark all fence posts in the cluster as secure
+          //
+          if (n_cluster_secure == fencePostCluster[cluster_idx].length) {
+            for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
+              let fpi = fencePostCluster[cluster_idx][fpci];
+              if (fencePostSecure[idir][fpi] == 0) { n_fp_secure++; }
+              fencePostSecure[idir][fpi] = 1;
+            }
+          }
+
+          if (n_fp_secure == n_fp_max) { break; }
+        }
+
+        if (n_fp_secure == n_fp_max) { break; }
+      }
+
+      if (n_fp_secure == n_fp_max) { break; }
+    }
+
+    prof_e( info.prof, "rng.sweep.secure");
+
+    if (n_fp_secure == n_fp_max) { break; }
+
+    prof_s( info.prof, "rng.sweep.end");
+
+    // check to see if we've secured all fence posts
+    // and stop if we have
+    //
+    let _ns = 0, _ns_max = 0;
+    for (let idir=0; idir<6; idir++) {
+      for (let fpsi=0; fpsi<fencePostSecure[idir].length; fpsi++) {
+        _ns += fencePostSecure[idir][fpsi];
+        _ns_max++;
+      }
+    }
+
+    prof_e( info.prof, "rng.sweep.end");
+
+    if (_ns == _ns_max) { break; }
+
+  }
+
+  prof_e( info.prof, "rng.sweep" );
+  prof_s( info.prof, "rng.naive" );
+
+
+  // naive RNG relative to p_idx
+  // q_sched holds all our q index points we've
+  // considered so far
+  //
+  let added = 0;
+  for (let sqi=0; sqi<q_sched.length; sqi++) {
+    let q_idx = q_sched[sqi][0];
+    let _found = true;
+    for (let sqj=0; sqj<q_sched.length; sqj++) {
+      if (sqi == sqj) { continue; }
+      let u_idx = q_sched[sqj][0];
+      if (in_lune(info.P[p_idx], info.P[q_idx], info.P[u_idx])) {
+        _found = false;
+        break;
+      }
+    }
+    if (_found) {
+      info.E.push( [p_idx, q_idx] );
+
+      info.Ve[p_idx].push(q_idx);
+      info.Ve[q_idx].push(p_idx);
+
+      info.Ve_map[p_idx][q_idx] = 1;
+      info.Ve_map[q_idx][p_idx] = 1;
+
+      added++;
+    }
+  }
+
+  prof_e( info.prof, "rng.naive" );
+
+
 
 }
 
@@ -1232,7 +1505,7 @@ function SPoIF_alloc(point) {
 //
 // point - array of points, assumed to be within [0,1]^3 cube (uniform)
 //
-function lune_network_3d_SPoIF_opt(point) {
+function lune_network_3d_SPoIF(point) {
   let n = point.length;
 
   let _debug = 0;
@@ -1322,7 +1595,6 @@ function lune_network_3d_SPoIF_opt(point) {
 
 
   let idir_v = [ [1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1] ];
-
   let fencePostCluster = [ [0,1,3,4], [1,2,4,5], [3,4,6,7], [4,5,7,8] ];
 
   let info = {
@@ -1341,6 +1613,8 @@ function lune_network_3d_SPoIF_opt(point) {
     "grid_start": [0,0,0],
     "grid_size": [1,1,1],
 
+    "ds": ds,
+
     "P": [],
     "E": [],
 
@@ -1348,6 +1622,12 @@ function lune_network_3d_SPoIF_opt(point) {
     //
     "Ve": [],
     "Ve_map": [],
+
+    "fpR_v": fpR_v,
+    "fpR_max_ir": fpR_max_ir,
+    "fencePost_v" : fencePost_v,
+    "fencePostCluster" : fencePostCluster,
+    "idir_v" : idir_v,
 
     "prof": {}
   };
@@ -1388,6 +1668,10 @@ function lune_network_3d_SPoIF_opt(point) {
   prof_s( info.prof, "rng.tot" );
 
   for (let p_idx = 0; p_idx < info.P.length; p_idx++) {
+
+    lune_network_3d_SPoIF_v(info, p_idx);
+    continue;
+
 
     let p = info.P[p_idx];
 
@@ -2202,7 +2486,7 @@ function sca_spoif_3d(A, V) {
   for (let i=0; i<n_a; i++) { P.push( A[i] ); }
   for (let i=0; i<n_v; i++) { P.push( V[i] ); }
 
-  let rng_info = lune_network_3d_SPoIF_opt(P);
+  let rng_info = lune_network_3d_SPoIF(P);
 
   // dedup Vertex edge lists
   //
@@ -2301,7 +2585,6 @@ function cli_main(argv) {
 
   let op = "";
 
-
   if (argv.length > 1) {
     op = argv[1];
     if (argv.length > 2) {
@@ -2317,7 +2600,7 @@ function cli_main(argv) {
 
   else if (op == 'opt_check') {
     let P = poisson_point(N, 3, rnd);
-    let rng_info = lune_network_3d_SPoIF_opt(P);
+    let rng_info = lune_network_3d_SPoIF(P);
     let naive_res = naive_relnei_E(P);
     console.log( check_cmp(rng_info, naive_res.A) );
   }
@@ -2327,7 +2610,7 @@ function cli_main(argv) {
   else if (op == 'opt_dev') {
     let P = poisson_point(N, 3, rnd);
 
-    let rng_info = lune_network_3d_SPoIF_opt(P);
+    let rng_info = lune_network_3d_SPoIF(P);
 
     prof_print(rng_info.prof);
   }
