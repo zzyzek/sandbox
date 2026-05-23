@@ -924,12 +924,10 @@ vein point.
 For auxin nodes, the `hint_list` is comprised of it's RNG neighbors and the child
 of any vein nodes of it's neighbors.
 
-
-Naive estimeates are $O(n^3)$ for `RNGv_naive` and $O(n^2)$ for the heuristic above,
-disregarding that all points are expected finite.
-Regardless, the initial `RNGv_heuristic` should be an improvement over just running
-the naive `RNGv` and will hopefully significantly reduce the number of vertices
-eventually passed into `RNGv_naive`.
+The naive `RNGv` is $O(n^2)$, so the heuristic is still the same order as the
+naive calculation.
+The `hint_list` should be small relative to `neighbor_list`, so there's some hope
+of having speedups but this isn't clear.
 
 We should measure optimization speedups to confirm.
 

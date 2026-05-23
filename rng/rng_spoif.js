@@ -1220,7 +1220,7 @@ function SPoIF_alloc(point) {
 //
 // adds edges to info.E, info.Ve
 //
-function lune_network_3d_SPoIF_v(info, p_idx) {
+function lune_network_3d_SPoIF_RNGv(info, p_idx) {
 
   let ds                = info.ds;
   let grid_s            = info.grid_s;
@@ -1462,20 +1462,34 @@ function lune_network_3d_SPoIF_v(info, p_idx) {
   }
 
   prof_e( info.prof, "rng.sweep" );
+
+  let _q_idx_list = [];
+  for (let i=0; i<q_sched.length; i++) { _q_idx_list.push( q_sched[i][0] ); }
+
+  lune_network_3d_SPoIF_RNGv_naive(info, p_idx, _q_idx_list);
+}
+
+// Here, q_list holds indices of neighbors (p_idx should be excluded)
+//
+// runs naive RNG relative to p_idx, puts edges ino info.E, info.Ve
+//
+function lune_network_3d_SPoIF_RNGv_naive(info, p_idx, q_list) {
+
+  let p = info.P[p_idx];
+
   prof_s( info.prof, "rng.naive" );
 
-
   // naive RNG relative to p_idx
-  // q_sched holds all our q index points we've
+  // q_list holds all our q index points we've
   // considered so far
   //
   let added = 0;
-  for (let sqi=0; sqi<q_sched.length; sqi++) {
-    let q_idx = q_sched[sqi][0];
+  for (let sqi=0; sqi<q_list.length; sqi++) {
+    let q_idx = q_list[sqi];
     let _found = true;
-    for (let sqj=0; sqj<q_sched.length; sqj++) {
+    for (let sqj=0; sqj<q_list.length; sqj++) {
       if (sqi == sqj) { continue; }
-      let u_idx = q_sched[sqj][0];
+      let u_idx = q_list[sqj];
       if (in_lune(info.P[p_idx], info.P[q_idx], info.P[u_idx])) {
         _found = false;
         break;
@@ -1495,13 +1509,73 @@ function lune_network_3d_SPoIF_v(info, p_idx) {
   }
 
   prof_e( info.prof, "rng.naive" );
+}
 
+// WIP
+//
+function lune_network_3d_SPoIF_RNGv_heuristic(info, p_idx, q_list, hint_list) {
 
+  let q_sched = [];
+  let h_sched = [];
+
+  let p = info.P[p_idx];
+
+  for (let i=0; i<q_list.length; i++) {
+    let q_idx = q_list[i];
+    let q = info.P[q_idx];
+    q_sched.push( [ q_idx, q, njs.norm2( njs.sub(p,q) ) ] );
+  }
+
+  for (let i=0; i<h_list.length; i++) {
+    let h_idx = h_list[i];
+    let h = info.P[h_idx];
+    h_sched.push( [ h_idx, h, njs.norm2( njs.sub(p,h) ) ] );
+  }
+
+  q_sched.sort( function(a,b) { return ((a[2] < b[2]) ? -1 : ((a[2] > b[2]) ?  1 : 0 )); } );
+  h_sched.sort( function(a,b) { return ((a[2] < b[2]) ?  1 : ((a[2] > b[2]) ? -1 : 0 )); } );
+
+  let candidate_list = [];
+
+  for (let i_h=0; i_h < h_sched.length; i_h++) {
+
+    let h = info.P[ h_sched[i_h][0] ];
+    let dhp = njs.sub(h,p);
+    let Nhp = njs.mul( 1 / njs.norm2(dhp), dhp );
+
+    for (let i_q=0; i_q < q_sched.length; i_q++) {
+
+      let q = info.P[ q_sched[i_q][0] ];
+      let dqp = njs.sub(q,p);
+      let Nqp = njs.mul( 1 / njs.norm2(dqp), dqp );
+
+      let dqh = njs.sub(q,h);
+
+      let s = njs.dot( Nhp, dqh );
+
+      // remove q point from candidate list
+      //
+      if (s > 0) {
+        q_sched[i_q] = q_sched[ q_sched.length-1 ];
+        q_sched.pop();
+        i_q--;
+        continue;
+      }
+
+    }
+
+  }
+
+  for (let i=0; i<q_sched.length; i++) {
+    candidate_list.push( q_sched[i_q][0] );
+  }
+
+  return lune_network_3d_SPoIF_RNGv_naive(info, p_idx, candidate_list);
 
 }
 
 
-// secure posts of increasing fence
+// secure posts of increasing fence (relative neighborhood graph)
 //
 // point - array of points, assumed to be within [0,1]^3 cube (uniform)
 //
@@ -1667,8 +1741,10 @@ function lune_network_3d_SPoIF(point) {
   prof_e( info.prof, "init" );
   prof_s( info.prof, "rng.tot" );
 
+  // calculate single vertex RNG
+  //
   for (let p_idx = 0; p_idx < info.P.length; p_idx++) {
-    lune_network_3d_SPoIF_v(info, p_idx);
+    lune_network_3d_SPoIF_RNGv(info, p_idx);
   }
 
   prof_e( info.prof, "rng.tot" );
