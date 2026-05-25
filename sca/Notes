@@ -1,0 +1,18 @@
+Space Colonization Algorithm
+---
+
+The space colonization algorithm requires some special consideration to work with the relative
+neighborhood graph.
+
+This is experimental so we'll have to see how badly or well this peforms.
+
+---
+
+The closed cell space colonization algorithm (CC:SCA) is roughly as follows:
+
+* Place $N$ auxin nodes, $A = (a _ 0, a _ 1, \cdots, a _ {N-1})$, in $D$ dimensional space (e.g. $D=3$)
+* Flace $M$ vein nodes, $V = (v _ 0, v _ 1, \cdots, v _ {M-1})$, initially in the same space (e.g. $M=1$)
+  - For convenience, we'll take the space to be the unit cube
+* While $|A| > 0$:
+  - Calculate the relative neighborhood graph of $A \cup V$
+  - ...

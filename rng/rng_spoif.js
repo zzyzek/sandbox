@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // LICENSE: CC0
 //
 // To the extent possible under law, the person who associated CC0 with
@@ -448,6 +449,54 @@ function p3toP(p0, p1, p2) {
 //---
 
 function check_cmp(res, edge) {
+  let resE = [];
+  let n = res.P.length;
+
+  for (let i=0; i<n; i++) {
+    resE.push([]);
+    for (let j=0; j<n; j++) {
+      resE[i].push(0);
+    }
+  }
+
+  for (let p_idx in res.Ve_map) {
+    for (let q_idx in res.Ve_map[p_idx]) {
+      resE[p_idx][q_idx] = 1;
+      resE[q_idx][p_idx] = 1;
+    }
+  }
+
+  /*
+  for (let i=0; i<res.E.length; i++) {
+    let a = res.E[i][0];
+    let b = res.E[i][1];
+
+    resE[a][b] = 1;
+    resE[b][a] = 1;
+  }
+  */
+
+  let mismatch_count = 0;
+
+  for (let i=0; i<n; i++) {
+    for (let j=0; j<n; j++) {
+      if (resE[i][j] != edge[i][j]) {
+
+        if (DEBUG_LEVEL > 0) {
+          console.log("# mismatch", i, j);
+        }
+          console.log("# mismatch", i, j, "(res:", resE[i][j], "edge:", edge[i][j], ")");
+
+        mismatch_count++;
+      }
+    }
+  }
+
+  if (mismatch_count > 0) { return false; }
+  return true;
+}
+
+function _check_cmp(res, edge) {
   let resE = [];
   let n = res.P.length;
 
@@ -1103,9 +1152,170 @@ function SPoIF_add(info, pnt) {
   return info;
 }
 
+function SPoIF_swap(info, a_idx, b_idx) {
+  let a_sched = [], b_sched = [];
+
+  if (a_idx in info.Ve_map) {
+    for (let a_nei_idx in info.Ve_map[a_idx]) {
+      a_sched.push( a_nei_idx );
+    }
+  }
+
+  if (b_idx in info.Ve_map) {
+    for (let b_nei_idx in info.Ve_map[b_idx]) {
+      b_sched.push( b_nei_idx );
+    }
+  }
+
+  let a_orig = info.Ve_map[a_idx];
+  let b_orig = info.Ve_map[b_idx];
+
+  let a_nxt = {};
+  let b_nxt = {};
+
+  let _all_nei = {};
+  _all_nei[a_idx] = 1;
+  _all_nei[b_idx] = 1;
+  for (let _nei_idx in a_orig) { _all_nei[_nei_idx] = 1; }
+  for (let _nei_idx in b_orig) { _all_nei[_nei_idx] = 1; }
+
+  for (let _nei_idx in _all_nei) {
+    if ((a_idx in info.Ve_map[_nei_idx]) &&
+        (b_idx in info.Ve_map[_nei_idx])) {
+      continue;
+    }
+
+    if (a_idx in info.Ve_map[_nei_idx]) {
+      delete info.Ve_map[_nei_idx][a_idx];
+      info.Ve_map[_nei_idx][b_idx] = 1;
+    }
+
+    else if (b_idx in info.Ve_map[_nei_idx]) {
+      delete info.Ve_map[_nei_idx][b_idx];
+      info.Ve_map[_nei_idx][a_idx] = 1;
+    }
+
+  }
+
+  delete info.Ve_map[a_idx];
+  delete info.Ve_map[b_idx];
+
+  info.Ve_map[b_idx] = a_orig;
+  info.Ve_map[a_idx] = b_orig;
+
+  /*
+
+  console.log("a_idx:", a_idx, "b_idx:", b_idx);
+  console.log("??", a_orig, b_orig);
+
+  if (typeof a_orig !== "undefined") {
+    for (_nei_idx in a_orig) {
+
+      if (_nei_idx == b_idx)  { a_nxt[a_idx] = 1; }
+      else                    { a_nxt[_nei_idx] = 1; }
+
+
+      console.log("deleting", _nei_idx, "-", a_idx, "(a_orig:", a_orig, ", a_idx:", a_idx, ")");
+      console.log("  info.Ve_map[", _nei_idx, "]:", info.Ve_map[_nei_idx]);
+
+      if ((a_idx in info.Ve_map[_nei_idx]) &&
+          (b_idx in info.Ve_map[_nei_idx])) { continue; }
+
+      delete info.Ve_map[_nei_idx][a_idx];
+      info.Ve_map[_nei_idx][b_idx] = 1;
+    }
+  }
+
+  console.log("??", a_orig, b_orig);
+
+
+  if (typeof b_orig !== "undefined") {
+    //delete info.Ve_map[b_idx];
+
+    if (a_idx in b_orig) {
+      delete b_orig[a_idx];
+      b_orig[b_idx] = 1;
+    }
+
+    for (_nei_idx in b_orig) {
+
+      console.log("deleting", _nei_idx, "-", b_idx, "(b_orig:", b_orig, ", b_idx:", b_idx, ")");
+      console.log("  info.Ve_map[", _nei_idx, "]:", info.Ve_map[_nei_idx]);
+
+      if ((a_idx in info.Ve_map[_nei_idx]) &&
+          (b_idx in info.Ve_map[_nei_idx])) { continue; }
+
+      delete info.Ve_map[_nei_idx][b_idx];
+      info.Ve_map[_nei_idx][a_idx] = 1;
+    }
+  }
+
+  info.Ve_map[a_idx] = b_orig;
+  info.Ve_map[b_idx] = a_orig;
+  */
+
+  let u = [ info.P[a_idx][0], info.P[a_idx][1], info.P[a_idx][2] ];
+  let v = [ info.P[b_idx][0], info.P[b_idx][1], info.P[b_idx][2] ];
+
+  info.P[a_idx][0] = v[0];
+  info.P[a_idx][1] = v[1];
+  info.P[a_idx][2] = v[2];
+
+  info.P[b_idx][0] = u[0];
+  info.P[b_idx][1] = u[1];
+  info.P[b_idx][2] = u[2];
+
+  let a_ixyz = info.P_idx_grid_bp[ a_idx ];
+  let b_ixyz = info.P_idx_grid_bp[ b_idx ];
+
+  let a_g = info.grid[ a_ixyz[2] ][ a_ixyz[1] ][ a_ixyz[0] ];
+  let b_g = info.grid[ b_ixyz[2] ][ b_ixyz[1] ][ b_ixyz[0] ];
+
+  let _n = a_g.length;
+  let _m = b_g.length;
+
+  for (let i=0; i<_n; i++) {
+    if      (a_g[i] == a_idx) { a_g[i] = b_idx; }
+    else if (a_g[i] == b_idx) { a_g[i] = a_idx; }
+  }
+
+  if ((a_ixyz[2] != b_ixyz[2]) &&
+      (a_ixyz[1] != b_ixyz[1]) &&
+      (a_ixyz[0] != b_ixyz[0])) {
+
+    for (let i=0; i<_m; i++) {
+      if (b_g[i] == b_idx) { b_g[i] = a_idx; }
+    }
+
+  }
+
+  return info;
+}
+
 function SPoIF_rem(info, pnt_idx) {
 
   let _idx = info.P.length-1;
+
+  // remove occurances of old pnt_idx in rng edges
+  //
+  if (pnt_idx in info.Ve_map) {
+    for (let q_idx in info.Ve_map[pnt_idx]) {
+      delete info.Ve_map[q_idx][p_idx];
+    }
+    delete info.Ve_map[p_idx];
+  }
+
+  // remap newly swapped point to the old pnt_idx
+  //
+  if (_idx in info.Ve_map) {
+    let _m = info.Ve_map[_idx];
+    for (let nei_idx in info.Ve_map[_idx]) {
+      delete info.Ve_map[nei_idx][_idx];
+      info.Ve_map[nei_idx][pnt_idx] = 1;
+    }
+    delete info.Ve_map[_idx];
+    info.Ve_map[pnt_idx] = _m;
+  }
 
   let _q = info.P[pnt_idx];
   info.P[pnt_idx] = info.P[_idx];
@@ -1164,11 +1374,11 @@ function SPoIF_alloc(point) {
     "P_idx_grid_bp": [],
 
     "P": [],
-    "E": [],
+    //"E": [],
 
     // vertex edge list
     //
-    "Ve": [],
+    //"Ve": [],
     "Ve_map": [],
 
     "prof": {}
@@ -1202,7 +1412,7 @@ function SPoIF_alloc(point) {
     info.grid[iz][iy][ix].push(i);
     info.P_idx_grid_bp.push( [ix,iy,iz] );
 
-    info.Ve.push([]);
+    //info.Ve.push([]);
     info.Ve_map.push({});
 
   }
@@ -1496,10 +1706,10 @@ function lune_network_3d_SPoIF_RNGv_naive(info, p_idx, q_list) {
       }
     }
     if (_found) {
-      info.E.push( [p_idx, q_idx] );
+      //info.E.push( [p_idx, q_idx] );
 
-      info.Ve[p_idx].push(q_idx);
-      info.Ve[q_idx].push(p_idx);
+      //info.Ve[p_idx].push(q_idx);
+      //info.Ve[q_idx].push(p_idx);
 
       info.Ve_map[p_idx][q_idx] = 1;
       info.Ve_map[q_idx][p_idx] = 1;
@@ -1512,6 +1722,12 @@ function lune_network_3d_SPoIF_RNGv_naive(info, p_idx, q_list) {
 }
 
 // WIP
+//
+// note that this is meant for incremental updates given a hint list.
+// If this is used for incremental updates, the edges will need to be
+// removed before call or this function needs to be altered to accomodate.
+//
+// See `Notes.md` for thought process...all experimental and untested
 //
 function lune_network_3d_SPoIF_RNGv_heuristic(info, p_idx, q_list, hint_list) {
 
@@ -1690,11 +1906,11 @@ function lune_network_3d_SPoIF(point) {
     "ds": ds,
 
     "P": [],
-    "E": [],
+    //"E": [],
 
     // vertex edge list
     //
-    "Ve": [],
+    //"Ve": [],
     "Ve_map": [],
 
     "fpR_v": fpR_v,
@@ -1734,7 +1950,7 @@ function lune_network_3d_SPoIF(point) {
     info.grid[iz][iy][ix].push(i);
     info.P_idx_grid_bp.push( [ix,iy,iz] );
 
-    info.Ve.push([]);
+    //info.Ve.push([]);
     info.Ve_map.push({});
   }
 
@@ -1752,7 +1968,7 @@ function lune_network_3d_SPoIF(point) {
   return info;
 }
 
-function gnuplot_rng3d(ofn, ctx) {
+function _gnuplot_rng3d(ofn, ctx) {
   let _lines =[];
   for (let i=0; i<ctx.E.length; i++) {
     let p_idx = ctx.E[i][0];
@@ -1763,6 +1979,23 @@ function gnuplot_rng3d(ofn, ctx) {
 
     _lines.push( printf("%f %f %f", p[0], p[1], p[2]) );
     _lines.push( printf("%f %f %f\n\n", q[0], q[1], q[2]) );
+  }
+
+  fs.writeFileSync(ofn, _lines.join("\n"));
+}
+
+function gnuplot_rng3d(ofn, ctx) {
+  let _lines =[];
+
+  for (let p_idx=0; p_idx < ctx.P.length; p_idx++) {
+    for (let q_idx in ctx.Ve_map[p_idx]) {
+
+      let p = ctx.P[p_idx];
+      let q = ctx.P[q_idx];
+
+      _lines.push( printf("%f %f %f", p[0], p[1], p[2]) );
+      _lines.push( printf("%f %f %f\n\n", q[0], q[1], q[2]) );
+    }
   }
 
   fs.writeFileSync(ofn, _lines.join("\n"));
@@ -2388,6 +2621,75 @@ function spoif_spotcheck() {
 //DEBUG
 //DEBUG
 
+function WS(n, ws) {
+  n = ((typeof n === "undefined") ? 0 : n);
+  ws = ((typeof ws === "undefined") ? " " : ws);
+  let _s = [];
+  for (let i=0; i<n; i++) { _s.push(ws); }
+  return _s.join("");
+}
+
+function _debug_print(info) {
+  console.log(info);
+
+  let _max_w = 0;
+  for (let iz=0; iz<info.grid.length; iz++) {
+    for (let iy=0; iy<info.grid[iz].length; iy++) {
+      let _ele_w = 0;
+      for (let ix=0; ix<info.grid[iz][iy].length; ix++) {
+        for (let i=0; i<info.grid[iz][iy][ix].length; i++) {
+          let s = printf("%i", info.grid[iz][iy][ix][i]);
+          _ele_w += s.length;
+          if (i>0) { _ele_w++; }
+        }
+      }
+      if (_ele_w > _max_w) { _max_w = _ele_w; }
+    }
+  }
+
+
+  for (let iz=0; iz<info.grid.length; iz++) {
+
+    console.log("# z=", iz);
+    for (let iy=0; iy<info.grid[iz].length; iy++) {
+      let _row = [];
+      for (let ix=0; ix<info.grid[iz][iy].length; ix++) {
+        let _ele = [];
+        for (let i=0; i<info.grid[iz][iy][ix].length; i++) {
+          let s = printf("%i", info.grid[iz][iy][ix][i]);
+          _ele.push( s );
+        }
+        if (_ele.length == 0) { _ele.push('.'); }
+
+        let _ele_s = _ele.join(",");
+
+        if (_ele_s.length < _max_w) {
+          _ele_s = WS(_max_w - _ele_s.length, " ") + _ele_s;
+        }
+
+        _row.push( _ele_s );
+      }
+      console.log( _row.join(" ") );
+    }
+    console.log("");
+  }
+
+  for (let idx=0; idx<info.P.length; idx++) {
+
+    let nei_a = [];
+    for (let nei_idx in info.Ve_map[idx]) { nei_a.push(nei_idx); }
+    let nei_s = nei_a.join(",");
+
+
+    console.log( printf("[%i] {%f,%f,%f} _%i,%i,%i_ :{%s}",
+      idx, info.P[idx][0], info.P[idx][1], info.P[idx][2],
+      info.P_idx_grid_bp[idx][0],
+      info.P_idx_grid_bp[idx][1],
+      info.P_idx_grid_bp[idx][2],
+      nei_s) );
+  }
+
+}
 
 function cli_main(argv) {
 
@@ -2424,10 +2726,36 @@ function cli_main(argv) {
   //
   else if (op == 'opt_dev') {
     let P = poisson_point(N, 3, rnd);
-
     let rng_info = lune_network_3d_SPoIF(P);
 
     prof_print(rng_info.prof);
+  }
+
+  else if (op == 'debug_print') {
+    let P = poisson_point(N, 3, rnd);
+    let rng_info = lune_network_3d_SPoIF(P);
+    _debug_print(rng_info);
+  }
+
+  else if (op == 'debug_swap') {
+    let P = poisson_point(N, 3, rnd);
+    let rng_info = lune_network_3d_SPoIF(P);
+
+    let a_idx = 0;
+    let b_idx = 1;
+    if (argv.length > 3) {
+      tok = argv[3].split(",");
+      if (tok.length > 0) {
+        a_idx = parseInt(tok[0]);
+        if (tok.length > 1) {
+          b_idx = parseInt(tok[1]);
+        }
+      }
+    }
+
+    SPoIF_swap(rng_info, a_idx, b_idx);
+
+    _debug_print(rng_info);
   }
 
   else if (op == 'sca3d') {
