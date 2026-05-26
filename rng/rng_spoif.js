@@ -1203,57 +1203,6 @@ function SPoIF_swap(info, a_idx, b_idx) {
   info.Ve_map[b_idx] = a_orig;
   info.Ve_map[a_idx] = b_orig;
 
-  /*
-
-  console.log("a_idx:", a_idx, "b_idx:", b_idx);
-  console.log("??", a_orig, b_orig);
-
-  if (typeof a_orig !== "undefined") {
-    for (_nei_idx in a_orig) {
-
-      if (_nei_idx == b_idx)  { a_nxt[a_idx] = 1; }
-      else                    { a_nxt[_nei_idx] = 1; }
-
-
-      console.log("deleting", _nei_idx, "-", a_idx, "(a_orig:", a_orig, ", a_idx:", a_idx, ")");
-      console.log("  info.Ve_map[", _nei_idx, "]:", info.Ve_map[_nei_idx]);
-
-      if ((a_idx in info.Ve_map[_nei_idx]) &&
-          (b_idx in info.Ve_map[_nei_idx])) { continue; }
-
-      delete info.Ve_map[_nei_idx][a_idx];
-      info.Ve_map[_nei_idx][b_idx] = 1;
-    }
-  }
-
-  console.log("??", a_orig, b_orig);
-
-
-  if (typeof b_orig !== "undefined") {
-    //delete info.Ve_map[b_idx];
-
-    if (a_idx in b_orig) {
-      delete b_orig[a_idx];
-      b_orig[b_idx] = 1;
-    }
-
-    for (_nei_idx in b_orig) {
-
-      console.log("deleting", _nei_idx, "-", b_idx, "(b_orig:", b_orig, ", b_idx:", b_idx, ")");
-      console.log("  info.Ve_map[", _nei_idx, "]:", info.Ve_map[_nei_idx]);
-
-      if ((a_idx in info.Ve_map[_nei_idx]) &&
-          (b_idx in info.Ve_map[_nei_idx])) { continue; }
-
-      delete info.Ve_map[_nei_idx][b_idx];
-      info.Ve_map[_nei_idx][a_idx] = 1;
-    }
-  }
-
-  info.Ve_map[a_idx] = b_orig;
-  info.Ve_map[b_idx] = a_orig;
-  */
-
   let u = [ info.P[a_idx][0], info.P[a_idx][1], info.P[a_idx][2] ];
   let v = [ info.P[b_idx][0], info.P[b_idx][1], info.P[b_idx][2] ];
 
