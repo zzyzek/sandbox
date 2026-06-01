@@ -2339,17 +2339,18 @@ function lune_network_3d_SPoIF(point) {
   return info;
 }
 
-function _gnuplot_rng3d(ofn, ctx) {
+function gnuplot_rng2d(ofn, ctx) {
   let _lines =[];
-  for (let i=0; i<ctx.E.length; i++) {
-    let p_idx = ctx.E[i][0];
-    let q_idx = ctx.E[i][1];
 
-    let p = ctx.P[p_idx];
-    let q = ctx.P[q_idx];
+  for (let p_idx=0; p_idx < ctx.P.length; p_idx++) {
+    for (let q_idx in ctx.Ve_map[p_idx]) {
 
-    _lines.push( printf("%f %f %f", p[0], p[1], p[2]) );
-    _lines.push( printf("%f %f %f\n\n", q[0], q[1], q[2]) );
+      let p = ctx.P[p_idx];
+      let q = ctx.P[q_idx];
+
+      _lines.push( printf("%f %f", p[0], p[1]) );
+      _lines.push( printf("%f %f\n\n", q[0], q[1]) );
+    }
   }
 
   fs.writeFileSync(ofn, _lines.join("\n"));
@@ -3192,7 +3193,7 @@ function cli_main(argv) {
     }
   }
 
-  if (op == '') {
+  if ((op == '') || (op == '3d')) {
     let P = poisson_point(N, 3, rnd);
     let rng_info = lune_network_3d_SPoIF(P);
     gnuplot_rng3d("/dev/stdout", rng_info);
@@ -3210,6 +3211,12 @@ function cli_main(argv) {
     let rng_info = lune_network_2d_SPoIF(P);
     //_debug_print(rng_info);
     prof_print(rng_info.prof);
+  }
+
+  else if (op == '2d') {
+    let P = poisson_point(N, 2, rnd);
+    let rng_info = lune_network_2d_SPoIF(P);
+    gnuplot_rng2d("/dev/stdout", rng_info);
   }
 
   else if (op == 'opt_check') {
