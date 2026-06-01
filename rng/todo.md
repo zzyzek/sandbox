@@ -1,6 +1,58 @@
 TODO
 ===
 
+###### 2026-05-31
+
+* space colonization algorithm (SCA) is too intertwined with
+  relative neighborhood graph (RNG), so it's best to put it here.
+* The idea for SCA:
+  - after initial setup, auxin nodes are only ever removed and vein nodes
+    are only ever added
+  - This means we can create a list data structure that has auxins in the left
+    part as a contiguous array of points and vein nodes in the remainder of the list
+  - I guess it doesn't matter about auxin only removing and vein only adding,
+    but both add and remove operations can be done efficiently
+    + auxin add puts it at the first vein node, first vein node goes to the end
+    + auxin remove swaps removed node with end, swaps vein node with end of auxin list
+      pops the last entry off
+    + vein node add puts it at the end
+    + vein node remove swaps it with last then pops
+  - adding/removing auxin/vein nodes needs to have bookkeeping done to remove relative
+    neighborhood graph edges that were present to the removed node and 'dirty' the neighbor
+    nodes
+    + we've settled on dictionary neighbor along with various backpointer structures, so
+      all this is a little tedious but can be done
+  - see main loop below
+* implement slow SCA in 2d for reference
+    
+
+main loop:
+
+```
+place initial auxin nodes, A
+place initial vein node, V
+calculate initial relative neighborhood graph, G
+while |auxin| > 0:
+  collect vein nodes with connections to auxin nodes, U
+  W = {}, D = {}
+  foreach v in U:
+    create new vein node in appropriate direction from auxin influences on v into W
+
+  foreach w in W:
+    if w collides with any in V, continue
+    otherwise add w to V (and place in space)
+    add w to D
+
+  foreach v in D:
+    calculate local neighborhood graph of v
+    add any neighbors of v to D unless they already exist (could be auxin or vein)
+
+  foreach a in A:
+    if all vein neighbors of a are withink kill distance, remove a
+
+```
+    
+
 ###### 2026-05-12
 
 * calling base SPoIF implemented
