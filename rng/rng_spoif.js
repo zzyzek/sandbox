@@ -94,7 +94,7 @@ var printf = require("./printf.js");
 var fasslib = require("./fasslib.js");
 var PQ = require("./priority-queue.js");
 
-//var RND = srand("lunenetwork");
+var RND = srand("rng_spoif");
 
 var DEBUG_LEVEL = 0;
 
@@ -975,7 +975,21 @@ function lune_network_3d_SPoIF_slo(point) {
   return info;
 }
 
-function SPoIF_add(info, pnt) {
+function SPoIF_add_2d(info, pnt) {
+  let grid_n = info.grid_n;
+
+  let idx = info.P.length;
+
+  info.P.push( [ pnt[0], pnt[1] ] );
+  let ix = Math.floor(info.P[idx][0]*grid_n);
+  let iy = Math.floor(info.P[idx][1]*grid_n);
+  info.grid[iy][ix].push(idx);
+  info.P_idx_grid_bp.push( [ix,iy] );
+
+  return info;
+}
+
+function SPoIF_add_3d(info, pnt) {
   let grid_n = info.grid_n;
 
   let idx = info.P.length;
@@ -990,7 +1004,109 @@ function SPoIF_add(info, pnt) {
   return info;
 }
 
-function SPoIF_swap(info, a_idx, b_idx) {
+function SPoIF_swap_2d(info, a_idx, b_idx) {
+  let a_sched = [], b_sched = [];
+
+  console.log("SWAP", a_idx, b_idx);
+  console.log("Ve:", info.Ve_map);
+
+  if (a_idx in info.Ve_map) {
+    for (let a_nei_idx in info.Ve_map[a_idx]) {
+      a_sched.push( a_nei_idx );
+    }
+  }
+
+  if (b_idx in info.Ve_map) {
+    for (let b_nei_idx in info.Ve_map[b_idx]) {
+      b_sched.push( b_nei_idx );
+    }
+  }
+
+  let a_orig = info.Ve_map[a_idx];
+  let b_orig = info.Ve_map[b_idx];
+
+  let a_nxt = {};
+  let b_nxt = {};
+
+  let _all_nei = {};
+  _all_nei[a_idx] = 1;
+  _all_nei[b_idx] = 1;
+  for (let _nei_idx in a_orig) { _all_nei[_nei_idx] = 1; }
+  for (let _nei_idx in b_orig) { _all_nei[_nei_idx] = 1; }
+
+  //console.log("a_sched:", a_sched);
+  //console.log("b_sched:", b_sched);
+
+
+  for (let _nei_idx in _all_nei) {
+
+    //console.log("_all_nei:", _all_nei, "_nei_idx:", _nei_idx);
+    //console.log(info.Ve_map);
+
+    if ((a_idx in info.Ve_map[_nei_idx]) &&
+        (b_idx in info.Ve_map[_nei_idx])) {
+      continue;
+    }
+
+    if (a_idx in info.Ve_map[_nei_idx]) {
+      delete info.Ve_map[_nei_idx][a_idx];
+      info.Ve_map[_nei_idx][b_idx] = 1;
+    }
+
+    else if (b_idx in info.Ve_map[_nei_idx]) {
+      delete info.Ve_map[_nei_idx][b_idx];
+      info.Ve_map[_nei_idx][a_idx] = 1;
+    }
+
+  }
+
+  delete info.Ve_map[a_idx];
+  delete info.Ve_map[b_idx];
+
+  //console.log("a_orig:", a_orig);
+  //console.log("b_orig:", b_orig);
+
+  info.Ve_map[b_idx] = a_orig;
+  info.Ve_map[a_idx] = b_orig;
+
+  let u = [ info.P[a_idx][0], info.P[a_idx][1] ];
+  let v = [ info.P[b_idx][0], info.P[b_idx][1] ];
+
+  info.P[a_idx][0] = v[0];
+  info.P[a_idx][1] = v[1];
+
+  info.P[b_idx][0] = u[0];
+  info.P[b_idx][1] = u[1];
+
+  let a_ixyz = info.P_idx_grid_bp[ a_idx ];
+  let b_ixyz = info.P_idx_grid_bp[ b_idx ];
+
+  let a_g = info.grid[ a_ixyz[1] ][ a_ixyz[0] ];
+  let b_g = info.grid[ b_ixyz[1] ][ b_ixyz[0] ];
+
+  let _n = a_g.length;
+  let _m = b_g.length;
+
+  for (let i=0; i<_n; i++) {
+    if      (a_g[i] == a_idx) { a_g[i] = b_idx; }
+    else if (a_g[i] == b_idx) { a_g[i] = a_idx; }
+  }
+
+  if ((a_ixyz[1] != b_ixyz[1]) &&
+      (a_ixyz[0] != b_ixyz[0])) {
+
+    for (let i=0; i<_m; i++) {
+      if (b_g[i] == b_idx) { b_g[i] = a_idx; }
+    }
+
+  }
+
+  return info;
+}
+
+
+
+function SPoIF_swap_3d(info, a_idx, b_idx) {
   let a_sched = [], b_sched = [];
 
   if (a_idx in info.Ve_map) {
@@ -1079,7 +1195,67 @@ function SPoIF_swap(info, a_idx, b_idx) {
   return info;
 }
 
-function SPoIF_rem(info, pnt_idx) {
+function SPoIF_rem_2d(info, pnt_idx) {
+
+  let _idx = info.P.length-1;
+
+  console.log("REM2d:", pnt_idx, "Ve before:");
+  console.log(info.Ve_map);
+
+  // remove occurances of old pnt_idx in rng edges
+  //
+  if (pnt_idx in info.Ve_map) {
+    for (let q_idx in info.Ve_map[pnt_idx]) {
+      delete info.Ve_map[q_idx][pnt_idx];
+    }
+    delete info.Ve_map[pnt_idx];
+  }
+
+  console.log("REM2d:", pnt_idx, "Ve after:");
+  console.log(info.Ve_map);
+
+
+  // remap newly swapped point to the old pnt_idx
+  //
+  if (_idx in info.Ve_map) {
+    let _m = info.Ve_map[_idx];
+    for (let nei_idx in info.Ve_map[_idx]) {
+      delete info.Ve_map[nei_idx][_idx];
+      info.Ve_map[nei_idx][pnt_idx] = 1;
+    }
+    delete info.Ve_map[_idx];
+    info.Ve_map[pnt_idx] = _m;
+  }
+
+  let _q = info.P[pnt_idx];
+  info.P[pnt_idx] = info.P[_idx];
+  info.P[_idx] = _q;
+
+  info.P.pop();
+
+  let _ixyz = info.P_idx_grid_bp[pnt_idx];
+  info.P_idx_grid_bp[pnt_idx] = info.P_idx_grid_bp[_idx];
+  info.P_idx_grid_bp[_idx] = _ixyz;
+
+  info.P_idx_grid_bp.pop();
+
+  let _n = info.grid[ _ixyz[1] ][ _ixyz[0] ].length;
+  for (let i=0; i<_n; i++) {
+    if (info.grid[ _ixyz[1] ][ _ixyz[0] ][i] == pnt_idx) {
+
+      let _t = info.grid[ _ixyz[1] ][ _ixyz[0] ][_n-1];
+      info.grid[ _ixyz[1] ][ _ixyz[0] ][i] =
+        info.grid[ _ixyz[1] ][ _ixyz[0] ][_n-1];
+      info.grid[ _ixyz[1] ][ _ixyz[0] ][_n-1] = _t;
+      info.grid[ _ixyz[1] ][ _ixyz[0] ].pop();
+      break;
+    }
+  }
+
+  return info;
+}
+
+function SPoIF_rem_3d(info, pnt_idx) {
 
   let _idx = info.P.length-1;
 
@@ -1087,9 +1263,9 @@ function SPoIF_rem(info, pnt_idx) {
   //
   if (pnt_idx in info.Ve_map) {
     for (let q_idx in info.Ve_map[pnt_idx]) {
-      delete info.Ve_map[q_idx][p_idx];
+      delete info.Ve_map[q_idx][pnt_idx];
     }
-    delete info.Ve_map[p_idx];
+    delete info.Ve_map[pnt_idx];
   }
 
   // remap newly swapped point to the old pnt_idx
@@ -1124,7 +1300,7 @@ function SPoIF_rem(info, pnt_idx) {
       info.grid[ _ixyz[2] ][ _ixyz[1] ][ _ixyz[0] ][i] =
         info.grid[ _ixyz[2] ][ _ixyz[1] ][ _ixyz[0] ][_n-1];
       info.grid[ _ixyz[2] ][ _ixyz[1] ][ _ixyz[0] ][_n-1] = _t;
-      info.grid[ _ixyz[2] ][ _ixyz[1] ][ _ixyz[0] ][_n-1].pop();
+      info.grid[ _ixyz[2] ][ _ixyz[1] ][ _ixyz[0] ].pop();
       break;
     }
   }
@@ -1169,7 +1345,7 @@ function SPoIF_alloc(point) {
 
     // vertex edge map
     //
-    "Ve_map": [],
+    "Ve_map": {},
 
     "P_dirty" : [],
 
@@ -1205,7 +1381,8 @@ function SPoIF_alloc(point) {
     info.P_idx_grid_bp.push( [ix,iy,iz] );
 
     //info.Ve.push([]);
-    info.Ve_map.push({});
+    //info.Ve_map.push({});
+    info.Ve_map[i] = {};
 
   }
 
@@ -1937,7 +2114,7 @@ function lune_network_2d_SPoIF(point) {
 
     // vertex edge map
     //
-    "Ve_map": [],
+    "Ve_map": {},
 
     "P_label": [],
     "P_dirty": [],
@@ -1975,7 +2152,7 @@ function lune_network_2d_SPoIF(point) {
     info.grid[iy][ix].push(i);
     info.P_idx_grid_bp.push( [ix,iy] );
 
-    info.Ve_map.push({});
+    info.Ve_map[i] = {};
 
     info.P_dirty.push(0);
     info.P_label.push('.');
@@ -2113,7 +2290,7 @@ function lune_network_3d_SPoIF(point) {
 
     // vertex edge map
     //
-    "Ve_map": [],
+    "Ve_map": {},
 
     "P_label": [],
     "P_dirty": [],
@@ -2155,7 +2332,8 @@ function lune_network_3d_SPoIF(point) {
     info.grid[iz][iy][ix].push(i);
     info.P_idx_grid_bp.push( [ix,iy,iz] );
 
-    info.Ve_map.push({});
+    //info.Ve_map.push({});
+    info.Ve_map[i] = {};
 
     info.P_dirty.push(0);
     info.P_label.push('.');
@@ -2789,7 +2967,213 @@ function create_A(info) {
 //----
 //----
 
-function sca_spoif_2d(sca_info) {
+function _debug_rng_print_E(rng_info) {
+  for (let p_idx=0; p_idx<rng_info.P.length; p_idx++) {
+    let v = rng_info.P[p_idx];
+    for (let nei_idx in rng_info.Ve_map[p_idx]) {
+      let w = rng_info.P[nei_idx];
+      console.log(...v);
+      console.log(...w);
+      console.log("\n\n");
+    }
+  }
+
+}
+
+function _debug_rng_ofn_E(ofn, rng_info) {
+
+  let _lines = [];
+
+  for (let p_idx=0; p_idx<rng_info.P.length; p_idx++) {
+    let v = rng_info.P[p_idx];
+    for (let nei_idx in rng_info.Ve_map[p_idx]) {
+      let w = rng_info.P[nei_idx];
+
+      if      (v.length == 2) { _lines.push( printf("%f %f", v[0], v[1]) ); }
+      else if (v.length == 3) { _lines.push( printf("%f %f %f", v[0], v[1], v[2]) ); }
+
+      if      (w.length == 2) { _lines.push( printf("%f %f", w[0], w[1]) ); }
+      else if (w.length == 3) { _lines.push( printf("%f %f %f", w[0], w[1], w[2]) ); }
+
+      _lines.push("\n");
+    }
+  }
+
+  fs.writeFileSync(ofn, _lines.join("\n"));
+
+}
+
+// navie slow version
+// trying to get baseline algorithm to compare against
+//
+function sca_spoif_2d(A, V) {
+
+  let it=0, max_it = 10000;
+
+  //DEBUG
+  max_it = 128;
+
+  let A_jitter = 2*Math.PI*(1/1024);
+
+
+  let n_a = A.length; 
+  let n_v = V.length;
+
+  let D_add = 1/8;
+  D_add = 1 / (3*(n_a + n_v));
+
+  D_add *= 2;
+
+  //let D_kill = 1 / (Math.sqrt(n_a + n_v));
+  let D_kill = 1 / (n_a + n_v);
+
+  console.log("D_add:", D_add, "D_kill:", D_kill);
+
+  let P = [];
+  for (let i=0; i<n_a; i++) { P.push( A[i] ); }
+  for (let i=0; i<n_v; i++) { P.push( V[i] ); }
+
+  let rng_info = lune_network_2d_SPoIF(P);
+
+  //DEBUG
+  //_debug_rng_print_E(rng_info);
+
+  _debug_print(rng_info);
+
+  while ((n_a > 0) &&
+         (it < max_it)) {
+
+    rng_info = lune_network_2d_SPoIF(rng_info.P);
+
+    //DEBUG
+    console.log("#it:", it, "n_a:", n_a, "n_v:", n_v);
+    _debug_rng_ofn_E(".debug/sca_spoif_2d_" + it.toString() + ".gp", rng_info);
+    _debug_print(rng_info);
+
+    console.log("n_a:", n_a, "n_v:", n_v);
+
+    let cur_v_idx = [];
+    for (let v_idx = n_a; v_idx < (n_a+n_v); v_idx++) {
+
+      console.log(">>>", v_idx);
+
+      // collect all vein nodes that have at least one auxin neighbor
+      //
+      for (let v_nei in rng_info.Ve_map[v_idx]) {
+        if (v_nei < n_a) {
+          cur_v_idx.push(v_idx);
+          break;
+        }
+      }
+    }
+
+    console.log("cur_v_idx:", cur_v_idx);
+
+    let Vnew = [];
+    for (let i=0; i<cur_v_idx.length; i++) {
+      let v_idx = cur_v_idx[i];
+
+      let F_s = [0,0];
+      for (let nei_idx in rng_info.Ve_map[v_idx]) {
+
+        // add normalized auxin-vein vector
+        //
+        if (nei_idx < n_a) {
+          let dav = njs.sub( rng_info.P[nei_idx], rng_info.P[v_idx] );
+          let ndav = njs.mul( 1 / njs.norm2(dav), dav );
+          F_s[0] += ndav[0];
+          F_s[1] += ndav[1];
+        }
+      }
+
+
+      let d_jit_a = (RND() - 0.5)*A_jitter;
+      let _c = Math.cos(d_jit_a);
+      let _s = Math.sin(d_jit_a);
+      F_s = njs.dot( [ [ _c , _s ], [ -_s, _c ] ], F_s );
+      F_s = njs.mul( 1 / njs.norm2(F_s), F_s );
+
+      //console.log("atan2:", Math.atan2(F_s[1], F_s[0]), "jit_angle:", jit_angle, "F_s:", F_s);
+
+      Vnew.push( njs.add( rng_info.P[v_idx], njs.mul( D_add, F_s ) ) );
+    }
+
+    //DEBUG
+    console.log("Vnew:", Vnew);
+
+    // need to do collision check here (D_add)
+    //
+    for (let i=0; i<Vnew.length; i++) {
+      SPoIF_add_2d(rng_info, Vnew[i]);
+      n_v++;
+    }
+
+    rng_info = lune_network_2d_SPoIF( rng_info.P );
+
+
+    //let a_kill = [];
+    for (let a_idx=0; a_idx < n_a; a_idx++) {
+      let n_v_nei = 0,
+          n_v_near = 0;
+      for (let nei_idx in rng_info.Ve_map[a_idx]) {
+        if (nei_idx < n_a) { continue; }
+
+        n_v_nei++;
+
+        let dist = njs.norm2( njs.sub( rng_info.P[a_idx], rng_info.P[nei_idx] ) );
+
+        console.log("dist(a_idx:", a_idx, ", nei_idx:", nei_idx, "):", dist, "D_kill:", D_kill);
+
+
+        if ( dist < D_kill ) {
+          n_v_near++;
+        }
+
+      }
+
+      // removal of auxin shouldn't affect the auxin to vein
+      // relative neighborhood graph, so Ve_map above can
+      // still be altered but the auxin-vein edges will
+      // remain untouched.
+      //
+      if ((n_v_near > 0) &&
+          (n_v_near == n_v_nei)) {
+
+        //a_kill.push( a_idx );
+        SPoIF_swap_2d( rng_info, a_idx, n_a-1 );
+        SPoIF_rem_2d( rng_info, n_a-1 );
+        n_a--;
+        a_idx--;
+
+      }
+
+
+    }
+
+    /*
+    console.log("a_kill:", a_kill);
+
+    for (let i=0; i<a_kill.length; i++) {
+      let a_idx = a_kill[i];
+
+      SPoIF_swap_2d( rng_info, a_idx, n_a-i-1 );
+      SPoIF_rem_2d( rng_info, n_a-i-1 );
+      n_a--;
+
+      //console.log("KILLED:", a_idx, "now:");
+      //_debug_print(rng_info);
+    }
+    */
+
+    rng_info = lune_network_2d_SPoIF( rng_info.P );
+
+    console.log("#fin: n_a:", n_a, "n_v:", n_v, "P.length:", rng_info.P.length);
+
+    it++;
+  }
+
+  if (it == max_it) { console.log("#MAX_IT reached:", max_it); }
+
 }
 
 // we're going to assume in unie cube for the time being
@@ -3098,6 +3482,12 @@ function cli_main(argv) {
 
     SPoIF_swap(rng_info, a_idx, b_idx);
     _debug_print(rng_info);
+  }
+
+  else if (op == 'sca2d') {
+    let A = poisson_point(N, 2, rnd);
+    let V = [ [0, 0] ];
+    sca_spoif_2d(A, V);
   }
 
   else if (op == 'sca3d') {
