@@ -1007,8 +1007,8 @@ function SPoIF_add_3d(info, pnt) {
 function SPoIF_swap_2d(info, a_idx, b_idx) {
   let a_sched = [], b_sched = [];
 
-  console.log("SWAP", a_idx, b_idx);
-  console.log("Ve:", info.Ve_map);
+  //console.log("SWAP", a_idx, b_idx);
+  //console.log("Ve:", info.Ve_map);
 
   if (a_idx in info.Ve_map) {
     for (let a_nei_idx in info.Ve_map[a_idx]) {
@@ -1199,8 +1199,8 @@ function SPoIF_rem_2d(info, pnt_idx) {
 
   let _idx = info.P.length-1;
 
-  console.log("REM2d:", pnt_idx, "Ve before:");
-  console.log(info.Ve_map);
+  //console.log("REM2d:", pnt_idx, "Ve before:");
+  //console.log(info.Ve_map);
 
   // remove occurances of old pnt_idx in rng edges
   //
@@ -1211,8 +1211,8 @@ function SPoIF_rem_2d(info, pnt_idx) {
     delete info.Ve_map[pnt_idx];
   }
 
-  console.log("REM2d:", pnt_idx, "Ve after:");
-  console.log(info.Ve_map);
+  //console.log("REM2d:", pnt_idx, "Ve after:");
+  //console.log(info.Ve_map);
 
 
   // remap newly swapped point to the old pnt_idx
@@ -3011,23 +3011,23 @@ function sca_spoif_2d(A, V) {
   let it=0, max_it = 10000;
 
   //DEBUG
-  max_it = 128;
+  max_it = 256;
 
-  let A_jitter = 2*Math.PI*(1/1024);
+  let A_jitter = 2*Math.PI*(1/32);
 
 
   let n_a = A.length; 
   let n_v = V.length;
 
   let D_add = 1/8;
-  D_add = 1 / (3*(n_a + n_v));
+  D_add = 1 / ((n_a + n_v));
 
   D_add *= 2;
 
   //let D_kill = 1 / (Math.sqrt(n_a + n_v));
   let D_kill = 1 / (n_a + n_v);
 
-  console.log("D_add:", D_add, "D_kill:", D_kill);
+  console.log("#D_add:", D_add, "D_kill:", D_kill);
 
   let P = [];
   for (let i=0; i<n_a; i++) { P.push( A[i] ); }
@@ -3038,24 +3038,22 @@ function sca_spoif_2d(A, V) {
   //DEBUG
   //_debug_rng_print_E(rng_info);
 
-  _debug_print(rng_info);
+  //_debug_print(rng_info);
 
   while ((n_a > 0) &&
          (it < max_it)) {
 
-    rng_info = lune_network_2d_SPoIF(rng_info.P);
+    //rng_info = lune_network_2d_SPoIF(rng_info.P);
 
     //DEBUG
     console.log("#it:", it, "n_a:", n_a, "n_v:", n_v);
     _debug_rng_ofn_E(".debug/sca_spoif_2d_" + it.toString() + ".gp", rng_info);
-    _debug_print(rng_info);
-
-    console.log("n_a:", n_a, "n_v:", n_v);
+    //_debug_print(rng_info);
 
     let cur_v_idx = [];
     for (let v_idx = n_a; v_idx < (n_a+n_v); v_idx++) {
 
-      console.log(">>>", v_idx);
+      //console.log(">>>", v_idx);
 
       // collect all vein nodes that have at least one auxin neighbor
       //
@@ -3067,7 +3065,7 @@ function sca_spoif_2d(A, V) {
       }
     }
 
-    console.log("cur_v_idx:", cur_v_idx);
+    //console.log("cur_v_idx:", cur_v_idx);
 
     let Vnew = [];
     for (let i=0; i<cur_v_idx.length; i++) {
@@ -3099,7 +3097,7 @@ function sca_spoif_2d(A, V) {
     }
 
     //DEBUG
-    console.log("Vnew:", Vnew);
+    //console.log("Vnew:", Vnew);
 
     // need to do collision check here (D_add)
     //
@@ -3122,12 +3120,9 @@ function sca_spoif_2d(A, V) {
 
         let dist = njs.norm2( njs.sub( rng_info.P[a_idx], rng_info.P[nei_idx] ) );
 
-        console.log("dist(a_idx:", a_idx, ", nei_idx:", nei_idx, "):", dist, "D_kill:", D_kill);
+        //console.log("dist(a_idx:", a_idx, ", nei_idx:", nei_idx, "):", dist, "D_kill:", D_kill);
 
-
-        if ( dist < D_kill ) {
-          n_v_near++;
-        }
+        if ( dist < D_kill ) { n_v_near++; }
 
       }
 

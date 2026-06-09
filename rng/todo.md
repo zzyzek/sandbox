@@ -1,6 +1,12 @@
 TODO
 ===
 
+###### 2026-06-09
+
+* implementing slow 2d space colonization algorithm (redos rng every round)
+  - need to remove vein nodes that are too close
+  - crash on `... 120` w/ `D_add = 2 / (n_a + n_v)` ( `D_kill = 1/(n_a + n_v)` )
+
 ###### 2026-05-31
 
 * space colonization algorithm (SCA) is too intertwined with
