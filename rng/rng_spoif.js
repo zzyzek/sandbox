@@ -98,6 +98,8 @@ var RND = srand("rng_spoif");
 
 var DEBUG_LEVEL = 0;
 
+var _EPS = (1.0 / (1024.0*1024.0*1024.0));
+
 var _debug_stat = {
   "count": {},
   "val": {}
@@ -983,6 +985,9 @@ function SPoIF_add_2d(info, pnt) {
   info.P.push( [ pnt[0], pnt[1] ] );
   let ix = Math.floor(info.P[idx][0]*grid_n);
   let iy = Math.floor(info.P[idx][1]*grid_n);
+
+  console.log("...ixy:", ix, iy, "(", info.grid[0].length, info.grid.length, ") idx:", idx);
+
   info.grid[iy][ix].push(idx);
   info.P_idx_grid_bp.push( [ix,iy] );
 
@@ -3003,18 +3008,30 @@ function _debug_rng_ofn_E(ofn, rng_info) {
 
 }
 
+function _clamp(v, a,b) {
+  if (v < a) { return a; }
+  if (v > b) { return b; }
+  return v;
+}
+
 // navie slow version
 // trying to get baseline algorithm to compare against
 //
 function sca_spoif_2d(A, V) {
+  let _eps = _EPS;
 
   let it=0, max_it = 10000;
 
   //DEBUG
   max_it = 256;
+  max_it = 1024;
 
+  // 1/16 is way too low, 1/4 looks to be working
+  // better strategy is to increase jitter if the collision
+  // count goes haywire.
+  //
   let A_jitter = 2*Math.PI*(1/32);
-
+  A_jitter = Math.PI/4;
 
   let n_a = A.length; 
   let n_v = V.length;
@@ -3022,12 +3039,19 @@ function sca_spoif_2d(A, V) {
   let D_add = 1/8;
   D_add = 1 / ((n_a + n_v));
 
-  D_add *= 2;
+  //D_add *= 2;
+  D_add /= 2;
+
+
 
   //let D_kill = 1 / (Math.sqrt(n_a + n_v));
   let D_kill = 1 / (n_a + n_v);
 
-  console.log("#D_add:", D_add, "D_kill:", D_kill);
+  let D_vv_kill = D_kill / 4;
+
+  //DEBUG
+  //console.log("#D_add:", D_add, "D_kill:", D_kill);
+  console.log("#D_add:", D_add, "D_kill:", D_kill, "D_vv_kill:", D_vv_kill);
 
   let P = [];
   for (let i=0; i<n_a; i++) { P.push( A[i] ); }
@@ -3037,8 +3061,10 @@ function sca_spoif_2d(A, V) {
 
   //DEBUG
   //_debug_rng_print_E(rng_info);
-
   //_debug_print(rng_info);
+  for (let i=0; i<rng_info.P.length; i++) {
+    console.log("P[", i, "]:", rng_info.P[i]);
+  }
 
   while ((n_a > 0) &&
          (it < max_it)) {
@@ -3092,8 +3118,39 @@ function sca_spoif_2d(A, V) {
       F_s = njs.mul( 1 / njs.norm2(F_s), F_s );
 
       //console.log("atan2:", Math.atan2(F_s[1], F_s[0]), "jit_angle:", jit_angle, "F_s:", F_s);
+      console.log("atan2:", Math.atan2(F_s[1], F_s[0]), "F_s:", F_s, "(", njs.norm2(F_s), ")");
 
-      Vnew.push( njs.add( rng_info.P[v_idx], njs.mul( D_add, F_s ) ) );
+      let _v  = njs.add( rng_info.P[v_idx], njs.mul( D_add, F_s ) );
+      _v[0] = _clamp( _v[0], 0, 1-_eps );
+      _v[1] = _clamp( _v[1], 0, 1-_eps );
+
+      let _valid_v = true;
+
+      /*
+      for (let j=n_a; j<rng_info.P.length; j++) {
+        let d = njs.norm2( njs.sub( rng_info.P[j], _v ) );
+        if (d < D_vv_kill) {
+          console.log("rejecting.0 _v:", _v, "too close to v_idx{", j, "}:", rng_info.P[j], "(", d, "/", D_vv_kill, ") (cur v_idx:", v_idx, ")");
+          _valid_v = false;
+          break;
+        }
+      }
+
+      for (let j=0; j<Vnew.length; j++) {
+        let d = njs.norm2( njs.sub( rng_info.P[j], _v ) );
+        if (d < D_vv_kill) {
+          console.log("rejecting.1 _v:", _v);
+          _valid_v = false;
+          break;
+        }
+      }
+      */
+
+      if (_valid_v) {
+        console.log("# adding _v:", _v);
+        Vnew.push( _v );
+      }
+
     }
 
     //DEBUG
