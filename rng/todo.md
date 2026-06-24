@@ -1,9 +1,34 @@
 TODO
 ===
 
+###### 2026-06-23
+
+* afaict, slow version of 2d sca is working
+  - vein jitter in placement, with a wedge of PI/4, is necessary
+    to circumvent pathological cases (where auxin nodes are opposite
+    and it just sits in place)
+  - vein removal if they land on top of each other should probably happen
+    but for now it looks like it's not needed
+  - the algorithm is very slow with the two calls to recreate the whole RNG
+    being the culprit (simple perf validation confirms)
+* the major todo is now to update the RNG incrementally with the added and/or removed
+  nodes
+  - each removed node will 'dirty' neighboring nodes by removing the edge
+    + for each dirtied neighbor node, $u$, keep a record of edges and recalculate local
+      RNG
+    + any new edges that differ from the previous record of $u$ are added to the dirtied list,
+      with already dirtied or already processed nodes being ignored
+    + repeat until no more dirtied queued
+  - each added node, $v$, needs to have a local RNG run
+    + for each new edge from $v$ to $u$, $u$ needs to be added to a dirtied list
+    + $u$'s previous neighbor list is saved and the RNG is recalculated for $u$
+    + any edges from $v$ to $w$ that differ from the saved list need to have $w$
+      added to the dirtied list, unless $w$ is already dirtied or already processed
+    + repeat until no more diried queued
+
 ###### 2026-06-09
 
-* implementing slow 2d space colonization algorithm (redos rng every round)
+* (RESOLVED) implementing slow 2d space colonization algorithm (redos rng every round)
   - need to remove vein nodes that are too close
   - crash on `... 120` w/ `D_add = 2 / (n_a + n_v)` ( `D_kill = 1/(n_a + n_v)` )
 

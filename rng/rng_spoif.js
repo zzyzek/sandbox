@@ -977,6 +977,43 @@ function lune_network_3d_SPoIF_slo(point) {
   return info;
 }
 
+//--------------------------
+//--------------------------
+//
+// To facilitate incremental updates to the relative
+// neighborhood graph (and in particular for the space
+// colonization algorithm), there are auxiliary
+// functions to add, remove and swap vertices:
+//
+//   SPoIF_add_2d
+//   SPoIF_rem_2d
+//   SPoIF_swap_2d
+//
+// Adding only adds a new point without updating
+// the relative neighborhood graph whereas remove
+// and swap updates the edges accordingly.
+// Adding or removing points can leave the relative
+// neighborhood graph in an indeterminate state.
+// Only swap preserves integrity of the RNG.
+// Removing vertices s
+//
+//
+// I'm unsure the status of the following:
+//
+// SPoIF_add_3d
+// SPoIF_rem_3d
+// SPoIF_swap_3d
+//
+
+// add pnt to SPoIF context.
+//
+// - add pnt to end of P array
+// - add pnt to grid (bin in appropriate grid cell)
+// - update grid backpointer to map P index to grid cell
+//
+// - does *not* update Ve_map as this requires a
+//   relative neighborhood graph calculation
+//
 function SPoIF_add_2d(info, pnt) {
   let grid_n = info.grid_n;
 
@@ -986,7 +1023,7 @@ function SPoIF_add_2d(info, pnt) {
   let ix = Math.floor(info.P[idx][0]*grid_n);
   let iy = Math.floor(info.P[idx][1]*grid_n);
 
-  console.log("...ixy:", ix, iy, "(", info.grid[0].length, info.grid.length, ") idx:", idx);
+  //console.log("...ixy:", ix, iy, "(", info.grid[0].length, info.grid.length, ") idx:", idx);
 
   info.grid[iy][ix].push(idx);
   info.P_idx_grid_bp.push( [ix,iy] );
@@ -1009,6 +1046,16 @@ function SPoIF_add_3d(info, pnt) {
   return info;
 }
 
+// swap two indices in SPoIF context
+//
+// - update values in P
+// - update grid cells where each are located
+// - update grid index backpointer (P_idx_grid_bp)
+// - update Ve_map
+//
+// A little subtlety comes up when both a_idx and b_idx
+// have the same neighbor.
+//
 function SPoIF_swap_2d(info, a_idx, b_idx) {
   let a_sched = [], b_sched = [];
 
@@ -1200,6 +1247,13 @@ function SPoIF_swap_3d(info, a_idx, b_idx) {
   return info;
 }
 
+// remove point referenced by index
+//
+// - moves last point in P to deleted points index location
+// - removes point from grid cell
+// - updates grid index backpointer (P_idx_grid_bp)
+//   with moved point
+//
 function SPoIF_rem_2d(info, pnt_idx) {
 
   let _idx = info.P.length-1;
@@ -3014,8 +3068,195 @@ function _clamp(v, a,b) {
   return v;
 }
 
+function sca_spoif_2d_opt(A, V) {
+  let _eps = _EPS;
+
+  let it=0, max_it = 10000;
+
+  //DEBUG
+  max_it = 256;
+  max_it = 1024;
+
+  // 1/16 is way too low, 1/4 looks to be working
+  // better strategy is to increase jitter if the collision
+  // count goes haywire.
+  //
+  let A_jitter = 2*Math.PI*(1/32);
+  A_jitter = Math.PI/4;
+
+  let n_a = A.length;
+  let n_v = V.length;
+
+  let D_add = 1/8;
+  D_add = 1 / ((n_a + n_v));
+
+  //D_add *= 2;
+  D_add /= 2;
+
+
+  //let D_kill = 1 / (Math.sqrt(n_a + n_v));
+  let D_kill = 1 / (n_a + n_v);
+
+  let D_vv_kill = D_kill / 4;
+
+  //DEBUG
+  //console.log("#D_add:", D_add, "D_kill:", D_kill);
+  console.log("#D_add:", D_add, "D_kill:", D_kill, "D_vv_kill:", D_vv_kill);
+
+  let P = [];
+  for (let i=0; i<n_a; i++) { P.push( A[i] ); }
+  for (let i=0; i<n_v; i++) { P.push( V[i] ); }
+
+  let rng_info = lune_network_2d_SPoIF(P);
+
+  //DEBUG
+  //_debug_rng_print_E(rng_info);
+  //_debug_print(rng_info);
+  for (let i=0; i<rng_info.P.length; i++) {
+    console.log("P[", i, "]:", rng_info.P[i]);
+  }
+
+  let perf = {};
+
+  prof_s(perf, "tot");
+
+  while ((n_a > 0) &&
+         (it < max_it)) {
+
+    //DEBUG
+    console.log("#it:", it, "n_a:", n_a, "n_v:", n_v);
+    _debug_rng_ofn_E(".debug/sca_spoif_2d_" + it.toString() + ".gp", rng_info);
+    //_debug_print(rng_info);
+
+    let cur_v_idx = [];
+    for (let v_idx = n_a; v_idx < (n_a+n_v); v_idx++) {
+
+      // collect all vein nodes that have at least one auxin neighbor
+      //
+      for (let v_nei in rng_info.Ve_map[v_idx]) {
+        if (v_nei < n_a) {
+          cur_v_idx.push(v_idx);
+          break;
+        }
+      }
+    }
+
+    let Vnew = [];
+    for (let i=0; i<cur_v_idx.length; i++) {
+      let v_idx = cur_v_idx[i];
+
+      let F_s = [0,0];
+      for (let nei_idx in rng_info.Ve_map[v_idx]) {
+
+        // add normalized auxin-vein vector
+        //
+        if (nei_idx < n_a) {
+          let dav = njs.sub( rng_info.P[nei_idx], rng_info.P[v_idx] );
+          let ndav = njs.mul( 1 / njs.norm2(dav), dav );
+          F_s[0] += ndav[0];
+          F_s[1] += ndav[1];
+        }
+      }
+
+
+      let d_jit_a = (RND() - 0.5)*A_jitter;
+      let _c = Math.cos(d_jit_a);
+      let _s = Math.sin(d_jit_a);
+      F_s = njs.dot( [ [ _c , _s ], [ -_s, _c ] ], F_s );
+      F_s = njs.mul( 1 / njs.norm2(F_s), F_s );
+
+      console.log("atan2:", Math.atan2(F_s[1], F_s[0]), "F_s:", F_s, "(", njs.norm2(F_s), ")");
+
+      let _v  = njs.add( rng_info.P[v_idx], njs.mul( D_add, F_s ) );
+      _v[0] = _clamp( _v[0], 0, 1-_eps );
+      _v[1] = _clamp( _v[1], 0, 1-_eps );
+
+      let _valid_v = true;
+
+      if (_valid_v) {
+        console.log("# adding _v:", _v);
+        Vnew.push( _v );
+      }
+
+    }
+
+    // need to do collision check here (D_add)
+    //
+    for (let i=0; i<Vnew.length; i++) {
+      SPoIF_add_2d(rng_info, Vnew[i]);
+      n_v++;
+    }
+
+    prof_s(perf, "rng.tot");
+    prof_s(perf, "rng.0");
+
+    rng_info = lune_network_2d_SPoIF( rng_info.P );
+
+    prof_e(perf, "rng.0");
+    prof_s(perf, "vswap");
+
+    for (let a_idx=0; a_idx < n_a; a_idx++) {
+      let n_v_nei = 0,
+          n_v_near = 0;
+      for (let nei_idx in rng_info.Ve_map[a_idx]) {
+        if (nei_idx < n_a) { continue; }
+
+        n_v_nei++;
+
+        let dist = njs.norm2( njs.sub( rng_info.P[a_idx], rng_info.P[nei_idx] ) );
+
+        if ( dist < D_kill ) { n_v_near++; }
+
+      }
+
+      // removal of auxin shouldn't affect the auxin to vein
+      // relative neighborhood graph, so Ve_map above can
+      // still be altered but the auxin-vein edges will
+      // remain untouched.
+      //
+      if ((n_v_near > 0) &&
+          (n_v_near == n_v_nei)) {
+
+        SPoIF_swap_2d( rng_info, a_idx, n_a-1 );
+        SPoIF_rem_2d( rng_info, n_a-1 );
+        n_a--;
+        a_idx--;
+
+      }
+
+
+    }
+
+    prof_e(perf, "vswap");
+
+    prof_s(perf, "rng.1");
+
+    rng_info = lune_network_2d_SPoIF( rng_info.P );
+
+    prof_e(perf, "rng.1");
+    prof_e(perf, "rng.tot");
+
+    console.log("#fin: n_a:", n_a, "n_v:", n_v, "P.length:", rng_info.P.length);
+
+    it++;
+  }
+
+  if (it == max_it) { console.log("#MAX_IT reached:", max_it); }
+
+  prof_e(perf, "tot");
+
+  prof_print(perf);
+
+}
+
+
 // navie slow version
 // trying to get baseline algorithm to compare against
+//
+// there are still connections between vein nodes
+// that look to be quite long, so I'm not sure if
+// it's working as expected.
+//
 //
 function sca_spoif_2d(A, V) {
   let _eps = _EPS;
@@ -3033,7 +3274,7 @@ function sca_spoif_2d(A, V) {
   let A_jitter = 2*Math.PI*(1/32);
   A_jitter = Math.PI/4;
 
-  let n_a = A.length; 
+  let n_a = A.length;
   let n_v = V.length;
 
   let D_add = 1/8;
@@ -3065,6 +3306,10 @@ function sca_spoif_2d(A, V) {
   for (let i=0; i<rng_info.P.length; i++) {
     console.log("P[", i, "]:", rng_info.P[i]);
   }
+
+  let perf = {};
+
+  prof_s(perf, "tot");
 
   while ((n_a > 0) &&
          (it < max_it)) {
@@ -3163,8 +3408,13 @@ function sca_spoif_2d(A, V) {
       n_v++;
     }
 
+    prof_s(perf, "rng.tot");
+    prof_s(perf, "rng.0");
+
     rng_info = lune_network_2d_SPoIF( rng_info.P );
 
+    prof_e(perf, "rng.0");
+    prof_s(perf, "vswap");
 
     //let a_kill = [];
     for (let a_idx=0; a_idx < n_a; a_idx++) {
@@ -3202,6 +3452,8 @@ function sca_spoif_2d(A, V) {
 
     }
 
+    prof_e(perf, "vswap");
+
     /*
     console.log("a_kill:", a_kill);
 
@@ -3217,7 +3469,12 @@ function sca_spoif_2d(A, V) {
     }
     */
 
+    prof_s(perf, "rng.1");
+
     rng_info = lune_network_2d_SPoIF( rng_info.P );
+
+    prof_e(perf, "rng.1");
+    prof_e(perf, "rng.tot");
 
     console.log("#fin: n_a:", n_a, "n_v:", n_v, "P.length:", rng_info.P.length);
 
@@ -3225,6 +3482,10 @@ function sca_spoif_2d(A, V) {
   }
 
   if (it == max_it) { console.log("#MAX_IT reached:", max_it); }
+
+  prof_e(perf, "tot");
+
+  prof_print(perf);
 
 }
 
