@@ -995,7 +995,8 @@ function lune_network_3d_SPoIF_slo(point) {
 // Adding or removing points can leave the relative
 // neighborhood graph in an indeterminate state.
 // Only swap preserves integrity of the RNG.
-// Removing vertices s
+//
+//
 //
 //
 // I'm unsure the status of the following:
@@ -3128,11 +3129,10 @@ function sca_spoif_2d_opt(A, V) {
     _debug_rng_ofn_E(".debug/sca_spoif_2d_" + it.toString() + ".gp", rng_info);
     //_debug_print(rng_info);
 
+    // collect all vein nodes that have at least one auxin neighbor
+    //
     let cur_v_idx = [];
     for (let v_idx = n_a; v_idx < (n_a+n_v); v_idx++) {
-
-      // collect all vein nodes that have at least one auxin neighbor
-      //
       for (let v_nei in rng_info.Ve_map[v_idx]) {
         if (v_nei < n_a) {
           cur_v_idx.push(v_idx);
@@ -3141,6 +3141,10 @@ function sca_spoif_2d_opt(A, V) {
       }
     }
 
+    // process vein nodes that have at least one auxin node
+    // and add newly created vein nodes to Vnew for later
+    // processing below
+    //
     let Vnew = [];
     for (let i=0; i<cur_v_idx.length; i++) {
       let v_idx = cur_v_idx[i];
@@ -3180,7 +3184,8 @@ function sca_spoif_2d_opt(A, V) {
 
     }
 
-    // need to do collision check here (D_add)
+    // Add all newly created vein nodes
+    // (TODO: need to do collision check here (D_add))
     //
     for (let i=0; i<Vnew.length; i++) {
       SPoIF_add_2d(rng_info, Vnew[i]);
@@ -3190,6 +3195,13 @@ function sca_spoif_2d_opt(A, V) {
     prof_s(perf, "rng.tot");
     prof_s(perf, "rng.0");
 
+    // FOCUS: this is where the optimization needs to happen
+    //   - keep track of dirtied nodes, either newly created ones,
+    //     nodes touched by removal or otherwise
+    //   - breadth first search on dirtied nodes to update RNG,
+    //     making sure not to double process or double dirty
+    //     nodes already processed
+    //     
     rng_info = lune_network_2d_SPoIF( rng_info.P );
 
     prof_e(perf, "rng.0");
