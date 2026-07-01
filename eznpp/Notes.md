@@ -14,7 +14,7 @@ In more detail:
 * $A = (a _ 0, a _ 1, \dots, a _ {n-1})$, each $a _ k$ fixed but
   assumed to be drawn uniformly from $[1,M = 2^m]$, with $m < n$
 * Take $P = (p _ 0, p _ 1, p _ 1, \dots, p _ {S-1})$, a list
-  of primes such that $ \prod _ {k=0}^{S-1} p _ k \ge \sum _ {k=0} ^ {n-1} a _ k$
+  of primes such that $\prod _ {k=0}^{S-1} p _ k \ge \sum _ {k=0} ^ {n-1} a _ k$
   - we can leave out $2$ (so only odd primes) as it won't add anything to
     our algorithm
 * Take $L = \beta n$, ( $\beta > 1$ )
@@ -28,7 +28,7 @@ In more detail:
     but if a cluster can't be found or numbers need to be fudged, fudge them
 * Create an energy function $E(\sigma)$, with $\sigma = (\sigma _ 0, \sigma _ 1, \dots, \sigma _ {n-1})$,
   $\sigma _ k = \pm 1$:
-  - $c _ k = S( \gamma _ k \cdot (\text{# } \kappa _ {k,j} \text{ that match } \sigma) / \nu _ k - \mu _ k )$
+  - $c _ k = S( \gamma _ k \cdot (\text{no. } \kappa _ {k,j} \text{ that match } \sigma) / \nu _ k - \mu _ k )$
   - $S(u) = 1 / ( 1 + e^{-u} )$ (sigmoid function)
 
 The sigmoid function is probably premature but it's trying to weight clusters less that
@@ -49,6 +49,7 @@ I suspect this doesn't do much to smooth out the energy function but it's an att
 
 As of this writing, this is all pure speculation and has no evidence, one way or the other.
 
+---
 
 ###### 2026-03-02
 
