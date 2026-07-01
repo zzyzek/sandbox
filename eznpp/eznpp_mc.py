@@ -472,14 +472,6 @@ def eznpp_iter(ctx):
       ctx["s"][_idx] = s_prv[i]
 
 
-eznpp_setup(eznpp_ctx, 30, 15, 1.5, 20.0)
-eznpp_debug_print(eznpp_ctx)
-
-eznpp_iter(eznpp_ctx)
-
-sys.exit();
-
-
 def rand_idx_subset(n, k):
   a = []
   for i in range(n): a.append(i)
@@ -547,5 +539,93 @@ def cluster_energy(Q,C,s):
   return _sum
 
 
+COUNTER = 0
+
+def eznpp_brute_stat(ctx, idx):
+  global COUNTER
+  n = ctx["n"]
+
+  COUNTER += 1
+  if (COUNTER%1000000) == 0: print("#", COUNTER, n, len(ctx["s"]))
+
+  if idx == n:
+
+    S = 0
+    for i in range(n):
+      S += ctx["s"][i] * ctx["a"][i]
+
+    if S != 0: return 0
+
+    _pc = [0]*len(ctx["p"])
+    _all_match = True
+    for p_idx in range(len(ctx["p"])):
+
+      _p_occ = [0]*n
+      _p_occ_count = 0
+
+      for c_idx in range(len(ctx["cluster_idx"][p_idx])):
+        _c_match = True
+        for i in range(len(ctx["cluster_idx"][p_idx][c_idx])):
+          _s_idx = ctx["cluster_idx"][p_idx][c_idx][i]
+          _s_val = ctx["cluster_s"][p_idx][c_idx][i]
+
+          if ctx["s"][_s_idx] != _s_val:
+
+            #print("p_idx:", p_idx, "_s_idx:", _s_idx, "_s_val:", _s_val, "s[", _s_idx, "]:", ctx["s"][_s_idx])
+
+            _c_match = False
+            break
+        if _c_match:
+          for i in range(len(ctx["cluster_idx"][p_idx][c_idx])):
+            _s_idx = ctx["cluster_idx"][p_idx][c_idx][i]
+
+            if _p_occ[_s_idx] == 0: _p_occ_count += 1
+            _p_occ[_s_idx] = 1
+
+      _pc[p_idx] = _p_occ_count
+      if _p_occ_count != n:
+        _all_match = False
+        #break
+
+    if _all_match: print("MATCH")
+    else: print("nomatch", _pc)
+
+
+    #print( ctx["s"] )
+    #sys.exit()
+
+
+
+    return 1
+
+  _count = 0
+
+  ctx["s"][idx] = 1
+  _count += eznpp_brute_stat(ctx, idx+1)
+
+  ctx["s"][idx] = -1
+  _count += eznpp_brute_stat(ctx, idx+1)
+
+  return _count
+
+
+
+def _main():
+
+  #eznpp_setup(eznpp_ctx, 30, 15, 1.5, 20.0)
+  #eznpp_setup(eznpp_ctx, 24, 13, 1.25, 200.0)
+  #eznpp_setup(eznpp_ctx, 26, 13, 1.25, 200.0)
+  #eznpp_setup(eznpp_ctx, 30, 15, 1.25, 250.0)
+  #eznpp_setup(eznpp_ctx, 30, 15, 1.125, 250.0)
+  eznpp_setup(eznpp_ctx, 30, 15, 1.05, 250.0)
+  eznpp_debug_print(eznpp_ctx)
+
+  #eznpp_iter(eznpp_ctx)
+  c = eznpp_brute_stat(eznpp_ctx, 0)
+
+  print(">>>", c)
+
+
+_main()
 
 
