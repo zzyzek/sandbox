@@ -1,6 +1,16 @@
 Notes
 ---
 
+###### 2026-07-01
+
+In the middle of debugging:
+
+I'm choosing a whole cluster and flipping sign there.
+The last cluster never gets past 4 matched (of 80).
+It shouldn't be that bad?
+
+
+
 ###### 2026-06-30
 
 An idea that most likely won't work but at least attempts
@@ -20,15 +30,15 @@ In more detail:
 * Take $L = \beta n$, ( $\beta > 1$ )
 * For each prime, $p _ k$, take a sub-cluster size to be $w _ k = \alpha \lg(p _ k)$
   ( $\alpha > 1$ )
-* Create $\nu _ k = \lceil L / w _ k \rceil$ clusters, chosen randomely
+* Create $\eta _ k = \lceil L / w _ k \rceil$ clusters, chosen randomely
   - for each cluster, find a solution $\bmod p _ k$,
   - call the solution cluster
     $\kappa _ {k,j} = ( \sigma _ {k,j,0}, \sigma _ {k,j,1}, \dots, \sigma _ {k,j, w _ k})$
-  - do your best to find $\nu _ k$ solution clusters with the sub-cluster size $w _ k$
+  - do your best to find $\eta _ k$ solution clusters with the sub-cluster size $w _ k$
     but if a cluster can't be found or numbers need to be fudged, fudge them
 * Create an energy function $E(\sigma)$, with $\sigma = (\sigma _ 0, \sigma _ 1, \dots, \sigma _ {n-1})$,
   $\sigma _ k = \pm 1$:
-  - $c _ k = S( \gamma _ k \cdot (\text{no. } \kappa _ {k,j} \text{ that match } \sigma) / \nu _ k - \mu _ k )$
+  - $c _ k = S( \gamma _ k \cdot (\text{no. } \kappa _ {k,j} \text{ that match } \sigma) / \eta _ k - \mu _ k )$
   - $S(u) = 1 / ( 1 + e^{-u} )$ (sigmoid function)
 
 The sigmoid function is probably premature but it's trying to weight clusters less that

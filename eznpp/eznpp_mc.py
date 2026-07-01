@@ -15,6 +15,8 @@ import sys, os
 import math
 import random
 
+random.seed(1337)
+
 def fisher_yates(a):
   n = len(a)
   for i in range(n-1):
@@ -81,14 +83,49 @@ DEBUG = 1
 PRINT_PARTITION = False
 
 eznpp_ctx = {
-  "n": 30,
-  "m": 15,
-  "M": (2<<15),
+  "n": -1,
+  "m": -1,
+  "M": -1,
+
+  # window size factor ( w_k = alpha * lg(p_k) )
+  #
   "alpha": 1.5,
+
+  # cluster cover factor ( L = beta * n)
+  # eta_k = ceil( L / w_k ) (eta_k == number of clusters for prime k)
+  #
   "beta": 2,
-  "L": math.floor( 2 * 30 ),
+
+  # 'duplication length' (L = beta * n)
+  #
+  "L": -1,
+
+  # npp instance
+  #
   "a": [],
+
+  # prime list
+  #
   "p": [],
+
+  # cluster size for each prime
+  #
+  "w": [],
+
+  "cluster_idx" : [],
+  "cluster_s": [],
+
+  # number of clusters for each prime
+  #
+  "eta": [],
+
+  # center of score function
+  #
+  "mu": [],
+
+  # rescale of score function
+  #
+  "gamma": [],
 
   "Q": []
 }
@@ -144,7 +181,7 @@ def eznpp_debug_print(ctx):
 
 
   print("w:", ctx["w"])
-  print("nu:", ctx["nu"])
+  print("eta:", ctx["eta"])
 
   for p_idx in range(len(ctx["p"])):
 
@@ -152,7 +189,7 @@ def eznpp_debug_print(ctx):
 
     p_cluster_size = ctx["w"][p_idx]
 
-    print("cluster{", pr, "}[" + str(len(ctx["cluster_idx"][p_idx])) + "]:")
+    print("cluster{", pr, "}[" + str(len(ctx["cluster_idx"][p_idx])) + "]:", eznpp_p_cluster_score(ctx, p_idx) )
 
     for c_idx in range(len(ctx["cluster_idx"][p_idx])):
 
@@ -172,21 +209,90 @@ def eznpp_debug_print(ctx):
 
         line.append( _s + str(v) + "{idx:" + str(idx) + "}" )
 
-      _d = _dot( s_global, ctx["cluster_s"][p_idx][c_idx] )
+      #_d = _dot( s_global, ctx["cluster_s"][p_idx][c_idx] )
+      _d = _simcount( s_global, ctx["cluster_s"][p_idx][c_idx] )
 
       _match = 0
       if _d == p_cluster_size: _match = 1
 
       print( " ".join(line)  + "  <match:" + str(_match) + "," + str(_d) + "/" + str(p_cluster_size) + ">")
 
+  print("tot_score:", eznpp_tot_score(ctx))
+
+def eznpp_p_cluster_match_count(ctx, p_idx):
+
+  p_cluster_size = ctx["w"][p_idx]
+  p_n_cluster = len(ctx["cluster_idx"][p_idx])
+
+  match_count = 0
+  for c_idx in range(len(ctx["cluster_idx"][p_idx])):
+
+    s_global = []
+    for i in range(len(ctx["cluster_idx"][p_idx][c_idx])):
+      idx = ctx["cluster_idx"][p_idx][c_idx][i]
+      s = ctx["cluster_s"][p_idx][c_idx][i]
+      v = ctx["Q"][p_idx][ idx ]
+
+      s_global.append( ctx["s"][idx] )
+
+    _d = _simcount( s_global, ctx["cluster_s"][p_idx][c_idx] )
+    if _d == p_cluster_size: match_count += 1
+
+  return [match_count, p_n_cluster ]
+
+def eznpp_p_cluster_score(ctx, p_idx):
+
+  p_cluster_size = ctx["w"][p_idx]
+  p_n_cluster = len(ctx["cluster_idx"][p_idx])
+
+  match_count = 0
+  for c_idx in range(len(ctx["cluster_idx"][p_idx])):
+
+    s_global = []
+    for i in range(len(ctx["cluster_idx"][p_idx][c_idx])):
+      idx = ctx["cluster_idx"][p_idx][c_idx][i]
+      s = ctx["cluster_s"][p_idx][c_idx][i]
+      v = ctx["Q"][p_idx][ idx ]
+
+      s_global.append( ctx["s"][idx] )
+
+    _d = _simcount( s_global, ctx["cluster_s"][p_idx][c_idx] )
+    if _d == p_cluster_size: match_count += 1
+
+  x = float(match_count) / float(p_n_cluster)
+  y = _sigmoid( 3.0*(x-0.5) )
+  return y
+
+def eznpp_tot_score(ctx):
+  p_n = len(ctx["p"])
+  S = 0
+  for p_idx in range(p_n):
+    S += eznpp_p_cluster_score(ctx, p_idx)
+  return float(S) / float(p_n)
 
 def _dot(a,b):
   s = 0
   for i in range(len(a)): s += a[i]*b[i]
   return s
 
+def _simcount(a,b):
+  s = 0
+  for i in range(len(a)):
+    if a[i]==b[i]: s+=1
+  return s
+
 def _sigmoid(x):
   return 1.0 / (1.0 + math.exp(-x))
+
+def simpsolve(A,S, idx):
+  if idx == len(S): return _dot(A,S)
+  S[idx] = 1
+  v = simpsolve(A,S,idx+1)
+  if v==0: return v
+  S[idx] = -1
+  v = simpsolve(A,S,idx+1)
+  if v==0: return v
+  return -1
 
 
 def npp_modp_brute_force(a, s, p, idx):
@@ -219,9 +325,14 @@ def __spottest_npp_modp_brute_force():
   for i in range(len(test_s)):
     print( test_s[i], '*', test_a[i] )
 
-def eznpp_setup(ctx):
-  n = ctx["n"]
-  m = ctx["m"]
+def eznpp_setup(ctx, n, m, alpha=1.5, beta=4.0):
+  ctx["n"] = n
+  ctx["m"] = m
+  ctx["M"] = 1<<m
+
+  ctx["alpha"] = alpha
+  ctx["beta"] = beta
+  ctx["L"] = math.ceil( beta * n )
 
   ctx["a"] = []
 
@@ -230,8 +341,13 @@ def eznpp_setup(ctx):
   # construct A instance
   #
   for i in range(n):
-    ctx["a"].append( random.randrange(1, 2<<m) )
-    ctx["s"].append(1)
+    ctx["a"].append( random.randrange(1, 1<<m) )
+
+    s = 0
+    if random.randrange(2) == 0: s = -1
+    else: s = 1
+
+    ctx["s"].append( s )
   if ((sum(ctx["a"]) % 2) == 1): ctx["a"][0] += 1
 
   S = sum(ctx["a"])
@@ -264,7 +380,7 @@ def eznpp_setup(ctx):
   # create 'cluster' sub-solutions and aux information
   #
   ctx["w"] = []
-  ctx["nu"] = []
+  ctx["eta"] = []
   ctx["cluster_idx"] = []
   ctx["cluster_s"] = []
   for p_idx in range(len(ctx["p"])):
@@ -273,7 +389,7 @@ def eznpp_setup(ctx):
 
     p_n_cluster = math.ceil( ctx["L"] / p_cluster_size )
 
-    ctx["nu"].append( p_n_cluster )
+    ctx["eta"].append( p_n_cluster )
 
     ctx["cluster_idx"].append([])
     ctx["cluster_s"].append([])
@@ -294,19 +410,72 @@ def eznpp_setup(ctx):
         ctx["cluster_idx"][p_idx].append( _a_idx )
         ctx["cluster_s"][p_idx].append( _a_s )
 
-
-
-
-
-
-  
-
   return ctx
 
 
+def eznpp_iter(ctx):
 
-eznpp_setup(eznpp_ctx)
+  n_it = 100000
+
+  n = ctx["n"]
+  p_n = len(ctx["p"])
+
+  for it in range(n_it):
+    score_prv = eznpp_tot_score(ctx)
+
+
+
+    line = []
+    for p_idx in range(len(ctx["p"])):
+      cn = eznpp_p_cluster_match_count(ctx, p_idx)
+      line.append( str(cn[0]) + "/" + str(cn[1]))
+
+    print("#it:", it, "/", n_it, " score:", score_prv, "(", " ".join(line), ")" )
+
+    p_choice = random.randrange(p_n)
+    c_choice = random.randrange( len(ctx["cluster_idx"][p_choice]) )
+
+    s_prv = []
+
+    s_idx = []
+    s_val = []
+
+    for i in range( len(ctx["cluster_idx"][p_choice][c_choice]) ):
+
+      _idx = ctx["cluster_idx"][p_choice][c_choice][i]
+      _s = ctx["cluster_s"][p_choice][c_choice][i]
+
+      s_idx.append(_idx)
+      s_val.append(_s)
+
+      s_prv.append( ctx["s"][_idx] )
+      ctx["s"][_idx] = _s
+
+
+
+    #s_idx = random.randrange(n)
+    #s_val = ctx["s"]
+    #ctx["s"][s_idx] *= -1
+
+    score_nxt = eznpp_tot_score(ctx)
+
+    if score_nxt > score_prv:
+      continue
+
+    if random.randrange(1000) < 30:
+      continue
+
+    #ctx["s"][s_idx] *= -1
+
+    for i in range( len(s_idx) ):
+      _idx = s_idx[i]
+      ctx["s"][_idx] = s_prv[i]
+
+
+eznpp_setup(eznpp_ctx, 30, 15, 1.5, 20.0)
 eznpp_debug_print(eznpp_ctx)
+
+eznpp_iter(eznpp_ctx)
 
 sys.exit();
 
@@ -378,292 +547,5 @@ def cluster_energy(Q,C,s):
   return _sum
 
 
-def _debug():
-  a = []
-  for i in range(5):
-    v = random.randrange(1,5)
-    a.append(v)
-  if (sum(a) % 2): a[0]+=1
-  count_partition(a)
-  sys.exit(0)
 
-# N - list length
-# M - random range of each element
-# m - lg(M)
-# BSMOOTH - product of (small) primes greater than M
-# P - static list of first 1000 primes
-# p_m - number of primes in BSMOOTH
-#
-# A - NPP instance (array of numbers) (A = [ a_0, a_1, ... , a_{N-1} ])
-# Q - chinese remainder theorem (CRT) instance vector ($Q \in \mathbb{Z}^{N,m}$)
-#
-#         Q = [ [ a_0 % p_0, a_0 % p_1, a_0 % p_2, ... , a_0 % p_{m-1} ],
-#               [ a_1 % p_0, a_1 % p_1, a_1 % p_2, ... , a_1 % p_{m-1} ],
-#               [ a_2 % p_0, a_2 % p_1, a_2 % p_2, ... , a_2 % p_{m-1} ],
-#                  ...
-#               [ a_{N-1} % p_0, a_{N-1} % p_1, a_{N-1} % p_2, ... , a_{N-1} % p_{m-1} ] ]
-#
-# C - constraint index list for primes ($C \in \mathbb{Z}^{m,\cdot}$).
-#     Each row array represents the list of index constraints for a particular prime (row k corresponds to p_k)
-#
 
-
-N = 30
-m = 15
-M = (2<<m)
-BSMOOTH = 1
-
-N = 60
-m = 30
-M = (2<<m)
-BSMOOTH = 1
-
-
-Q = []
-A = []
-C = []
-C_count = []
-
-# construct B smooth number and store number of primes in p_m
-#
-p_m = 0
-while (BSMOOTH < (2<<m)):
-  if DEBUG > 0: print(p_m)
-  BSMOOTH *= P[p_m]
-  p_m+=1
-
-if DEBUG > 0: print(m, M, BSMOOTH)
-
-# construct A instance
-#
-for i in range(N):
-  A.append( random.randrange(1, 2<<m) )
-if ((sum(A) % 2) == 1): A[0] += 1
-
-# construct CRT vector
-#
-for i in range(N):
-  v = []
-  for j in range(p_m): v.append( A[i] % P[j] )
-  Q.append(v)
-
-# construct constraints
-#
-for j in range(p_m):
-  C.append([])
-
-  ilogp = max(4, math.ceil(2.5*math.log(P[j])))
-
-  c_j_n = math.ceil( 2.0*N/ilogp )
-
-  if DEBUG > 0: print("P[", j, "]:", P[j], "==>", ilogp, ", c_j_n:", c_j_n)
-
-  C[j] = []
-  for k in range(c_j_n):
-    while True:
-      idx_a = rand_idx_subset(N, ilogp)
-      if Q_idx_soln_tot( Q, idx_a, j ) != 0:
-        C[j].append(idx_a)
-        break
-
-
-def _dot(A,S):
-  _sum = 0
-  for i in range(len(S)): _sum += A[i]*S[i]
-  return _sum
-
-def simpsolve(A,S, idx):
-
-  if idx == len(S): return _dot(A,S)
-
-  S[idx] = 1
-  v = simpsolve(A,S,idx+1)
-  if v==0: return v
-
-  S[idx] = -1
-  v = simpsolve(A,S,idx+1)
-  if v==0: return v
-
-  return -1
-
-
-
-TOT_CE = 0
-COUNT = 0
-
-def detrun_i_r(A,Q,C,S,sched_idx,s_idx):
-  global COUNT
-  global TOT_CE
-
-  _n = len(Q)
-  _m = len(C)
-
-  if s_idx == _n:
-    COUNT += 1
-    print(">>> c:", COUNT, "e:", _dot(A,S) )
-    if _dot(A,S) == 0:
-      print("FOUND!!!", S)
-      sys.exit()
-    return _dot(A,S)
-
-  _max_sched_idx = -1
-  _max_ce = -1
-  _max_idx = -1
-  _max_v = 0
-
-  for _i in range(s_idx, _n):
-    idx = sched_idx[_i]
-
-    S[ idx ] = 1
-    _ce = cluster_energy(Q,C,S)
-
-    if _ce > _max_ce:
-      _max_ce = _ce
-      _max_idx = idx
-      _max_sched_idx = _i
-      _max_v = 1
-
-    S[ idx ] = -1
-    _ce = cluster_energy(Q,C,S)
-
-    if _ce > _max_ce:
-      _max_ce = _ce
-      _max_idx = idx
-      _max_sched_idx = _i
-      _max_v = -1
-
-    S[ idx ] = 0
-
-  t = sched_idx[s_idx]
-  sched_idx[s_idx] = sched_idx[_max_sched_idx]
-  sched_idx[_max_sched_idx] = t
-
-  print("max(ce:", _max_ce, "i:", _max_idx, "si:", _max_sched_idx, "v:", _max_v,") sched:", sched_idx)
-
-  _v = 0
-  S[_max_idx] = _max_v
-
-
-  print("idx:", s_idx, "ce:", cluster_energy(Q,C,S), "/", TOT_CE, "(c:", COUNT, ")", S)
-
-  _v = detrun_i_r(A,Q,C,S,sched_idx,s_idx+1)
-  if _v == 0: return _v
-
-  S[_max_idx] *= -1
-
-  print("idx:", s_idx, "ce:", cluster_energy(Q,C,S), "/", TOT_CE, "(c:", COUNT, ")", S)
-
-  _v = detrun_i_r(A,Q,C,S,sched_idx,s_idx+1)
-  if _v == 0: return _v
-
-  t = sched_idx[s_idx]
-  sched_idx[s_idx] = sched_idx[_max_sched_idx]
-  sched_idx[_max_sched_idx] = t
-
-  S[idx] = 0
-  return -1
-
-
-def detrun_r(A,Q,C,S,s_idx):
-  global COUNT
-  global TOT_CE
-
-
-  _n = len(Q)
-  _m = len(C)
-
-  if s_idx == _n:
-    COUNT += 1
-    #print(">>>", _dot(A,S), A, S)
-    #print(">>>", COUNT, _dot(A,S), s_idx, _n, _m, len(S), _dot(S,S), S)
-    print(">>> c:", COUNT, "e:", _dot(A,S) )
-    if _dot(A,S) == 0:
-      print("FOUND!!!", S)
-      sys.exit()
-    return _dot(A,S)
-
-  S[s_idx] = 1
-  _e1p = cluster_energy(Q,C,S)
-
-  S[s_idx] = -1
-  _e1m = cluster_energy(Q,C,S)
-
-  _ss = 0
-
-  if _e1p > _e1m: _ss = 1
-  else: _ss = -1
-
-  _v = 0
-
-  S[s_idx] = _ss
-
-  print("idx:", s_idx, "ce:", cluster_energy(Q,C,S), "/", TOT_CE, "(c:", COUNT, ")")
-
-  _v = detrun_r(A,Q,C,S,s_idx+1)
-  if _v == 0: return _v
-
-  S[s_idx] *= -1
-
-  print("idx:", s_idx, "ce:", cluster_energy(Q,C,S), "/", TOT_CE, "(c:", COUNT, ")")
-  #print(s_idx, cluster_energy(Q,C,S), "(", COUNT, ")")
-
-  _v = detrun_r(A,Q,C,S,s_idx+1)
-  if _v == 0: return _v
-
-
-  S[s_idx] = 0
-  return -1
-
-
-if DEBUG > 0:
-  for i in range(len(A)):
-    print(i, A[i], Q[i])
-
-  print("")
-  for j in range(p_m):
-    for k in range(len(C[j])):
-      print("pr:", P[j], "C_k{", k,"} (idx):", C[j][k], ", n_sol:", Q_idx_soln_tot(Q,C[j][k], j) )
-    print("")
-
-
-
-
-  S = []
-  for i in range(N): S.append(0)
-
-  TOT_CE = cluster_energy(Q,C,S)
-
-  print(">>>", cluster_energy(Q,C,S))
-
-  sched_idx = []
-  for i in range(N): sched_idx.append(i)
-
-  v = detrun_i_r(A,Q,C,S,sched_idx,0)
-  print("???", v, S)
-
-  #v = detrun_r(A,Q,C,S,0)
-  #print("???", v, S)
-
-#  print("??", cluster_energy(Q,C,S))
-#
-#  S[0] = 1
-#  print("S[0] = +1:", cluster_energy(Q,C,S))
-#
-#  S[1] = 1
-#  print(" S[1] = +1:", cluster_energy(Q,C,S))
-#  S[1] = -1
-#  print(" S[1] = -1:", cluster_energy(Q,C,S))
-#
-#  S[1] = 0
-#
-#  S[0] = -1
-#  print("S[0] = -1:", cluster_energy(Q,C,S))
-#  S[1] = 1
-#  print(" S[1] = +1:", cluster_energy(Q,C,S))
-#  S[1] = -1
-#  print(" S[1] = -1:", cluster_energy(Q,C,S))
-#
-#
-#  S[0] = 0
-#  S[1] = 0
-#  print("S[0,1] =  0:", cluster_energy(Q,C,S))
