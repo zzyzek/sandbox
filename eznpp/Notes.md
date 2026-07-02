@@ -1,6 +1,24 @@
 Notes
 ---
 
+###### 2026-07-02
+
+No, I've fundamentally failed to understand.
+Whatever method I was thinking of is wrong.
+
+Consider [1,2,1] with prime 3, and cluster [1,1,.], [.,1,1].
+Each cluster is 0 (mod 3) but total is 1 mod 3.
+
+The clusters need to be independent, at least, within
+the prime base vector.
+
+A simpler test is to choose a bag of clusters,
+where the bag is made up from repeated independent
+partitions within a prime vector,
+enumerate solutions and see if there's an independent
+set that matches within each prime vector base.
+
+
 ###### 2026-07-01
 
 In the middle of debugging:

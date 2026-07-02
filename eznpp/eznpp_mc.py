@@ -413,7 +413,7 @@ def eznpp_setup(ctx, n, m, alpha=1.5, beta=4.0):
   return ctx
 
 
-def eznpp_iter(ctx):
+def eznpp_iter0(ctx):
 
   n_it = 100000
 
@@ -467,6 +467,135 @@ def eznpp_iter(ctx):
 
     #ctx["s"][s_idx] *= -1
 
+    for i in range( len(s_idx) ):
+      _idx = s_idx[i]
+      ctx["s"][_idx] = s_prv[i]
+
+def eznpp_raw(ctx):
+  n = ctx["n"]
+  S = 0
+  for idx in range(n):
+    S += ctx["s"][idx] * ctx["a"][idx]
+  return S
+
+def eznpp_p_raw(ctx, p_idx):
+  n = ctx["n"]
+  pr = ctx["p"][p_idx]
+  S = 0
+  for idx in range(n):
+    S += ctx["s"][idx] * ctx["Q"][p_idx][idx]
+  return S % pr
+
+def eznpp_occ_score(ctx):
+
+  n = ctx["n"]
+  m = ctx["m"]
+  n_p = len(ctx["p"])
+
+  tot_occ_count = [0]*n_p
+
+  for p_idx in range(n_p):
+
+    p_occ = [0]*n
+    p_occ_count = 0
+
+    for c_idx in range( len(ctx["cluster_idx"][p_idx]) ):
+
+      c_n = len(ctx["cluster_idx"][p_idx][c_idx])
+
+      print("p_idx:", p_idx, "c_idx:", c_idx, "c_n:", c_n, "(p raw score:", eznpp_p_raw(ctx,p_idx), ")")
+      print("  s:", ctx["s"])
+      print("  a:", ctx["a"])
+      print("  b:", ctx["Q"][p_idx])
+
+      s_sim_count = 0
+      for pos in range( c_n ):
+        s_idx = ctx["cluster_idx"][p_idx][c_idx][pos]
+        s_val = ctx["cluster_s"][p_idx][c_idx][pos]
+
+        print("  cmp s_val:", s_val, "==? s[", s_idx, "]:", ctx["s"][s_idx])
+
+
+        if s_val == ctx["s"][s_idx]:
+
+          print("    yep")
+
+          s_sim_count += 1
+
+        else:
+          print("    nope")
+
+      print("  s_sim_count:", s_sim_count, "/", c_n, "?")
+
+      if s_sim_count == c_n:
+
+        print("  ADDING occupancy, was:", p_occ)
+
+        for pos in range( c_n ):
+          s_idx = ctx["cluster_idx"][p_idx][c_idx][pos]
+          s_val = ctx["cluster_s"][p_idx][c_idx][pos]
+
+          if p_occ[s_idx] == 0: p_occ_count += 1
+          p_occ[s_idx] = 1
+
+        print("  NOW:", p_occ)
+
+    print("tot_occ_count[", p_idx, "]:", p_occ_count)
+
+    tot_occ_count[p_idx] = p_occ_count
+
+  print(":::", tot_occ_count)
+
+  S = float(sum(tot_occ_count)) / float(n_p*n)
+  return S
+
+
+
+def eznpp_iter1(ctx):
+
+  n_it = 10
+
+  n = ctx["n"]
+  p_n = len(ctx["p"])
+
+  for it in range(n_it):
+    score_prv = eznpp_occ_score(ctx)
+
+    #line = []
+    #for p_idx in range(len(ctx["p"])):
+    #  cn = eznpp_p_cluster_match_count(ctx, p_idx)
+    #  line.append( str(cn[0]) + "/" + str(cn[1]))
+    #print("#it:", it, "/", n_it, " score:", score_prv, "(", " ".join(line), ")" )
+    print("#it:", it, "/", n_it, " score:", score_prv, "(", eznpp_raw(ctx), ")")
+    print("s:", ctx["s"])
+    print("a:", ctx["a"])
+
+    p_choice = random.randrange(p_n)
+    c_choice = random.randrange( len(ctx["cluster_idx"][p_choice]) )
+
+    s_prv = []
+
+    s_idx = []
+    s_val = []
+
+    for i in range( len(ctx["cluster_idx"][p_choice][c_choice]) ):
+
+      _idx = ctx["cluster_idx"][p_choice][c_choice][i]
+      _s = ctx["cluster_s"][p_choice][c_choice][i]
+
+      s_idx.append(_idx)
+      s_val.append(_s)
+
+      s_prv.append( ctx["s"][_idx] )
+      ctx["s"][_idx] = _s
+
+    score_nxt = eznpp_occ_score(ctx)
+
+    if score_nxt > score_prv: continue
+    if random.randrange(1000) < 30: continue
+
+    # revert
+    #
     for i in range( len(s_idx) ):
       _idx = s_idx[i]
       ctx["s"][_idx] = s_prv[i]
@@ -539,8 +668,37 @@ def cluster_energy(Q,C,s):
   return _sum
 
 
+# I got worried that this might be a complete dead end,
+# so this does a brute force enumeration of solutions
+# (sigma sign held in ctx["s"]) and sees if there's a possible
+# cluster subset that has it as a solution.
+# If we get a solution without a cluster subset, report 'nomatch'
+# and count of occupancy for each prime vector in the CRT breakdown,
+# otherwise report 'MATCH'
+#
+# It looks like beta needs to be quite big.
+# as a spot test, here are some values where I get
+# matches consistently:
+#
+# eznpp_setup(eznpp_ctx, 24, 13, 1.25, 200.0)
+# eznpp_setup(eznpp_ctx, 26, 13, 1.25, 200.0)
+# eznpp_setup(eznpp_ctx, 30, 15, 1.25, 250.0)
+# eznpp_setup(eznpp_ctx, 30, 15, 1.125, 250.0)
+# eznpp_setup(eznpp_ctx, 30, 15, 1.05, 250.0)
+#
+# I think alpha being closer to 1 is better.
+#
+# It all depends on how beta scales with instance
+# size to see if it's even feasible, so I'm not
+# sure if it's feasible in general, or if
+# beta can be kept reasonable, but for these small
+# instances, it's at least not a negative result.
+# Feasibility alone doesn't mean we can use it,
+# so, assuming beta can be kept in check and still
+# have feasible solutions, figuring out how to exploit
+# it for a solution is still needed.
+#
 COUNTER = 0
-
 def eznpp_brute_stat(ctx, idx):
   global COUNTER
   n = ctx["n"]
@@ -609,8 +767,14 @@ def eznpp_brute_stat(ctx, idx):
   return _count
 
 
-
 def _main():
+
+  eznpp_setup(eznpp_ctx, 30, 15, 1.05, 250.0)
+  eznpp_debug_print(eznpp_ctx)
+
+  eznpp_iter1(eznpp_ctx)
+
+def _main0():
 
   #eznpp_setup(eznpp_ctx, 30, 15, 1.5, 20.0)
   #eznpp_setup(eznpp_ctx, 24, 13, 1.25, 200.0)
