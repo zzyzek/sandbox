@@ -1015,6 +1015,9 @@ function lune_network_3d_SPoIF_slo(point) {
 // - does *not* update Ve_map as this requires a
 //   relative neighborhood graph calculation
 //
+// return:
+//   index of newly created point (index in P)
+//
 function SPoIF_add_2d(info, pnt) {
   let grid_n = info.grid_n;
 
@@ -1024,12 +1027,12 @@ function SPoIF_add_2d(info, pnt) {
   let ix = Math.floor(info.P[idx][0]*grid_n);
   let iy = Math.floor(info.P[idx][1]*grid_n);
 
-  //console.log("...ixy:", ix, iy, "(", info.grid[0].length, info.grid.length, ") idx:", idx);
-
   info.grid[iy][ix].push(idx);
   info.P_idx_grid_bp.push( [ix,iy] );
 
-  return info;
+  info.Ve_map[idx] = {};
+
+  return idx;
 }
 
 function SPoIF_add_3d(info, pnt) {
@@ -1044,7 +1047,9 @@ function SPoIF_add_3d(info, pnt) {
   info.grid[iz][iy][ix].push(idx);
   info.P_idx_grid_bp.push( [ix,iy,iz] );
 
-  return info;
+  info.Ve_map[idx] = {};
+
+  return idx;
 }
 
 // swap two indices in SPoIF context
@@ -1259,9 +1264,6 @@ function SPoIF_rem_2d(info, pnt_idx) {
 
   let _idx = info.P.length-1;
 
-  //console.log("REM2d:", pnt_idx, "Ve before:");
-  //console.log(info.Ve_map);
-
   // remove occurances of old pnt_idx in rng edges
   //
   if (pnt_idx in info.Ve_map) {
@@ -1270,10 +1272,6 @@ function SPoIF_rem_2d(info, pnt_idx) {
     }
     delete info.Ve_map[pnt_idx];
   }
-
-  //console.log("REM2d:", pnt_idx, "Ve after:");
-  //console.log(info.Ve_map);
-
 
   // remap newly swapped point to the old pnt_idx
   //
@@ -1368,6 +1366,8 @@ function SPoIF_rem_3d(info, pnt_idx) {
   return info;
 }
 
+// cruft?
+//
 function SPoIF_alloc(point) {
   let n = point.length;
 
@@ -1457,7 +1457,7 @@ function SPoIF_alloc(point) {
 // info   : lune_network context
 // p_idx  : index of point (info.P[p_idx])
 //
-// adds edges to info.E, info.Ve
+// adds edges to info.Ve
 //
 function lune_network_2d_SPoIF_RNGv(info, p_idx) {
 
@@ -1992,6 +1992,7 @@ function lune_network_SPoIF_RNGv_naive(info, p_idx, q_list) {
   for (let sqi=0; sqi<q_list.length; sqi++) {
     let q_idx = q_list[sqi];
     let _found = true;
+
     for (let sqj=0; sqj<q_list.length; sqj++) {
       if (sqi == sqj) { continue; }
       let u_idx = q_list[sqj];
@@ -2000,12 +2001,8 @@ function lune_network_SPoIF_RNGv_naive(info, p_idx, q_list) {
         break;
       }
     }
+
     if (_found) {
-      //info.E.push( [p_idx, q_idx] );
-
-      //info.Ve[p_idx].push(q_idx);
-      //info.Ve[q_idx].push(p_idx);
-
       info.Ve_map[p_idx][q_idx] = 1;
       info.Ve_map[q_idx][p_idx] = 1;
 
@@ -2178,6 +2175,7 @@ function lune_network_2d_SPoIF(point) {
 
     "P_label": [],
     "P_dirty": [],
+    "P_dirty_queue": [],
 
     "fpR_v": fpR_v,
     "fpR_max_ir": fpR_max_ir,
@@ -3145,7 +3143,10 @@ function sca_spoif_2d_opt(A, V) {
     // and add newly created vein nodes to Vnew for later
     // processing below
     //
-    let Vnew = [];
+    let Vnew = [],
+        _v_idx_dirty_Q = [],
+        _v_idx_dirty_map = {};
+
     for (let i=0; i<cur_v_idx.length; i++) {
       let v_idx = cur_v_idx[i];
 
@@ -3188,7 +3189,13 @@ function sca_spoif_2d_opt(A, V) {
     // (TODO: need to do collision check here (D_add))
     //
     for (let i=0; i<Vnew.length; i++) {
-      SPoIF_add_2d(rng_info, Vnew[i]);
+      let _v_id = SPoIF_add_2d(rng_info, Vnew[i]);
+
+      if (!(_v_id in _v_idx_dirty_map)) {
+        _v_idx_dirty_Q.push(_v_id);
+      }
+      _v_idx_dirty_map[_v_id] = 1;
+
       n_v++;
     }
 
@@ -3198,11 +3205,48 @@ function sca_spoif_2d_opt(A, V) {
     // FOCUS: this is where the optimization needs to happen
     //   - keep track of dirtied nodes, either newly created ones,
     //     nodes touched by removal or otherwise
-    //   - breadth first search on dirtied nodes to update RNG,
+    //   - breadth first search (or whatever) on dirtied nodes to update RNG,
     //     making sure not to double process or double dirty
     //     nodes already processed
     //     
-    rng_info = lune_network_2d_SPoIF( rng_info.P );
+    //rng_info = lune_network_2d_SPoIF( rng_info.P );
+    while (_v_idx_dirty_Q.length > 0) {
+      let _v_idx = _v_idx_dirty_Q.pop();
+
+      // save neighbors of v before we run a local RNG for v
+      // and remove neighbors of v in Ve_map so that the
+      // RNG can run fresh.
+      //
+      let _prv_nei = {};
+      for (let _u_idx in rng_info.Ve_map[_v_idx]) {
+        _prv_nei[_u_idx] = 1;
+        delete rng_info.Ve_map[_v_idx][_u_idx];
+      }
+
+      // run local RNG for v, updating it's neighbors
+      //
+      lune_network_2d_SPoIF_RNGv(rng_info, _v_idx);
+
+      // if we've added new edges, add them to the queue.
+      // if the edge was there before the local RNG, it isn't dirtied
+      // otherwise, add it to the queue
+      //
+      for (let _u_idx in rng_info.Ve_map[_v_idx]) {
+        if (_u_idx in _prv_nei) { continue; }
+        if (!(_u_idx in _v_idx_dirty_map)) { _v_idx_dirty_Q.push(_u_idx); }
+        _v_idx_dirty_map[_u_idx] = 1;
+      }
+
+      // if v previously had an edge that was removed from the new local RNG
+      // calculation, add the neighbor to the queue.
+      //
+      for (let _u_idx in _prv_nei) {
+        if (_u_idx in rng_info.Ve_map[_v_idx]) { continue; }
+        if (!(_u_idx in _v_idx_dirty_map)) { _v_idx_dirty_Q.push(_u_idx); }
+        _v_idx_dirty_map[_u_idx] = 1;
+      }
+
+    }
 
     prof_e(perf, "rng.0");
     prof_s(perf, "vswap");
@@ -3243,6 +3287,9 @@ function sca_spoif_2d_opt(A, V) {
 
     prof_s(perf, "rng.1");
 
+    // FOCUS: this is where the optimization needs to happen
+    // !!!!
+    //
     rng_info = lune_network_2d_SPoIF( rng_info.P );
 
     prof_e(perf, "rng.1");
@@ -3494,6 +3541,9 @@ function sca_spoif_2d(A, V) {
   }
 
   if (it == max_it) { console.log("#MAX_IT reached:", max_it); }
+
+  //DEBUG
+  _debug_rng_ofn_E(".debug/sca_spoif_2d_fin.gp", rng_info);
 
   prof_e(perf, "tot");
 
@@ -3813,6 +3863,12 @@ function cli_main(argv) {
     let A = poisson_point(N, 2, rnd);
     let V = [ [0, 0] ];
     sca_spoif_2d(A, V);
+  }
+
+  else if (op == 'sca2d.opt') {
+    let A = poisson_point(N, 2, rnd);
+    let V = [ [0, 0] ];
+    sca_spoif_2d_opt(A, V);
   }
 
   else if (op == 'sca3d') {
