@@ -3290,7 +3290,45 @@ function sca_spoif_2d_opt(A, V) {
     // FOCUS: this is where the optimization needs to happen
     // !!!!
     //
-    rng_info = lune_network_2d_SPoIF( rng_info.P );
+    //rng_info = lune_network_2d_SPoIF( rng_info.P );
+    while (_v_idx_dirty_Q.length > 0) {
+      let _v_idx = _v_idx_dirty_Q.pop();
+
+      // save neighbors of v before we run a local RNG for v
+      // and remove neighbors of v in Ve_map so that the
+      // RNG can run fresh.
+      //
+      let _prv_nei = {};
+      for (let _u_idx in rng_info.Ve_map[_v_idx]) {
+        _prv_nei[_u_idx] = 1;
+        delete rng_info.Ve_map[_v_idx][_u_idx];
+      }
+
+      // run local RNG for v, updating it's neighbors
+      //
+      lune_network_2d_SPoIF_RNGv(rng_info, _v_idx);
+
+      // if we've added new edges, add them to the queue.
+      // if the edge was there before the local RNG, it isn't dirtied
+      // otherwise, add it to the queue
+      //
+      for (let _u_idx in rng_info.Ve_map[_v_idx]) {
+        if (_u_idx in _prv_nei) { continue; }
+        if (!(_u_idx in _v_idx_dirty_map)) { _v_idx_dirty_Q.push(_u_idx); }
+        _v_idx_dirty_map[_u_idx] = 1;
+      }
+
+      // if v previously had an edge that was removed from the new local RNG
+      // calculation, add the neighbor to the queue.
+      //
+      for (let _u_idx in _prv_nei) {
+        if (_u_idx in rng_info.Ve_map[_v_idx]) { continue; }
+        if (!(_u_idx in _v_idx_dirty_map)) { _v_idx_dirty_Q.push(_u_idx); }
+        _v_idx_dirty_map[_u_idx] = 1;
+      }
+
+    }
+
 
     prof_e(perf, "rng.1");
     prof_e(perf, "rng.tot");
@@ -3306,6 +3344,8 @@ function sca_spoif_2d_opt(A, V) {
 
   prof_print(perf);
 
+  //DEBUG
+  _debug_rng_ofn_E(".debug/sca_spoif_2d_fin.gp", rng_info);
 }
 
 
