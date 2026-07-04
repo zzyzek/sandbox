@@ -3170,29 +3170,6 @@ function sca_spoif_2d_opt(A, V) {
 
   prof_s(perf, "tot");
 
-  // collect all vein nodes that have at least one auxin neighbor
-  //
-  /*
-  let _dirty_node = {};
-  for (let v_idx = n_a; v_idx < (n_a+n_v); v_idx++) {
-    for (let v_nei in rng_info.Ve_map[v_idx]) {
-      if (v_nei < n_a) {
-        _dirty_node[v_idx] = 'v';
-        break;
-      }
-    }
-  }
-
-  for (let a_idx = 0; a_idx < n_a; a_idx++) {
-    for (let a_nei in rng_info.Ve_map[a_idx]) {
-      if (a_nei < n_a) {
-        _dirty_node[a_idx] = 'a';
-        break;
-      }
-    }
-  }
-  */
-
   let processQ= {};
   for (let _idx = 0; _idx < (n_a+n_v); _idx++) {
     processQ[ _idx ] = 0;
@@ -3214,6 +3191,9 @@ function sca_spoif_2d_opt(A, V) {
       _vv.push( v_idx.toString() + ":" + processQ[v_idx] );
     }
     console.log("### processQ:", _vv.join(" "));
+
+
+    let updateQ = new frontierQ();
 
     // process vein nodes that have at least one auxin node
     // and add newly created vein nodes to Vnew for later
@@ -3262,7 +3242,7 @@ function sca_spoif_2d_opt(A, V) {
       // the RNG will be updated below
       //
       let _v_add_idx = SPoIF_add_2d(rng_info, Vnew[i]);
-      updateQ[ _v_add_idx ] = 0;
+      updateQ.add( _v_add_idx );
     }
 
     for (let i=0; i<_processed.length; i++) {
@@ -3273,9 +3253,7 @@ function sca_spoif_2d_opt(A, V) {
     // if edges are removed or added, add them to the updateQ if
     // they haven't already been processed.
     //
-    for (let cur_idx in updateQ) {
-      if (updateQ[cur_idx] == 1) { continue; }
-      updateQ[ cur_idx ] = 1;
+    for (let cur_idx = updateQ.nxt(); (typeof cur_idx !== "undefined"); cur_idx = updateQ.nxt()) {
 
       // remove RNG for vertex so it can recalculate fresh
       //
@@ -3290,26 +3268,24 @@ function sca_spoif_2d_opt(A, V) {
       //
       lune_network_2d_SPoIF_RNGv(rng_info, cur_idx);
 
-      let _diff_nei = {};
-
       for (let nei_idx in _prv_nei) {
         if (nei_idx in rng_info.Ve_map[cur_idx]) { continue; }
-        _diff_nei[nei_idx] = 1;
+        updateQ.add(nei_idx);
       }
 
       for (let nei_idx in rng_info.Ve_map[cur_idx]) {
         if (nei_idx in _prv_nei) { continue; }
-        _diff_nei[nei_idx] = 1;
-      }
-
-      for (let nei_idx in _diff_nei) {
-        let qval = ((nei_idx in updateQ) ? updateQ[nei_idx] : 0);
-        updateQ[ nei_idx ] = qval;
+        updateQ.add(nei_idx);
       }
 
     }
 
-    updateQ = {};
+    updateQ.reset();
+
+    for (let v_idx in processQ) {
+      if (v_idx >= n_a) { continue; }
+
+    }
 
 
 
