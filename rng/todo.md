@@ -1,6 +1,18 @@
 TODO
 ===
 
+###### 2026-07-04
+
+I've now found at least two bugs in swap and rem.
+I don't know how this managed to work at all in the
+first place but this makes me nervous.
+
+* fix bugs in swap and rem 2d
+* add a consistency check function to make sure
+  grid, bp, etc. are in a state we think they should be
+* add stress tests that randomly insert, swap and remove points
+  to test
+
 ###### 2026-07-03
 
 Working through 2d SCA optimization.
