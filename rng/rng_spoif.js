@@ -1032,11 +1032,6 @@ function SPoIF_add_2d(info, pnt) {
 
   info.Ve_map[idx] = {};
 
-  //DEBUG
-  console.log("SPOIF_ADD:");
-  console.log("info.Ve_map[", idx, "]:", info.Ve_map[idx]);
-  _debug_print(info);
-
   return idx;
 }
 
@@ -1073,9 +1068,6 @@ function SPoIF_swap_2d(info, a_idx, b_idx) {
   a_idx = parseInt(a_idx);
   b_idx = parseInt(b_idx);
 
-  //console.log("SWAP", a_idx, b_idx);
-  //console.log("Ve:", info.Ve_map);
-
   if (a_idx in info.Ve_map) {
     for (let a_nei_idx in info.Ve_map[a_idx]) {
       a_sched.push( a_nei_idx );
@@ -1100,16 +1092,9 @@ function SPoIF_swap_2d(info, a_idx, b_idx) {
   for (let _nei_idx in a_orig) { _all_nei[_nei_idx] = 1; }
   for (let _nei_idx in b_orig) { _all_nei[_nei_idx] = 1; }
 
-  //console.log("a_sched:", a_sched);
-  //console.log("b_sched:", b_sched);
-
-
   for (let _nei_idx in _all_nei) {
 
     _nei_idx = parseInt(_nei_idx);
-
-    //console.log("_all_nei:", _all_nei, "_nei_idx:", _nei_idx);
-    //console.log(info.Ve_map);
 
     if ((a_idx in info.Ve_map[_nei_idx]) &&
         (b_idx in info.Ve_map[_nei_idx])) {
@@ -1130,9 +1115,6 @@ function SPoIF_swap_2d(info, a_idx, b_idx) {
 
   delete info.Ve_map[a_idx];
   delete info.Ve_map[b_idx];
-
-  //console.log("a_orig:", a_orig);
-  //console.log("b_orig:", b_orig);
 
   info.Ve_map[b_idx] = a_orig;
   info.Ve_map[a_idx] = b_orig;
@@ -1158,18 +1140,13 @@ function SPoIF_swap_2d(info, a_idx, b_idx) {
   let _n = a_g.length;
   let _m = b_g.length;
 
-  //DEBUG
-  console.log("?swap_2d a_idx:", a_idx, typeof(a_idx), "b_idx:", b_idx, typeof(b_idx));
-  console.log("?swap_2d a_ixyz:", a_ixyz, "b_ixyz:", b_ixyz);
-
   for (let i=0; i<_n; i++) {
     if      (a_g[i] == a_idx) { a_g[i] = b_idx; }
     else if (a_g[i] == b_idx) { a_g[i] = a_idx; }
   }
 
-  if ((a_ixyz[1] != b_ixyz[1]) &&
+  if ((a_ixyz[1] != b_ixyz[1]) ||
       (a_ixyz[0] != b_ixyz[0])) {
-
     for (let i=0; i<_m; i++) {
       if (b_g[i] == b_idx) { b_g[i] = a_idx; }
     }
@@ -1180,6 +1157,7 @@ function SPoIF_swap_2d(info, a_idx, b_idx) {
 }
 
 
+//!!!! NEEDS VALIDATION BEFORE USE
 
 function SPoIF_swap_3d(info, a_idx, b_idx) {
   let a_sched = [], b_sched = [];
@@ -1260,8 +1238,8 @@ function SPoIF_swap_3d(info, a_idx, b_idx) {
     else if (a_g[i] == b_idx) { a_g[i] = a_idx; }
   }
 
-  if ((a_ixyz[2] != b_ixyz[2]) &&
-      (a_ixyz[1] != b_ixyz[1]) &&
+  if ((a_ixyz[2] != b_ixyz[2]) ||
+      (a_ixyz[1] != b_ixyz[1]) ||
       (a_ixyz[0] != b_ixyz[0])) {
 
     for (let i=0; i<_m; i++) {
@@ -1282,13 +1260,9 @@ function SPoIF_swap_3d(info, a_idx, b_idx) {
 //
 function SPoIF_rem_2d(info, pnt_idx) {
 
-  let _idx = info.P.length-1;
+  let end_idx = info.P.length-1;
 
   pnt_idx = parseInt(pnt_idx);
-
-
-  console.log("?rem_2d: pnt_idx:", pnt_idx, typeof(pnt_idx), "_idx:", _idx, typeof(_idx));
-
 
   // remove occurances of old pnt_idx in rng edges
   //
@@ -1301,85 +1275,67 @@ function SPoIF_rem_2d(info, pnt_idx) {
 
   // remap newly swapped point to the old pnt_idx
   //
-  if (_idx in info.Ve_map) {
+  if (end_idx in info.Ve_map) {
 
-    _idx = parseInt(_idx);
+    end_idx = parseInt(end_idx);
 
-    let _m = info.Ve_map[_idx];
-    for (let nei_idx in info.Ve_map[_idx]) {
+    let _m = info.Ve_map[end_idx];
+    for (let nei_idx in info.Ve_map[end_idx]) {
 
       nei_idx = parseInt(nei_idx);
 
-      delete info.Ve_map[nei_idx][_idx];
+      delete info.Ve_map[nei_idx][end_idx];
       info.Ve_map[nei_idx][pnt_idx] = 1;
     }
-    delete info.Ve_map[_idx];
+    delete info.Ve_map[end_idx];
     info.Ve_map[pnt_idx] = _m;
   }
 
   let _q = info.P[pnt_idx];
-  info.P[pnt_idx] = info.P[_idx];
-  info.P[_idx] = _q;
+  info.P[pnt_idx] = info.P[end_idx];
+  info.P[end_idx] = _q;
 
   info.P.pop();
 
   let a_ixyz = info.P_idx_grid_bp[pnt_idx];
-  info.P_idx_grid_bp[pnt_idx] = info.P_idx_grid_bp[_idx];
-  info.P_idx_grid_bp[_idx] = a_ixyz;
+  let b_ixyz = info.P_idx_grid_bp[end_idx];
 
-  let b_ixyz = info.P_idx_grid_bp.pop();
+  info.P_idx_grid_bp[pnt_idx] = info.P_idx_grid_bp[end_idx];
+  info.P_idx_grid_bp[end_idx] = a_ixyz;
 
-  //DEBUG
-  console.log("??rem_2d: ixyz:", _ixyz);
+  info.P_idx_grid_bp.pop();
 
-
-  //WIP!!!
+  // swap grid points
   //
   let a_idx = pnt_idx;
-  let b_idx = _idx;
+  let b_idx = end_idx;
 
-  let a_g = info.grid[  _ixyz[1] ][  _ixyz[0] ];
+  let a_g = info.grid[ a_ixyz[1] ][ a_ixyz[0] ];
   let b_g = info.grid[ b_ixyz[1] ][ b_ixyz[0] ];
 
   let _n = a_g.length;
   let _m = b_g.length;
 
+  // pop our deleted value out of the grid
+  //
   for (let i=0; i<_n; i++) {
-    if      (a_g[i] == a_idx) { a_g[i] = b_idx; }
-    else if (a_g[i] == b_idx) { a_g[i] = a_idx; }
-  }
+    let grid_pnt_idx = parseInt(a_g[i]);
 
-  if ((a_ixyz[2] != b_ixyz[2]) &&
-      (a_ixyz[1] != b_ixyz[1]) &&
-      (a_ixyz[0] != b_ixyz[0])) {
-
-    for (let i=0; i<_m; i++) {
-      if (b_g[i] == b_idx) { b_g[i] = a_idx; }
-    }
-
-  }
-
-
-
-  let _n = info.grid[ _ixyz[1] ][ _ixyz[0] ].length;
-  for (let i=0; i<_n; i++) {
-
-    let grid_pnt_idx = parseInt(info.grid[ _ixyz[1] ][ _ixyz[0] ][i]);
-
-    console.log("???rem_2d: grid_pnt_idx:", grid_pnt_idx, typeof(grid_pnt_idx), "pnt_idx:", pnt_idx, typeof(pnt_idx), "i:", i, typeof(i));
-
-    //if (info.grid[ _ixyz[1] ][ _ixyz[0] ][i] == pnt_idx) {
     if (grid_pnt_idx == pnt_idx) {
 
-      //DEBUG
-      console.log("????rem_2d: pnt_idx:", pnt_idx, "i:", i, "...");
+      let _t = a_g[i];
+      a_g[i] = a_g[_n-1];
+      a_g[_n-1] = _t;
+      a_g.pop();
+      break;
+    }
+  }
 
-      //let _t = info.grid[ _ixyz[1] ][ _ixyz[0] ][_n-1];
-      let _t = info.grid[ _ixyz[1] ][ _ixyz[0] ][i];
-      info.grid[ _ixyz[1] ][ _ixyz[0] ][i] =
-        info.grid[ _ixyz[1] ][ _ixyz[0] ][_n-1];
-      info.grid[ _ixyz[1] ][ _ixyz[0] ][_n-1] = _t;
-      info.grid[ _ixyz[1] ][ _ixyz[0] ].pop();
+  for (let i=0; i<_m; i++) {
+    let grid_pnt_idx = parseInt(b_g[i]);
+
+    if (grid_pnt_idx == end_idx) {
+      b_g[i] = pnt_idx;
       break;
     }
   }
@@ -1524,6 +1480,99 @@ function SPoIF_alloc(point) {
 
   prof_e( info.prof, "init" );
 
+}
+
+function lune_network_consistency_2d(info) {
+  let res = { "code": 0, "message": "" };
+
+  let n_p = info.P.length;
+
+  let grid_n = info.grid_n;
+
+  /*
+  let n = info.n;
+  if (n != n_p) {
+    res.code = -1; res.message = "n != |P|";
+    return res;
+  }
+  */
+
+  let Bs = [ info.bbox[0][0], info.bbox[0][1] ];
+  let Bl = [ info.bbox[1][0] - info.bbox[0][0], info.bbox[1][1] - info.bbox[0][1] ];
+
+  let grid_count = [];
+  for (let iy=0; iy < grid_n; iy++) {
+    grid_count.push([]);
+    for (let ix=0; ix < grid_n; ix++) {
+      grid_count[iy].push( info.grid[iy][ix].length );
+    }
+  }
+
+  for (let v_idx=0; v_idx < info.P.length; v_idx++) {
+    let v = info.P[v_idx];
+    let ixy = [
+      Math.floor( grid_n * Bl[0]*(v[0] - Bs[0]) ),
+      Math.floor( grid_n * Bl[1]*(v[1] - Bs[1]) )
+    ];
+
+    if ((ixy[0] < 0) || (ixy[0] >= grid_n) ||
+        (ixy[1] < 0) || (ixy[1] >= grid_n)) {
+      res.code = -2; res.message = "v to grid oob";
+      return res;
+    }
+
+    let _found = false;
+    let _m = info.grid[ ixy[1] ][ ixy[0] ].length;
+    for (let i=0; i<_m; i++) {
+      if (info.grid[ ixy[1] ][ ixy[0] ][i] == v_idx) { _found = true; break; }
+    }
+
+    if (!_found) {
+      res.code = -3;
+      res.message = "v_idx " + v_idx.toString() + " not found at grid [x:" + ixy[0].toString() + ",y:" + ixy[1].toString() + "]";
+      return res;
+    }
+
+    if ( (info.P_idx_grid_bp[v_idx][0] != ixy[0]) ||
+         (info.P_idx_grid_bp[v_idx][1] != ixy[1]) ) {
+      res.code = -4;
+      res.message = "v_idx " + v_idx.toString() + " bp mismatch (bp: [" +
+        info.P_idx_grid_bp[v_idx][0].toString() + "," + info.P_idx_grid_bp[v_idx][1].toString() + "] != ixy: [" +
+        ixy[0].toString() + "," + ixy[1].toString() + "])";
+      return res;
+    }
+
+    grid_count[ ixy[1] ][ ixy[0] ]--;
+  }
+
+  for (let iy=0; iy<grid_n; iy++) {
+    for (let ix=0; ix<grid_n; ix++) {
+      if (grid_count[iy][ix] != 0) {
+        res.code = -5;
+        res.message = "grid[y:" + iy.toString() + "][x:" + ix.toString() + "] orphaned";
+        return res;
+      }
+    }
+  }
+
+  for (let v_idx in info.Ve_map) {
+    for (let nei_idx in info.Ve_map[v_idx]) {
+      if (!(nei_idx in info.Ve_map)) {
+        res.code = -6;
+        res.message = "v_idx:" + nei_idx.toString() + " not in Ve_map";
+        return res;
+      }
+
+      if (!(v_idx in info.Ve_map[nei_idx])) {
+        res.code = -7;
+        res.message = "edge (" + nei_idx.toString() + "," + v_idx.toString() + ") not in Ve_map but (" +
+          v_idx.toString() + "," + nei_idx.toString() + ") is";
+        return res;
+      }
+    }
+  }
+
+  return res;
 }
 
 // single vertex RNG
@@ -2081,9 +2130,9 @@ function lune_network_SPoIF_RNGv_naive(info, p_idx, q_list) {
     if (_found) {
 
       //DEBUG
-      console.log("?? p_idx:", p_idx, typeof(p_idx), "q_idx:", q_idx, typeof(q_idx));
-      console.log("???", info.Ve_map[p_idx]);
-      console.log("???", info.Ve_map[q_idx]);
+      //console.log("?? p_idx:", p_idx, typeof(p_idx), "q_idx:", q_idx, typeof(q_idx));
+      //console.log("???", info.Ve_map[p_idx]);
+      //console.log("???", info.Ve_map[q_idx]);
 
       info.Ve_map[p_idx][q_idx] = 1;
       info.Ve_map[q_idx][p_idx] = 1;
@@ -4011,34 +4060,97 @@ function _debug_print(info) {
 
     let nei_a = [];
     for (let nei_idx in info.Ve_map[idx]) { nei_a.push(nei_idx); }
-    //for (let nei_idx in info.Ve_map[idx]) { nei_a.push(nei_idx.toString() + ((typeof(nei_idx) != "number") ? '*' : '')); }
     let nei_s = nei_a.join(",");
 
     if (info.P[idx].length == 3) {
-      //console.log( printf("[%i] {%f,%f,%f} _%3i,%3i,%3i_ (%s %i) :{%s}",
       console.log( printf("[%i] {%f,%f,%f} _%3i,%3i,%3i_ :{%s}",
         idx, info.P[idx][0], info.P[idx][1], info.P[idx][2],
         info.P_idx_grid_bp[idx][0],
         info.P_idx_grid_bp[idx][1],
         info.P_idx_grid_bp[idx][2],
-        //info.P_label[idx],
-        //info.P_dirty[idx],
         nei_s) );
     }
 
     else if (info.P[idx].length == 2) {
-      //console.log( printf("[%i] {%f,%f} _%3i,%3i_ (%s %i) :{%s}",
       console.log( printf("[%i] {%f,%f} _%3i,%3i_ :{%s}",
         idx, info.P[idx][0], info.P[idx][1],
         info.P_idx_grid_bp[idx][0],
         info.P_idx_grid_bp[idx][1],
-        //info.P_label[idx],
-        //info.P_dirty[idx],
         nei_s) );
     }
 
   }
 
+}
+
+function rng_spoif_stress_test_2d() {
+  let _debug = 1;
+
+  let seed = 1337;
+  let rnd = srand(seed);
+
+  let N = 100;
+  let A = poisson_point(N, 2, rnd);
+
+  let rng_info = lune_network_2d_SPoIF(A);
+
+  if (_debug > 1) { _debug_print(rng_info); }
+
+  let res = { "code": 0, "message": "" };
+  res = lune_network_consistency_2d(rng_info);
+  if (res.code != 0) {
+    console.log("INIT FAIL:", res);
+    return res;
+  }
+
+  let n_it = 10000;
+  for (let it=0; it<n_it; it++) {
+
+    let op = Math.floor(rnd()*3);
+    if (rng_info.P.length == 0) { op = 0; }
+
+    //DEBUG
+    if (_debug > 0) { console.log("#STRESS it:", it, "op:", op); }
+
+    if (op == 0) {
+      let v = [ rnd(), rnd() ];
+
+      if (_debug > 0) { console.log("## add v:", "[", v[0], v[1], "]"); }
+
+      SPoIF_add_2d(rng_info, v);
+    }
+
+    else if (op == 1) {
+      let v_idx = Math.floor( rnd() * rng_info.P.length );
+
+      if (_debug > 0) { console.log("## rem v_idx:", v_idx) }
+
+      SPoIF_rem_2d(rng_info, v_idx);
+    }
+
+    else if (op == 2) {
+      let u_idx = Math.floor( rnd() * rng_info.P.length );
+      let v_idx = Math.floor( rnd() * rng_info.P.length );
+
+      if (_debug > 0) { console.log("## swap u_idx:", u_idx, "v_idx:", v_idx); }
+
+      SPoIF_swap_2d(rng_info, u_idx, v_idx);
+    }
+
+    //DEBUG
+    if (_debug > 1) { _debug_print(rng_info); }
+
+    res = lune_network_consistency_2d(rng_info);
+
+    if (res.code != 0) {
+
+      if (_debug > 0) { console.log("#STRESS it:", it, "INCONSISTENT:", res.code, res.message); }
+      break;
+    }
+
+  }
+
+  return res;
 }
 
 function cli_main(argv) {
@@ -4143,6 +4255,11 @@ function cli_main(argv) {
     let A = poisson_point(N, 3, rnd);
     let V = [ [0, 0, 0] ];
     sca_spoif_3d(A, V);
+  }
+
+  else if (op == "stress2d") {
+    let res = rng_spoif_stress_test_2d();
+    console.log(res);
   }
 
 }
