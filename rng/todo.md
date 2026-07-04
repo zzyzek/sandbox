@@ -1,6 +1,120 @@
 TODO
 ===
 
+###### 2026-07-03
+
+Working through 2d SCA optimization.
+
+The basic loop is:
+
+* ADD vein
+  - if a new vein node is added, mark it for processing
+  - update RNG with all newly created vein nodes and
+    update vein nodes and auxin neighbors that have
+    been marked for processing
+* KILL auxin
+  - if an auxin node is deleted, mark all neighbors for
+    processing
+  - update RNG for each marked node
+  - if marked nodes have a differing RNG, mark each neighbor
+    whose connectivity changed for processing
+  
+
+
+
+```
+P[0:n_a]          : auxin nodes
+P[n_a:(n_a+n_v)]  : vein nodes
+
+ctx = RNG(P)
+
+processQ.reset()
+
+for nod in G:
+  if nod is vein and has at least one auxin neighbor:
+    processQ.add(nod)
+  if nod is auxin and has at least one vein neighbor:
+    processQ.add(nod)
+
+
+while (n_a > 0) and (it < n_it):
+
+  updateQ.reset()
+
+  for nod in processQ:
+    if nod is auxin: continue
+    if vein node, nod, has no auxin neighbors:
+      processQ.rem(nod)
+      continue
+    updateQ.add(nod)
+    v = spawn vein node from nod in direction of auxin neighbors
+    updateQ.add(v)
+
+  for nod in updateQ:
+    if nod not in ctx: ctx.add(nod)
+
+    prv_nei = RNG_nei(nod)
+    RNGv(nod) # single vertex RNG calculation
+    cur_nei = RNG_nei(nod)
+
+    for nei_nod in RNG_nei(nod):
+      updateQ.add(nei_nod)
+      processQ.add(nei_nod)
+
+  updateQ.reset()
+
+  for nod in processQ:
+    if nod is vein: continue
+    if auxin node, nod, has no vein neighbors:
+      processQ.rem(nod)
+      continue
+
+    if all vein nodes of auxin node, nod, within kill distance:
+      processQ.rem(nod)
+      for nei_nod in RNG_nei(nod):
+        updateQ.add(nei_nod)
+      ctx.rem(nod)
+
+  for nod in updateQ:
+ 
+    prv_nei = RNG_nei(nod)
+    RNGv(nod) # single vertex RNG calculation
+    cur_nei = RNG_nei(nod)
+
+    for nei_nod in RNG_nei(nod):
+      updateQ.add(nei_nod)
+      processQ.add(nei_nod)
+
+    
+    
+      
+
+  
+
+```
+
+* do an initial RNG on all auxin and vein nodes
+* add all vein nodes that have an auxin neighbor and auxin
+  nodes that have a vein neighbor to a processing queue, pq
+* while |pq| > 0:
+  - initialize an update queue, uq, empty
+  - initialize update queue process, uqp, empty
+  - foreach vein v in pq:
+    + if v has no auxin neighbors, remove from pq
+    + otherwise add new vein node in appropriate location
+    + add new vein node to uq
+  - foreach v in uq:
+    + if v in uqp, skip
+    + add v to pq, uqp
+    + recalculate local RNG relative to v
+    + add all neighbors (auxin and vein) of v
+      to pq, uq
+  - foreach a in pq:
+    + if a has no vein neighbors, remove from pq, skip
+    + 
+  
+
+
 ###### 2026-06-23
 
 * afaict, slow version of 2d sca is working

@@ -3067,6 +3067,57 @@ function _clamp(v, a,b) {
   return v;
 }
 
+//==========
+//==========
+//==========
+//
+// simple frontier queue
+//
+
+function frontierQ() {
+  this.reset();
+  return this;
+};
+
+frontierQ.prototype.reset = function() {
+  this.frontier = [];
+  this.processed = {};
+  this.frontier_bp = {};
+  this.state = 0;
+  this.msg = "";
+  return this;
+}
+
+frontierQ.prototype.add = function(v) {
+  if (v in this.processed) { return this.frontier_bp[v]; }
+  this.processed[v] = 0;
+  let idx = this.frontier.length;
+  this.frontier.push(v);
+  this.frontier_bp[v] = idx;
+  return idx;
+}
+
+frontierQ.prototype.nxt = function() {
+  if (this.frontier.length == 0) {
+    this.state = -1;
+    this.msg = "nxt underflow";
+    return undefined;
+  }
+  let v = this.frontier.pop();
+  this.processed[v] = 1;
+  delete this.frontier_bp[v];
+  return v;
+}
+
+//
+//==========
+//==========
+//==========
+
+
+// NOT-WORKING, IN ACTIVE DEVELOPMENT
+// this is a mess...
+//
 function sca_spoif_2d_opt(A, V) {
   let _eps = _EPS;
 
@@ -3119,6 +3170,35 @@ function sca_spoif_2d_opt(A, V) {
 
   prof_s(perf, "tot");
 
+  // collect all vein nodes that have at least one auxin neighbor
+  //
+  /*
+  let _dirty_node = {};
+  for (let v_idx = n_a; v_idx < (n_a+n_v); v_idx++) {
+    for (let v_nei in rng_info.Ve_map[v_idx]) {
+      if (v_nei < n_a) {
+        _dirty_node[v_idx] = 'v';
+        break;
+      }
+    }
+  }
+
+  for (let a_idx = 0; a_idx < n_a; a_idx++) {
+    for (let a_nei in rng_info.Ve_map[a_idx]) {
+      if (a_nei < n_a) {
+        _dirty_node[a_idx] = 'a';
+        break;
+      }
+    }
+  }
+  */
+
+  let processQ= {};
+  for (let _idx = 0; _idx < (n_a+n_v); _idx++) {
+    processQ[ _idx ] = 0;
+  }
+
+
   while ((n_a > 0) &&
          (it < max_it)) {
 
@@ -3126,43 +3206,41 @@ function sca_spoif_2d_opt(A, V) {
     console.log("#it:", it, "n_a:", n_a, "n_v:", n_v);
     _debug_rng_ofn_E(".debug/sca_spoif_2d_" + it.toString() + ".gp", rng_info);
     //_debug_print(rng_info);
-
-    // collect all vein nodes that have at least one auxin neighbor
     //
-    let cur_v_idx = [];
-    for (let v_idx = n_a; v_idx < (n_a+n_v); v_idx++) {
-      for (let v_nei in rng_info.Ve_map[v_idx]) {
-        if (v_nei < n_a) {
-          cur_v_idx.push(v_idx);
-          break;
-        }
-      }
+
+    //DEBUG
+    let _vv = [];
+    for (let v_idx in processQ) {
+      _vv.push( v_idx.toString() + ":" + processQ[v_idx] );
     }
+    console.log("### processQ:", _vv.join(" "));
 
     // process vein nodes that have at least one auxin node
     // and add newly created vein nodes to Vnew for later
     // processing below
     //
-    let Vnew = [],
-        _v_idx_dirty_Q = [],
-        _v_idx_dirty_map = {};
+    let _processed = [];
+    for (let v_idx in processQ) {
+      if (v_idx < n_a) { continue; }
 
-    for (let i=0; i<cur_v_idx.length; i++) {
-      let v_idx = cur_v_idx[i];
-
-      let F_s = [0,0];
-      for (let nei_idx in rng_info.Ve_map[v_idx]) {
-
-        // add normalized auxin-vein vector
-        //
-        if (nei_idx < n_a) {
+      let _auxin_count = 0;
+      for (let u_idx in rng_info.Ve_map[v_idx]) {
+        if (u_idx < n_a) {
           let dav = njs.sub( rng_info.P[nei_idx], rng_info.P[v_idx] );
           let ndav = njs.mul( 1 / njs.norm2(dav), dav );
           F_s[0] += ndav[0];
           F_s[1] += ndav[1];
+
+          _auxin_count++;
         }
       }
 
+      // no auxin neighbors, mark for removal and skip
+      //
+      if (_auxin_count == 0) {
+        _processed.push( v_idx );
+        continue;
+      }
 
       let d_jit_a = (RND() - 0.5)*A_jitter;
       let _c = Math.cos(d_jit_a);
@@ -3170,34 +3248,70 @@ function sca_spoif_2d_opt(A, V) {
       F_s = njs.dot( [ [ _c , _s ], [ -_s, _c ] ], F_s );
       F_s = njs.mul( 1 / njs.norm2(F_s), F_s );
 
+      //DEBUG
       console.log("atan2:", Math.atan2(F_s[1], F_s[0]), "F_s:", F_s, "(", njs.norm2(F_s), ")");
 
       let _v  = njs.add( rng_info.P[v_idx], njs.mul( D_add, F_s ) );
       _v[0] = _clamp( _v[0], 0, 1-_eps );
       _v[1] = _clamp( _v[1], 0, 1-_eps );
 
-      let _valid_v = true;
+      //DEBUG
+      console.log("# adding _v:", _v);
 
-      if (_valid_v) {
-        console.log("# adding _v:", _v);
-        Vnew.push( _v );
-      }
-
+      // ADD vein node but mark it for updateing, where
+      // the RNG will be updated below
+      //
+      let _v_add_idx = SPoIF_add_2d(rng_info, Vnew[i]);
+      updateQ[ _v_add_idx ] = 0;
     }
 
-    // Add all newly created vein nodes
-    // (TODO: need to do collision check here (D_add))
+    for (let i=0; i<_processed.length; i++) {
+      delete processQ[ _processed[i] ];
+    }
+
+    // update RNG for only select nodes that have been touched.
+    // if edges are removed or added, add them to the updateQ if
+    // they haven't already been processed.
     //
-    for (let i=0; i<Vnew.length; i++) {
-      let _v_id = SPoIF_add_2d(rng_info, Vnew[i]);
+    for (let cur_idx in updateQ) {
+      if (updateQ[cur_idx] == 1) { continue; }
+      updateQ[ cur_idx ] = 1;
 
-      if (!(_v_id in _v_idx_dirty_map)) {
-        _v_idx_dirty_Q.push(_v_id);
+      // remove RNG for vertex so it can recalculate fresh
+      //
+      let _prv_nei = {};
+      for (let nei_idx in rng_info.Ve_map[cur_idx]) {
+        _prv_nei[nei_idx] = 1;
+        delete rng_info.Ve_map[cur_idx][nei_idx];
+        delete rng_info.Ve_map[nei_idx][cur_idx];
       }
-      _v_idx_dirty_map[_v_id] = 1;
 
-      n_v++;
+      // run local RNG for v, updating it's neighbors
+      //
+      lune_network_2d_SPoIF_RNGv(rng_info, cur_idx);
+
+      let _diff_nei = {};
+
+      for (let nei_idx in _prv_nei) {
+        if (nei_idx in rng_info.Ve_map[cur_idx]) { continue; }
+        _diff_nei[nei_idx] = 1;
+      }
+
+      for (let nei_idx in rng_info.Ve_map[cur_idx]) {
+        if (nei_idx in _prv_nei) { continue; }
+        _diff_nei[nei_idx] = 1;
+      }
+
+      for (let nei_idx in _diff_nei) {
+        let qval = ((nei_idx in updateQ) ? updateQ[nei_idx] : 0);
+        updateQ[ nei_idx ] = qval;
+      }
+
     }
+
+    updateQ = {};
+
+
 
     prof_s(perf, "rng.tot");
     prof_s(perf, "rng.0");
@@ -3231,11 +3345,33 @@ function sca_spoif_2d_opt(A, V) {
       // if the edge was there before the local RNG, it isn't dirtied
       // otherwise, add it to the queue
       //
+      let _a_nei_count = 0;
       for (let _u_idx in rng_info.Ve_map[_v_idx]) {
+
+        // neighbor is an auxin node...
+        // add auxin neighbor to processing list,
+        // increment neighbor count so we can
+        // use it to know to update the vein node below
+        //
+        if (_u_idx < n_a) {
+
+          _dirty_node[_u_idx] = 'a';
+          _dirty_node[_v_idx] = 'v';
+
+          _a_nei_count++;
+        }
+
         if (_u_idx in _prv_nei) { continue; }
         if (!(_u_idx in _v_idx_dirty_map)) { _v_idx_dirty_Q.push(_u_idx); }
         _v_idx_dirty_map[_u_idx] = 1;
       }
+
+      // if vein node has no auxin neighbors, remove it from the current vein
+      //   processing queue
+      // otherwise add it if it's not there already
+      //
+      //if (_a_nei_count == 0)  { delete cur_v_pull[_v_idx]; }
+      //else                    { cur_v_pull[_v_idx] = 1; }
 
       // if v previously had an edge that was removed from the new local RNG
       // calculation, add the neighbor to the queue.
@@ -3244,13 +3380,79 @@ function sca_spoif_2d_opt(A, V) {
         if (_u_idx in rng_info.Ve_map[_v_idx]) { continue; }
         if (!(_u_idx in _v_idx_dirty_map)) { _v_idx_dirty_Q.push(_u_idx); }
         _v_idx_dirty_map[_u_idx] = 1;
+
+        _dirty_node[_u_idx] = ((_u_idx < n_a) ? 'a' : 'v');
+        _dirty_node[_v_idx] = 'v';
       }
 
     }
 
+    // reset dirty queue
+    //
+    _v_idx_dirty_map = {};
+    _v_idx_dirty_Q = [];
+
     prof_e(perf, "rng.0");
     prof_s(perf, "vswap");
 
+    let nxt_a_pull = {};
+    for (let a_idx in cur_a_pull) { nxt_a_pull[a_idx] = cur_a_pull[a_idx]; }
+
+    for (let a_idx in cur_a_pull) {
+      let n_v_nei = 0,
+          n_v_near = 0;
+
+      for (let nei_idx in rng_info.Ve_map[a_idx]) {
+        if (nei_idx < n_a) { continue; }
+
+        n_v_nei++;
+
+        let dist = njs.norm2( njs.sub( rng_info.P[a_idx], rng_info.P[nei_idx] ) );
+        if ( dist < D_kill ) { n_v_near++; }
+      }
+
+      if (n_v_nei == 0) {
+        delete cur_a_pull[ a_idx ];
+        continue;
+      }
+
+      // removal of auxin shouldn't affect the auxin to vein
+      // relative neighborhood graph, so Ve_map above can
+      // still be altered but the auxin-vein edges will
+      // remain untouched.
+      //
+      if ((n_v_near > 0) &&
+          (n_v_near == n_v_nei)) {
+
+        let _idx_keep = n_a-1,
+            _idx_rem = a_idx;
+
+        if ( _idx_rem in nxt_a_pull) {
+          delete nxt_a_pull[ _idx_rem ];
+        }
+        if ( _idx_keep in nxt_a_pull ) {
+          delete nxt_a_pull[ _idx_keep ];
+          nxt_a_pull[ _idx_rem ] = 1;
+        }
+
+        SPoIF_swap_2d( rng_info, a_idx, n_a-1 );
+
+        // WIP!!!
+        //if (a_idx in _v_idx_dirty_map) { delete _v_idx_dirty_map[a_idx]; }
+        //_v_idx_dirty_map[ n_a-1 ] = 1;
+
+        SPoIF_rem_2d( rng_info, n_a-1 );
+        n_a--;
+        a_idx--;
+
+      }
+
+    }
+
+    cur_a_pull = nxt_a_pull;
+
+
+    /*
     for (let a_idx=0; a_idx < n_a; a_idx++) {
       let n_v_nei = 0,
           n_v_near = 0;
@@ -3273,7 +3475,13 @@ function sca_spoif_2d_opt(A, V) {
       if ((n_v_near > 0) &&
           (n_v_near == n_v_nei)) {
 
+
         SPoIF_swap_2d( rng_info, a_idx, n_a-1 );
+
+        // WIP!!!
+        //if (a_idx in _v_idx_dirty_map) { delete _v_idx_dirty_map[a_idx]; }
+        //_v_idx_dirty_map[ n_a-1 ] = 1;
+
         SPoIF_rem_2d( rng_info, n_a-1 );
         n_a--;
         a_idx--;
@@ -3282,6 +3490,7 @@ function sca_spoif_2d_opt(A, V) {
 
 
     }
+    */
 
     prof_e(perf, "vswap");
 
@@ -3290,7 +3499,28 @@ function sca_spoif_2d_opt(A, V) {
     // FOCUS: this is where the optimization needs to happen
     // !!!!
     //
-    //rng_info = lune_network_2d_SPoIF( rng_info.P );
+    rng_info = lune_network_2d_SPoIF( rng_info.P );
+
+    //TEMPORARY:
+    // cur_v_pull has current vein nodes with at least one auxin neighbor.
+    // redoing the rng network above might remove some vertices from that
+    // list, so we need to do the slow thing of going through all vein nodes
+    // and seeing if they have any auxin neighbors.
+    // this destroys the optimization but when we optimize this portion,
+    // we can incrementally update the cur_v_pull as well
+    //
+    cur_v_pull = {};
+    for (let v_idx = n_a; v_idx < (n_a+n_v); v_idx++) {
+      for (let v_nei in rng_info.Ve_map[v_idx]) {
+        if (v_nei < n_a) {
+          cur_v_pull[v_idx] = 1;
+          break;
+        }
+      }
+    }
+
+ 
+    /*
     while (_v_idx_dirty_Q.length > 0) {
       let _v_idx = _v_idx_dirty_Q.pop();
 
@@ -3328,6 +3558,7 @@ function sca_spoif_2d_opt(A, V) {
       }
 
     }
+    */
 
 
     prof_e(perf, "rng.1");
