@@ -3254,8 +3254,7 @@ frontierQ.prototype.nxt = function() {
 //==========
 
 
-// NOT-WORKING, IN ACTIVE DEVELOPMENT
-// this is a mess...
+// IN ACTIVE DEVELOPMENT
 //
 function sca_spoif_2d_opt(A, V) {
   let _eps = _EPS;
@@ -3321,7 +3320,7 @@ function sca_spoif_2d_opt(A, V) {
     _debug_rng_ofn_E(".debug/sca_spoif_2d_" + it.toString() + ".gp", rng_info);
     //_debug_print(rng_info);
     //
-    _debug_print(rng_info);
+    //_debug_print(rng_info);
 
     //DEBUG
     let _vv = [];
@@ -3333,6 +3332,23 @@ function sca_spoif_2d_opt(A, V) {
     prof_s(perf, "rng.tot");
 
     let updateQ = new frontierQ();
+
+    //DEBUG
+    //sanity check on processQ
+    //
+    let sanity_processQ = {};
+    for (let v_idx=n_a; v_idx<(n_a+n_v); v_idx++) {
+      for (let nei_idx in rng_info.Ve_map[v_idx]) {
+        nei_idx = parseInt(nei_idx);
+        if (nei_idx < n_a) { sanity_processQ[v_idx] = 0; break; }
+      }
+    }
+    for (let a in sanity_processQ) {
+      if (!(a in processQ)) {
+        console.log("  v_idx:", a, "in sanity but not in processQ!");
+      }
+    }
+
 
     // ADD vein
     //
@@ -3407,7 +3423,7 @@ function sca_spoif_2d_opt(A, V) {
     //----
 
     //DEBUG
-    _debug_print(rng_info);
+    //_debug_print(rng_info);
 
     prof_s(perf, "rng.0");
 
@@ -3454,7 +3470,7 @@ function sca_spoif_2d_opt(A, V) {
     //----
 
     //DEBUG
-    _debug_print(rng_info);
+    //_debug_print(rng_info);
 
     prof_s(perf, "vswap/rem");
 
@@ -3508,23 +3524,21 @@ function sca_spoif_2d_opt(A, V) {
         //
         for (let nei_idx in rng_info.Ve_map[a_idx]) { updateQ.add(nei_idx); }
         updateQ.add(a_idx);
-
-        //THIS NEEDS TO BE HERE. COMMENTED TO TRIGGER ERROR
-        //updateQ.add(n_a-1);
+        updateQ.add(n_a-1);
 
         //DEBUG
-        console.log("#REM: a_idx:", a_idx, typeof(a_idx), "n_a-1:", n_a-1, typeof(n_a-1));
+        //console.log("#REM: a_idx:", a_idx, typeof(a_idx), "n_a-1:", n_a-1, typeof(n_a-1));
 
         //DEBUG
-        console.log("##rem, before swap2d:");
-        _debug_print(rng_info);
+        //console.log("##rem, before swap2d:");
+        //_debug_print(rng_info);
 
         SPoIF_swap_2d( rng_info, a_idx, n_a-1 );
 
 
         //DEBUG
-        console.log("##rem, before rem2d:");
-        _debug_print(rng_info);
+        //console.log("##rem, before rem2d:");
+        //_debug_print(rng_info);
 
         SPoIF_rem_2d( rng_info, n_a-1 );
         n_a--;
@@ -3544,7 +3558,7 @@ function sca_spoif_2d_opt(A, V) {
     //----
 
     //DEBUG
-    _debug_print(rng_info);
+    //_debug_print(rng_info);
 
     prof_s(perf, "rng.1");
 
@@ -3560,7 +3574,7 @@ function sca_spoif_2d_opt(A, V) {
 
       //DEBUG
       console.log("## auxin updateQ: cur_idx:", cur_idx, typeof(cur_idx));
-      _debug_print(rng_info);
+      //_debug_print(rng_info);
 
       // remove RNG for vertex so it can recalculate fresh
       //
@@ -3579,8 +3593,8 @@ function sca_spoif_2d_opt(A, V) {
       }
 
       //DEBUG
-      console.log("!!!!");
-      _debug_print(rng_info);
+      //console.log("!!!!");
+      //_debug_print(rng_info);
 
       // run local RNG for v, updating it's neighbors
       //
