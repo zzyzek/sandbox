@@ -1,16 +1,36 @@
 TODO
 ===
 
+###### 2026-07-07
+
+short ranging todo:
+
+* add context to sca to allow for kill, addition, etc.
+  parameter choice
+* add vein near kill? (`D_vv_kill`)
+* add visualizaion
+
+Overarching todo:
+
+* (2d) bounding box marking for non square geometry (RNG)
+* (2d) cell invalidation and additions for spoif (RNG)
+  - test example should be a double lobed leaf with
+    invalid connections allowed between them
+* (3d) sca
+* (3d) bounding box marking for non square geometry (RNG)
+* (3d) cell invalidation and additions for spoif (RNG)
+* implementation in C/C++
+
 ###### 2026-07-04
 
 I've now found at least two bugs in swap and rem.
 I don't know how this managed to work at all in the
 first place but this makes me nervous.
 
-* fix bugs in swap and rem 2d
-* add a consistency check function to make sure
+* (done) fix bugs in swap and rem 2d
+* (done) add a consistency check function to make sure
   grid, bp, etc. are in a state we think they should be
-* add stress tests that randomly insert, swap and remove points
+* (done) add stress tests that randomly insert, swap and remove points
   to test
 
 ###### 2026-07-03
