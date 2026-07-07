@@ -3257,14 +3257,18 @@ frontierQ.prototype.nxt = function() {
 // IN ACTIVE DEVELOPMENT
 //
 function sca_spoif_2d_opt(A, V) {
-  let _debug = 1;
+  let _debug = 0;
   let _eps = _EPS;
 
   let it=0, max_it = 10000;
 
   //DEBUG
-  max_it = 256;
-  max_it = 1024;
+  //max_it = 256;
+  //max_it = 1024;
+
+  _debug = -1;
+
+  max_it = (A.length + V.length)*30;
 
   // 1/16 is way too low, 1/4 looks to be working
   // better strategy is to increase jitter if the collision
@@ -3279,12 +3283,17 @@ function sca_spoif_2d_opt(A, V) {
   let D_add = 1/8;
   D_add = 1 / ((n_a + n_v));
 
+  D_add *= 16;
+  //D_add *= 8;
   //D_add *= 2;
-  D_add /= 2;
+  //D_add /= 2;
 
 
   //let D_kill = 1 / (Math.sqrt(n_a + n_v));
   let D_kill = 1 / (n_a + n_v);
+
+  D_kill = D_add;
+  D_kill = 2*D_add;
 
   let D_vv_kill = D_kill / 4;
 
@@ -3314,6 +3323,9 @@ function sca_spoif_2d_opt(A, V) {
     if (_debug > 0) {
       console.log("\n#it:", it, "n_a:", n_a, "n_v:", n_v);
       _debug_rng_ofn_E(".debug/sca_spoif_2d_" + it.toString() + ".gp", rng_info);
+    }
+    else if (_debug < 0) {
+      console.log("#it:", it, "(/", max_it, ")", "n_a:", n_a, "n_v:", n_v);
     }
 
     //DEBUG
@@ -3613,7 +3625,7 @@ function sca_spoif_2d_opt(A, V) {
   prof_print(perf);
 
   //DEBUG
-  if (_debug > 0) {
+  if (_debug != 0) {
     _debug_rng_ofn_E(".debug/sca_spoif_2d_fin.gp", rng_info);
   }
 }
