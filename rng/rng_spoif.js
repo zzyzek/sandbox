@@ -3257,6 +3257,7 @@ frontierQ.prototype.nxt = function() {
 // IN ACTIVE DEVELOPMENT
 //
 function sca_spoif_2d_opt(A, V) {
+  let _debug = 1;
   let _eps = _EPS;
 
   let it=0, max_it = 10000;
@@ -3288,21 +3289,15 @@ function sca_spoif_2d_opt(A, V) {
   let D_vv_kill = D_kill / 4;
 
   //DEBUG
-  //console.log("#D_add:", D_add, "D_kill:", D_kill);
-  console.log("#D_add:", D_add, "D_kill:", D_kill, "D_vv_kill:", D_vv_kill);
+  if (_debug > 0) {
+    console.log("#D_add:", D_add, "D_kill:", D_kill, "D_vv_kill:", D_vv_kill);
+  }
 
   let P = [];
   for (let i=0; i<n_a; i++) { P.push( A[i] ); }
   for (let i=0; i<n_v; i++) { P.push( V[i] ); }
 
   let rng_info = lune_network_2d_SPoIF(P);
-
-  //DEBUG
-  //_debug_rng_print_E(rng_info);
-  //_debug_print(rng_info);
-  for (let i=0; i<rng_info.P.length; i++) {
-    console.log("P[", i, "]:", rng_info.P[i]);
-  }
 
   let perf = {};
 
@@ -3316,18 +3311,19 @@ function sca_spoif_2d_opt(A, V) {
          (it < max_it)) {
 
     //DEBUG
-    console.log("\n#it:", it, "n_a:", n_a, "n_v:", n_v);
-    _debug_rng_ofn_E(".debug/sca_spoif_2d_" + it.toString() + ".gp", rng_info);
-    //_debug_print(rng_info);
-    //
-    //_debug_print(rng_info);
+    if (_debug > 0) {
+      console.log("\n#it:", it, "n_a:", n_a, "n_v:", n_v);
+      _debug_rng_ofn_E(".debug/sca_spoif_2d_" + it.toString() + ".gp", rng_info);
+    }
 
     //DEBUG
-    let _vv = [];
-    for (let v_idx in processQ) {
-      _vv.push( v_idx.toString() + ":" + processQ[v_idx] );
+    if (_debug > 0) {
+      let _vv = [];
+      for (let v_idx in processQ) {
+        _vv.push( v_idx.toString() + ":" + processQ[v_idx] );
+      }
+      console.log("### processQ:", _vv.join(" "));
     }
-    console.log("### processQ:", _vv.join(" "));
 
     prof_s(perf, "rng.tot");
 
@@ -3336,6 +3332,7 @@ function sca_spoif_2d_opt(A, V) {
     //DEBUG
     //sanity check on processQ
     //
+    /*
     let sanity_processQ = {};
     for (let v_idx=n_a; v_idx<(n_a+n_v); v_idx++) {
       for (let nei_idx in rng_info.Ve_map[v_idx]) {
@@ -3348,6 +3345,7 @@ function sca_spoif_2d_opt(A, V) {
         console.log("  v_idx:", a, "in sanity but not in processQ!");
       }
     }
+    */
 
 
     // ADD vein
@@ -3391,7 +3389,7 @@ function sca_spoif_2d_opt(A, V) {
       F_s = njs.mul( 1 / njs.norm2(F_s), F_s );
 
       //DEBUG
-      console.log("atan2:", Math.atan2(F_s[1], F_s[0]), "F_s:", F_s, "(", njs.norm2(F_s), ")");
+      //console.log("atan2:", Math.atan2(F_s[1], F_s[0]), "F_s:", F_s, "(", njs.norm2(F_s), ")");
 
       let _v  = njs.add( rng_info.P[v_idx], njs.mul( D_add, F_s ) );
       _v[0] = _clamp( _v[0], 0, 1-_eps );
@@ -3405,14 +3403,16 @@ function sca_spoif_2d_opt(A, V) {
       n_v++;
 
       //DEBUG
-      console.log("# adding _v:", _v, _v_add_idx, typeof(_v_add_idx));
+      //console.log("# adding _v:", _v, _v_add_idx, typeof(_v_add_idx));
 
     }
 
     for (let i=0; i<_processed.length; i++) {
 
       // DEBUG
-      console.log(">>> deleteing _processed[i]:", _processed[i], "from processQ");
+      if (_debug > 0) {
+        console.log(">>> deleteing _processed[i]:", _processed[i], "from processQ");
+      }
 
       delete processQ[ _processed[i] ];
     }
@@ -3445,7 +3445,7 @@ function sca_spoif_2d_opt(A, V) {
         delete rng_info.Ve_map[nei_idx][cur_idx];
       }
 
-      console.log("#updateq.0 cur_idx:", cur_idx, typeof(cur_idx));
+      //console.log("#updateq.0 cur_idx:", cur_idx, typeof(cur_idx));
 
       // run local RNG for v, updating it's neighbors
       //
@@ -3468,9 +3468,6 @@ function sca_spoif_2d_opt(A, V) {
     //----
     //----
     //----
-
-    //DEBUG
-    //_debug_print(rng_info);
 
     prof_s(perf, "vswap/rem");
 
@@ -3526,20 +3523,7 @@ function sca_spoif_2d_opt(A, V) {
         updateQ.add(a_idx);
         updateQ.add(n_a-1);
 
-        //DEBUG
-        //console.log("#REM: a_idx:", a_idx, typeof(a_idx), "n_a-1:", n_a-1, typeof(n_a-1));
-
-        //DEBUG
-        //console.log("##rem, before swap2d:");
-        //_debug_print(rng_info);
-
         SPoIF_swap_2d( rng_info, a_idx, n_a-1 );
-
-
-        //DEBUG
-        //console.log("##rem, before rem2d:");
-        //_debug_print(rng_info);
-
         SPoIF_rem_2d( rng_info, n_a-1 );
         n_a--;
       }
@@ -3565,7 +3549,7 @@ function sca_spoif_2d_opt(A, V) {
     for (let cur_idx = updateQ.nxt(); (typeof cur_idx !== "undefined"); cur_idx = updateQ.nxt()) {
       if (cur_idx >= (n_a+n_v)) {
 
-        console.log("## auxin updateQ: ignoring", cur_idx, "(>", n_a, "+", n_v, "=", n_a+n_v, ")");
+        //console.log("## auxin updateQ: ignoring", cur_idx, "(>", n_a, "+", n_v, "=", n_a+n_v, ")");
 
         continue;
       }
@@ -3573,7 +3557,7 @@ function sca_spoif_2d_opt(A, V) {
       processQ[ cur_idx ] = 0;
 
       //DEBUG
-      console.log("## auxin updateQ: cur_idx:", cur_idx, typeof(cur_idx));
+      //console.log("## auxin updateQ: cur_idx:", cur_idx, typeof(cur_idx));
       //_debug_print(rng_info);
 
       // remove RNG for vertex so it can recalculate fresh
@@ -3588,13 +3572,9 @@ function sca_spoif_2d_opt(A, V) {
         delete rng_info.Ve_map[nei_idx][cur_idx];
 
         //DEBUG
-        console.log("## auxin rem-edge (", cur_idx, nei_idx, ") (", nei_idx, cur_idx, ")", typeof(cur_idx), typeof(nei_idx));
+        //console.log("## auxin rem-edge (", cur_idx, nei_idx, ") (", nei_idx, cur_idx, ")", typeof(cur_idx), typeof(nei_idx));
 
       }
-
-      //DEBUG
-      //console.log("!!!!");
-      //_debug_print(rng_info);
 
       // run local RNG for v, updating it's neighbors
       //
@@ -3621,19 +3601,21 @@ function sca_spoif_2d_opt(A, V) {
 
     prof_e(perf, "rng.tot");
 
-    console.log("#fin: n_a:", n_a, "n_v:", n_v, "P.length:", rng_info.P.length);
+    //console.log("#fin: n_a:", n_a, "n_v:", n_v, "P.length:", rng_info.P.length);
 
     it++;
   }
 
-  if (it == max_it) { console.log("#MAX_IT reached:", max_it); }
+  //if (it == max_it) { console.log("#MAX_IT reached:", max_it); }
 
   prof_e(perf, "tot");
 
   prof_print(perf);
 
   //DEBUG
-  _debug_rng_ofn_E(".debug/sca_spoif_2d_fin.gp", rng_info);
+  if (_debug > 0) {
+    _debug_rng_ofn_E(".debug/sca_spoif_2d_fin.gp", rng_info);
+  }
 }
 
 
