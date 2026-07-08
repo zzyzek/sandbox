@@ -1,6 +1,21 @@
 TODO
 ===
 
+###### 2026-07-08
+
+* focus on RNG 2d/3d SPoIF
+  - noted elsewhere (`paper-notes.md`) focusing just on RNG
+    for random (uniform) points in cube is the current focus,
+    other extras will have to wait and/or done parallel
+* C/C++ implementation
+  - the runtimes for the JS implementation look superlinear, but
+    it's hard to tell
+  - I'm hoping that this is because of some issue with JS GC or
+    some other oddity using JS
+  - Hopefully c/c++ implementation will get a better handle on
+    memory and we'll be able to see if it's actually linear or
+    if there's some other lurking issue
+
 ###### 2026-07-07
 
 short ranging todo:
