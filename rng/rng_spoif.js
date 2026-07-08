@@ -3254,59 +3254,36 @@ frontierQ.prototype.nxt = function() {
 //==========
 
 
-// IN ACTIVE DEVELOPMENT
+// A auxin nodes
 //
-function sca_spoif_2d_opt(A, V) {
-  let _debug = 0;
-  let _eps = _EPS;
+function sca_spoif_2d(sca_ctx) {
+  let _debug = (("debug" in sca_ctx) ? sca_ctx.debug : 0);
+  let _eps = (("eps" in sca_ctx) ? sca_ctx.eps : _EPS);
 
-  let it=0, max_it = 10000;
-
-  //DEBUG
-  //max_it = 256;
-  //max_it = 1024;
-
-  _debug = -1;
-
-  max_it = (A.length + V.length)*30;
-
-  // 1/16 is way too low, 1/4 looks to be working
-  // better strategy is to increase jitter if the collision
-  // count goes haywire.
-  //
-  let A_jitter = 2*Math.PI*(1/32);
-  A_jitter = Math.PI/4;
+  let A = sca_ctx.auxin;
+  let V = sca_ctx.vein;
 
   let n_a = A.length;
   let n_v = V.length;
 
-  let D_add = 1/8;
-  D_add = 1 / ((n_a + n_v));
+  let it=0;
+  let max_it = ( ("maxIterations" in sca_ctx ) ? sca_ctx["maxIterations"] : ((A.length + V.length)*30) );
+  let A_jitter = ( ("jitter" in sca_ctx) ? sca_ctx.jitter : (Math.PI/4) );
+  let D_add = (("D_add" in sca_ctx) ? sca_ctx.D_add : (16 / (n_a + n_v)));
+  let D_kill = (("D_kill" in sca_ctx) ? sca_ctx.D_kill : (2*D_add));
+  let D_vv_kill = (("D_vv_kill" in sca_ctx) ? sca_ctx.D_vv_kill : (D_kill / 4));
 
-  D_add *= 16;
-  //D_add *= 8;
-  //D_add *= 2;
-  //D_add /= 2;
-
-
-  //let D_kill = 1 / (Math.sqrt(n_a + n_v));
-  let D_kill = 1 / (n_a + n_v);
-
-  D_kill = D_add;
-  D_kill = 2*D_add;
-
-  let D_vv_kill = D_kill / 4;
+  let cb = (("callback" in sca_ctx) ? sca_ctx.callback : null);
 
   //DEBUG
-  if (_debug > 0) {
-    console.log("#D_add:", D_add, "D_kill:", D_kill, "D_vv_kill:", D_vv_kill);
-  }
+  if (_debug > 0) { console.log("#D_add:", D_add, "D_kill:", D_kill, "D_vv_kill:", D_vv_kill); }
 
   let P = [];
   for (let i=0; i<n_a; i++) { P.push( A[i] ); }
   for (let i=0; i<n_v; i++) { P.push( V[i] ); }
 
   let rng_info = lune_network_2d_SPoIF(P);
+  sca_ctx["RNG"] = rng_info;
 
   let perf = {};
 
@@ -3315,50 +3292,17 @@ function sca_spoif_2d_opt(A, V) {
   let processQ= {};
   for (let cur_idx = 0; cur_idx < (n_a+n_v); cur_idx++) { processQ[ cur_idx ] = 0; }
 
-
   while ((n_a > 0) &&
          (it < max_it)) {
 
-    //DEBUG
-    if (_debug > 0) {
-      console.log("\n#it:", it, "n_a:", n_a, "n_v:", n_v);
-      _debug_rng_ofn_E(".debug/sca_spoif_2d_" + it.toString() + ".gp", rng_info);
-    }
-    else if (_debug < 0) {
-      console.log("#it:", it, "(/", max_it, ")", "n_a:", n_a, "n_v:", n_v);
-    }
+    if (cb) { cb(sca_ctx, it, max_it); }
 
     //DEBUG
-    if (_debug > 0) {
-      let _vv = [];
-      for (let v_idx in processQ) {
-        _vv.push( v_idx.toString() + ":" + processQ[v_idx] );
-      }
-      console.log("### processQ:", _vv.join(" "));
-    }
+    if (_debug > 0) { console.log("\n#it:", it, "n_a:", n_a, "n_v:", n_v); }
 
     prof_s(perf, "rng.tot");
 
     let updateQ = new frontierQ();
-
-    //DEBUG
-    //sanity check on processQ
-    //
-    /*
-    let sanity_processQ = {};
-    for (let v_idx=n_a; v_idx<(n_a+n_v); v_idx++) {
-      for (let nei_idx in rng_info.Ve_map[v_idx]) {
-        nei_idx = parseInt(nei_idx);
-        if (nei_idx < n_a) { sanity_processQ[v_idx] = 0; break; }
-      }
-    }
-    for (let a in sanity_processQ) {
-      if (!(a in processQ)) {
-        console.log("  v_idx:", a, "in sanity but not in processQ!");
-      }
-    }
-    */
-
 
     // ADD vein
     //
@@ -3400,9 +3344,6 @@ function sca_spoif_2d_opt(A, V) {
       F_s = njs.dot( [ [ _c , _s ], [ -_s, _c ] ], F_s );
       F_s = njs.mul( 1 / njs.norm2(F_s), F_s );
 
-      //DEBUG
-      //console.log("atan2:", Math.atan2(F_s[1], F_s[0]), "F_s:", F_s, "(", njs.norm2(F_s), ")");
-
       let _v  = njs.add( rng_info.P[v_idx], njs.mul( D_add, F_s ) );
       _v[0] = _clamp( _v[0], 0, 1-_eps );
       _v[1] = _clamp( _v[1], 0, 1-_eps );
@@ -3413,19 +3354,9 @@ function sca_spoif_2d_opt(A, V) {
       let _v_add_idx = SPoIF_add_2d(rng_info, _v);
       updateQ.add( _v_add_idx );
       n_v++;
-
-      //DEBUG
-      //console.log("# adding _v:", _v, _v_add_idx, typeof(_v_add_idx));
-
     }
 
     for (let i=0; i<_processed.length; i++) {
-
-      // DEBUG
-      if (_debug > 0) {
-        console.log(">>> deleteing _processed[i]:", _processed[i], "from processQ");
-      }
-
       delete processQ[ _processed[i] ];
     }
 
@@ -3433,9 +3364,6 @@ function sca_spoif_2d_opt(A, V) {
     //----
     //----
     //----
-
-    //DEBUG
-    //_debug_print(rng_info);
 
     prof_s(perf, "rng.0");
 
@@ -3456,8 +3384,6 @@ function sca_spoif_2d_opt(A, V) {
         delete rng_info.Ve_map[cur_idx][nei_idx];
         delete rng_info.Ve_map[nei_idx][cur_idx];
       }
-
-      //console.log("#updateq.0 cur_idx:", cur_idx, typeof(cur_idx));
 
       // run local RNG for v, updating it's neighbors
       //
@@ -3553,39 +3479,24 @@ function sca_spoif_2d_opt(A, V) {
     //----
     //----
 
-    //DEBUG
-    //_debug_print(rng_info);
-
     prof_s(perf, "rng.1");
 
     for (let cur_idx = updateQ.nxt(); (typeof cur_idx !== "undefined"); cur_idx = updateQ.nxt()) {
       if (cur_idx >= (n_a+n_v)) {
-
-        //console.log("## auxin updateQ: ignoring", cur_idx, "(>", n_a, "+", n_v, "=", n_a+n_v, ")");
-
         continue;
       }
 
       processQ[ cur_idx ] = 0;
 
-      //DEBUG
-      //console.log("## auxin updateQ: cur_idx:", cur_idx, typeof(cur_idx));
-      //_debug_print(rng_info);
-
       // remove RNG for vertex so it can recalculate fresh
       //
       let _prv_nei = {};
       for (let nei_idx in rng_info.Ve_map[cur_idx]) {
-
         nei_idx = parseInt(nei_idx);
 
         _prv_nei[nei_idx] = 1;
         delete rng_info.Ve_map[cur_idx][nei_idx];
         delete rng_info.Ve_map[nei_idx][cur_idx];
-
-        //DEBUG
-        //console.log("## auxin rem-edge (", cur_idx, nei_idx, ") (", nei_idx, cur_idx, ")", typeof(cur_idx), typeof(nei_idx));
-
       }
 
       // run local RNG for v, updating it's neighbors
@@ -3613,21 +3524,15 @@ function sca_spoif_2d_opt(A, V) {
 
     prof_e(perf, "rng.tot");
 
-    //console.log("#fin: n_a:", n_a, "n_v:", n_v, "P.length:", rng_info.P.length);
-
     it++;
   }
 
-  //if (it == max_it) { console.log("#MAX_IT reached:", max_it); }
-
   prof_e(perf, "tot");
 
-  prof_print(perf);
+  sca_ctx["prof"] = perf;
+  sca_ctx["RNG"] = rng_info;
 
-  //DEBUG
-  if (_debug != 0) {
-    _debug_rng_ofn_E(".debug/sca_spoif_2d_fin.gp", rng_info);
-  }
+  return sca_ctx;
 }
 
 
@@ -3639,7 +3544,7 @@ function sca_spoif_2d_opt(A, V) {
 // it's working as expected.
 //
 //
-function sca_spoif_2d(A, V) {
+function sca_spoif_2d_slo(A, V) {
   let _eps = _EPS;
 
   let it=0, max_it = 10000;
@@ -4250,13 +4155,35 @@ function cli_main(argv) {
   else if (op == 'sca2d') {
     let A = poisson_point(N, 2, rnd);
     let V = [ [0, 0] ];
-    sca_spoif_2d(A, V);
+    sca_spoif_2d_slo(A, V);
   }
 
   else if (op == 'sca2d.opt') {
     let A = poisson_point(N, 2, rnd);
-    let V = [ [0, 0] ];
-    sca_spoif_2d_opt(A, V);
+    //let V = [ 0,0 ];
+    let V = [ [rnd(), rnd()] ];
+
+    let sca_ctx = {
+      "vein": V,
+      "auxin": A,
+
+      "callback" : function(ctx, it, max_it) {
+        if (it == 0) {
+          console.log("writing init...");
+          _debug_rng_ofn_E(".debug/sca_spoif_2d_init.gp", ctx.RNG);
+        }
+      },
+
+      "debug" : 1
+    };
+
+    sca_spoif_2d(sca_ctx);
+
+    //DEBUG
+    //
+    prof_print(sca_ctx.prof);
+    _debug_rng_ofn_E(".debug/sca_spoif_2d_fin.gp", sca_ctx.RNG);
+
   }
 
   else if (op == 'sca3d') {
