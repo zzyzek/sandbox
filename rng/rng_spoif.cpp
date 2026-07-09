@@ -55,40 +55,6 @@ static int32_t _v2idir(double *v, int32_t dim) {
   return 2*max_xyz;
 }
 
-/*
-static int32_t v2idir_2d(double *v) {
-  int32_t max_xy = 0;
-  double max_val = v[0];
-  int32_t xy = 0;
-
-  for (xy=0; xy<2; xy++) {
-    if (fabs(v[xy]) > max_val) {
-      max_xy = xy;
-      max_val = fabs(v[xy]);
-    }
-  }
-
-  if (v[max_xy] < 0) { return (2*max_xy)+1; }
-  return 2*max_xy;
-}
-
-static int32_t v2idir_3d(double *v) {
-  int32_t max_xyz = 0;
-  double max_val = v[0];
-  int32_t xyz = 0;
-
-  for (xyz=0; xyz<3; xyz++) {
-    if (fabs(v[xyz]) > max_val) {
-      max_xyz = xyz;
-      max_val = fabs(v[xyz]);
-    }
-  }
-
-  if (v[max_xyz] < 0) { return (2*max_xyz)+1; }
-  return 2*max_xyz;
-}
-*/
-
 class RELATIVE_NEIGHBORHOOD_GRAPH {
   public:
 
@@ -98,7 +64,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
     std::vector< double > m_P;
 
     double    m_ds;
-    double    m_bbox[3][2];
+    double    m_bbox[2][3];
     double    m_idir_v[6][3];
 
     double    m_eps;
@@ -152,6 +118,8 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
     double    m_fpR_max_ir;
     double    m_fpR_v[(_FPR_MAX_IR+1)][6][9*3];
 
+    int       m_verbose;
+
     RELATIVE_NEIGHBORHOOD_GRAPH() {
       m_eps = _EPS;
 
@@ -173,6 +141,106 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       m_dim = -1;
 
       m_fencePost_n = -1;
+
+      m_verbose = 0;
+    }
+
+    int32_t consistency() {
+      double  v[3] = {0},
+              Bl[3] = {0}, Bs[3] = {0};
+      int64_t v_idx, nei_idx,
+              n_ele,
+              grid_size,
+              i, j, k,
+              ixyz[3] = {0};
+      int64_t pos, c, _m;
+      int _found;
+
+      int _debug = m_verbose;
+
+      //DEBUG
+      _debug = 1;
+      //DEBUG
+
+      std::vector< int64_t > grid_count;
+
+      std::map< int64_t, int64_t >::iterator it;
+
+      n_ele = (int64_t)(m_P.size() / m_dim);
+      grid_size = m_grid_n*m_grid_n;
+      if (m_dim == 3) { grid_size *= m_grid_n; }
+      for (i=0; i<grid_size; i++) { grid_count.push_back( m_grid[i].size() ); }
+
+      for (i=0; i<m_dim; i++) {
+        Bs[i] = m_bbox[0][i];
+        Bl[i] = m_bbox[1][i] - m_bbox[0][i];
+      }
+
+      if (_debug > 0) {
+        printf("# consistency Bs(%f,%f,%f) Bl(%f,%f,%f), |grid|:%i\n",
+            Bs[0], Bs[1], Bs[2],
+            Bl[0], Bl[1], Bl[2],
+            (int)grid_size);
+      }
+
+      for (v_idx=0; v_idx < n_ele; v_idx++) {
+
+        for (i=0; i<m_dim; i++) {
+          v[i] = m_P[m_dim*v_idx + i];
+          ixyz[i] = (int64_t)floor( m_grid_n * Bl[i]*(v[i] - Bs[i]) );
+        }
+
+        for (i=0; i<m_dim; i++) {
+          if ((ixyz[i] < 0) || (ixyz[i] >= m_grid_n)) {
+            return -2;
+          }
+        }
+
+        _found = 0;
+        pos = 0;
+        c = 1;
+        for (i=0; i<m_dim; i++) { pos += c*ixyz[i]; c *= m_grid_n; }
+        _m = m_grid[pos].size();
+        for (i=0; i<_m; i++) {
+          if (m_grid[pos][i] == v_idx) { _found = 1; break; }
+        }
+
+        if (_found == 0) {
+
+          if (_debug > 0) {
+            printf("# v_idx: %i (%f,%f,%f) was not found at grid[x%i,y%i,z%i;%i] (/%i) ",
+                (int)v_idx, v[0], v[1], v[2],
+                (int)ixyz[0], (int)ixyz[1], (int)ixyz[2],
+                (int)pos, (int)m_grid_n);
+
+          }
+
+          return -3;
+        }
+
+        for (i=0; i<m_dim; i++) {
+          if ( m_P_idx_grid_bp[ (m_dim*v_idx) + i ] != ixyz[i] ) {
+            return -4;
+          }
+        }
+
+        grid_count[pos]--;
+
+      }
+
+      for (i=0; i<grid_count.size(); i++) {
+        if (grid_count[i] != 0) { return -5; }
+      }
+
+      for (v_idx=0; v_idx < n_ele; v_idx++) {
+        for (it = m_Ve_map[v_idx].begin(); it != m_Ve_map[v_idx].end(); ++it) {
+          nei_idx = it->first;
+          if ((nei_idx < 0) || (nei_idx >= n_ele)) { return -6; }
+          if ( m_Ve_map[nei_idx].count(v_idx) == 0 ) { return -7; }
+        }
+      }
+
+      return 0;
     }
 
     int32_t p2grid_ixyz( int64_t *ixyz, double *p ) {
@@ -195,14 +263,14 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
     int32_t oob(double *v) {
       if (v[0] <  m_bbox[0][0]) { return 1; }
-      if (v[0] >= m_bbox[0][1]) { return 1; }
+      if (v[0] >= m_bbox[1][0]) { return 1; }
 
-      if (v[1] <  m_bbox[1][0]) { return 1; }
+      if (v[1] <  m_bbox[0][1]) { return 1; }
       if (v[1] >= m_bbox[1][1]) { return 1; }
 
       if (m_dim == 3) {
-        if (v[2] <  m_bbox[2][0]) { return 1; }
-        if (v[2] >= m_bbox[2][1]) { return 1; }
+        if (v[2] <  m_bbox[0][2]) { return 1; }
+        if (v[2] >= m_bbox[1][2]) { return 1; }
       }
 
       return 0;
@@ -233,12 +301,12 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       m_eps = _EPS;
 
       m_bbox[0][0] = 0;
-      m_bbox[1][0] = 0;
-      m_bbox[2][0] = 0;
+      m_bbox[0][1] = 0;
+      m_bbox[0][2] = 0;
 
-      m_bbox[0][1] = 1;
+      m_bbox[1][0] = 1;
       m_bbox[1][1] = 1;
-      m_bbox[2][1] = 1;
+      m_bbox[1][2] = 1;
 
       m_grid_s = ((m_dim == 3) ? cbrt(n_d) : sqrt(n_d));
       m_grid_n = (int64_t)ceil(m_grid_s);
@@ -660,6 +728,11 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
     // Shrinking Posts on Increasing Fence, single vertex
     // relative neighborhood graph edges for vertex referenced by p_idx (located in m_P)
     //
+    // 2026-07-09: both the 2d and 3d version have a bug that I'm tracking down.
+    //   to recreate, here, for 2d: 2000 vertex count, seed 1234
+    //   spoif misses an edge from v1341 (0.819533,0.198840) whereas
+    //   naive has one
+    //
     //
     int32_t SPoIF_2d_v(int64_t p_idx) {
       int64_t n_cluster = 2,
@@ -709,6 +782,14 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       int64_t _i, _j, _k;
 
+      int _debug = 0;
+
+      //DEBUG
+      //DEBUG
+      if (p_idx == 1341) { _debug = 10; }
+      //DEBUG
+      //DEBUG
+
       std::vector< int64_t > q_sched;
 
 
@@ -737,6 +818,23 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       for (ir=0; ir < m_grid_n; ir++) {
         grid_sweep_perim_2d(sweep, p, ir);
 
+        if (_debug) {
+          printf("\n# p%i:(%f,%f), cell_origin(%i,%i) win_center(%f,%f) ir:%i, sweep[%i]:",
+              (int)p_idx, p[0], p[1], 
+              (int)cell_origin[0], (int)cell_origin[1],
+              win_center[0], win_center[1],
+              (int)ir,
+              (int)sweep.size());
+          for (i=0; i<sweep.size(); i+=2) {
+            if (i==0) { printf("("); }
+            if (i > 0) { printf("), ("); }
+            printf("%i,%i", (int)sweep[i], (int)sweep[i+1]);
+            if (i == (sweep.size()-2)) { printf(")\n"); }
+          }
+        }
+
+        // initial OOB fencepost marking
+        //
         for (idir=0; idir < n_idir; idir++) {
           for (cluster_idx=0; cluster_idx < n_cluster; cluster_idx++) {
 
@@ -764,6 +862,13 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
                 fpi = m_fencePostCluster[ cluster_idx ][ fpci ];
                 if (fencePostSecure[ idir ][ fpi ] == 0) { n_fp_secure++; }
                 fencePostSecure[ idir ][ fpi ] = 1;
+
+                //DEBUG
+                if (_debug > 0) {
+                  printf("#  (oob) securing idir:%i, fpi:%i (cluster_idx:%i, fpci:%i)\n",
+                      (int)idir, (int)fpi, (int)cluster_idx, (int)fpci);
+                }
+
               }
             }
 
@@ -809,7 +914,13 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
           q_idir_oppo = m_idir_oppo[ _v2idir(Nqp, 2) ];
 
-          for (i=0; i<4; i++) { for (j=0; j<3; j++) { fps_cache[i][j] = 0; } }
+          //DEBUG
+          if (_debug > 0) { printf("#  q_idx:%i (%f,%f)\n", (int)q_idx, q[0], q[1]); }
+
+
+          for (i=0; i<n_idir; i++) {
+            for (j=0; j < 3; j++) { fps_cache[i][j] = 0; }
+          }
 
           for (idir=0; idir < n_idir; idir++) {
 
@@ -822,7 +933,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
               for (fpci=0; fpci < cluster_size; fpci++) {
                 fpi = m_fencePostCluster[cluster_idx][fpci];
 
-                if (fps_cache[cluster_idx][fpci] == 1) {
+                if (fps_cache[idir][fpi] == 1) {
                   n_cluster_secure++;
                   continue;
                 }
@@ -840,8 +951,18 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
                 s = (Nqp[0]*(fpv[0]-dq[0])) + (Nqp[1]*(fpv[1]-dq[1]));
                 if (s > 0) {
-                  fps_cache[cluster_idx][fpci] = 1;
+                  fps_cache[idir][fpi] = 1;
                   n_cluster_secure++;
+
+                  //DEBUG
+                  if (_debug > 0) {
+                    printf("#  q%i(%0.2f,%0.2f) idir:%i fencpost[%i][%i] (%i/%i)\n",
+                        (int)q_idx, q[0], q[1],
+                        (int)idir,
+                        (int)cluster_idx, (int)fpci,
+                        (int)n_cluster_secure, (int)n_cluster);
+                  }
+
                 }
               }
 
@@ -850,7 +971,22 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
                   fpi = m_fencePostCluster[cluster_idx][fpci];
                   if (fencePostSecure[idir][fpi] == 0) { n_fp_secure++; }
                   fencePostSecure[idir][fpi] = 1;
+
+                  //DEBUG
+                  if (_debug > 0) {
+                    printf("#  q%i(%0.2f,%0.2f) idir:%i securing cluster[%i][%i] (%i/%i)\n",
+                        (int)q_idx, q[0], q[1],
+                        (int)idir,
+                        (int)cluster_idx, (int)fpci,
+                        (int)n_fp_secure, (int)n_fp_max);
+                  }
+
                 }
+              }
+
+              //DEBUG
+              if (_debug > 0) {
+                printf("# n_fp_secure %i / %i\n", (int)n_fp_secure, (int)n_fp_max);
               }
 
               if (n_fp_secure == n_fp_max) { break; }
@@ -1119,7 +1255,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
               for (fpci=0; fpci < cluster_size; fpci++) {
                 fpi = m_fencePostCluster[cluster_idx][fpci];
 
-                if (fps_cache[cluster_idx][fpci] == 1) {
+                if (fps_cache[idir][fpi] == 1) {
                   n_cluster_secure++;
                   continue;
                 }
@@ -1139,7 +1275,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
                 s = (Nqp[0]*(fpv[0]-dq[0])) + (Nqp[1]*(fpv[1]-dq[1])) + (Nqp[2]*(fpv[2]-dq[2]));
                 if (s > 0) {
-                  fps_cache[cluster_idx][fpci] = 1;
+                  fps_cache[idir][fpi] = 1;
                   n_cluster_secure++;
                 }
               }
@@ -1260,6 +1396,84 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
 };
 
+int rng_cmp(RELATIVE_NEIGHBORHOOD_GRAPH &rng0, RELATIVE_NEIGHBORHOOD_GRAPH &rng1) {
+  int64_t i, j, k, n_ele, n_nei;
+  int64_t p_idx;
+  int64_t nei_idx0, nei_idx1, nei_idx;
+
+  double u[3] = {0}, v[3] = {0};
+
+  int _debug = 1;
+
+  std::map< int64_t, int64_t >::iterator it0, it1, it;
+
+  if (rng0.m_P.size() != rng1.m_P.size()) { return -1; }
+  if (rng0.m_dim != rng1.m_dim) { return -2; }
+
+  n_ele = (int64_t)(rng0.m_P.size() / rng0.m_dim);
+
+  for (p_idx=0; p_idx < n_ele; p_idx++) {
+
+    if (rng0.m_Ve_map[p_idx].size() != rng1.m_Ve_map[p_idx].size()) {
+
+      if (_debug > 0) {
+
+        for (i=0; i<rng0.m_dim; i++) {
+          u[i] = rng0.m_P[ rng0.m_dim*p_idx + i ];
+          v[i] = rng1.m_P[ rng1.m_dim*p_idx + i ];
+        }
+
+        printf("MISMATCH: |rng0.m_Ve_map[%i]|:%i (%f,%f,%f) != |rng1.m_Ve_map[%i]|:%i (%f,%f,%f)\n",
+            (int)p_idx, (int)rng0.m_Ve_map[p_idx].size(),
+            u[0], u[1], u[2],
+            (int)p_idx, (int)rng1.m_Ve_map[p_idx].size(),
+            v[0], v[1], v[2] );
+
+        printf(" nei0:");
+        for (it = rng0.m_Ve_map[p_idx].begin(); it != rng0.m_Ve_map[p_idx].end(); ++it) {
+          nei_idx = it->first;
+          if (rng0.m_dim==2) {
+            printf(" u%i(%f,%f)", (int)nei_idx, rng0.m_P[2*nei_idx], rng0.m_P[2*nei_idx+1]);
+          }
+          else if (rng0.m_dim==3) {
+            printf(" u%i(%f,%f,%f)", (int)nei_idx, rng0.m_P[3*nei_idx], rng0.m_P[3*nei_idx+1],rng0.m_P[3*nei_idx+2]);
+          }
+        }
+        printf(" nei1:");
+        for (it = rng1.m_Ve_map[p_idx].begin(); it != rng1.m_Ve_map[p_idx].end(); ++it) {
+          nei_idx = it->first;
+          if (rng1.m_dim==2) {
+            printf(" u%i(%f,%f)", (int)nei_idx, rng1.m_P[2*nei_idx], rng1.m_P[2*nei_idx+1]);
+          }
+          else if (rng1.m_dim==3) {
+            printf(" u%i(%f,%f,%f)", (int)nei_idx, rng1.m_P[3*nei_idx], rng1.m_P[3*nei_idx+1],rng1.m_P[3*nei_idx+2]);
+          }
+        }
+        printf("\n");
+
+      }
+
+      return -3;
+    }
+
+
+    for (it0 = rng0.m_Ve_map[p_idx].begin(), it1 = rng1.m_Ve_map[p_idx].begin() ;
+         (it0 != rng0.m_Ve_map[p_idx].end()) && (it1 != rng1.m_Ve_map[p_idx].end()) ;
+         ++it0, ++it1) {
+
+      nei_idx0 = it0->first;
+      nei_idx1 = it1->first;
+
+      if (nei_idx0 != nei_idx1) { return -4; }
+      
+    }
+
+  }
+
+
+  return 0;
+}
+
 void spot_check_sweep2d() {
   int i;
   int64_t p_idx;
@@ -1283,66 +1497,61 @@ void spot_check_sweep2d() {
     printf("sweep2d[%i]: [%i,%i]\n", (int)i, (int)sweep2d[i], (int)sweep2d[i+1]);
   }
 
-
-
 }
+
+
 
 void spot_check_3d() {
   int res;
-  RELATIVE_NEIGHBORHOOD_GRAPH rng;
-  srand(1234);
+  int64_t n = 10000;
 
-  rng.poissonInit(1000, 3);
-  res = rng.SPoIF_3d();
-
-  //res = rng.RNG_naive();
-
-  printf("#got: %i\n", res);
-
-  rng.printE();
-}
-
-void spot_check_2d() {
-  int res;
-  RELATIVE_NEIGHBORHOOD_GRAPH rng;
-  srand(1234);
-
-  rng.poissonInit(100, 2);
-  res = rng.SPoIF_2d();
-
-  printf("#got: %i\n", res);
-
-  rng.printE();
-}
-
-void _spot_check_2d() {
-  int res=0;
   RELATIVE_NEIGHBORHOOD_GRAPH rng, rng_slo;
-
   srand(1234);
 
-  rng.poissonInit(30, 2);
-  rng_slo.pointInit( rng.m_P, rng.m_dim );
+  rng.poissonInit( n, 3 );
+  rng_slo.pointInit( rng.m_P, 3 );
 
-
-  printf("#---\n");
-  rng.printP();
-  printf("#---\n");
-  rng_slo.printP();
-  printf("#---\n");
-
-
+  rng.SPoIF_3d();
   rng_slo.RNG_naive();
 
+  res = rng_cmp(rng, rng_slo);
 
-  res = rng.SPoIF_2d();
   printf("#got: %i\n", res);
+}
 
-  printf("#spoif---\n");
-  rng.printE();
-  printf("#slo---\n");
-  rng_slo.printE();
+void spot_check_2d( int64_t n = 10000) {
+  int res;
+  //int64_t n = 10000;
 
+  // error on 10000, dim = 2, srand = 1234
+  // found at least one edge missing in slo
+  // but appears in spoif aroun (.64,.8) to (.66,.81)
+  //
+
+  FILE *fp;
+
+  RELATIVE_NEIGHBORHOOD_GRAPH rng, rng_slo;
+  srand(1234);
+
+  rng.poissonInit( n, 2 );
+  rng_slo.pointInit( rng.m_P, 2 );
+
+  rng.SPoIF_2d();
+  rng_slo.RNG_naive();
+
+  res = rng_cmp(rng, rng_slo);
+  printf("#got: %i (%i %i)\n",
+      res, rng.consistency(), rng_slo.consistency());
+
+  fp = fopen("out0.gp", "w");
+  rng.printE(fp);
+  fclose(fp);
+
+  fp = fopen("out1.gp", "w");
+  rng_slo.printE(fp);
+  fclose(fp);
+
+  //rng.printE();
 }
 
 void _naive2d() {
@@ -1366,9 +1575,14 @@ int _main(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
+
+  int64_t n = 100;
+
+  if (argc > 1) { n = (int64_t)atoi(argv[1]); }
+
   //spot_check_sweep2d();
-  //spot_check_2d();
-  spot_check_3d();
+  spot_check_2d(n);
+  //spot_check_3d();
   //_naive2d();
   return 0;
 }

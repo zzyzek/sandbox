@@ -1770,7 +1770,7 @@ function lune_network_2d_SPoIF_RNGv(info, p_idx) {
           for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
             let fpi = fencePostCluster[cluster_idx][fpci];
 
-            if (fps_cache[cluster_idx][fpci] == 1) {
+            if (fps_cache[idir][fpi] == 1) {
               n_cluster_secure++;
               continue;
             }
@@ -1781,7 +1781,7 @@ function lune_network_2d_SPoIF_RNGv(info, p_idx) {
 
             let s = njs.dot( Nqp, njs.sub( fpv, dq ) );
             if (s > 0) {
-              fps_cache[cluster_idx][fpci] = 1;
+              fps_cache[idir][fpi] = 1;
               n_cluster_secure++;
             }
           }
@@ -2029,7 +2029,7 @@ function lune_network_3d_SPoIF_RNGv(info, p_idx) {
           for (let fpci=0; fpci<fencePostCluster[cluster_idx].length; fpci++) {
             let fpi = fencePostCluster[cluster_idx][fpci];
 
-            if (fps_cache[cluster_idx][fpci] == 1) {
+            if (fps_cache[idir][fpi] == 1) {
               n_cluster_secure++;
               continue;
             }
@@ -2040,7 +2040,7 @@ function lune_network_3d_SPoIF_RNGv(info, p_idx) {
 
             let s = njs.dot( Nqp, njs.sub( fpv, dq ) );
             if (s > 0) {
-              fps_cache[cluster_idx][fpci] = 1;
+              fps_cache[idir][fpi] = 1;
               n_cluster_secure++;
             }
           }
