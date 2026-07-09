@@ -26,6 +26,51 @@ static double _RND() {
   return ((double)rand()) / (RAND_MAX + 1.0);
 }
 
+static int32_t poissonPoint(std::vector< double > &P, int64_t n, int32_t dim) {
+  int64_t i, j, k;
+
+  P.clear();
+  for (i=0; i<n; i++) {
+    for (j=0; j<dim; j++) {
+      P.push_back( _RND() );
+    }
+  }
+
+  return 0;
+}
+
+static int32_t v2idir_2d(double *v) {
+  int32_t max_xy = 0;
+  double max_val = v[0];
+  int32_t xy = 0;
+
+  for (xy=0; xy<2; xy++) {
+    if (fabs(v[xy]) > max_val) {
+      max_xy = xy;
+      max_val = fabs(v[xy]);
+    }
+  }
+
+  if (v[max_xy] < 0) { return (2*max_xy)+1; }
+  return 2*max_xy;
+}
+
+static int32_t v2idir_3d(double *v) {
+  int32_t max_xyz = 0;
+  double max_val = v[0];
+  int32_t xyz = 0;
+
+  for (xyz=0; xyz<3; xyz++) {
+    if (fabs(v[xyz]) > max_val) {
+      max_xyz = xyz;
+      max_val = fabs(v[xyz]);
+    }
+  }
+
+  if (v[max_xyz] < 0) { return (2*max_xyz)+1; }
+  return 2*max_xyz;
+}
+
 class RELATIVE_NEIGHBORHOOD_GRAPH {
   public:
 
@@ -58,7 +103,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
     //
     double    m_grid_s;
     int64_t   m_grid_n;
-    double    m_grid_cell_size;
+    double    m_grid_cell_size[3];
 
     // grid holds index of point
     //
@@ -81,11 +126,13 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
     double    m_fencePost_v[6][9];
     int64_t   m_fencePostCluster[4][4];
 
+    int64_t   m_n_fencePost;
+
     // cache for easier lookup
     //
 #define _FPR_MAX_IR 3
     double    m_fpR_max_ir;
-    double    m_fpR_v[_FPR_MAX_IR][6][9];
+    double    m_fpR_v[(_FPR_MAX_IR+1)][6][9];
 
     RELATIVE_NEIGHBORHOOD_GRAPH() {
       m_eps = _EPS;
@@ -104,40 +151,61 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       m_idir_oppo[0] = 1; m_idir_oppo[1] = 0;
       m_idir_oppo[2] = 3; m_idir_oppo[3] = 2;
       m_idir_oppo[4] = 5; m_idir_oppo[5] = 4;
+
+      m_dim = -1;
+
+      m_n_fencePost = -1;
     }
 
     int32_t p2grid_ixyz( int64_t *ixyz, double *p ) {
 
       if (m_dim == 3) {
-        ixyz[0] = (int64_t)floor( ((double)grid_n) * p[0] );
-        ixyz[1] = (int64_t)floor( ((double)grid_n) * p[1] );
-        ixyz[2] = (int64_t)floor( ((double)grid_n) * p[2] );
+        ixyz[0] = (int64_t)floor( ((double)m_grid_n) * p[0] );
+        ixyz[1] = (int64_t)floor( ((double)m_grid_n) * p[1] );
+        ixyz[2] = (int64_t)floor( ((double)m_grid_n) * p[2] );
         return 0;
       }
 
       else if (m_dim == 2) {
-        ixyz[0] = (int64_t)floor( ((double)grid_n) * p[0] );
-        ixyz[1] = (int64_t)floor( ((double)grid_n) * p[1] );
+        ixyz[0] = (int64_t)floor( ((double)m_grid_n) * p[0] );
+        ixyz[1] = (int64_t)floor( ((double)m_grid_n) * p[1] );
         return 0;
       }
 
       return -1;
     }
 
+    int32_t oob(double *v) {
+      if (v[0] <  m_bbox[0][0]) { return 1; }
+      if (v[0] >= m_bbox[0][1]) { return 1; }
+
+      if (v[1] <  m_bbox[1][0]) { return 1; }
+      if (v[1] >= m_bbox[1][1]) { return 1; }
+
+      if (m_dim == 3) {
+        if (v[2] <  m_bbox[2][0]) { return 1; }
+        if (v[2] >= m_bbox[2][1]) { return 1; }
+      }
+
+      return 0;
+    }
+
     int64_t grid_ixyz2pos( int64_t *ixyz ) {
       int64_t pos=-1;
-      pos = ((ixyz[2]*grid_n*grid_n) + (ixyz[1]*grid_n) + ixyz[0]);
+      pos = ((ixyz[2]*m_grid_n*m_grid_n) + (ixyz[1]*m_grid_n) + ixyz[0]);
       return pos;
     }
 
 
     int32_t init() {
       int64_t i, j, k;
-      int64_t n_ele = 0, v_idx;
+      int64_t n_ele = 0, v_idx, pos;
       int64_t grid_tot;
       int64_t ix=-1, iy=-1, iz=-1,
               ixyz[3] = {0};
       double n_d = 0.0;
+
+      std::vector< int64_t > _em_v;
 
       std::map< int64_t, int64_t > _em;
 
@@ -146,23 +214,32 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       m_eps = _EPS;
 
+      m_bbox[0][0] = 0;
+      m_bbox[1][0] = 0;
+      m_bbox[2][0] = 0;
+
+      m_bbox[0][1] = 1;
+      m_bbox[1][1] = 1;
+      m_bbox[2][1] = 1;
+
       m_grid_s = ((m_dim == 3) ? cbrt(n_d) : sqrt(n_d));
       m_grid_n = (int64_t)ceil(m_grid_s);
-      m_ds = 1.0 / m_grid_s;
+      m_ds = 1.0 / ((double)m_grid_n);
+
+      m_grid_cell_size[0] = m_ds;
+      m_grid_cell_size[1] = m_ds;
+      m_grid_cell_size[2] = m_ds;
+
 
       m_Ve_map.clear();
       for (v_idx=0; v_idx < n_ele; v_idx++) {
         m_Ve_map.push_back( _em );
-
-        for (i=0; i<m_dim; i++) {
-          m_P_grid_idx_bp.push_back(-1);
-        }
       }
 
-      grid_tot = ( (m_dim == 3) ? (grid_n*grid_n*grid_n) : (grid_n*grid_n) );
+      grid_tot = ( (m_dim == 3) ? (m_grid_n*m_grid_n*m_grid_n) : (m_grid_n*m_grid_n) );
       m_grid.clear();
       for (i=0; i<grid_tot; i++) {
-        m_grid.push_back();
+        m_grid.push_back(_em_v);
       }
 
       for (v_idx=0; v_idx < n_ele; v_idx++) {
@@ -170,12 +247,15 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
         pos = grid_ixyz2pos( ixyz );
 
         m_grid[pos].push_back( v_idx );
-        m_P_grid_idx_bp.push_back( ixyz[0] );
-        m_P_grid_idx_bp.push_back( ixyz[1] );
+        m_P_idx_grid_bp.push_back( ixyz[0] );
+        m_P_idx_grid_bp.push_back( ixyz[1] );
         if (m_dim == 3) {
-          m_P_grid_idx_bp.push_back( ixyz[2] );
+          m_P_idx_grid_bp.push_back( ixyz[2] );
         }
+
       }
+
+      m_n_fencePost = ((m_dim == 3) ? 9 : 3);
 
       return 0;
     }
@@ -192,12 +272,10 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       for (i=0; i < n_ele; i++) {
         for (j=0; j < m_dim; j++) {
-
           pos = (m_dim*(i)) + j;
-          if (pos >= n_ele) { return -1; }
+          if (pos >= pnt.size()) { return -1; }
 
           m_P.push_back( pnt[pos] );
-
         }
       }
 
@@ -221,68 +299,578 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       return init();
     }
 
-    void printP(void) {
+    void printP(FILE *ofp = stdout) {
       int64_t i, n_ele = 0;
 
-      n_ele = (int64_t)(m_P.size()/3);
+      n_ele = (int64_t)(m_P.size()/m_dim);
       for (i=0; i < n_ele; i++) {
         if (m_dim == 2) {
-          printf("%f %f\n\n", m_P[(2*i) + 0], m_P[(2*i) + 1]);
+          fprintf(ofp, "%f %f\n\n", m_P[(2*i) + 0], m_P[(2*i) + 1]);
         }
         else if (m_dim == 3) {
-          printf("%f %f %f\n\n", m_P[(3*i) + 0], m_P[(3*i) + 1], m_P[(3*i) + 2]);
+          fprintf(ofp, "%f %f %f\n\n", m_P[(3*i) + 0], m_P[(3*i) + 1], m_P[(3*i) + 2]);
         }
       }
     }
 
-    void printInfo(void) {
+    void printE(FILE *ofp = stdout) {
+      int64_t v_idx, u_idx, n_ele, i, j, k;
+      std::map< int64_t, int64_t >::iterator it;
+
+      n_ele = (int64_t)(m_P.size() / m_dim);
+
+      for (v_idx=0; v_idx < n_ele; v_idx++) {
+        for (it = m_Ve_map[v_idx].begin(); it != m_Ve_map[v_idx].end(); ++it) {
+          u_idx = it->first;
+
+          if (u_idx < v_idx) { continue; }
+
+          for (i=0; i<m_dim; i++) {
+            fprintf(ofp, "%f%s",
+                m_P[ (m_dim*v_idx) + i ],
+                ((i==(m_dim-1)) ? "\n" : " ") );
+          }
+
+          for (i=0; i<m_dim; i++) {
+            fprintf(ofp, "%f%s",
+                m_P[ (m_dim*u_idx) + i ],
+                ((i==(m_dim-1)) ? "\n\n" : " ") );
+          }
+
+        }
+      }
     }
 
-    int32_t SPoIF_2d_v() {
-      return -1;
+    // TODO
+    //
+    void printInfo(void) {
+
+
+
+    }
+
+    //
+    int32_t grid_sweep_perim_2d(std::vector< int64_t > &sweep_xy, double *p, int64_t ir) {
+      int64_t cell_offset[2] = {0},
+              grid_bbox[2][2] = {0},
+              ipnt[2] = {0},
+              mxy[2] = {0},
+              Mxy[2] = {0};
+      int64_t ix,iy;
+
+
+      grid_bbox[0][0] = 0;
+      grid_bbox[0][1] = 0;
+
+      grid_bbox[1][0] = m_grid_n;
+      grid_bbox[1][1] = m_grid_n;
+
+      ipnt[0] = (int64_t)floor( p[0] / m_grid_cell_size[0] );
+      ipnt[1] = (int64_t)floor( p[1] / m_grid_cell_size[1] );
+
+      mxy[0] = ipnt[0] - ir;
+      mxy[1] = ipnt[1] - ir;
+
+      Mxy[0] = ipnt[0] + ir+1;
+      Mxy[1] = ipnt[1] + ir+1;
+
+      sweep_xy.clear();
+
+      for (ix=mxy[0]; ix < Mxy[0]; ix++) {
+
+        if ( (ix >= grid_bbox[0][0]) &&
+             (ix <  grid_bbox[1][0]) &&
+             (mxy[1] >= grid_bbox[0][1]) &&
+             (mxy[1] <  grid_bbox[1][1]) ) {
+          sweep_xy.push_back( ix );
+          sweep_xy.push_back( mxy[1] );
+        }
+
+        if (mxy[1] == (Mxy[1]-1)) { continue; }
+
+        if ( (ix >= grid_bbox[0][0]) &&
+             (ix <  grid_bbox[1][0]) &&
+             ((Mxy[1]-1) >= grid_bbox[0][1]) &&
+             ((Mxy[1]-1) <  grid_bbox[1][1]) ) {
+          sweep_xy.push_back( ix );
+          sweep_xy.push_back( Mxy[1]-1 );
+        }
+
+      }
+
+      for (iy=(mxy[1]+1); iy < (Mxy[1]-1); iy++) {
+        if ( (mxy[0] >= grid_bbox[0][0]) &&
+             (mxy[1] <  grid_bbox[1][0]) &&
+             (iy >= grid_bbox[0][1]) &&
+             (iy <  grid_bbox[1][1]) ) {
+          sweep_xy.push_back( mxy[0] );
+          sweep_xy.push_back( iy );
+        }
+
+        if (mxy[0] == (Mxy[0]-1)) { continue; }
+
+        if ( ((Mxy[0]-1) >= grid_bbox[0][0]) &&
+             ((Mxy[0]-1) <  grid_bbox[1][0]) &&
+             (iy >= grid_bbox[0][1]) &&
+             (iy <  grid_bbox[1][1]) ) {
+          sweep_xy.push_back( Mxy[0]-1 );
+          sweep_xy.push_back( iy );
+        }
+      }
+
+      return 0;
+    }
+
+    int32_t in_lune_2d(double *a, double *b, double *c) {
+      double  dist_ca,
+              dist_cb,
+              dist_ab;
+
+      dist_ca = sqrt( ((c[0]-a[0])*(c[0]-a[0])) + ((c[1]-a[1])*(c[1]-a[1])) );
+      dist_cb = sqrt( ((c[0]-b[0])*(c[0]-b[0])) + ((c[1]-b[1])*(c[1]-b[1])) );
+      dist_ab = sqrt( ((a[0]-b[0])*(a[0]-b[0])) + ((a[1]-b[1])*(a[1]-b[1])) );
+
+      if ((dist_ca <= dist_ab) &&
+          (dist_cb <= dist_ab)) {
+        return 1;
+      }
+
+      return 0;
+    }
+
+    int32_t in_lune_3d(double *a, double *b, double *c) {
+      double  dist_ca,
+              dist_cb,
+              dist_ab;
+
+      dist_ca = sqrt( ((c[0]-a[0])*(c[0]-a[0])) + ((c[1]-a[1])*(c[1]-a[1])) + ((c[2]-a[2])*(c[2]-a[2])) );
+      dist_cb = sqrt( ((c[0]-b[0])*(c[0]-b[0])) + ((c[1]-b[1])*(c[1]-b[1])) + ((c[2]-b[2])*(c[2]-b[2])) );
+      dist_ab = sqrt( ((a[0]-b[0])*(a[0]-b[0])) + ((a[1]-b[1])*(a[1]-b[1])) + ((a[2]-b[2])*(a[2]-b[2])) );
+
+      if ((dist_ca <= dist_ab) &&
+          (dist_cb <= dist_ab)) {
+        return 1;
+      }
+
+      return 0;
+    }
+
+    int32_t RNG_naive(void) {
+      int64_t u_idx, v_idx, w_idx, n_ele;
+      int is_conn = 0;
+
+      n_ele = (int64_t)(m_P.size()/m_dim);
+
+      printf("# ??? |m_P| %i, n_ele: %i, m_dim: %i, |m_Ve_map| %i\n",
+          (int)m_P.size(),
+          (int)n_ele,
+          (int)m_dim,
+          (int)m_Ve_map.size());
+      fflush(stdout);
+
+      for (u_idx=0; u_idx < n_ele; u_idx++) {
+        m_Ve_map[u_idx].clear();
+      }
+
+      for (u_idx=0; u_idx < n_ele; u_idx++) {
+        for (v_idx=0; v_idx < n_ele; v_idx++) {
+          if (u_idx == v_idx) { continue; }
+
+          is_conn = 1;
+
+          for (w_idx=0; w_idx < n_ele; w_idx++) {
+            if ((w_idx == u_idx) || (w_idx == v_idx)) { continue; }
+
+            if (m_dim == 3) {
+              if (in_lune_3d( &(m_P[3*u_idx]), &(m_P[3*v_idx]), &(m_P[3*w_idx]) )) {
+                is_conn = 0;
+                break;
+              }
+            }
+            else if (m_dim == 2) {
+              if (in_lune_2d( &(m_P[2*u_idx]), &(m_P[2*v_idx]), &(m_P[2*w_idx]) )) {
+                is_conn = 0;
+                break;
+              }
+            }
+            else { return -1; }
+          }
+
+          if (is_conn) {
+            m_Ve_map[u_idx][v_idx] = 1;
+            m_Ve_map[v_idx][u_idx] = 1;
+          }
+        }
+
+      }
+
+      return 0;
+    }
+
+    int32_t RNGv_naive(int64_t p_idx, std::vector< int64_t > &q_sched) {
+      double p[2];
+      int64_t sqi = 0, sqj=0,
+              q_idx = -1,
+              u_idx = -1;
+      int _found = 0;
+
+      for (sqi=0; sqi < q_sched.size(); sqi++) {
+        q_idx = q_sched[sqi];
+        _found = 1;
+
+        for (sqj=0; sqj < q_sched.size(); sqj++) {
+          if (sqi == sqj) { continue; }
+          u_idx = q_sched[sqj];
+
+          if (m_dim == 3) {
+            if (in_lune_3d( &(m_P[3*p_idx]), &(m_P[3*q_idx]), &(m_P[3*u_idx]) )) {
+              _found = 0;
+              break;
+            }
+          }
+          else if (m_dim == 2) {
+            if (in_lune_2d( &(m_P[2*p_idx]), &(m_P[2*q_idx]), &(m_P[2*u_idx]) )) {
+              _found = 0;
+              break;
+            }
+          }
+          else { return -1; }
+        }
+
+        if (_found) {
+          m_Ve_map[p_idx][q_idx] = 1;
+          m_Ve_map[q_idx][p_idx] = 1;
+        }
+
+      }
+
+      return 0;
+    }
+
+    // SPoIF_2d_v
+    //
+    // Shrinking Posts on Increasing Fence, single vertex
+    // relative neighborhood graph edges for vertex referenced by p_idx (located in m_P)
+    //
+    //
+    int32_t SPoIF_2d_v(int64_t p_idx) {
+      int64_t n_cluster = 2,
+              cluster_size = 2,
+              n_idir = 4;
+
+      int64_t i,j,k,
+              ir=0,
+              fpi=0, fpci=0,
+              sqi=-1,
+              cluster_idx=0,
+              idir=0,
+              grid_pos = -1,
+              bin_idx=-1;
+
+      int32_t fencePostSecure[4][3];
+      int64_t n_fp_secure= 0,
+              n_fp_max = 4*3;
+      int32_t fps_cache[4][3];
+      int64_t n_cluster_secure = 0;
+
+      std::vector< int64_t > sweep;
+
+      int64_t cell_origin[2] = {0};
+
+      int64_t ip[2];
+      double win_center[2] = {0},
+             Wp[2] = {0},
+             p[2] = {0},
+             q[2] = {0},
+             dq[2] = {0},
+             dqp[2] = {0},
+             Nqp[2] = {0},
+             v[2] = {0},
+             fpv[2] = {0};
+
+      double _l2 = 0.0,
+             s = 0.0;
+      int64_t q_idx = -1,
+              q_idir_oppo = -1,
+              path_idx = -1,
+              fpsi = -1,
+              ixy[2];
+
+      int32_t _ns = 0,
+              _ns_max = 0;
+
+      int64_t _i, _j, _k;
+
+      std::vector< int64_t > q_sched;
+
+
+      p[0] = m_P[(m_dim*p_idx) + 0];
+      p[1] = m_P[(m_dim*p_idx) + 1];
+
+      Wp[0] = p[0] * m_grid_n;
+      Wp[1] = p[1] * m_grid_n;
+
+      ip[0] = (int64_t)floor( Wp[0] );
+      ip[1] = (int64_t)floor( Wp[1] );
+
+      for (idir=0; idir<n_idir; idir++) {
+        for (fpi=0; fpi < m_n_fencePost; fpi++) {
+          fencePostSecure[idir][fpi] = 0;
+        }
+      }
+
+
+      //DEBUG
+      //printf("\n\n#cp0 p_idx: %i, p[%f %f] n_grid %i, ds:%f\n",
+      //    (int)p_idx, p[0], p[1],
+      //    (int)m_grid_n, m_ds);
+
+      //DEBUG
+      //printf("#cp.0b m_n_fencePost: %i, fencePostSecure [%i %i %i] [%i %i %i] [%i %i %i] [%i %i %i]\n",
+      //    (int)m_n_fencePost,
+      //    (int)fencePostSecure[0][0], (int)fencePostSecure[0][1], (int)fencePostSecure[0][2],
+      //    (int)fencePostSecure[1][0], (int)fencePostSecure[1][1], (int)fencePostSecure[1][2],
+      //    (int)fencePostSecure[2][0], (int)fencePostSecure[2][1], (int)fencePostSecure[2][2],
+      //    (int)fencePostSecure[3][0], (int)fencePostSecure[3][1], (int)fencePostSecure[3][2]);
+
+      grid_sweep_perim_2d(sweep, p, 0);
+      cell_origin[0] = sweep[0];
+      cell_origin[1] = sweep[1];
+
+      win_center[0] = (m_ds/2.0) + (m_ds*cell_origin[0]);
+      win_center[1] = (m_ds/2.0) + (m_ds*cell_origin[1]);
+
+      //DEBUG
+      //printf("#cp.1 cell_origin [%i,%i], win_center[%f %f]\n",
+      //    (int)cell_origin[0], (int)cell_origin[1],
+      //    win_center[0], win_center[1]);
+
+      for (ir=0; ir < m_grid_n; ir++) {
+        grid_sweep_perim_2d(sweep, p, ir);
+
+        //DEBUG
+        //printf("#cp.2 p[%f,%f] ir:%i sweep:", p[0], p[1], (int)ir);
+        //for (_i=0; _i<sweep.size(); _i+=m_dim) {
+        //  printf(" (%i %i)", (int)sweep[_i+0], (int)sweep[_i+1]);
+        //}
+        //printf("\n");
+
+        for (idir=0; idir < n_idir; idir++) {
+          for (cluster_idx=0; cluster_idx < n_cluster; cluster_idx++) {
+
+            n_cluster_secure = 0;
+            for (fpci=0; fpci < cluster_size; fpci++) {
+              fpi = m_fencePostCluster[cluster_idx][fpci];
+
+              v[0] = 0.0;
+              v[1] = 0.0;
+
+              if (ir <= m_fpR_max_ir) {
+                v[0] = win_center[0] + m_fpR_v[ir][idir][(m_dim*fpi) + 0];
+                v[1] = win_center[1] + m_fpR_v[ir][idir][(m_dim*fpi) + 1];
+              }
+              else {
+                v[0] = win_center[0] + (m_ds * ((2.0*ir)+1.0) * m_fencePost_v[idir][(m_dim*fpi) + 0]);
+                v[1] = win_center[1] + (m_ds * ((2.0*ir)+1.0) * m_fencePost_v[idir][(m_dim*fpi) + 1]);
+              }
+
+              //DEBUG
+              //printf("##cp.2.0 v[%f,%f], oob(v):%i\n", v[0], v[1], oob(v));
+
+              if (oob(v)) { n_cluster_secure++; }
+            }
+
+            if (n_cluster_secure == cluster_size) {
+              for (fpci=0; fpci < cluster_size; fpci++) {
+                fpi = m_fencePostCluster[ cluster_idx ][ fpci ];
+                if (fencePostSecure[ idir ][ fpi ] == 0) { n_fp_secure++; }
+                fencePostSecure[ idir ][ fpi ] = 1;
+              }
+            }
+
+          }
+        }
+
+        //DEBUG
+        //printf("#cp.3 n_fp_secure: %i / %i\n", (int)n_fp_secure, (int)n_fp_max);
+
+        if (n_fp_secure == n_fp_max) { break; }
+
+        for (path_idx=0; path_idx < sweep.size(); path_idx += m_dim) {
+          ixy[0] = sweep[ path_idx + 0 ];
+          ixy[1] = sweep[ path_idx + 1 ];
+
+          grid_pos = (ixy[1]*m_grid_n) + ixy[0];
+          for (bin_idx=0; bin_idx < m_grid[grid_pos].size(); bin_idx++) {
+            q_idx = m_grid[grid_pos][bin_idx];
+            if (q_idx == p_idx) { continue; }
+
+            q_sched.push_back( q_idx );
+          }
+        }
+
+        // median is ir == 3, so collect lower than ir but otherwise
+        // skip secure computation until we get to ir == 3
+        // (worth ~15% speed increase)
+        //
+        if (ir < 2) { continue; }
+
+        for (sqi=0; sqi < q_sched.size(); sqi++) {
+          q_idx = q_sched[sqi];
+
+          q[0] = m_P[(m_dim*q_idx) + 0];
+          q[1] = m_P[(m_dim*q_idx) + 1];
+
+          dq[0] = q[0] - win_center[0];
+          dq[1] = q[1] - win_center[1];
+
+          dqp[0] = q[0] - p[0];
+          dqp[1] = q[1] - p[1];
+
+          _l2 = sqrt( (dqp[0]*dqp[0]) + (dqp[1]*dqp[1]) );
+          Nqp[0] = (1.0/_l2) * dqp[0];
+          Nqp[1] = (1.0/_l2) * dqp[1];
+
+          q_idir_oppo = m_idir_oppo[ v2idir_2d(Nqp) ];
+
+          for (i=0; i<4; i++) { for (j=0; j<3; j++) { fps_cache[i][j] = 0; } }
+
+          for (idir=0; idir < n_idir; idir++) {
+
+            if (q_idir_oppo == idir) { continue; }
+
+            for (cluster_idx=0; cluster_idx < n_cluster; cluster_idx++) {
+
+              n_cluster_secure = 0;
+
+              for (fpci=0; fpci < cluster_size; fpci++) {
+                fpi = m_fencePostCluster[cluster_idx][fpci];
+
+                if (fps_cache[cluster_idx][fpci] == 1) {
+                  n_cluster_secure++;
+                  continue;
+                }
+
+                fpv[0] = 0; fpv[1] = 0;
+
+                if (ir <= m_fpR_max_ir) {
+                  fpv[0] = m_fpR_v[ir][idir][(m_dim*fpi) + 0];
+                  fpv[1] = m_fpR_v[ir][idir][(m_dim*fpi) + 1];
+                }
+                else {
+                  fpv[0] = (m_ds * ((2.0*((double)ir))+1.0) * m_fencePost_v[idir][(m_dim*fpi) + 0]);
+                  fpv[1] = (m_ds * ((2.0*((double)ir))+1.0) * m_fencePost_v[idir][(m_dim*fpi) + 1]);
+                }
+
+                s = (Nqp[0]*(fpv[0]-dq[0])) + (Nqp[1]*(fpv[1]-dq[1]));
+                if (s > 0) {
+                  fps_cache[cluster_idx][fpci] = 1;
+                  n_cluster_secure++;
+                }
+              }
+
+              if (n_cluster_secure == n_cluster) {
+                for (fpci=0; fpci < cluster_size; fpci++) {
+                  fpi = m_fencePostCluster[cluster_idx][fpci];
+                  if (fencePostSecure[idir][fpi] == 0) { n_fp_secure++; }
+                  fencePostSecure[idir][fpi] = 1;
+                }
+              }
+
+              if (n_fp_secure == n_fp_max) { break; }
+            }
+
+            if (n_fp_secure == n_fp_max) { break; }
+          }
+
+          if (n_fp_secure == n_fp_max) { break; }
+        }
+
+        if (n_fp_secure == n_fp_max) { break; }
+
+        _ns = 0; _ns_max = 0;
+        for (idir=0; idir < n_idir; idir++) {
+          for (fpsi=0; fpsi < m_n_fencePost; fpsi++) {
+            _ns += fencePostSecure[idir][fpsi];
+            _ns_max++;
+          }
+        }
+
+        if (_ns == _ns_max) { break; }
+      }
+
+      return RNGv_naive(p_idx, q_sched);
     }
 
     int32_t SPoIF_2d() {
+      int res=0;
       int64_t n_idir = 4;
       int64_t ir, idir, fpi;
-      double fpv[3] = {0};
+      double fpv[2] = {0};
 
-      m_fencePost_v[0][0][0] =  fL; m_fencePost_v[0][0][1] = -fL;
-      m_fencePost_v[0][1][0] =  fL; m_fencePost_v[0][1][1] =   0;
-      m_fencePost_v[0][1][0] =  fL; m_fencePost_v[0][1][1] =  fL;
+      int64_t p_idx = -1, n_ele = 0;
 
-      m_fencePost_v[1][0][0] = -fL; m_fencePost_v[1][0][1] = -fL;
-      m_fencePost_v[1][1][0] = -fL; m_fencePost_v[1][1][1] =   0;
-      m_fencePost_v[1][1][0] = -fL; m_fencePost_v[1][1][1] =  fL;
+      double fL = 1.0 / 2.0;
 
-      m_fencePost_v[2][0][0] = -fL; m_fencePost_v[2][0][1] =  fL;
-      m_fencePost_v[2][1][0] =   0; m_fencePost_v[2][1][1] =  fL;
-      m_fencePost_v[2][1][0] =  fL; m_fencePost_v[2][1][1] =  fL;
+      m_fencePost_v[0][(2*0) + 0] =  fL; m_fencePost_v[0][(2*0) + 1] = -fL;
+      m_fencePost_v[0][(2*1) + 0] =  fL; m_fencePost_v[0][(2*1) + 1] =   0;
+      m_fencePost_v[0][(2*2) + 0] =  fL; m_fencePost_v[0][(2*2) + 1] =  fL;
 
-      m_fencePost_v[3][0][0] = -fL; m_fencePost_v[3][0][1] = -fL;
-      m_fencePost_v[3][1][0] =   0; m_fencePost_v[3][1][1] = -fL;
-      m_fencePost_v[3][1][0] =  fL; m_fencePost_v[3][1][1] = -fL;
+      m_fencePost_v[1][(2*0) + 0] = -fL; m_fencePost_v[1][(2*0) + 1] = -fL;
+      m_fencePost_v[1][(2*1) + 0] = -fL; m_fencePost_v[1][(2*1) + 1] =   0;
+      m_fencePost_v[1][(2*2) + 0] = -fL; m_fencePost_v[1][(2*2) + 1] =  fL;
 
+      m_fencePost_v[2][(2*0) + 0] = -fL; m_fencePost_v[2][(2*0) + 1] =  fL;
+      m_fencePost_v[2][(2*1) + 0] =   0; m_fencePost_v[2][(2*1) + 1] =  fL;
+      m_fencePost_v[2][(2*2) + 0] =  fL; m_fencePost_v[2][(2*2) + 1] =  fL;
+
+      m_fencePost_v[3][(2*0) + 0] = -fL; m_fencePost_v[3][(2*0) + 1] = -fL;
+      m_fencePost_v[3][(2*1) + 0] =   0; m_fencePost_v[3][(2*1) + 1] = -fL;
+      m_fencePost_v[3][(2*2) + 0] =  fL; m_fencePost_v[3][(2*2) + 1] = -fL;
+
+      m_fencePostCluster[0][0] = 0; m_fencePostCluster[0][1] = 1;
+
+      m_fencePostCluster[1][0] = 1; m_fencePostCluster[1][1] = 2;
+
+      // cache fencepost calculatiosn
+      //
       for (ir=0; ir <= m_fpR_max_ir; ir++) {
         for (idir=0; idir < n_idir; idir++) {
-          for (fpi=0; fpi < 3; fpi++) {
+          for (fpi=0; fpi < m_n_fencePost; fpi++) {
 
-            fpv[0] = m_ds*((2.0*((double)ir)) + 1.0) * m_fencePost_v[idir][fpi][0];
-            fpv[1] = m_ds*((2.0*((double)ir)) + 1.0) * m_fencePost_v[idir][fpi][1];
+            fpv[0] = m_ds*((2.0*((double)ir)) + 1.0) * m_fencePost_v[idir][(2*fpi) + 0];
+            fpv[1] = m_ds*((2.0*((double)ir)) + 1.0) * m_fencePost_v[idir][(2*fpi) + 1];
 
-            fpR_v[ir][idir][fpi][0] = fpv[0];
-            fpR_v[ir][idir][fpi][1] = fpv[1];
+            m_fpR_v[ir][idir][(2*fpi) + 0] = fpv[0];
+            m_fpR_v[ir][idir][(2*fpi) + 1] = fpv[1];
           }
         }
       }
 
+      n_ele = (int64_t)(m_P.size() / m_dim);
 
+      for (p_idx=0; p_idx < n_ele; p_idx++) {
+        SPoIF_2d_v( p_idx );
+      }
 
-
-      return -1;
+      return 0;
     }
 
     int32_t SPoIF_3d_v() {
+      int64_t n_cluster = 4;
+
+      m_fencePostCluster[0][0] = 0; m_fencePostCluster[0][1] = 1;
+      m_fencePostCluster[0][2] = 3; m_fencePostCluster[0][3] = 4;
+
+      m_fencePostCluster[1][0] = 1; m_fencePostCluster[1][1] = 2;
+      m_fencePostCluster[1][2] = 4; m_fencePostCluster[1][3] = 5;
+
+      m_fencePostCluster[2][0] = 3; m_fencePostCluster[2][1] = 4;
+      m_fencePostCluster[2][2] = 6; m_fencePostCluster[2][3] = 7;
+
+      m_fencePostCluster[3][0] = 4; m_fencePostCluster[3][1] = 5;
+      m_fencePostCluster[3][2] = 7; m_fencePostCluster[3][3] = 8;
+
       return -1;
     }
 
@@ -292,12 +880,77 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
 };
 
-int main(int argc, char **argv) {
+void spot_check_sweep2d() {
+  int i;
+  int64_t p_idx;
+  double *p;
+  std::vector< int64_t > sweep2d;
+  RELATIVE_NEIGHBORHOOD_GRAPH rng;
+
+  rng.poissonInit(1000, 2);
+  //rng.printP();
+
+
+  p_idx = 500;
+
+  rng.grid_sweep_perim_2d(sweep2d, &(rng.m_P[2*p_idx]), 1);
+
+  p = &(rng.m_P[2*p_idx]);
+
+  printf("??? %f %f\n", p[0], p[1]);
+
+  for (i=0; i<sweep2d.size(); i+=2) {
+    printf("sweep2d[%i]: [%i,%i]\n", (int)i, (int)sweep2d[i], (int)sweep2d[i+1]);
+  }
+
+
+
+}
+
+void spot_check_2d() {
+  int res=0;
+  RELATIVE_NEIGHBORHOOD_GRAPH rng, rng_slo;
+
+  srand(1234);
+
+  rng.poissonInit(30, 2);
+  rng_slo.pointInit( rng.m_P, rng.m_dim );
+
+
+  printf("#---\n");
+  rng.printP();
+  printf("#---\n");
+  rng_slo.printP();
+  printf("#---\n");
+
+
+  rng_slo.RNG_naive();
+
+
+  res = rng.SPoIF_2d();
+  printf("#got: %i\n", res);
+
+  printf("#spoif---\n");
+  rng.printE();
+  printf("#slo---\n");
+  rng_slo.printE();
+
+}
+
+int _main(int argc, char **argv) {
 
   RELATIVE_NEIGHBORHOOD_GRAPH rng;
 
-  rng.poissonInit(100, 3);
+  rng.poissonInit(1000, 2);
   rng.printP();
+
+  return 0;
+}
+
+int main(int argc, char **argv) {
+  //spot_check_sweep2d();
+  spot_check_2d();
+  return 0;
 }
 
 
