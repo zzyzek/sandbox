@@ -1540,6 +1540,7 @@ void spot_check_2d( int64_t n = 1000) {
   //
 
   FILE *fp;
+  int64_t p_idx, n_ele;
 
   RELATIVE_NEIGHBORHOOD_GRAPH rng, rng_slo;
   srand(1234);
@@ -1549,6 +1550,11 @@ void spot_check_2d( int64_t n = 1000) {
 
   rng.SPoIF_2d();
   rng_slo.RNG_naive();
+
+  n_ele = (int64_t)(rng.m_P.size() / rng.m_dim);
+  for (p_idx=0; p_idx < n_ele; p_idx++) {
+    printf("#p%i (%f,%f)\n", (int)p_idx, rng.m_P[2*p_idx], rng.m_P[2*p_idx+1]);
+  }
 
   res = rng_cmp(rng, rng_slo);
   printf("#got: %i (%i %i)\n",
