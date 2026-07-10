@@ -158,10 +158,6 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       int _debug = m_verbose;
 
-      //DEBUG
-      _debug = 1;
-      //DEBUG
-
       std::vector< int64_t > grid_count;
 
       std::map< int64_t, int64_t >::iterator it;
@@ -732,7 +728,11 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
     //   to recreate, here, for 2d: 2000 vertex count, seed 1234
     //   spoif misses an edge from v1341 (0.819533,0.198840) whereas
     //   naive has one
+    //   fixed, was fps_cache indexing issue
     //
+    // 2026-07-09: 2d 10000 seed 1234 has mismatch edge for
+    //   v311(0.659538,0.811543), spoif as (incorrect) edge to v9697(0.638765,0.800436)
+    //   whereas naive rng does not
     //
     int32_t SPoIF_2d_v(int64_t p_idx) {
       int64_t n_cluster = 2,
@@ -786,12 +786,13 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       //DEBUG
       //DEBUG
-      if (p_idx == 1341) { _debug = 10; }
+      if (p_idx == 311) { _debug = 1; }
       //DEBUG
       //DEBUG
+
+
 
       std::vector< int64_t > q_sched;
-
 
       p[0] = m_P[(m_dim*p_idx) + 0];
       p[1] = m_P[(m_dim*p_idx) + 1];
@@ -818,6 +819,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       for (ir=0; ir < m_grid_n; ir++) {
         grid_sweep_perim_2d(sweep, p, ir);
 
+ 
         if (_debug) {
           printf("\n# p%i:(%f,%f), cell_origin(%i,%i) win_center(%f,%f) ir:%i, sweep[%i]:",
               (int)p_idx, p[0], p[1], 
@@ -832,6 +834,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
             if (i == (sweep.size()-2)) { printf(")\n"); }
           }
         }
+
 
         // initial OOB fencepost marking
         //
@@ -862,6 +865,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
                 fpi = m_fencePostCluster[ cluster_idx ][ fpci ];
                 if (fencePostSecure[ idir ][ fpi ] == 0) { n_fp_secure++; }
                 fencePostSecure[ idir ][ fpi ] = 1;
+
 
                 //DEBUG
                 if (_debug > 0) {
@@ -918,6 +922,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
           if (_debug > 0) { printf("#  q_idx:%i (%f,%f)\n", (int)q_idx, q[0], q[1]); }
 
 
+
           for (i=0; i<n_idir; i++) {
             for (j=0; j < 3; j++) { fps_cache[i][j] = 0; }
           }
@@ -963,6 +968,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
                         (int)n_cluster_secure, (int)n_cluster);
                   }
 
+
                 }
               }
 
@@ -981,13 +987,16 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
                         (int)n_fp_secure, (int)n_fp_max);
                   }
 
+
                 }
               }
+
 
               //DEBUG
               if (_debug > 0) {
                 printf("# n_fp_secure %i / %i\n", (int)n_fp_secure, (int)n_fp_max);
               }
+
 
               if (n_fp_secure == n_fp_max) { break; }
             }
@@ -1429,7 +1438,7 @@ int rng_cmp(RELATIVE_NEIGHBORHOOD_GRAPH &rng0, RELATIVE_NEIGHBORHOOD_GRAPH &rng1
             (int)p_idx, (int)rng1.m_Ve_map[p_idx].size(),
             v[0], v[1], v[2] );
 
-        printf(" nei0:");
+        printf("  nei0:");
         for (it = rng0.m_Ve_map[p_idx].begin(); it != rng0.m_Ve_map[p_idx].end(); ++it) {
           nei_idx = it->first;
           if (rng0.m_dim==2) {
@@ -1439,7 +1448,9 @@ int rng_cmp(RELATIVE_NEIGHBORHOOD_GRAPH &rng0, RELATIVE_NEIGHBORHOOD_GRAPH &rng1
             printf(" u%i(%f,%f,%f)", (int)nei_idx, rng0.m_P[3*nei_idx], rng0.m_P[3*nei_idx+1],rng0.m_P[3*nei_idx+2]);
           }
         }
-        printf(" nei1:");
+        printf("\n");
+
+        printf("  nei1:");
         for (it = rng1.m_Ve_map[p_idx].begin(); it != rng1.m_Ve_map[p_idx].end(); ++it) {
           nei_idx = it->first;
           if (rng1.m_dim==2) {
@@ -1501,9 +1512,9 @@ void spot_check_sweep2d() {
 
 
 
-void spot_check_3d() {
+void spot_check_3d(int64_t n = 1000) {
   int res;
-  int64_t n = 10000;
+  //int64_t n = 10000;
 
   RELATIVE_NEIGHBORHOOD_GRAPH rng, rng_slo;
   srand(1234);
@@ -1519,7 +1530,7 @@ void spot_check_3d() {
   printf("#got: %i\n", res);
 }
 
-void spot_check_2d( int64_t n = 10000) {
+void spot_check_2d( int64_t n = 1000) {
   int res;
   //int64_t n = 10000;
 
@@ -1577,13 +1588,27 @@ int _main(int argc, char **argv) {
 int main(int argc, char **argv) {
 
   int64_t n = 100;
+  std::string op;
 
-  if (argc > 1) { n = (int64_t)atoi(argv[1]); }
+  if (argc > 1) {
+    op = argv[1];
+    if (argc > 2) {
+      n = (int64_t)atoi(argv[2]);
+    }
+  }
 
-  //spot_check_sweep2d();
-  spot_check_2d(n);
-  //spot_check_3d();
-  //_naive2d();
+  if (op == "2d") {
+    spot_check_2d(n);
+  }
+
+  else if (op == "3d") {
+    spot_check_3d(n);
+  }
+
+  else {
+    printf("\n... rng_spoif <2d|3d> [n]\n\n");
+  }
+
   return 0;
 }
 
