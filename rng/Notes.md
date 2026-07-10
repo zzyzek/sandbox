@@ -672,9 +672,9 @@ for the implementation.
 The naive version takes all 3 combinations of steeple planes defined from the primal convex hull to calculate
 the intersection point and then compares that intersection point against all other steeple planes to see if
 it's outside of the steeple cut, for an $O(M^4)$ algorithm.
-$M$ is effecitively constant but large enough so that we'd like to speed this up.
+$M$ is effectively constant but large enough so that we'd like to speed this up.
 
-As a reminder, the primal convex hull is in general position because we're choosing points randomely, and thus
+As a reminder, the primal convex hull is in general position because we're choosing points randomly, and thus
 has triangular faces.
 
 The first observation is that if we take the three steeple cuts for each of the three vertices around a face
@@ -682,7 +682,7 @@ of the primal convex hull, and find their intersection point, that point is very
 hull.
 The steeple hull can have more or fewer points than the number of faces of the primal as the steeple hull
 is *not* the dual (polar or otherwise), but probably because of convexity, the faces relative to each
-other are somewhat smooth, so don't undulate too wildly most of the time. Note that this is a non-rigourous statement,
+other are somewhat smooth, so don't undulate too wildly most of the time. Note that this is a non-rigorous statement,
 this is my feeling from observation, I'm not making any hard claims.
 
 From this, we know that $O(M^4)$ is way overkill as we would expect something more on the order of $O(M)$.
@@ -697,7 +697,7 @@ of the steeple hull and $q$ is on the steeple hull boundary.
 * Other steeple planes intersecting $H _ q$ create a projected (2d) convex hull
 * The steeple hull must be a subset of the projected convex hull on $H _ q$
   - if projected convex hull not convex, wouldn't be convex in 3d
-  - if projected convex hull strict subet of steeple hull, steeple hull larger then should be
+  - if projected convex hull strict subset of steeple hull, steeple hull larger then should be
 * Take bounding circle enclosing current guess at projected convex hull, we can now reject
   primal hull points if they're not in the critical lunate
 
@@ -739,7 +739,7 @@ C _ H = \ell + \frac{r^2}{2 \ell} & \\
 \end{array}
 $$
 
-Where $C _ R$ is the cylinder radius and $C _ H$ is the cylinder height, taken from the $H _ q$ plane downards to the anchor $p$.
+Where $C _ R$ is the cylinder radius and $C _ H$ is the cylinder height, taken from the $H _ q$ plane downwards to the anchor $p$.
 $C _ H$ can be calculated using similar triangles.
 
 ![cylinder calculation](img/cyl-calc.png)
@@ -752,7 +752,7 @@ An attempt at a conceptually simpler algorithm that addresses the drawbacks of S
 and doesn't have the complexity of the convex hull idea.
 
 As in StIF, test each orthogonal plane made from the point $q$ inside of the fence relative to the anchor $p$.
-Instead of only considering whether it partitions one of the fence faces (StIF) or doing complicated bookeeping (SWIF),
+Instead of only considering whether it partitions one of the fence faces (StIF) or doing complicated bookkeeping (SWIF),
 take post representatives at the four corners of the plane with an additional post point in the center of the plane.
 
 For each orthogonal plane, $N _ q$, test to see if 4-cluster of posts in a face plane land on the other side of $N _ q$.
@@ -803,7 +803,7 @@ Some thoughts I'd like to record before I forget them:
 * there are three main issues
   - linear runtime for random points in a cube
   - linear runtime for random points in a rotated cube
-  - reasonable expectation of linear runtime for complex, but not advesarial,
+  - reasonable expectation of linear runtime for complex, but not adversarial,
     geometry (fingers of a leaf, say)
 * SPoIF, with the grid cell marking as out of bounds from initial convex hull
   check, (should) take care of the first two
@@ -860,7 +860,7 @@ Some observations:
   there must be a connection from a vein node to an auxin node (if there are non-zero vein and auxin nodes)
 * Only vein nodes are added
 * Only auxin nodes are deleted
-* If a vein node, $v$, has a RNG that is comprised of soley vein nodes, it will
+* If a vein node, $v$, has a RNG that is comprised of solely vein nodes, it will
   only ever have vein node neighbors in the future and can be removed from consideration
   when calculating vein node additions or auxin node deletions
 
@@ -930,6 +930,95 @@ The `hint_list` should be small relative to `neighbor_list`, so there's some hop
 of having speedups but this isn't clear.
 
 We should measure optimization speedups to confirm.
+
+Update
+---
+
+###### 2026-07-10
+
+As written elsewhere, I've decided on getting a relative neighborhood graph
+algorithm for 2d and 3d, only focusing on random points in a 2d/3d square/cube.
+
+We'll focus on "shrinking posts on increasing fence" (SPoIF).
+The a reason I wanted posts and clusters was to overcome some pathological cases of point
+distribution.
+For non-pathological cases, this really needs justification.
+I'm going to table it for now, but this is a potentially unnecessary complication for the restricted
+case we're considering.
+
+The major issue that this note is trying to address is that considering points for a naive
+RNG calculation in a secured fenced region isn't enough.
+One has to consider a larger region to make sure points don't fall within the lunes considered
+by secured points to the anchor.
+
+More succinctly:
+
+* only points in the secure fenced region can have edges to the anchor, it's impossible to
+  have points outside of the secured fenced region connect to the anchor
+* a point inside the secure fenced region might have an RNG edge to the anchor
+  when considering only points within the secure fenced region **but** that edge
+  might not exist when considering points outside the fenced region
+
+That is, there might be an edge from $q$ to the anchor $p$ when only considering fenced
+in points but that isn't and edge in the relative neighborhood graph.
+This can happen when another point, $w$, acts as a saboteur by being in the lune of $(p,q)$,
+where the lune extends out from the fenced in region.
+
+See the [Debug-Log.md](Debug-Log.md) for details on an example.
+
+SPoIF needs to be altered to add in points outside of the fenced in region to make
+sure any saboteurs are accounted for.
+
+The addition should be something like:
+
+```
+anchor p
+When fence is secured:
+  foreach q in fenced region:
+    find maximum point in x,y,z of lune created by (p,q)
+  add all points from grid bins that are equal to or less than
+    the maximum point radius
+...
+do naive RNG for all points with p as an anchor
+```
+
+We need to now know how much larger to extend our scope to include points outside the secured fence.
+
+Let's do 2d as a warm up:
+
+Consider a small square, centered at the orgin with side length $2 r _ 0$, inside of a larger origin
+centered square of side length $2 r _ 1$.
+If our anchor $p _ 0$ is within the first square and a second point, $p _ 1$, is somewhere within the
+larger square (potentially also within the first square), we can ask how far away from the origin
+can some maximum point in the lune of $(p _ 0, p _ 1)$ be?
+
+Since the lune of $(p _ 0, p _ 1)$ is a subset of the circle of radius $|p _ 1 - p _ 0|$ centered at
+$p _ 0$, the maximum radius is achieved when $p _ 0$ and $p _ 1$ are on opposite corners of their
+respective enclosing squares.
+
+The maximum radius is then $\sqrt{2}(r _ 0 + r _ 1)$.
+If $p _ 0$ sits on a corner, that means the maximum the circle can reach will be $\sqrt{2}(r _ 0 + r _ 1) + r _ 0$.
+
+Say we have a grid cell size of side length $s$ and we've extended the fence $k$ times,
+this translates to  $r _ 0 = \frac{s}{2}$, $r _ 1 = k s + \frac{s}{2}$.
+
+We want to know how many more grid cells to extend further, $\alpha$:
+
+$$
+\begin{array}{ll}
+& \sqrt{2}( \frac{s}{2} + k s ) + \frac{s}{2}  = (k + \alpha) s + \frac{s}{2} \\
+\to & \alpha = k ( \sqrt{2} - 1) + \frac{ \sqrt{2} }{2} \\
+\to & \alpha \le \frac{1}{2} k + \frac{3}{4} \le \frac{1}{2}(k+1) \\
+\end{array}
+$$
+
+Meaning, at worst, we need to extend the grid by $\lceil \frac{1}{2} ( k + 1 ) \rceil$ (??).
+
+With high probability, the fence will be secured in a finite number of grid extensions,
+so extending the grid further to take care of saboteurs will also be finite.
+
+
+
 
 
 References
