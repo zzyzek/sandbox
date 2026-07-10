@@ -1017,6 +1017,28 @@ Meaning, at worst, we need to extend the grid by $\lceil \frac{1}{2} ( k + 1 ) \
 With high probability, the fence will be secured in a finite number of grid extensions,
 so extending the grid further to take care of saboteurs will also be finite.
 
+---
+
+A coarse method is to take the maximum distance, $d _ {\text{max}}$, from the anchor to each of the candidates
+within the secured fence and take all points for grid cells where $d _ {\text{max}}$ would fall in.
+
+We know that the outer shell is at most $\lceil (k+1)/2 \rceil$ beyond the $k$ shell, so the bound is still expected (a.s.)
+finite.
+
+The `RNGv_naive` can be altered to take in an additional 'saboteur' list of points.
+The saboteur list only needs to be tested if there's a potential edge from a $q$ point in the naive list
+against the anchor.
+
+This can be further optimized if necessary:
+
+* if the distance from $q$ to the anchor $p$ is within the fenced grid, no saboteur points need to be consulted
+* saboteur points on opposite ends of the fence don't need to be consulted
+* maybe there's another optimization to be had by ordering saboteur points by distance from anchor
+  and having a short circuit if the current saboteur point is beyond the $|p-q|$ radius
+
+
+
+
 
 
 
