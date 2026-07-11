@@ -1022,7 +1022,7 @@ $$
 M _ 3 = & \sqrt{3}( \frac{s}{2} + k s  + \frac{s}{2}) + \frac{s}{2}  = (k + \alpha _ 3) s + \frac{s}{2} \\
 \to & \alpha _ 3 = k ( \sqrt{3} - 1) + \sqrt{3} \\
 \to & \alpha _ 3 \le \frac{3}{4} k + \frac{7}{4} \\
-\to & \alpha _ 3 \le \lceil (\frac{3}{4})  (k + 3) \rceil \\
+\to & \alpha _ 3 \le \lceil \frac{3}{4}  (k + 3) \rceil \\
 \end{array}
 $$
 
