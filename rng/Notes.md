@@ -1006,13 +1006,27 @@ We want to know how many more grid cells to extend further, $\alpha$:
 
 $$
 \begin{array}{ll}
-& \sqrt{2}( \frac{s}{2} + k s ) + \frac{s}{2}  = (k + \alpha) s + \frac{s}{2} \\
-\to & \alpha = k ( \sqrt{2} - 1) + \frac{ \sqrt{2} }{2} \\
-\to & \alpha \le \frac{1}{2} k + \frac{3}{4} \le \frac{1}{2}(k+1) \\
+M _ 2 = & \sqrt{2}( \frac{s}{2} + k s  + \frac{s}{2}) + \frac{s}{2}  = (k + \alpha _ 2) s + \frac{s}{2} \\
+\to & \alpha _ 2 = k ( \sqrt{2} - 1) + \sqrt{2} \\
+\to & \alpha _ 2 \le \frac{1}{2} k + \frac{3}{2} \\
+\to & \alpha _ 2 \le \lceil (1/2) (k + 3) \rceil \\
 \end{array}
 $$
 
-Meaning, at worst, we need to extend the grid by $\lceil \frac{1}{2} ( k + 1 ) \rceil$ (??).
+Meaning, at worst, we need to extend the grid by $\lceil \frac{1}{2} ( k + 3 ) \rceil$.
+
+For 3d:
+
+$$
+\begin{array}{ll}
+M _ 3 = & \sqrt{3}( \frac{s}{2} + k s  + \frac{s}{2}) + \frac{s}{2}  = (k + \alpha _ 3) s + \frac{s}{2} \\
+\to & \alpha _ 3 = k ( \sqrt{3} - 1) + \sqrt{3} \\
+\to & \alpha _ 3 \le \frac{3}{4} k + \frac{7}{4} \\
+\to & \alpha _ 3 \le \lceil (3/4) (k + 3) \rceil \\
+\end{array}
+$$
+
+Worse than 2d but still a bit less than doubling for large enough $k$.
 
 With high probability, the fence will be secured in a finite number of grid extensions,
 so extending the grid further to take care of saboteurs will also be finite.
