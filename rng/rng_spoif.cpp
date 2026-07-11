@@ -679,6 +679,69 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       return 0;
     }
 
+    int32_t RNGv_fence(int64_t p_idx, std::vector< int64_t > &q_sched, std::vector< int64_t > &q_saboteur) {
+      double p[2];
+      int64_t sqi = 0, sqj=0,
+              q_idx = -1,
+              u_idx = -1;
+      int _found = 0;
+
+      for (sqi=0; sqi < q_sched.size(); sqi++) {
+        q_idx = q_sched[sqi];
+        _found = 1;
+
+        for (sqj=0; sqj < q_sched.size(); sqj++) {
+          if (sqi == sqj) { continue; }
+          u_idx = q_sched[sqj];
+
+          if (m_dim == 3) {
+            if (in_lune_3d( &(m_P[3*p_idx]), &(m_P[3*q_idx]), &(m_P[3*u_idx]) )) {
+              _found = 0;
+              break;
+            }
+          }
+          else if (m_dim == 2) {
+            if (in_lune_2d( &(m_P[2*p_idx]), &(m_P[2*q_idx]), &(m_P[2*u_idx]) )) {
+              _found = 0;
+              break;
+            }
+          }
+          else { return -1; }
+        }
+
+        if (_found) {
+
+          for (sqj=0; sqj < q_saboteur.size(); sqj++) {
+            if (sqi == sqj) { continue; }
+            u_idx = q_saboteur[sqj];
+
+            if (m_dim == 3) {
+              if (in_lune_3d( &(m_P[3*p_idx]), &(m_P[3*q_idx]), &(m_P[3*u_idx]) )) {
+                _found = 0;
+                break;
+              }
+            }
+            else if (m_dim == 2) {
+              if (in_lune_2d( &(m_P[2*p_idx]), &(m_P[2*q_idx]), &(m_P[2*u_idx]) )) {
+                _found = 0;
+                break;
+              }
+            }
+
+          }
+
+          if (_found) {
+            m_Ve_map[p_idx][q_idx] = 1;
+            m_Ve_map[q_idx][p_idx] = 1;
+          }
+
+        }
+
+      }
+
+      return 0;
+    }
+
     int32_t RNGv_naive(int64_t p_idx, std::vector< int64_t > &q_sched) {
       double p[2];
       int64_t sqi = 0, sqj=0,
@@ -721,8 +784,11 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
     // SPoIF_2d_v
     //
-    // Shrinking Posts on Increasing Fence, single vertex
-    // relative neighborhood graph edges for vertex referenced by p_idx (located in m_P)
+    // Calculate the relative neighborhood graph for vertex referenced by p_idx
+    // using the Shrinking Posts on Increasing Fence (SPoIF) algorithm.
+    //
+    // This will update m_Ve_map with the appropriate edges, in both diections
+    // (p_idx to neighbor, neighbor to p_idx).
     //
     // 2026-07-09: both the 2d and 3d version have a bug that I'm tracking down.
     //   to recreate, here, for 2d: 2000 vertex count, seed 1234
@@ -734,7 +800,28 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
     //   v311(0.659538,0.811543), spoif as (incorrect) edge to v9697(0.638765,0.800436)
     //   whereas naive rng does not
     //
+    // 2026-07-11: as referenced above, there is a conceptual error where
+    //   the fence needs to be extended to include other vertices that could act
+    //   as saboteurs to potential edges
+    //   - only vertices within the fence have the potential for an RNG edge between them
+    //   - *but* potential edges for vertices within the fence might not be allowed when
+    //     adding extra vertices beyond the fence (vertices beyond fence can sabotage
+    //     a RNG edge)
+    //   I'm going to try for an implementation that:
+    //   - keep a running maximum distance from p_idx to each of the vertices in q_list
+    //   - add a saboteur list from vertices that sit in the shell past the current ir
+    //     but less than or equal to the grid radius from maximum distance
+    //   - creates a new RNGv_naive that takes in a saboteur list to make sure
+    //     any potential edge from p_idx to q_list is not contradicted by someone in
+    //     the saboteur list
+    //   bounds on the maximum distance ( (1/2)(k+3) for 2d, (3/4)(k+3) for 3d) mean
+    //   we know we don't have to go to far.
+    //
+    //   
+    //
     int32_t SPoIF_2d_v(int64_t p_idx) {
+      int32_t res = 0;
+
       int64_t n_cluster = 2,
               cluster_size = 2,
               n_idir = 4;
@@ -782,17 +869,19 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       int64_t _i, _j, _k;
 
+      std::vector< int64_t > q_sched,
+                             saboteur_list;
+      double max_dist = 0.0, _d = -1.0;
+      int64_t max_ir=0;
+
       int _debug = 0;
 
       //DEBUG
       //DEBUG
-      if (p_idx == 311) { _debug = 1; }
+      //if (p_idx == 311) { _debug = 1; }
       //DEBUG
       //DEBUG
 
-
-
-      std::vector< int64_t > q_sched;
 
       p[0] = m_P[(m_dim*p_idx) + 0];
       p[1] = m_P[(m_dim*p_idx) + 1];
@@ -816,6 +905,21 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       win_center[0] = (m_ds/2.0) + (m_ds*cell_origin[0]);
       win_center[1] = (m_ds/2.0) + (m_ds*cell_origin[1]);
 
+      // For each grid integer radius (ir), centered at p (m_P[p_idx]),
+      // enumerate the grid cells on the ir shell and collect all vertices
+      // in them.
+      // If the grid shell side is out of bounds, mark the fence posts
+      // as secured on that side.
+      // Otherwise, go through all collected vertices to see if they
+      // secure the posts within the fence.
+      // If so, collect potential saboteurs from grid positions bounded
+      // by the maximum distance of p to its neighbors and run a naive
+      // RNG to determine relative neighborhood graph.
+      //
+      // Initial grid radius is taken to be ir=3, collecting neighbor
+      // points as we go, as likelyhood is low that anything below
+      // ir=3 will secure the fence (pre-processing batch speedup).
+      //
       for (ir=0; ir < m_grid_n; ir++) {
         grid_sweep_perim_2d(sweep, p, ir);
 
@@ -891,6 +995,12 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
             if (q_idx == p_idx) { continue; }
 
             q_sched.push_back( q_idx );
+
+            q[0] = m_P[(m_dim*q_idx) + 0];
+            q[1] = m_P[(m_dim*q_idx) + 1];
+            _d = sqrt( ((q[0]-p[0])*(q[0]-p[0])) + ((q[1]-p[1])*(q[1]-p[1])) );
+            if (_d > max_dist) { max_dist = _d; }
+
           }
         }
 
@@ -900,6 +1010,12 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
         //
         if (ir < 2) { continue; }
 
+        // for each neighbor, q, within the current fence,
+        // take the normal plane centered at p with normal (q-p)/|q-p|
+        // to see if it secures a cluster of fence posts on the
+        // current fence edge.
+        // If all fence posts secured, we can do a RNG calculation.
+        //
         for (sqi=0; sqi < q_sched.size(); sqi++) {
           q_idx = q_sched[sqi];
 
@@ -1020,7 +1136,43 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
         if (_ns == _ns_max) { break; }
       }
 
-      return RNGv_naive(p_idx, q_sched);
+      // create saboteur list to make sure that if there's a phantom edge
+      // within the fence it'll be sabotaged from a point in the saboteur list.
+      //
+      max_ir = (int64_t)ceil( (max_dist / m_ds) + 0.5 );
+      if (_debug > 0) {
+        printf("# max_ir %i (max_dist: %f, ir:%i, ds:%f, grid_n:%i)\n",
+            (int)max_ir, max_dist, (int)ir, m_ds, (int)m_grid_n);
+      }
+      for (ir=ir+1; ir <= max_ir; ir++) {
+        grid_sweep_perim_2d(sweep, p, ir);
+
+        for (path_idx=0; path_idx < sweep.size(); path_idx += m_dim) {
+          ixy[0] = sweep[ path_idx + 0 ];
+          ixy[1] = sweep[ path_idx + 1 ];
+
+          grid_pos = (ixy[1]*m_grid_n) + ixy[0];
+          for (bin_idx=0; bin_idx < m_grid[grid_pos].size(); bin_idx++) {
+            q_idx = m_grid[grid_pos][bin_idx];
+            if (q_idx == p_idx) { continue; }
+
+            saboteur_list.push_back( q_idx );
+
+            q[0] = m_P[(m_dim*q_idx) + 0];
+            q[1] = m_P[(m_dim*q_idx) + 1];
+            _d = sqrt( ((q[0]-p[0])*(q[0]-p[0])) + ((q[1]-p[1])*(q[1]-p[1])) );
+            if (_d > max_dist) { max_dist = _d; }
+
+          }
+        }
+
+
+      }
+
+      res = RNGv_fence(p_idx, q_sched, saboteur_list);
+      return res;
+
+      //return RNGv_naive(p_idx, q_sched);
     }
 
     int32_t SPoIF_2d() {
@@ -1530,6 +1682,27 @@ void spot_check_3d(int64_t n = 1000) {
   printf("#got: %i\n", res);
 }
 
+void run_2d( int64_t n = 1000) {
+  FILE *fp;
+  int64_t p_idx, n_ele;
+
+  RELATIVE_NEIGHBORHOOD_GRAPH rng;
+  srand(1234);
+
+  rng.poissonInit( n, 2 );
+
+  rng.SPoIF_2d();
+
+  n_ele = (int64_t)(rng.m_P.size() / rng.m_dim);
+  for (p_idx=0; p_idx < n_ele; p_idx++) {
+    printf("#p%i (%f,%f)\n", (int)p_idx, rng.m_P[2*p_idx], rng.m_P[2*p_idx+1]);
+  }
+
+  fp = fopen("out0.gp", "w");
+  rng.printE(fp);
+  fclose(fp);
+}
+
 void spot_check_2d( int64_t n = 1000) {
   int res;
   //int64_t n = 10000;
@@ -1604,10 +1777,14 @@ int main(int argc, char **argv) {
   }
 
   if (op == "2d") {
+    run_2d(n);
+  }
+
+  else if (op == "2d.check") {
     spot_check_2d(n);
   }
 
-  else if (op == "3d") {
+  else if (op == "3d.check") {
     spot_check_3d(n);
   }
 
