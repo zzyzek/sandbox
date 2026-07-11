@@ -1050,8 +1050,19 @@ This can be further optimized if necessary:
 * maybe there's another optimization to be had by ordering saboteur points by distance from anchor
   and having a short circuit if the current saboteur point is beyond the $|p-q|$ radius
 
+---
 
+###### update: 2026-07-11
 
+Experiments with sorting saboteur points by distance to p and doing early short circuit for phantom
+edge tests yield negligeable speedup (0.3% speed increase).
+My guess is that getting a found edge is such a rare occurance that the extra $O(m)$ cost incurred
+by consulting the saboteur list is completely negligeable.
+
+As such, this optimization strategy should be abandonded.
+
+I'll put in some performance/profiling metrics to see where some potential bottlenecks are, but
+I think it's closing in on time to call it finished.
 
 
 

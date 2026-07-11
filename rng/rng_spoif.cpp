@@ -22,6 +22,22 @@
 
 #define _EPS (1.0 / (1024.0*1024.0*1024.0))
 
+typedef struct i64_d_type {
+  int64_t i;
+  double d;
+} i64_d_t;
+
+int i64_d_cmp(const void *_a, const void *_b) {
+  i64_d_t *a, *b;
+
+  a = (i64_d_t *)_a;
+  b = (i64_d_t *)_b;
+
+  if ( a->d < b->d ) { return -1; }
+  if ( a->d > b->d ) { return  1; }
+  return 0;
+}
+
 static double _RND() {
   return ((double)rand()) / (RAND_MAX + 1.0);
 }
@@ -119,6 +135,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
     double    m_fpR_v[(_FPR_MAX_IR+1)][6][9*3];
 
     int       m_verbose;
+    int       m_optimize_experiment;
 
     RELATIVE_NEIGHBORHOOD_GRAPH() {
       m_eps = _EPS;
@@ -143,6 +160,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       m_fencePost_n = -1;
 
       m_verbose = 0;
+      m_optimize_experiment = 0;
     }
 
     int32_t consistency() {
@@ -632,6 +650,26 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       return 0;
     }
 
+    int32_t in_lune_Nd(double *a, double *b, double *c, int32_t D) {
+      int32_t i;
+      double  dist2_ca = 0.0,
+              dist2_cb = 0.0,
+              dist2_ab = 0.0;
+
+      for (i=0; i<D; i++) {
+        dist2_ca += (c[i] - a[i])*(c[i] - a[i]);
+        dist2_cb += (c[i] - b[i])*(c[i] - b[i]);
+        dist2_ab += (a[i] - b[i])*(a[i] - b[i]);
+      }
+
+      if ((dist2_ca <= dist2_ab) &&
+          (dist2_cb <= dist2_ab)) {
+        return 1;
+      }
+
+      return 0;
+    }
+
     int32_t RNG_naive(void) {
       int64_t u_idx, v_idx, w_idx, n_ele;
       int is_conn = 0;
@@ -742,8 +780,91 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       return 0;
     }
 
+    int32_t RNGv_fence_opt1(int64_t p_idx, std::vector< int64_t > &q_sched, std::vector< i64_d_t > &q_sabo_dist) {
+      double p[3] = {0},
+             q[3] = {0},
+             u[3] = {0};
+      int64_t i,j,k,
+              sqi = 0,
+              sqj=0,
+              q_idx = -1,
+              u_idx = -1,
+              bp=0,bq=0,bu=0;
+      int _found = 0;
+
+      double S2 = -1.0,
+             dist_pq = -1.0,
+             dist_pu = -1.0;
+
+      i64_d_t *u_idt;
+
+      bp = m_dim*p_idx;
+
+      for (sqi=0; sqi < q_sched.size(); sqi++) {
+        q_idx = q_sched[sqi];
+        bq = m_dim*q_idx;
+        _found = 1;
+
+        for (sqj=0; sqj < q_sched.size(); sqj++) {
+          if (sqi == sqj) { continue; }
+
+          u_idx = q_sched[sqj];
+          bu = m_dim*u_idx;
+
+          if (in_lune_Nd( &(m_P[bp]), &(m_P[bq]), &(m_P[bu]), m_dim)) {
+            _found = 0;
+            break;
+          }
+
+        }
+
+        if (_found) {
+
+          S2 = 0.0;
+          for (i=0; i<m_dim; i++) {
+            p[i] = m_P[ bp + i ];
+            q[i] = m_P[ bq + i ];
+            S2 += (p[i] - q[i])*(p[i] - q[i]);
+          }
+          dist_pq = sqrt(S2);
+
+          for (sqj=0; sqj < q_sabo_dist.size(); sqj++) {
+            if (sqi == sqj) { continue; }
+
+            u_idt = &(q_sabo_dist[sqj]);
+
+            u_idx   = u_idt->i;
+            dist_pu = u_idt->d;
+            bu = m_dim*u_idx;
+
+            // |p-q| can be though of as the radius of sphere centered at p
+            // with q on the boundary.
+            // if |p-u| > |p-q|, that means u is totally outside the |p-q| sphere
+            // centered at p, so can't be inside the lune.
+            //
+            if (dist_pq < dist_pu) { break; }
+
+            if (in_lune_Nd( &(m_P[bp]), &(m_P[bq]), &(m_P[bu]), m_dim)) {
+              _found = 0;
+              break;
+            }
+
+          }
+
+          if (_found) {
+            m_Ve_map[p_idx][q_idx] = 1;
+            m_Ve_map[q_idx][p_idx] = 1;
+          }
+
+        }
+
+      }
+
+      return 0;
+    }
+
     int32_t RNGv_naive(int64_t p_idx, std::vector< int64_t > &q_sched) {
-      double p[2];
+      //double p[2];
       int64_t sqi = 0, sqj=0,
               q_idx = -1,
               u_idx = -1;
@@ -874,14 +995,12 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       double max_dist = 0.0, _d = -1.0;
       int64_t max_ir=0;
 
+      // optimization experimentation
+      //
+      i64_d_t i64_d_ele = {0};
+      std::vector< i64_d_t > sabo_dist_list;
+
       int _debug = 0;
-
-      //DEBUG
-      //DEBUG
-      //if (p_idx == 311) { _debug = 1; }
-      //DEBUG
-      //DEBUG
-
 
       p[0] = m_P[(m_dim*p_idx) + 0];
       p[1] = m_P[(m_dim*p_idx) + 1];
@@ -923,23 +1042,6 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       for (ir=0; ir < m_grid_n; ir++) {
         grid_sweep_perim_2d(sweep, p, ir);
 
- 
-        if (_debug) {
-          printf("\n# p%i:(%f,%f), cell_origin(%i,%i) win_center(%f,%f) ir:%i, sweep[%i]:",
-              (int)p_idx, p[0], p[1], 
-              (int)cell_origin[0], (int)cell_origin[1],
-              win_center[0], win_center[1],
-              (int)ir,
-              (int)sweep.size());
-          for (i=0; i<sweep.size(); i+=2) {
-            if (i==0) { printf("("); }
-            if (i > 0) { printf("), ("); }
-            printf("%i,%i", (int)sweep[i], (int)sweep[i+1]);
-            if (i == (sweep.size()-2)) { printf(")\n"); }
-          }
-        }
-
-
         // initial OOB fencepost marking
         //
         for (idir=0; idir < n_idir; idir++) {
@@ -969,14 +1071,6 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
                 fpi = m_fencePostCluster[ cluster_idx ][ fpci ];
                 if (fencePostSecure[ idir ][ fpi ] == 0) { n_fp_secure++; }
                 fencePostSecure[ idir ][ fpi ] = 1;
-
-
-                //DEBUG
-                if (_debug > 0) {
-                  printf("#  (oob) securing idir:%i, fpi:%i (cluster_idx:%i, fpci:%i)\n",
-                      (int)idir, (int)fpi, (int)cluster_idx, (int)fpci);
-                }
-
               }
             }
 
@@ -1034,11 +1128,6 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
           q_idir_oppo = m_idir_oppo[ _v2idir(Nqp, 2) ];
 
-          //DEBUG
-          if (_debug > 0) { printf("#  q_idx:%i (%f,%f)\n", (int)q_idx, q[0], q[1]); }
-
-
-
           for (i=0; i<n_idir; i++) {
             for (j=0; j < 3; j++) { fps_cache[i][j] = 0; }
           }
@@ -1074,17 +1163,6 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
                 if (s > 0) {
                   fps_cache[idir][fpi] = 1;
                   n_cluster_secure++;
-
-                  //DEBUG
-                  if (_debug > 0) {
-                    printf("#  q%i(%0.2f,%0.2f) idir:%i fencpost[%i][%i] (%i/%i)\n",
-                        (int)q_idx, q[0], q[1],
-                        (int)idir,
-                        (int)cluster_idx, (int)fpci,
-                        (int)n_cluster_secure, (int)n_cluster);
-                  }
-
-
                 }
               }
 
@@ -1093,26 +1171,8 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
                   fpi = m_fencePostCluster[cluster_idx][fpci];
                   if (fencePostSecure[idir][fpi] == 0) { n_fp_secure++; }
                   fencePostSecure[idir][fpi] = 1;
-
-                  //DEBUG
-                  if (_debug > 0) {
-                    printf("#  q%i(%0.2f,%0.2f) idir:%i securing cluster[%i][%i] (%i/%i)\n",
-                        (int)q_idx, q[0], q[1],
-                        (int)idir,
-                        (int)cluster_idx, (int)fpci,
-                        (int)n_fp_secure, (int)n_fp_max);
-                  }
-
-
                 }
               }
-
-
-              //DEBUG
-              if (_debug > 0) {
-                printf("# n_fp_secure %i / %i\n", (int)n_fp_secure, (int)n_fp_max);
-              }
-
 
               if (n_fp_secure == n_fp_max) { break; }
             }
@@ -1140,10 +1200,6 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       // within the fence it'll be sabotaged from a point in the saboteur list.
       //
       max_ir = (int64_t)ceil( (max_dist / m_ds) + 0.5 );
-      if (_debug > 0) {
-        printf("# max_ir %i (max_dist: %f, ir:%i, ds:%f, grid_n:%i)\n",
-            (int)max_ir, max_dist, (int)ir, m_ds, (int)m_grid_n);
-      }
       for (ir=ir+1; ir <= max_ir; ir++) {
         grid_sweep_perim_2d(sweep, p, ir);
 
@@ -1158,10 +1214,14 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
             saboteur_list.push_back( q_idx );
 
-            q[0] = m_P[(m_dim*q_idx) + 0];
-            q[1] = m_P[(m_dim*q_idx) + 1];
-            _d = sqrt( ((q[0]-p[0])*(q[0]-p[0])) + ((q[1]-p[1])*(q[1]-p[1])) );
-            if (_d > max_dist) { max_dist = _d; }
+            if (m_optimize_experiment == 1) {
+              q[0] = m_P[(m_dim*q_idx) + 0];
+              q[1] = m_P[(m_dim*q_idx) + 1];
+              _d = sqrt( ((q[0]-p[0])*(q[0]-p[0])) + ((q[1]-p[1])*(q[1]-p[1])) );
+              i64_d_ele.i = q_idx;
+              i64_d_ele.d = _d;
+              sabo_dist_list.push_back( i64_d_ele );
+            }
 
           }
         }
@@ -1169,7 +1229,15 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       }
 
-      res = RNGv_fence(p_idx, q_sched, saboteur_list);
+      res = -1;
+      if (m_optimize_experiment == 0) {
+        res = RNGv_fence(p_idx, q_sched, saboteur_list);
+      }
+      else if (m_optimize_experiment == 1) {
+        qsort( &(sabo_dist_list[0]), sabo_dist_list.size(), sizeof(i64_d_t), i64_d_cmp );
+        res = RNGv_fence_opt1(p_idx, q_sched, sabo_dist_list);
+      }
+
       return res;
 
       //return RNGv_naive(p_idx, q_sched);
@@ -1241,6 +1309,8 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
     }
 
     int32_t SPoIF_3d_v(int64_t p_idx) {
+      int32_t res = 0;
+
       int64_t n_cluster = 4,
               cluster_size = 4,
               n_idir = -1;
@@ -1290,7 +1360,10 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       n_idir = 2*m_dim;
 
-      std::vector< int64_t > q_sched;
+      std::vector< int64_t > q_sched,
+                             saboteur_list;
+      double max_dist = 0.0, _d = -1.0;
+      int64_t max_ir=0;
 
 
       p[0] = m_P[(m_dim*p_idx) + 0];
@@ -1372,6 +1445,13 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
             if (q_idx == p_idx) { continue; }
 
             q_sched.push_back( q_idx );
+
+            q[0] = m_P[(m_dim*q_idx) + 0];
+            q[1] = m_P[(m_dim*q_idx) + 1];
+            q[2] = m_P[(m_dim*q_idx) + 2];
+            _d = sqrt( ((q[0]-p[0])*(q[0]-p[0])) + ((q[1]-p[1])*(q[1]-p[1])) + ((q[2]-p[2])*(q[2]-p[2])) );
+            if (_d > max_dist) { max_dist = _d; }
+
           }
         }
 
@@ -1471,7 +1551,32 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
         if (_ns == _ns_max) { break; }
       }
 
-      return RNGv_naive(p_idx, q_sched);
+      // create saboteur list to make sure that if there's a phantom edge
+      // within the fence it'll be sabotaged from a point in the saboteur list.
+      //
+      max_ir = (int64_t)ceil( (max_dist / m_ds) + 0.5 );
+      for (ir=ir+1; ir <= max_ir; ir++) {
+        grid_sweep_perim_3d(sweep, p, ir);
+
+        for (path_idx=0; path_idx < sweep.size(); path_idx += m_dim) {
+          ixyz[0] = sweep[ path_idx + 0 ];
+          ixyz[1] = sweep[ path_idx + 1 ];
+          ixyz[2] = sweep[ path_idx + 2 ];
+
+          grid_pos = (ixyz[2]*m_grid_n*m_grid_n) + (ixyz[1]*m_grid_n) + ixyz[0];
+          for (bin_idx=0; bin_idx < m_grid[grid_pos].size(); bin_idx++) {
+            q_idx = m_grid[grid_pos][bin_idx];
+            if (q_idx == p_idx) { continue; }
+
+            saboteur_list.push_back( q_idx );
+          }
+        }
+
+
+      }
+
+      res = RNGv_fence(p_idx, q_sched, saboteur_list);
+      return res;
     }
 
     int32_t SPoIF_3d() {
@@ -1664,6 +1769,26 @@ void spot_check_sweep2d() {
 
 
 
+void spot_check_Nd(int64_t n = 1000, int32_t D=2, int aux = 0) {
+  int res;
+
+  RELATIVE_NEIGHBORHOOD_GRAPH rng, rng_slo;
+  srand(1234);
+
+  if (aux == 1) { rng.m_optimize_experiment = 1; }
+
+  rng.poissonInit( n, D );
+  rng_slo.pointInit( rng.m_P, D );
+
+  if      (D == 2) { rng.SPoIF_2d(); }
+  else if (D == 3) { rng.SPoIF_3d(); }
+  rng_slo.RNG_naive();
+
+  res = rng_cmp(rng, rng_slo);
+
+  printf("#got: %i\n", res);
+}
+
 void spot_check_3d(int64_t n = 1000) {
   int res;
   //int64_t n = 10000;
@@ -1682,6 +1807,7 @@ void spot_check_3d(int64_t n = 1000) {
   printf("#got: %i\n", res);
 }
 
+/*
 void run_2d( int64_t n = 1000) {
   FILE *fp;
   int64_t p_idx, n_ele;
@@ -1699,6 +1825,38 @@ void run_2d( int64_t n = 1000) {
   }
 
   fp = fopen("out0.gp", "w");
+  rng.printE(fp);
+  fclose(fp);
+}
+*/
+
+void run_Nd( int64_t n = 1000, int32_t dim = 2, int aux = 0) {
+  FILE *fp;
+  std::string ofn = "out.gp";
+  int64_t p_idx, n_ele;
+
+  RELATIVE_NEIGHBORHOOD_GRAPH rng;
+  srand(1234);
+
+  rng.poissonInit( n, dim );
+
+  if (aux == 1) { rng.m_optimize_experiment = 1; }
+
+  if      (dim == 2) { rng.SPoIF_2d(); }
+  else if (dim == 3) { rng.SPoIF_3d(); }
+
+  n_ele = (int64_t)(rng.m_P.size() / rng.m_dim);
+  for (p_idx=0; p_idx < n_ele; p_idx++) {
+    if (dim == 2) {
+      printf("#p%i (%f,%f)\n", (int)p_idx, rng.m_P[2*p_idx], rng.m_P[2*p_idx+1]);
+    }
+    else if (dim == 3) {
+      printf("#p%i (%f,%f,%f)\n", (int)p_idx, rng.m_P[3*p_idx], rng.m_P[3*p_idx+1], rng.m_P[3*p_idx+2]);
+    }
+  }
+
+  //fp = fopen("out0.gp", "w");
+  fp = fopen( ofn.c_str(), "w" );
   rng.printE(fp);
   fclose(fp);
 }
@@ -1769,27 +1927,28 @@ int main(int argc, char **argv) {
   int64_t n = 100;
   std::string op;
 
+  int aux = 0;
+
   if (argc > 1) {
     op = argv[1];
     if (argc > 2) {
       n = (int64_t)atoi(argv[2]);
+      if (argc > 3) {
+        aux = 1;
+      }
     }
   }
 
-  if (op == "2d") {
-    run_2d(n);
-  }
+  if      (op == "2d") { run_Nd(n,2, aux); }
+  else if (op == "3d") { run_Nd(n,3, aux); }
+  //else if (op == "2d.check") { spot_check_2d(n); }
+  //else if (op == "3d.check") { spot_check_3d(n); }
 
-  else if (op == "2d.check") {
-    spot_check_2d(n);
-  }
-
-  else if (op == "3d.check") {
-    spot_check_3d(n);
-  }
+  else if (op == "2d.check") { spot_check_Nd(n, 2, aux); }
+  else if (op == "3d.check") { spot_check_Nd(n, 3, aux); }
 
   else {
-    printf("\n... rng_spoif <2d|3d> [n]\n\n");
+    printf("\n... rng_spoif <2d[.check]|3d[.check]> [n]\n\n");
   }
 
   return 0;
