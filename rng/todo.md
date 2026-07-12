@@ -1,6 +1,17 @@
 TODO
 ===
 
+###### 2026-07-11
+
+* C/C++ implemented
+  - need to put perf/profiling in
+  - I'd like to do at least one pass to see if there's low hanging
+    optimizations
+  - need to clean code up a bit and run it through valgrind as a spot
+    check for leaks (separate out cli from lib?)
+  - need to make a test suite for small runs
+  - need to make a run suite to plot runtimes
+
 ###### 2026-07-08
 
 * focus on RNG 2d/3d SPoIF

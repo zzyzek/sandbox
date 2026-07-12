@@ -16,11 +16,17 @@
 #include <math.h>
 #include <string.h>
 
+#include <sys/time.h>
+
 #include <vector>
 #include <string>
 #include <map>
 
 #define _EPS (1.0 / (1024.0*1024.0*1024.0))
+
+//---
+//---
+//---
 
 typedef struct i64_d_type {
   int64_t i;
@@ -38,9 +44,126 @@ int i64_d_cmp(const void *_a, const void *_b) {
   return 0;
 }
 
+//---
+//---
+//---
+
+
 static double _RND() {
   return ((double)rand()) / (RAND_MAX + 1.0);
 }
+
+//---
+//---
+//---
+
+typedef struct prof_ctx_type {
+  double Ts, Te, dT;
+  int64_t c;
+} prof_ctx_t;
+
+//void _prof_s( std::map< std::string, prof_ctx_t > &ctx, std::string &key) {
+void _prof_s( std::map< std::string, prof_ctx_t > &ctx, const char *_key) {
+  std::string key;
+  struct timeval tv;
+  double t;
+  prof_ctx_t *pctx,
+             em = {0};
+  std::map< std::string, prof_ctx_t >::iterator lu;
+
+  key = _key;
+
+  gettimeofday(&tv, NULL);
+  t = ((double)tv.tv_sec) + (((double)tv.tv_usec)/1000000.0);
+
+  if (ctx.find(key) == ctx.end()) { ctx[key] = em; }
+
+  lu = ctx.find(key);
+  pctx = &(lu->second);
+
+  pctx->Ts = t;
+}
+
+//void _prof_e( std::map< std::string, prof_ctx_t > &ctx, std::string &key) {
+void _prof_e( std::map< std::string, prof_ctx_t > &ctx, const char *_key) {
+  std::string key;
+  struct timeval tv;
+  double t;
+  prof_ctx_t *pctx,
+             em = {0};
+  std::map< std::string, prof_ctx_t >::iterator lu;
+
+  key = _key;
+
+  gettimeofday(&tv, NULL);
+  t = ((double)tv.tv_sec) + (((double)tv.tv_usec)/1000000.0);
+
+  if (ctx.find(key) == ctx.end()) { ctx[key] = em; }
+
+  lu = ctx.find(key);
+  pctx = &(lu->second);
+
+  pctx->Te = t;
+  pctx->dT += (pctx->Te - pctx->Ts);
+  pctx->c++;
+}
+
+void _prof_reset( std::map< std::string, prof_ctx_t > &ctx, std::string &key) {
+  struct timeval tv;
+  double t;
+  prof_ctx_t *pctx,
+             em = {0};
+  std::map< std::string, prof_ctx_t >::iterator lu;
+
+  if (ctx.find(key) == ctx.end()) { ctx[key] = em; }
+
+  lu = ctx.find(key);
+  pctx = &(lu->second);
+
+  pctx->Ts = 0.0;
+  pctx->Te = 0.0;
+  pctx->dT = 0.0;
+  pctx->c = 0;
+}
+
+double _prof_avg( std::map< std::string, prof_ctx_t > &ctx, std::string &key) {
+  struct timeval tv;
+  double t;
+  prof_ctx_t *pctx,
+             em = {0};
+  std::map< std::string, prof_ctx_t >::iterator lu;
+
+  if (ctx.find(key) == ctx.end()) { return 0; }
+
+  lu = ctx.find(key);
+  pctx = &(lu->second);
+
+  if (pctx->c == 0) { return 0; }
+
+  return (pctx->dT) / ((double)(pctx->c));
+}
+
+void _prof_print( std::map< std::string, prof_ctx_t > &ctx ) {
+  std::string *s;
+  prof_ctx_t *pctx;
+  std::map< std::string, prof_ctx_t >::iterator lu;
+
+  for (lu = ctx.begin(); lu != ctx.end() ; ++lu) {
+    pctx = &(lu->second);
+
+    printf("# %s %fs (%fms / # %i )\n",
+        lu->first.c_str(),
+        //s->c_str(),
+        pctx->dT / ( (pctx->c==0) ? 1.0 : ((double)pctx->c) ),
+        1000.0*(pctx->dT),
+        (int)pctx->c);
+  }
+}
+
+
+//---
+//---
+//---
 
 static int32_t poissonPoint(std::vector< double > &P, int64_t n, int32_t dim) {
   int64_t i, j, k;
@@ -136,6 +259,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
     int       m_verbose;
     int       m_optimize_experiment;
+    std::map< std::string, prof_ctx_t > m_prof;
 
     RELATIVE_NEIGHBORHOOD_GRAPH() {
       m_eps = _EPS;
@@ -1255,6 +1379,8 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       n_idir = m_dim*2;
 
+      _prof_s( m_prof, "spoif2d.tot");
+
       // m_fencePost_v holds fence posts on the cube for the relevant dimension
       // m_fencePostCluster holds the grouping of the fenceposts
       //   - plane tests see if they completely obscure a group which, if so,
@@ -1304,6 +1430,10 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       for (p_idx=0; p_idx < n_ele; p_idx++) {
         SPoIF_2d_v( p_idx );
       }
+
+      _prof_e( m_prof, "spoif2d.tot");
+
+      _prof_print( m_prof );
 
       return 0;
     }
@@ -1789,47 +1919,6 @@ void spot_check_Nd(int64_t n = 1000, int32_t D=2, int aux = 0) {
   printf("#got: %i\n", res);
 }
 
-void spot_check_3d(int64_t n = 1000) {
-  int res;
-  //int64_t n = 10000;
-
-  RELATIVE_NEIGHBORHOOD_GRAPH rng, rng_slo;
-  srand(1234);
-
-  rng.poissonInit( n, 3 );
-  rng_slo.pointInit( rng.m_P, 3 );
-
-  rng.SPoIF_3d();
-  rng_slo.RNG_naive();
-
-  res = rng_cmp(rng, rng_slo);
-
-  printf("#got: %i\n", res);
-}
-
-/*
-void run_2d( int64_t n = 1000) {
-  FILE *fp;
-  int64_t p_idx, n_ele;
-
-  RELATIVE_NEIGHBORHOOD_GRAPH rng;
-  srand(1234);
-
-  rng.poissonInit( n, 2 );
-
-  rng.SPoIF_2d();
-
-  n_ele = (int64_t)(rng.m_P.size() / rng.m_dim);
-  for (p_idx=0; p_idx < n_ele; p_idx++) {
-    printf("#p%i (%f,%f)\n", (int)p_idx, rng.m_P[2*p_idx], rng.m_P[2*p_idx+1]);
-  }
-
-  fp = fopen("out0.gp", "w");
-  rng.printE(fp);
-  fclose(fp);
-}
-*/
-
 void run_Nd( int64_t n = 1000, int32_t dim = 2, int aux = 0) {
   FILE *fp;
   std::string ofn = "out.gp";
@@ -1846,6 +1935,9 @@ void run_Nd( int64_t n = 1000, int32_t dim = 2, int aux = 0) {
   else if (dim == 3) { rng.SPoIF_3d(); }
 
   n_ele = (int64_t)(rng.m_P.size() / rng.m_dim);
+
+
+  /*
   for (p_idx=0; p_idx < n_ele; p_idx++) {
     if (dim == 2) {
       printf("#p%i (%f,%f)\n", (int)p_idx, rng.m_P[2*p_idx], rng.m_P[2*p_idx+1]);
@@ -1854,52 +1946,12 @@ void run_Nd( int64_t n = 1000, int32_t dim = 2, int aux = 0) {
       printf("#p%i (%f,%f,%f)\n", (int)p_idx, rng.m_P[3*p_idx], rng.m_P[3*p_idx+1], rng.m_P[3*p_idx+2]);
     }
   }
+  */
 
   //fp = fopen("out0.gp", "w");
   fp = fopen( ofn.c_str(), "w" );
   rng.printE(fp);
   fclose(fp);
-}
-
-void spot_check_2d( int64_t n = 1000) {
-  int res;
-  //int64_t n = 10000;
-
-  // error on 10000, dim = 2, srand = 1234
-  // found at least one edge missing in slo
-  // but appears in spoif aroun (.64,.8) to (.66,.81)
-  //
-
-  FILE *fp;
-  int64_t p_idx, n_ele;
-
-  RELATIVE_NEIGHBORHOOD_GRAPH rng, rng_slo;
-  srand(1234);
-
-  rng.poissonInit( n, 2 );
-  rng_slo.pointInit( rng.m_P, 2 );
-
-  rng.SPoIF_2d();
-  rng_slo.RNG_naive();
-
-  n_ele = (int64_t)(rng.m_P.size() / rng.m_dim);
-  for (p_idx=0; p_idx < n_ele; p_idx++) {
-    printf("#p%i (%f,%f)\n", (int)p_idx, rng.m_P[2*p_idx], rng.m_P[2*p_idx+1]);
-  }
-
-  res = rng_cmp(rng, rng_slo);
-  printf("#got: %i (%i %i)\n",
-      res, rng.consistency(), rng_slo.consistency());
-
-  fp = fopen("out0.gp", "w");
-  rng.printE(fp);
-  fclose(fp);
-
-  fp = fopen("out1.gp", "w");
-  rng_slo.printE(fp);
-  fclose(fp);
-
-  //rng.printE();
 }
 
 void _naive2d() {
@@ -1910,16 +1962,6 @@ void _naive2d() {
   res = rng.RNG_naive();
   printf("#got: %i\n", res);
   rng.printE();
-}
-
-int _main(int argc, char **argv) {
-
-  RELATIVE_NEIGHBORHOOD_GRAPH rng;
-
-  rng.poissonInit(1000, 2);
-  rng.printP();
-
-  return 0;
 }
 
 int main(int argc, char **argv) {
@@ -1941,9 +1983,6 @@ int main(int argc, char **argv) {
 
   if      (op == "2d") { run_Nd(n,2, aux); }
   else if (op == "3d") { run_Nd(n,3, aux); }
-  //else if (op == "2d.check") { spot_check_2d(n); }
-  //else if (op == "3d.check") { spot_check_3d(n); }
-
   else if (op == "2d.check") { spot_check_Nd(n, 2, aux); }
   else if (op == "3d.check") { spot_check_Nd(n, 3, aux); }
 
