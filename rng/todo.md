@@ -5,8 +5,11 @@ TODO
 
 * C/C++ implemented
   - need to put perf/profiling in
+    + profiling has a cost to runtime
+    + might want to put in compile time ifdef
   - I'd like to do at least one pass to see if there's low hanging
     optimizations
+    + single pass has been done to no great effect
   - need to clean code up a bit and run it through valgrind as a spot
     check for leaks (separate out cli from lib?)
   - need to make a test suite for small runs
