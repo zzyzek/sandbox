@@ -22,7 +22,11 @@
 #include <string>
 #include <map>
 
+#include <getopt.h>
+
 #include "rng_spoif.hpp"
+
+#define SPOIF_RNG_MAIN_VERSION "0.1.0"
 
 int rng_cmp(RELATIVE_NEIGHBORHOOD_GRAPH &rng0, RELATIVE_NEIGHBORHOOD_GRAPH &rng1) {
   int64_t i, j, k, n_ele, n_nei;
@@ -167,20 +171,6 @@ void run_Nd( int64_t n = 1000, int32_t dim = 2, int aux = 0) {
   else if (dim == 3) { rng.SPoIF_3d(); }
 
   n_ele = (int64_t)(rng.m_P.size() / rng.m_dim);
-
-
-  /*
-  for (p_idx=0; p_idx < n_ele; p_idx++) {
-    if (dim == 2) {
-      printf("#p%i (%f,%f)\n", (int)p_idx, rng.m_P[2*p_idx], rng.m_P[2*p_idx+1]);
-    }
-    else if (dim == 3) {
-      printf("#p%i (%f,%f,%f)\n", (int)p_idx, rng.m_P[3*p_idx], rng.m_P[3*p_idx+1], rng.m_P[3*p_idx+2]);
-    }
-  }
-  */
-
-  //fp = fopen("out0.gp", "w");
   fp = fopen( ofn.c_str(), "w" );
   rng.printE(fp);
   fclose(fp);
@@ -196,7 +186,154 @@ void _naive2d() {
   rng.printE();
 }
 
+static struct option long_options[] = {
+
+  {"n",         required_argument,  0, 'n' },
+  {"dim",       required_argument,  0, 'd' },
+  {"seed",      required_argument,  0, 'S' },
+  {"check",     no_argument,        0, 'C' },
+
+  {"ofn",       required_argument,  0, 'o' },
+  {"ifn",       required_argument,  0, 'i' },
+  {"algorithm", required_argument,  0, 'A' },
+
+  {"verbose",   required_argument,  0, 'V' },
+  {"help",      no_argument,        0, 'h' },
+  {"version",   no_argument,        0, 'v' },
+  {0,           0,                  0,  0  },
+};
+
+static char long_options_descr[][128] = {
+  "number of points",
+  "dimension",
+  "random number seed",
+  "check against naive (slow)",
+
+  "output edges to file",
+  "input points from file",
+
+  "algorithm to use (default SPoIF)",
+
+  "verbose level",
+  "help (this screen)",
+  "show version",
+  0
+};
+
+void print_version(FILE *fp) {
+  fprintf(fp, "RNG SPoIF bin version: %s\n", SPOIF_RNG_MAIN_VERSION);
+  fprintf(fp, "RNG SPoIF lib version: %s\n", SPOIF_RNG_VERSION);
+}
+
+void print_help(FILE *fp) {
+  int lo_idx=0,
+      spacing=0,
+      ii;
+  struct option *lo;
+
+  fprintf(fp, "\n");
+  print_version(fp);
+  fprintf(fp, "\n");
+
+  for (lo_idx=0; long_options[lo_idx].name; lo_idx++) {
+
+    fprintf(fp, "  -%c,--%s ",
+        long_options[lo_idx].val,
+        long_options[lo_idx].name);
+
+    spacing = 12 - strnlen(long_options[lo_idx].name, 127);
+    for (ii=0; ii<spacing; ii++) { fprintf(fp, " "); }
+
+    fprintf(fp, "%s\n", long_options_descr[lo_idx]);
+  }
+
+  fprintf(fp, "\n");
+}
+
+int splitStr( std::vector< std::string > &tok, std::string s, int sep ) {
+  int i;
+  std::string cur;
+
+  tok.clear();
+
+  for (i=0; i<s.size(); i++) {
+    if (s[i]==sep) {
+      tok.push_back(cur);
+      cur.clear();
+      continue;
+    }
+    cur += s[i];
+  }
+
+  tok.push_back(cur);
+  return 0;
+}
+
 int main(int argc, char **argv) {
+  int ch, opt_idx=0;
+
+  int opt_V = 0,
+      opt_S = 1,
+      opt_n = 0,
+      opt_d = 2,
+      opt_c = 0;
+  std::string opt_o, opt_i, opt_A;
+
+  while (ch = getopt_long(argc, argv, "hvV:S:n:d:co:i:A:", long_options, &opt_idx)) {
+    if (ch<0) { break; }
+    switch (ch) {
+      case 'h':
+        print_help(stdout);
+        return 0;
+        break;
+      case 'v':
+        print_version(stdout);
+        return 0;
+        break;
+      case 'V':
+        opt_V++;
+        break;
+
+      case 'S':
+        opt_S = atoi(optarg);
+        break;
+
+      case 'n':
+        opt_n = atoi(optarg);
+        break;
+      case 'd':
+        opt_d = atoi(optarg);
+
+      case 'c':
+        opt_c = 1;
+        break;
+
+      case 'o':
+        opt_o = optarg;
+        break;
+
+      case 'i':
+        opt_i = optarg;
+        break;
+
+      case 'A':
+        opt_A = optarg;
+        break;
+
+      default:
+        fprintf(stderr, "unknown option\n\n");
+        print_help(stderr);
+        exit(-1);
+        break;
+
+    }
+  }
+
+  printf("%i %i %i\n", opt_n, opt_d, opt_S);
+
+
+
+  /*
 
   int64_t n = 100;
   std::string op;
@@ -221,6 +358,7 @@ int main(int argc, char **argv) {
   else {
     printf("\n... rng_spoif <2d[.check]|3d[.check]> [n]\n\n");
   }
+  */
 
   return 0;
 }
