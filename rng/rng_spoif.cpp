@@ -848,9 +848,12 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
               u_idx = -1;
       int _found = 0;
 
+
       for (sqi=0; sqi < q_sched.size(); sqi++) {
         q_idx = q_sched[sqi];
         _found = 1;
+
+        _prof_s( m_prof, "RNGv_fence.p_edge");
 
         for (sqj=0; sqj < q_sched.size(); sqj++) {
           if (sqi == sqj) { continue; }
@@ -871,7 +874,11 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
           else { return -1; }
         }
 
+        _prof_e( m_prof, "RNGv_fence.p_edge");
+
         if (_found) {
+
+          _prof_s( m_prof, "RNGv_fence.sabotage");
 
           for (sqj=0; sqj < q_saboteur.size(); sqj++) {
             if (sqi == sqj) { continue; }
@@ -892,10 +899,15 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
           }
 
+          _prof_e( m_prof, "RNGv_fence.sabotage");
+          _prof_s( m_prof, "RNGv_fence.ve_map");
+
           if (_found) {
             m_Ve_map[p_idx][q_idx] = 1;
             m_Ve_map[q_idx][p_idx] = 1;
           }
+
+          _prof_e( m_prof, "RNGv_fence.ve_map");
 
         }
 
@@ -1086,7 +1098,6 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       int32_t fps_cache[4][3];
       int64_t n_cluster_secure = 0;
 
-      std::vector< int64_t > sweep;
 
       int64_t cell_origin[2] = {0};
 
@@ -1114,17 +1125,17 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       int64_t _i, _j, _k;
 
-      std::vector< int64_t > q_sched,
-                             saboteur_list;
+      static std::vector< int64_t > sweep;
+      static std::vector< int64_t > q_sched,
+                                    saboteur_list;
       double max_dist = 0.0, _d = -1.0;
       int64_t max_ir=0;
 
-      // optimization experimentation
-      //
-      i64_d_t i64_d_ele = {0};
-      std::vector< i64_d_t > sabo_dist_list;
-
       int _debug = 0;
+
+      sweep.clear();
+      q_sched.clear();
+      saboteur_list.clear();
 
       p[0] = m_P[(m_dim*p_idx) + 0];
       p[1] = m_P[(m_dim*p_idx) + 1];
@@ -1148,6 +1159,8 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       win_center[0] = (m_ds/2.0) + (m_ds*cell_origin[0]);
       win_center[1] = (m_ds/2.0) + (m_ds*cell_origin[1]);
 
+      _prof_s( m_prof, "spoif2d_v.ir");
+
       // For each grid integer radius (ir), centered at p (m_P[p_idx]),
       // enumerate the grid cells on the ir shell and collect all vertices
       // in them.
@@ -1164,7 +1177,13 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       // ir=3 will secure the fence (pre-processing batch speedup).
       //
       for (ir=0; ir < m_grid_n; ir++) {
+
+        _prof_s( m_prof, "spoif2d_v.ir.sweep0");
+
         grid_sweep_perim_2d(sweep, p, ir);
+
+        _prof_e( m_prof, "spoif2d_v.ir.sweep0");
+        _prof_s( m_prof, "spoif2d_v.ir.oob_secure");
 
         // initial OOB fencepost marking
         //
@@ -1201,7 +1220,11 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
           }
         }
 
+        _prof_e( m_prof, "spoif2d_v.ir.oob_secure");
+
         if (n_fp_secure == n_fp_max) { break; }
+
+        _prof_s( m_prof, "spoif2d_v.ir.q_sched+");
 
         for (path_idx=0; path_idx < sweep.size(); path_idx += m_dim) {
           ixy[0] = sweep[ path_idx + 0 ];
@@ -1222,11 +1245,15 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
           }
         }
 
+        _prof_e( m_prof, "spoif2d_v.ir.q_sched+");
+
         // median is ir == 3, so collect lower than ir but otherwise
         // skip secure computation until we get to ir == 3
         // (worth ~15% speed increase)
         //
         if (ir < 2) { continue; }
+
+        _prof_s( m_prof, "spoif2d_v.ir.secure");
 
         // for each neighbor, q, within the current fence,
         // take the normal plane centered at p with normal (q-p)/|q-p|
@@ -1307,6 +1334,8 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
           if (n_fp_secure == n_fp_max) { break; }
         }
 
+        _prof_e( m_prof, "spoif2d_v.ir.secure");
+
         if (n_fp_secure == n_fp_max) { break; }
 
         _ns = 0; _ns_max = 0;
@@ -1319,6 +1348,9 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
         if (_ns == _ns_max) { break; }
       }
+
+      _prof_e( m_prof, "spoif2d_v.ir");
+      _prof_s( m_prof, "spoif2d_v.sabo");
 
       // create saboteur list to make sure that if there's a phantom edge
       // within the fence it'll be sabotaged from a point in the saboteur list.
@@ -1337,34 +1369,20 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
             if (q_idx == p_idx) { continue; }
 
             saboteur_list.push_back( q_idx );
-
-            if (m_optimize_experiment == 1) {
-              q[0] = m_P[(m_dim*q_idx) + 0];
-              q[1] = m_P[(m_dim*q_idx) + 1];
-              _d = sqrt( ((q[0]-p[0])*(q[0]-p[0])) + ((q[1]-p[1])*(q[1]-p[1])) );
-              i64_d_ele.i = q_idx;
-              i64_d_ele.d = _d;
-              sabo_dist_list.push_back( i64_d_ele );
-            }
-
           }
         }
 
 
       }
 
-      res = -1;
-      if (m_optimize_experiment == 0) {
-        res = RNGv_fence(p_idx, q_sched, saboteur_list);
-      }
-      else if (m_optimize_experiment == 1) {
-        qsort( &(sabo_dist_list[0]), sabo_dist_list.size(), sizeof(i64_d_t), i64_d_cmp );
-        res = RNGv_fence_opt1(p_idx, q_sched, sabo_dist_list);
-      }
+      _prof_e( m_prof, "spoif2d_v.sabo");
+      _prof_s( m_prof, "spoif2d_v.fence");
+
+      res = RNGv_fence(p_idx, q_sched, saboteur_list);
+
+      _prof_e( m_prof, "spoif2d_v.fence");
 
       return res;
-
-      //return RNGv_naive(p_idx, q_sched);
     }
 
     int32_t SPoIF_2d() {
@@ -1433,6 +1451,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       _prof_e( m_prof, "spoif2d.tot");
 
+      //DEBUG
       _prof_print( m_prof );
 
       return 0;
