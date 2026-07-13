@@ -69,7 +69,6 @@ typedef struct prof_ctx_type {
   int64_t c;
 } prof_ctx_t;
 
-//void _prof_s( std::map< std::string, prof_ctx_t > &ctx, std::string &key) {
 void _prof_s( std::map< std::string, prof_ctx_t > &ctx, const char *_key) {
   std::string key;
   struct timeval tv;
@@ -91,7 +90,6 @@ void _prof_s( std::map< std::string, prof_ctx_t > &ctx, const char *_key) {
   pctx->Ts = t;
 }
 
-//void _prof_e( std::map< std::string, prof_ctx_t > &ctx, std::string &key) {
 void _prof_e( std::map< std::string, prof_ctx_t > &ctx, const char *_key) {
   std::string key;
   struct timeval tv;
@@ -268,6 +266,8 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
     int       m_optimize_experiment;
     std::map< std::string, prof_ctx_t > m_prof;
 
+    int       m_profile_level;
+
     RELATIVE_NEIGHBORHOOD_GRAPH() {
       m_eps = SPOIF_RNG_EPS;
 
@@ -292,6 +292,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       m_verbose = 0;
       m_optimize_experiment = 0;
+      m_profile_level = 0;
     }
 
     int32_t consistency() {
@@ -807,8 +808,6 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       n_ele = (int64_t)(m_P.size()/m_dim);
 
-      printf("#rng naive n_ele: %i, dim:%i\n", (int)n_ele, (int)m_dim);
-
       for (u_idx=0; u_idx < n_ele; u_idx++) {
         m_Ve_map[u_idx].clear();
       }
@@ -860,7 +859,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
         q_idx = q_sched[sqi];
         _found = 1;
 
-        _prof_s( m_prof, "RNGv_fence.p_edge");
+        if (m_profile_level > 0) { _prof_s( m_prof, "RNGv_fence.p_edge"); }
 
         for (sqj=0; sqj < q_sched.size(); sqj++) {
           if (sqi == sqj) { continue; }
@@ -881,11 +880,11 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
           else { return -1; }
         }
 
-        _prof_e( m_prof, "RNGv_fence.p_edge");
+        if (m_profile_level > 0) { _prof_e( m_prof, "RNGv_fence.p_edge"); }
 
         if (_found) {
 
-          _prof_s( m_prof, "RNGv_fence.sabotage");
+          if (m_profile_level > 0) { _prof_s( m_prof, "RNGv_fence.sabotage"); }
 
           for (sqj=0; sqj < q_saboteur.size(); sqj++) {
             if (sqi == sqj) { continue; }
@@ -906,15 +905,17 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
           }
 
-          _prof_e( m_prof, "RNGv_fence.sabotage");
-          _prof_s( m_prof, "RNGv_fence.ve_map");
+          if (m_profile_level > 0) {
+            _prof_e( m_prof, "RNGv_fence.sabotage");
+            _prof_s( m_prof, "RNGv_fence.ve_map");
+          }
 
           if (_found) {
             m_Ve_map[p_idx][q_idx] = 1;
             m_Ve_map[q_idx][p_idx] = 1;
           }
 
-          _prof_e( m_prof, "RNGv_fence.ve_map");
+          if (m_profile_level > 0) { _prof_e( m_prof, "RNGv_fence.ve_map"); }
 
         }
 
@@ -1007,7 +1008,6 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
     }
 
     int32_t RNGv_naive(int64_t p_idx, std::vector< int64_t > &q_sched) {
-      //double p[2];
       int64_t sqi = 0, sqj=0,
               q_idx = -1,
               u_idx = -1;
@@ -1166,7 +1166,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       win_center[0] = (m_ds/2.0) + (m_ds*cell_origin[0]);
       win_center[1] = (m_ds/2.0) + (m_ds*cell_origin[1]);
 
-      _prof_s( m_prof, "spoif2d_v.ir");
+      if (m_profile_level > 0) { _prof_s( m_prof, "spoif2d_v.ir"); }
 
       // For each grid integer radius (ir), centered at p (m_P[p_idx]),
       // enumerate the grid cells on the ir shell and collect all vertices
@@ -1185,12 +1185,14 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
       //
       for (ir=0; ir < m_grid_n; ir++) {
 
-        _prof_s( m_prof, "spoif2d_v.ir.sweep0");
+        if (m_profile_level > 0) { _prof_s( m_prof, "spoif2d_v.ir.sweep0"); }
 
         grid_sweep_perim_2d(sweep, p, ir);
 
-        _prof_e( m_prof, "spoif2d_v.ir.sweep0");
-        _prof_s( m_prof, "spoif2d_v.ir.oob_secure");
+        if (m_profile_level > 0) {
+          _prof_e( m_prof, "spoif2d_v.ir.sweep0");
+          _prof_s( m_prof, "spoif2d_v.ir.oob_secure");
+        }
 
         // initial OOB fencepost marking
         //
@@ -1227,11 +1229,11 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
           }
         }
 
-        _prof_e( m_prof, "spoif2d_v.ir.oob_secure");
+        if (m_profile_level > 0) { _prof_e( m_prof, "spoif2d_v.ir.oob_secure"); }
 
         if (n_fp_secure == n_fp_max) { break; }
 
-        _prof_s( m_prof, "spoif2d_v.ir.q_sched+");
+        if (m_profile_level > 0) { _prof_s( m_prof, "spoif2d_v.ir.q_sched+"); }
 
         for (path_idx=0; path_idx < sweep.size(); path_idx += m_dim) {
           ixy[0] = sweep[ path_idx + 0 ];
@@ -1251,7 +1253,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
           }
         }
 
-        _prof_e( m_prof, "spoif2d_v.ir.q_sched+");
+        if (m_profile_level > 0) { _prof_e( m_prof, "spoif2d_v.ir.q_sched+"); }
 
         // median is ir == 3, so collect lower than ir but otherwise
         // skip secure computation until we get to ir == 3
@@ -1259,7 +1261,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
         //
         if (ir < 2) { continue; }
 
-        _prof_s( m_prof, "spoif2d_v.ir.secure");
+        if (m_profile_level > 0) { _prof_s( m_prof, "spoif2d_v.ir.secure"); }
 
         // for each neighbor, q, within the current fence,
         // take the normal plane centered at p with normal (q-p)/|q-p|
@@ -1340,7 +1342,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
           if (n_fp_secure == n_fp_max) { break; }
         }
 
-        _prof_e( m_prof, "spoif2d_v.ir.secure");
+        if (m_profile_level > 0) { _prof_e( m_prof, "spoif2d_v.ir.secure"); }
 
         if (n_fp_secure == n_fp_max) { break; }
 
@@ -1355,8 +1357,10 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
         if (_ns == _ns_max) { break; }
       }
 
-      _prof_e( m_prof, "spoif2d_v.ir");
-      _prof_s( m_prof, "spoif2d_v.sabo");
+      if (m_profile_level > 0) {
+        _prof_e( m_prof, "spoif2d_v.ir");
+        _prof_s( m_prof, "spoif2d_v.sabo");
+      }
 
       // create saboteur list to make sure that if there's a phantom edge
       // within the fence it'll be sabotaged from a point in the saboteur list.
@@ -1381,12 +1385,14 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       }
 
-      _prof_e( m_prof, "spoif2d_v.sabo");
-      _prof_s( m_prof, "spoif2d_v.fence");
+      if (m_profile_level > 0) {
+        _prof_e( m_prof, "spoif2d_v.sabo");
+        _prof_s( m_prof, "spoif2d_v.fence");
+      }
 
       res = RNGv_fence(p_idx, q_sched, saboteur_list);
 
-      _prof_e( m_prof, "spoif2d_v.fence");
+      if (m_profile_level > 0) { _prof_e( m_prof, "spoif2d_v.fence"); }
 
       return res;
     }
@@ -1403,7 +1409,7 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
 
       n_idir = m_dim*2;
 
-      _prof_s( m_prof, "spoif2d.tot");
+      if (m_profile_level > 0) { _prof_s( m_prof, "spoif2d.tot"); }
 
       // m_fencePost_v holds fence posts on the cube for the relevant dimension
       // m_fencePostCluster holds the grouping of the fenceposts
@@ -1455,10 +1461,10 @@ class RELATIVE_NEIGHBORHOOD_GRAPH {
         SPoIF_2d_v( p_idx );
       }
 
-      _prof_e( m_prof, "spoif2d.tot");
+      if (m_profile_level > 0) { _prof_e( m_prof, "spoif2d.tot"); }
 
-      //DEBUG
-      _prof_print( m_prof );
+
+      if ((m_profile_level > 0) && (m_verbose > 0)) { _prof_print( m_prof ); }
 
       return 0;
     }

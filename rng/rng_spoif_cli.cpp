@@ -28,6 +28,8 @@
 
 #define SPOIF_RNG_MAIN_VERSION "0.1.0"
 
+int g_verbose = 0;
+
 int rng_cmp(RELATIVE_NEIGHBORHOOD_GRAPH &rng0, RELATIVE_NEIGHBORHOOD_GRAPH &rng1) {
   int64_t i, j, k, n_ele, n_nei;
   int64_t p_idx;
@@ -108,34 +110,8 @@ int rng_cmp(RELATIVE_NEIGHBORHOOD_GRAPH &rng0, RELATIVE_NEIGHBORHOOD_GRAPH &rng1
   return 0;
 }
 
-void spot_check_sweep2d() {
-  int i;
-  int64_t p_idx;
-  double *p;
-  std::vector< int64_t > sweep2d;
-  RELATIVE_NEIGHBORHOOD_GRAPH rng;
 
-  rng.poissonInit(1000, 2);
-  //rng.printP();
-
-
-  p_idx = 500;
-
-  rng.grid_sweep_perim_2d(sweep2d, &(rng.m_P[2*p_idx]), 1);
-
-  p = &(rng.m_P[2*p_idx]);
-
-  printf("??? %f %f\n", p[0], p[1]);
-
-  for (i=0; i<sweep2d.size(); i+=2) {
-    printf("sweep2d[%i]: [%i,%i]\n", (int)i, (int)sweep2d[i], (int)sweep2d[i+1]);
-  }
-
-}
-
-
-
-void spot_check_Nd(int64_t n = 1000, int32_t D=2, int aux = 0) {
+int spot_check_Nd(int64_t n = 1000, int32_t D=2, int aux = 0) {
   int res;
 
   RELATIVE_NEIGHBORHOOD_GRAPH rng, rng_slo;
@@ -152,38 +128,44 @@ void spot_check_Nd(int64_t n = 1000, int32_t D=2, int aux = 0) {
 
   res = rng_cmp(rng, rng_slo);
 
-  printf("#got: %i\n", res);
+  return res;
+  //printf("#got: %i\n", res);
 }
 
-void run_Nd( int64_t n = 1000, int32_t dim = 2, int aux = 0) {
-  FILE *fp;
-  std::string ofn = "out.gp";
-  int64_t p_idx, n_ele;
+void run_Nd( int64_t n, int32_t dim, std::string *ofn = NULL, unsigned int seed = 0) {
+  FILE *fp = stdout;
 
   RELATIVE_NEIGHBORHOOD_GRAPH rng;
-  srand(1234);
+
+  if (seed > 0) { srand(seed); }
+
+  rng.m_verbose = g_verbose;
 
   rng.poissonInit( n, dim );
-
-  if (aux == 1) { rng.m_optimize_experiment = 1; }
 
   if      (dim == 2) { rng.SPoIF_2d(); }
   else if (dim == 3) { rng.SPoIF_3d(); }
 
-  n_ele = (int64_t)(rng.m_P.size() / rng.m_dim);
-  fp = fopen( ofn.c_str(), "w" );
+  if (ofn) { fp = fopen( ofn->c_str(), "w" ); }
   rng.printE(fp);
-  fclose(fp);
+  if (ofn) { fclose(fp); }
 }
 
-void _naive2d() {
+void run_naive_Nd( int64_t n, int32_t dim, std::string *ofn = NULL, unsigned int seed = 0) {
   int res;
+  FILE *fp = stdout;
   RELATIVE_NEIGHBORHOOD_GRAPH rng;
-  srand(1234);
-  rng.poissonInit(100, 2);
+
+  if (seed > 0) { srand(seed); }
+
+  rng.m_verbose = g_verbose;
+
+  rng.poissonInit(n, dim);
   res = rng.RNG_naive();
-  printf("#got: %i\n", res);
-  rng.printE();
+
+  if (ofn) { fp = fopen( ofn->c_str(), "w" ); }
+  rng.printE(fp);
+  if (ofn) { fclose(fp); }
 }
 
 static struct option long_options[] = {
@@ -270,6 +252,8 @@ int splitStr( std::vector< std::string > &tok, std::string s, int sep ) {
 }
 
 int main(int argc, char **argv) {
+  RELATIVE_NEIGHBORHOOD_GRAPH rng;
+
   int ch, opt_idx=0;
 
   int opt_V = 0,
@@ -277,7 +261,9 @@ int main(int argc, char **argv) {
       opt_n = 0,
       opt_d = 2,
       opt_c = 0;
-  std::string opt_o, opt_i, opt_A;
+  std::string opt_o = "/dev/stdout",
+              opt_i,
+              opt_A;
 
   while (ch = getopt_long(argc, argv, "hvV:S:n:d:co:i:A:", long_options, &opt_idx)) {
     if (ch<0) { break; }
@@ -329,36 +315,25 @@ int main(int argc, char **argv) {
     }
   }
 
-  printf("%i %i %i\n", opt_n, opt_d, opt_S);
+  //printf("%i %i %i\n", opt_n, opt_d, opt_S);
 
 
-
-  /*
-
-  int64_t n = 100;
-  std::string op;
-
-  int aux = 0;
-
-  if (argc > 1) {
-    op = argv[1];
-    if (argc > 2) {
-      n = (int64_t)atoi(argv[2]);
-      if (argc > 3) {
-        aux = 1;
-      }
-    }
+  if (opt_n <= 0) {
+    fprintf(stderr, "provide number of points (-n)\n\n");
+    print_help(stderr);
+    exit(-1);
   }
 
-  if      (op == "2d") { run_Nd(n,2, aux); }
-  else if (op == "3d") { run_Nd(n,3, aux); }
-  else if (op == "2d.check") { spot_check_Nd(n, 2, aux); }
-  else if (op == "3d.check") { spot_check_Nd(n, 3, aux); }
-
-  else {
-    printf("\n... rng_spoif <2d[.check]|3d[.check]> [n]\n\n");
+  if ((opt_d != 2) && (opt_d != 3)) {
+    fprintf(stderr, "dimension must be 2 or 3 (-d)\n\n");
+    print_help(stderr);
+    exit(-1);
   }
-  */
+
+  g_verbose = opt_V;
+
+  if      (opt_A.size() == 0) { run_Nd( opt_n, opt_d, (opt_o.size() == 0) ? NULL: &opt_o, opt_S ); }
+  else if (opt_A == "naive")  { run_naive_Nd( opt_n, opt_d, (opt_o.size() == 0) ? NULL : &opt_o, opt_S ); }
 
   return 0;
 }
