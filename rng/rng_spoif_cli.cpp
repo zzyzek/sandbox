@@ -8,6 +8,7 @@
 // work.  If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
 
+/*
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -21,17 +22,18 @@
 #include <vector>
 #include <string>
 #include <map>
+*/
 
-#include <getopt.h>
 
 #include "rng_spoif.hpp"
+#include <getopt.h>
 
 #define SPOIF_RNG_MAIN_VERSION "0.1.0"
 
 int g_verbose = 0;
 
 int rng_cmp(RELATIVE_NEIGHBORHOOD_GRAPH &rng0, RELATIVE_NEIGHBORHOOD_GRAPH &rng1) {
-  int64_t i, j, k, n_ele, n_nei;
+  int64_t i, n_ele;
   int64_t p_idx;
   int64_t nei_idx0, nei_idx1, nei_idx;
 
@@ -148,11 +150,16 @@ void run_Nd( int64_t n, int32_t dim, std::string *ofn = NULL, unsigned int seed 
 
   if (ofn) { fp = fopen( ofn->c_str(), "w" ); }
   rng.printE(fp);
+
+  fflush(stdout);
+
   if (ofn) { fclose(fp); }
+
+  fflush(stdout);
 }
 
-void run_naive_Nd( int64_t n, int32_t dim, std::string *ofn = NULL, unsigned int seed = 0) {
-  int res;
+int run_naive_Nd( int64_t n, int32_t dim, std::string *ofn = NULL, unsigned int seed = 0) {
+  int res=0;
   FILE *fp = stdout;
   RELATIVE_NEIGHBORHOOD_GRAPH rng;
 
@@ -166,6 +173,8 @@ void run_naive_Nd( int64_t n, int32_t dim, std::string *ofn = NULL, unsigned int
   if (ofn) { fp = fopen( ofn->c_str(), "w" ); }
   rng.printE(fp);
   if (ofn) { fclose(fp); }
+
+  return res;
 }
 
 static struct option long_options[] = {
@@ -211,7 +220,6 @@ void print_help(FILE *fp) {
   int lo_idx=0,
       spacing=0,
       ii;
-  struct option *lo;
 
   fprintf(fp, "\n");
   print_version(fp);
@@ -233,7 +241,7 @@ void print_help(FILE *fp) {
 }
 
 int splitStr( std::vector< std::string > &tok, std::string s, int sep ) {
-  int i;
+  uint32_t i;
   std::string cur;
 
   tok.clear();
@@ -261,11 +269,11 @@ int main(int argc, char **argv) {
       opt_n = 0,
       opt_d = 2,
       opt_c = 0;
-  std::string opt_o = "/dev/stdout",
+  std::string opt_o,
               opt_i,
               opt_A;
 
-  while (ch = getopt_long(argc, argv, "hvV:S:n:d:co:i:A:", long_options, &opt_idx)) {
+  while ((ch = getopt_long(argc, argv, "hvV:S:n:d:co:i:A:", long_options, &opt_idx)) != 0) {
     if (ch<0) { break; }
     switch (ch) {
       case 'h':
@@ -328,6 +336,10 @@ int main(int argc, char **argv) {
     fprintf(stderr, "dimension must be 2 or 3 (-d)\n\n");
     print_help(stderr);
     exit(-1);
+  }
+
+  if (opt_c) {
+    //---
   }
 
   g_verbose = opt_V;
