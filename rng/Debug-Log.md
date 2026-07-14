@@ -81,7 +81,7 @@ This test case is passing now.
 
 I'm debugging an issue with RNG SPoIF and I need to make some notes to keep things clear.
 
-### Errr log
+### Error log
 
 To reproduce: Run SPoIF 2d on 10,000 vertices with seed 1234 and compare with RNG naive:
 
