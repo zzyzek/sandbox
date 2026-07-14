@@ -708,12 +708,12 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::RNGv_fence(int64_t p_idx, std::vector< int6
   int64_t sqi = 0, sqj=0,
           q_idx = -1,
           u_idx = -1;
-  int _found = 0;
+  int _potential_edge = 0;
 
 
   for (sqi=0; sqi < (int64_t)q_sched.size(); sqi++) {
     q_idx = q_sched[sqi];
-    _found = 1;
+    _potential_edge = 1;
 
     if (m_profile_level > 0) { _prof_s( m_prof, "RNGv_fence.p_edge"); }
 
@@ -723,13 +723,13 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::RNGv_fence(int64_t p_idx, std::vector< int6
 
       if (m_dim == 3) {
         if (in_lune_3d( &(m_P[3*p_idx]), &(m_P[3*q_idx]), &(m_P[3*u_idx]) )) {
-          _found = 0;
+          _potential_edge = 0;
           break;
         }
       }
       else if (m_dim == 2) {
         if (in_lune_2d( &(m_P[2*p_idx]), &(m_P[2*q_idx]), &(m_P[2*u_idx]) )) {
-          _found = 0;
+          _potential_edge = 0;
           break;
         }
       }
@@ -738,23 +738,25 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::RNGv_fence(int64_t p_idx, std::vector< int6
 
     if (m_profile_level > 0) { _prof_e( m_prof, "RNGv_fence.p_edge"); }
 
-    if (_found) {
+    if (_potential_edge) {
 
       if (m_profile_level > 0) { _prof_s( m_prof, "RNGv_fence.sabotage"); }
 
+      // saboteur list should be completely separate from the q_sched list (and p_idx),
+      // so no need to skip any
+      //
       for (sqj=0; sqj < (int64_t)q_saboteur.size(); sqj++) {
-        if (sqi == sqj) { continue; }
         u_idx = q_saboteur[sqj];
 
         if (m_dim == 3) {
           if (in_lune_3d( &(m_P[3*p_idx]), &(m_P[3*q_idx]), &(m_P[3*u_idx]) )) {
-            _found = 0;
+            _potential_edge = 0;
             break;
           }
         }
         else if (m_dim == 2) {
           if (in_lune_2d( &(m_P[2*p_idx]), &(m_P[2*q_idx]), &(m_P[2*u_idx]) )) {
-            _found = 0;
+            _potential_edge = 0;
             break;
           }
         }
@@ -766,7 +768,7 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::RNGv_fence(int64_t p_idx, std::vector< int6
         _prof_s( m_prof, "RNGv_fence.ve_map");
       }
 
-      if (_found) {
+      if (_potential_edge) {
         m_Ve_map[p_idx][q_idx] = 1;
         m_Ve_map[q_idx][p_idx] = 1;
       }
@@ -987,6 +989,7 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::SPoIF_2d_v(int64_t p_idx) {
 
   //int64_t _i, _j, _k;
   //int _debug = 0;
+  //printf("# P[%i]: %f %f\n", (int)p_idx, m_P[2*p_idx], m_P[2*p_idx+1]);
 
   static std::vector< int64_t > sweep;
   static std::vector< int64_t > q_sched,
