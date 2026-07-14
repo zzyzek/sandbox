@@ -971,7 +971,7 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::SPoIF_2d_v(int64_t p_idx) {
          dq[2] = {0},
          dqp[2] = {0},
          Nqp[2] = {0},
-         v[2] = {0},
+         v[3] = {0},
          fpv[2] = {0};
 
   double _l2 = 0.0,
@@ -986,6 +986,7 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::SPoIF_2d_v(int64_t p_idx) {
           _ns_max = 0;
 
   //int64_t _i, _j, _k;
+  //int _debug = 0;
 
   static std::vector< int64_t > sweep;
   static std::vector< int64_t > q_sched,
@@ -1084,8 +1085,6 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::SPoIF_2d_v(int64_t p_idx) {
 
     if (m_profile_level > 0) { _prof_e( m_prof, "spoif2d_v.ir.oob_secure"); }
 
-    if (n_fp_secure == n_fp_max) { break; }
-
     if (m_profile_level > 0) { _prof_s( m_prof, "spoif2d_v.ir.q_sched+"); }
 
     for (path_idx=0; path_idx < (int64_t)sweep.size(); path_idx += m_dim) {
@@ -1105,6 +1104,11 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::SPoIF_2d_v(int64_t p_idx) {
         if (_d > max_dist) { max_dist = _d; }
       }
     }
+
+    // we do the OOB fencepost check after to make sure we've collected
+    // all points in our current grid sweep boundary.
+    //
+    if (n_fp_secure == n_fp_max) { break; }
 
     if (m_profile_level > 0) { _prof_e( m_prof, "spoif2d_v.ir.q_sched+"); }
 
@@ -1220,19 +1224,8 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::SPoIF_2d_v(int64_t p_idx) {
   //
   max_ir = (int64_t)ceil( (max_dist / m_ds) + 0.5 );
 
-  //DEBUG
-  fprintf(stdout, "# p[%i]:[%f,%f] ir:%i, max_ir: %i (n_grid:%i)\n",
-      (int)p_idx, p[0], p[1],
-      (int)ir, (int)max_ir, (int)m_grid_n);
-
-
-  //for (ir=ir; ir <= max_ir; ir++) {
-  for (; ir <= max_ir; ir++) {
+  for (ir=(ir+1); ir <= max_ir; ir++) {
     grid_sweep_perim_2d(sweep, p, ir);
-
-    //DEBUG
-    fprintf(stdout, "#?? |sweep| %i\n", (int)sweep.size());
-
 
     for (path_idx=0; path_idx < (int64_t)sweep.size(); path_idx += m_dim) {
       ixy[0] = sweep[ path_idx + 0 ];
@@ -1246,7 +1239,6 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::SPoIF_2d_v(int64_t p_idx) {
         saboteur_list.push_back( q_idx );
       }
     }
-
 
   }
 
