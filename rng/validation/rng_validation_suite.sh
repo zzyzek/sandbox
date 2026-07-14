@@ -9,7 +9,7 @@ M=1000
 
 n=$n0
 
-dim=2
+#dim=2
 
 spoif="../spoif"
 
@@ -23,17 +23,20 @@ while [[ $n -le $N1 ]] ; do
 
     c=`echo "$seed % $every" | bc`
     if [[ $c -eq 0 ]] ; then
-      echo "# n:$n, $seed / $M passed"
+      echo "# n:$n, $seed / $M passed (dim 2,3)"
     fi
 
+    for dim in `seq 2 3` ; do
 
-    sha0=` $spoif -n $n -d $dim -S $seed | sha256sum | cut -f1 -d ' ' `
-    sha1=` $spoif -n $n -d $dim -S $seed -A naive | sha256sum | cut -f1 -d ' ' `
+      sha0=` $spoif -n $n -d $dim -S $seed | sha256sum | cut -f1 -d ' ' `
+      sha1=` $spoif -n $n -d $dim -S $seed -A naive | sha256sum | cut -f1 -d ' ' `
 
-    if [[ "$sha0" != "$sha1" ]] ; then
-      echo "FAIL! n:$n dim:$dim seed:$seed ($sha0 != $sha1)"
-      exit -1
-    fi
+      if [[ "$sha0" != "$sha1" ]] ; then
+        echo "FAIL! n:$n dim:$dim seed:$seed ($sha0 != $sha1)"
+        exit -1
+      fi
+
+    done
 
   done
 

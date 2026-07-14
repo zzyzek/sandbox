@@ -1,6 +1,12 @@
 TODO
 ===
 
+###### 2026-07-14
+
+* time to move to it's own repo
+* get runtime plots
+* start writing paper
+
 ###### 2026-07-11
 
 * C/C++ implemented
@@ -13,6 +19,9 @@ TODO
   - need to clean code up a bit and run it through valgrind as a spot
     check for leaks (separate out cli from lib?)
   - need to make a test suite for small runs
+    + mostly done, need to limit to 10k as anything beyond that will
+      take too long
+    + consider forms of validation other than straight naive
   - need to make a run suite to plot runtimes
 
 ###### 2026-07-08

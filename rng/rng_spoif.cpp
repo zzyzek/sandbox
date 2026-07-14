@@ -1453,7 +1453,6 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::SPoIF_3d_v(int64_t p_idx) {
       }
     }
 
-    if (n_fp_secure == n_fp_max) { break; }
 
     for (path_idx=0; path_idx < (int64_t)sweep.size(); path_idx += m_dim) {
       ixyz[0] = sweep[ path_idx + 0 ];
@@ -1475,6 +1474,8 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::SPoIF_3d_v(int64_t p_idx) {
 
       }
     }
+
+    if (n_fp_secure == n_fp_max) { break; }
 
     // median is ir == 3, so collect lower than ir but otherwise
     // skip secure computation until we get to ir == 3
@@ -1576,7 +1577,7 @@ int32_t RELATIVE_NEIGHBORHOOD_GRAPH::SPoIF_3d_v(int64_t p_idx) {
   // within the fence it'll be sabotaged from a point in the saboteur list.
   //
   max_ir = (int64_t)ceil( (max_dist / m_ds) + 0.5 );
-  for (ir=ir+1; ir <= max_ir; ir++) {
+  for (ir = (ir+1); ir <= max_ir; ir++) {
     grid_sweep_perim_3d(sweep, p, ir);
 
     for (path_idx=0; path_idx < (int64_t)sweep.size(); path_idx += m_dim) {
