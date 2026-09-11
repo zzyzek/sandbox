@@ -7,6 +7,19 @@
 // work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
 
+
+// helper script to enumerate and solve instances
+//
+// usage:
+//
+// node ./r2k2zzn.js [op] w,h [s0x,s0y,t0x,t0y,s1x,s1y,t1x,t1y]
+//
+// op:
+//
+//   solve - solve an instance with a start/end positions specified
+//   enum  - enumerate solutions for rectangle of widht w, height h
+//
+
 var printf = require("./printf.js");
 var fasslib = require("./fasslib.js");
 
