@@ -54,7 +54,7 @@ for me, in various forms when considering other problems.
 
 In the $st$-Gilbert problem, where we want to fill a rectangle with a space filling like curve
 but we've specified arbitrary endpoints, a natural way of subdividing the space yields a
-type of R2K2ZZN problem to solve when the endpoints land in a Siberian that needs to connect
+type of R2K2ZZN problem to solve when the endpoints land in a sub-region that needs to connect
 to neighboring partitioned spaces.
 
 In the $st$-Hamiltonian path on solid grid graphs, the proof strategy of attempting to subdivide

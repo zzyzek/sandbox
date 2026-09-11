@@ -476,6 +476,90 @@ function color_compatible(s0,t0,s1,t1,w,h) {
   return ((parity_sum == 1) ? 1 : 0);
 }
 
+function _peripheral2xy(p_idx, w,h) {
+  let n = (2*w) + (2*(h-1));
+
+  if ((p_idx < 0) || (p_idx >= n)) { return -1; }
+
+  if (p_idx < w) { return [p_idx, 0]; }
+  if (p_idx < (w+h)) { return [w-1, p_idx-w]; }
+  if (p_idx < ((2*w)+h)) { return [(2*w) + (h-1) - p_idx, h-1]; }
+  return [0, 2*w + (2*(h-1)) - p_idx];
+}
+
+// indices into boundary
+// checks to see if there is an alternating sequence
+//
+function peripheral_compatible(u0,v0,u1,v1, w,h) {
+
+  let info = [
+    { "idx": u0, "p": 0 },
+    { "idx": v0, "p": 0 },
+    { "idx": u1, "p": 1 },
+    { "idx": v1, "p": 1 }
+  ].sort( function(a,b) {
+    return (a.idx < b.idx) ? -1 : ((a.idx > b.idx) ? 1 : 0);
+  });
+
+  let m = info.length;
+
+  for (let i=0; i<m; i++) {
+    let ip = (i+1)%m;
+    let im = (i+m-1)%m;
+
+    if ( (info[i].p != info[ip].p) &&
+         (info[i].p != info[im].p) ) { return 0; }
+  }
+
+  return 1;
+}
+
+function _enum_peripheral(w,h, _debug) {
+  _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+
+  let c = (2*w) + (2*(h-2));
+
+  // u,v index on rectangular boundary
+  //
+  let uvuv = [0,0, 0,0];
+  let C = [c,c, c,c];
+
+  let Memz = {};
+  let soln = [];
+
+  do {
+
+    let t1 = _peripheral2xy(uvuv[0], w,h);
+    let s1 = _peripheral2xy(uvuv[1], w,h);
+    let t0 = _peripheral2xy(uvuv[2], w,h);
+    let s0 = _peripheral2xy(uvuv[3], w,h);
+
+    /*
+    console.log("wh:", w,h, "uvuv:", uvuv,
+      "stst:", s0,t0,s1,t1,
+      "distinct:", distinct(s0,t0,s1,t1), 
+      "cc:", color_compatible(s0,t0,s1,t1,w,h));
+      */
+
+    if (!distinct(s0,t0,s1,t1)) { ibvec_incr(uvuv,C); continue; }
+    if (color_compatible(s0,t0,s1,t1,w,h) == 0) { ibvec_incr(uvuv,C); continue; }
+    if (peripheral_compatible(uvuv[0],uvuv[1],uvuv[2],uvuv[3],w,h) == 0) { ibvec_incr(uvuv,C); continue; }
+
+    let key = stst_key(s0,t0,s1,t1);
+    if (!(key in Memz)) {
+      let ctx = r2k2zzn_init(w,h, s0,t0, s1,t1);
+      let r = r2k2zzn_solve(ctx);
+      soln.push( {"key":key, "S": [s0,s1], "T":[t0,t1], "r": r, "ctx": ctx } );
+    }
+
+    mark_stst(Memz,s0,t0,s1,t1,w,h);
+    ibvec_incr(uvuv,C);
+
+  } while (!ivec0(uvuv));
+
+  return soln;
+}
+
 // enumerate all color compatible (s0,t0), (s1,t1)
 // pairs, solution or no, applying flip, permutation
 // or rotation symmetry of start/end pairs as necessary
@@ -564,6 +648,29 @@ if (typeof module !== "undefined") {
 
   }
 
+  function _main_enum_peripheral_data(w,h) {
+
+    let wh_sched = [ [w,h] ];
+
+    let _data = {
+      "WH": wh_sched,
+      "s": []
+    };
+
+
+    for (let sched_idx=0; sched_idx < wh_sched.length; sched_idx++) {
+      let wh = wh_sched[sched_idx];
+
+      let soln = _enum_peripheral(wh[0], wh[1]);
+
+      _data.s.push(soln);
+    }
+
+    //console.log("var r2k2zzn_enum = " + JSON.stringify(_data) + ";");
+    console.log( JSON.stringify(_data) );
+
+  }
+
   function _main(argv) {
     let _debug = 0;
 
@@ -601,19 +708,29 @@ if (typeof module !== "undefined") {
       return;
     }
 
+    else if (op == "enum_peripheral.data") {
+      _main_enum_peripheral_data(w,h);
+      return;
+    }
+
 
     else if ((op == "help") ||
         (w < 0) ||
         (h < 0)) {
       console.log("prog <op> w,h [s0x,s0y,t0x,t0y,s1x,s1y,t1x,t1y]");
       console.log("");
-      console.log(" op - help,enum,solve");
+      console.log(" op - help,enum,enum_peripheral,solve");
       console.log("");
       return;
     }
 
     if (op == "enum") {
       let soln = _enum(w,h);
+      return;
+    }
+
+    if (op == "enum_peripheral") {
+      let soln = _enum_peripheral(w,h);
       return;
     }
 
