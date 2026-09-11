@@ -54,7 +54,7 @@ for me, in various forms when considering other problems.
 
 In the $st$-Gilbert problem, where we want to fill a rectangle with a space filling like curve
 but we've specified arbitrary endpoints, a natural way of subdividing the space yields a
-type of R2K2ZZN problem to solve when the endpoints land in a Siberian that needs to connect
+type of R2K2ZZN problem to solve when the endpoints land in a sub-region that needs to connect
 to neighboring partitioned spaces.
 
 In the $st$-Hamiltonian path on solid grid graphs, the proof strategy of attempting to subdivide
@@ -193,6 +193,34 @@ As the paths are attempted, neighboring cells degree can be reduced.
 If there's a neighboring cell that has degree 1 or 0, we can stop the search early.
 
 Ordering traversal by proximity to edges and endpoints can also help speed up search.
+
+Analysis
+---
+
+#### Definitions
+
+| | |
+|---|---|
+| $R$ | Rectangle |
+| $c _ {i,j}$ | $(i+j) (\bmod 2)$ |
+| $s _ 0, t _ 0, s _ 1, t _ 1$ | start, end of path 0 $(s _ 0, t _ 0)$ and path 1 $(s _ 1, t  _ 1)$ |
+| $c(s _ 0)$| color of start of path 0
+
+### Color Compatibility
+
+Call the rectangle, $R$, with side lengths $n,m$.
+
+$$
+\begin{array}{lll}
+n \cdot m \equiv 0 (\bmod 2) & \to & (c(s _ 0) \ne c(t _ 0) \text{ and } c(s _ 1) \ne c(t _ 1)) \text{ or }  \\
+ & & (c(s _ 0) = c(t _ 0) \text{ and } c(s _ 1) = c(t _ 1)) \\
+n \cdot m \equiv 1 (\bmod 2) & \to & (c(s _ 0) = c(t _ 0) = c _ {0,0} \text{ and } c(s _ 1) \ne c(t _ 1)) \text{ or } \\
+ & & (c(s _ 0) \ne c(t _ ) \text{ and } c(s _ 1) = c(t _ 1) = c _ {0,0}) \\
+\end{array}
+$$
+
+If a solution exists, it must be color compatible.
+Color incompatibility implies no r2k2zzn solution can exist but color compatibility does not necessarily imply a solution.
 
 
 
