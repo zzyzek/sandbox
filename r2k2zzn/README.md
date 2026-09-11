@@ -202,9 +202,21 @@ Analysis
 | | |
 |---|---|
 | $R$ | Rectangle |
-| $c _ {i,j}$ | $(i+j) (\bmod 2)$ |
 | $s _ 0, t _ 0, s _ 1, t _ 1$ | start, end of path 0 $(s _ 0, t _ 0)$ and path 1 $(s _ 1, t  _ 1)$ |
-| $c(s _ 0)$| color of start of path 0
+| $c(\cdot)$ | "color" function mapping path or cell locations to color value: $\mathbb{Z} \times \mathbb{Z} \to \{0,1\}$ |
+| $c _ {i,j}$ | $(i+j) (\bmod 2)$ , Shorthand of $c(\cdot)$ for cell location |
+
+It would be convenient to talk about start and endpoints with a unifying variable.
+
+How about:
+
+$$
+\begin{array}{ll}
+ z _ 0 & = (s _ 0 = z _ {0,0}, z _ {0,1}, z _ {0,2}, \dots, t _ 0 = z _ {0, \gamma _ 0 -1} = z _ {0,-1}) \\
+ z _ 1 & = (s _ 1 = z _ {1,0}, z _ {1,1}, z _ {1,2}, \dots, t _ 1 = z _ {1, \gamma _ 1 -1} = z _ {1,-1}) \\
+ z _ {\sigma} & = ( s _ {\sigma} = z _ {\sigma,0}, z _ {\sigma,1}, \dots, z _ {\sigma, \gamma _ {\sigma} -1} = z _ {\sigma,-1}) \\
+\end{array}
+$$
 
 ### Color Compatibility
 
@@ -221,6 +233,24 @@ $$
 
 If a solution exists, it must be color compatible.
 Color incompatibility implies no r2k2zzn solution can exist but color compatibility does not necessarily imply a solution.
+
+### Peripheral Configurations
+
+If $s _ 0, t _ 0, s _ 1, t _ 1$ are restricted to the boundary of the rectangle, $R$, there are some simple tests for
+path incompatibility.
+
+In this section, $s _ {\sigma}, t _ {\sigma}$ are stricted to be on the boundary of the rectangle ( $\sigma \in \{0,1\}$ ).
+
+> If $s _ 0, t _ 0, s _ 1, t _ 1$ alternate between the two paths, so the order on the edge boundary of $R$ is $(s _ 0, s _ 1, t _ 0, t _ 1)$,
+> taken in either clockwise or counter clockwise order, then no R2K2ZZN path can exist.
+> 
+
+A connected path from $(s _ 0, t _ 1)$ partitions $s _ 1$ from $t _ 1$.
+
+
+> If the two different paths box in a corner cell, no R2K2ZZN path can exist.
+
+The cell needs to be used by a path but is a dead end for either option.
 
 
 
