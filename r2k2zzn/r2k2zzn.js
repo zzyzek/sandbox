@@ -503,6 +503,11 @@ function _peripheral2xy(p_idx, w,h) {
 // indices into boundary
 // checks to see if there is an alternating sequence
 //
+// return:
+//
+//   1 - peripheral compatible
+//   0 - peripheral incompatible (alternating start/end on boundary)
+//
 function peripheral_compatible(u0,v0,u1,v1, w,h) {
 
   let info = [
@@ -527,6 +532,118 @@ function peripheral_compatible(u0,v0,u1,v1, w,h) {
   return 1;
 }
 
+// check to see if path endpoints from different paths
+// box in a corner.
+// If the corner is boxed in, no path is possible.
+//
+// return:
+//
+//   1 - corner compatible (no boxed in corner)
+//   0 - conrner incompatible (boxed in corner)
+//
+function corner_compatible(s0,t0, s1,t1, w,h) {
+  let corner_info = [
+    { "p": [  0,  0], "nei": [ [  1,  0], [  0,  1] ], "nei_path_id": [-1,-1] },
+    { "p": [w-1,  0], "nei": [ [w-2,  0], [w-1,  1] ], "nei_path_id": [-1,-1] },
+    { "p": [w-1,h-1], "nei": [ [w-1,h-2], [w-2,h-1] ], "nei_path_id": [-1,-1] },
+    { "p": [  0,h-1], "nei": [ [  1,h-1], [  0,h-2] ], "nei_path_id": [-1,-1] }
+  ];
+
+  for (let i=0; i<corner_info.length; i++) {
+    let ci = corner_info[i];
+    if ( (cmp_v( ci.p, s0 ) == 0) ||
+         (cmp_v( ci.p, t0 ) == 0) ||
+         (cmp_v( ci.p, s1 ) == 0) ||
+         (cmp_v( ci.p, t1 ) == 0) ) { continue; }
+
+    if ( (cmp_v( ci.nei[0], s0 ) == 0) ||
+         (cmp_v( ci.nei[0], t0 ) == 0) ) {
+      ci.nei_path_id[0] = 0;
+    }
+
+    if ( (cmp_v( ci.nei[1], s0 ) == 0) ||
+         (cmp_v( ci.nei[1], t0 ) == 0) ) {
+      ci.nei_path_id[1] = 0;
+    }
+
+    if ( (cmp_v( ci.nei[0], s1 ) == 0) ||
+         (cmp_v( ci.nei[0], t1 ) == 0) ) {
+      ci.nei_path_id[0] = 1;
+    }
+
+    if ( (cmp_v( ci.nei[1], s1 ) == 0) ||
+         (cmp_v( ci.nei[1], t1 ) == 0) ) {
+      ci.nei_path_id[1] = 1;
+    }
+
+    if ((ci.nei_path_id[0] < 0) ||
+        (ci.nei_path_id[1] < 0)) { continue; }
+
+    if (ci.nei_path_id[0] != ci.nei_path_id[1]) { return 0; }
+
+  }
+
+  return 1;
+}
+
+
+//DEBUG
+//DEBUG
+
+/*
+function fys(a) {
+  let t, n = a.length;
+  for (let i=0; i<(n-1); i++) {
+    let p = i + Math.floor(Math.random()*(n-i));
+    t = a[i]; a[i] = a[p]; a[p] = t;
+  }
+}
+
+function _corner_compat_test() {
+  let _tv0 = [ [3,0],[0,0],[4,4],[1,4] ];
+  let _tv1 = [ [0,3],[0,1],[6,0],[1,4] ];
+  let _tv2 = [ [0,3],[0,4],[6,0],[1,4] ];
+
+  let _w = 13, _h = 5;
+
+  console.log(">>", _tv0, corner_compatible( _tv0[0],  _tv0[1],  _tv0[2],  _tv0[3],  _w, _h ) );
+  console.log(">>", _tv1, corner_compatible( _tv1[0],  _tv1[1],  _tv1[2],  _tv1[3],  _w, _h ) );
+  console.log(">>", _tv2, corner_compatible( _tv2[0],  _tv2[1],  _tv2[2],  _tv2[3],  _w, _h ) );
+
+}
+
+//_corner_compat_test();
+//process.exit();
+
+let _w = 13, _h = 5;
+let _n = (2*_w) + (2*(_h-1));
+let _periph = [];
+for (let i=0; i<_n; i++) { _periph.push(i); }
+
+let uvuv = [-1,-1,-1,-1];
+let stst = [ [-1,-1], [-1,-1], [-1,-1], [-1,-1] ];
+for (let i=0; i<20; i++) {
+  fys( _periph );
+  for (let j=0; j<4; j++) {
+    uvuv[j] = _periph[j];
+    stst[j] = _peripheral2xy(uvuv[j], _w, _h);
+  }
+
+  console.log("wh:", _w, _h,
+    "uvuv:", JSON.stringify(uvuv),
+    "stst:", JSON.stringify(stst),
+    "corncompat:",
+    corner_compatible( stst[0], stst[1], stst[2], stst[3], _w, _h));
+
+}
+
+process.exit();
+*/
+
+//DEBUG
+//DEBUG
+
+
 function _enum_peripheral(w,h, _debug) {
   _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
@@ -540,7 +657,17 @@ function _enum_peripheral(w,h, _debug) {
   let Memz = {};
   let soln = [];
 
+  let it = 0,
+      //it_est = c*(c-1)*(c-2)*(c-3),
+      it_est = c*c*c*c,
+      _every = 100;
+
   do {
+
+    it++;
+    if ((it%_every) == 0) {
+      console.log("[", it, ",\"/\",", it_est, "]");
+    }
 
     let t1 = _peripheral2xy(uvuv[0], w,h);
     let s1 = _peripheral2xy(uvuv[1], w,h);
@@ -557,6 +684,7 @@ function _enum_peripheral(w,h, _debug) {
     if (!distinct(s0,t0,s1,t1)) { ibvec_incr(uvuv,C); continue; }
     if (color_compatible(s0,t0,s1,t1,w,h) == 0) { ibvec_incr(uvuv,C); continue; }
     if (peripheral_compatible(uvuv[0],uvuv[1],uvuv[2],uvuv[3],w,h) == 0) { ibvec_incr(uvuv,C); continue; }
+    if (corner_compatible(s0,t0,s1,t1,w,h) == 0) { ibvec_incr(uvuv,C); continue; }
 
     let key = stst_key(s0,t0,s1,t1);
     if (!(key in Memz)) {
