@@ -549,6 +549,9 @@ function corner_compatible(s0,t0, s1,t1, w,h) {
     { "p": [  0,h-1], "nei": [ [  1,h-1], [  0,h-2] ], "nei_path_id": [-1,-1] }
   ];
 
+  let n_path = 2;
+  let corner_count = 0;
+
   for (let i=0; i<corner_info.length; i++) {
     let ci = corner_info[i];
     if ( (cmp_v( ci.p, s0 ) == 0) ||
@@ -580,8 +583,11 @@ function corner_compatible(s0,t0, s1,t1, w,h) {
         (ci.nei_path_id[1] < 0)) { continue; }
 
     if (ci.nei_path_id[0] != ci.nei_path_id[1]) { return 0; }
+    if (ci.nei_path_id[0] == ci.nei_path_id[1]) { corner_count++; }
 
   }
+
+  if (corner_count == n_path) { return 0; }
 
   return 1;
 }
@@ -638,6 +644,22 @@ for (let i=0; i<20; i++) {
 }
 
 process.exit();
+
+function _spot_test() {
+  let wh = [6,6];
+  let stst = [[4,0],[5,1], [5,4], [4,5]];
+
+  console.log(stst);
+  console.log( color_compatible(stst[0], stst[1], stst[2], stst[3], wh[0], wh[1]) );
+  console.log( corner_compatible(stst[0], stst[1], stst[2], stst[3], wh[0], wh[1]) );
+
+
+
+
+}
+
+_spot_test();
+process.exit();
 */
 
 //DEBUG
@@ -665,8 +687,10 @@ function _enum_peripheral(w,h, _debug) {
   do {
 
     it++;
-    if ((it%_every) == 0) {
-      console.log("[", it, ",\"/\",", it_est, "]");
+    if (_debug > 0) {
+      if ((it%_every) == 0) {
+        console.log("[", it, ",\"/\",", it_est, "]");
+      }
     }
 
     let t1 = _peripheral2xy(uvuv[0], w,h);
@@ -789,7 +813,8 @@ if (typeof module !== "undefined") {
 
   }
 
-  function _main_enum_peripheral_data(w,h) {
+  function _main_enum_peripheral_data(w,h,_debug) {
+    _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
     let wh_sched = [ [w,h] ];
 
@@ -801,15 +826,11 @@ if (typeof module !== "undefined") {
 
     for (let sched_idx=0; sched_idx < wh_sched.length; sched_idx++) {
       let wh = wh_sched[sched_idx];
-
-      let soln = _enum_peripheral(wh[0], wh[1]);
-
+      let soln = _enum_peripheral(wh[0], wh[1], _debug);
       _data.s.push(soln);
     }
 
-    //console.log("var r2k2zzn_enum = " + JSON.stringify(_data) + ";");
     console.log( JSON.stringify(_data) );
-
   }
 
   function _main(argv) {
@@ -851,6 +872,11 @@ if (typeof module !== "undefined") {
 
     else if (op == "enum_peripheral.data") {
       _main_enum_peripheral_data(w,h);
+      return;
+    }
+
+    else if (op == "enum_peripheral.data.i") {
+      _main_enum_peripheral_data(w,h, true);
       return;
     }
 
