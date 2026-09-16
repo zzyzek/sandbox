@@ -342,6 +342,10 @@ function r2k2zzn_solve(ctx, _debug) {
 
 var R2K2ZZN_func_name_map = {
   "init": r2k2zzn_init,
+  "solve": r2k2zzn_solve,
+  "color_compatible": color_compatible,
+  "peripheral_compatible": peripheral_compatible,
+  "corner_compatible": corner_compatible,
   "print": r2k2zzn_print
 };
 
@@ -739,18 +743,31 @@ function _enum(w,h, _debug) {
 
   let soln = [];
 
+  let _it = 0,
+      _it_est = Math.pow(w*h,4),
+      _it_every = 1000;
+
   do {
+
+    _it++;
+    if ((_debug > 0) && ((_it % _it_every)==0)) {
+      console.log("[", _it, "\"/\"", _it_est, "]");
+    }
 
     let t1 = [stst[0], stst[1]];
     let s1 = [stst[2], stst[3]];
     let t0 = [stst[4], stst[5]];
     let s0 = [stst[6], stst[7]];
 
+
     if (!distinct(s0,t0,s1,t1)) { ibvec_incr(stst,B); continue; }
     if (color_compatible(s0,t0,s1,t1,w,h) == 0) { ibvec_incr(stst,B); continue; }
+    if (corner_compatible(s0,t0,s1,t1,w,h) == 0) { ibvec_incr(stst,B); continue; }
 
     let key = stst_key(s0,t0,s1,t1);
     if (!(key in Memz)) {
+
+      console.log("###", stst);
 
       let ctx = r2k2zzn_init(w,h, s0,t0, s1,t1);
       let r = r2k2zzn_solve(ctx);
@@ -782,7 +799,11 @@ function _enum(w,h, _debug) {
 
 
 
-if (typeof module !== "undefined") {
+//if (typeof module !== "undefined") {
+
+if ((typeof require !== "undefined") &&
+      (require.main === module)) {
+
 
   function _main_enum_data() {
 
@@ -813,11 +834,30 @@ if (typeof module !== "undefined") {
 
   }
 
+  function _main_enum_wh(w,h,_debug) {
+    _debug = ((typeof _debug === "undefined") ? 0 : _debug);
+
+    let wh_sched = [ [w,h] ];
+    let _data = {
+      "WH": wh_sched,
+      "s": []
+    };
+
+    for (let sched_idx=0; sched_idx < wh_sched.length; sched_idx++) {
+      let wh = wh_sched[sched_idx];
+      let soln = _enum(wh[0], wh[1], _debug);
+      _data.s.push(soln);
+    }
+
+
+    console.log( JSON.stringify(_data) );
+
+  }
+
   function _main_enum_peripheral_data(w,h,_debug) {
     _debug = ((typeof _debug === "undefined") ? 0 : _debug);
 
     let wh_sched = [ [w,h] ];
-
     let _data = {
       "WH": wh_sched,
       "s": []
@@ -870,13 +910,18 @@ if (typeof module !== "undefined") {
       return;
     }
 
+    if (op == "enum.wh") {
+      _main_enum_wh(w,h, 1);
+      return;
+    }
+
     else if (op == "enum_peripheral.data") {
       _main_enum_peripheral_data(w,h);
       return;
     }
 
     else if (op == "enum_peripheral.data.i") {
-      _main_enum_peripheral_data(w,h, true);
+      _main_enum_peripheral_data(w,h, 1);
       return;
     }
 
@@ -989,7 +1034,13 @@ if (typeof module !== "undefined") {
   _main(process.argv.slice(2));
 
 }
-else {
 
+
+if (typeof module !== "undefined") {
   var r2k2zzn = R2K2ZZN_func_name_map;
+
+  for (let fname in R2K2ZZN_func_name_map) {
+    module.exports[fname] = R2K2ZZN_func_name_map[fname];
+  }
+
 }

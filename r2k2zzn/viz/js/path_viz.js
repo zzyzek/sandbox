@@ -502,9 +502,6 @@ function ui_input(btn_id) {
     _opt.S[1] = _get_v2val("ui_s1");
     _opt.T[1] = _get_v2val("ui_t1");
 
-    console.log(_opt);
-
-
     two.clear();
     mk_checkerboard_endpoints(_opt);
     two.update();
@@ -512,6 +509,41 @@ function ui_input(btn_id) {
   }
 
   else if (btn_id == "ui_btn_solve") {
+
+    _opt.nx = _get_ival("ui_nx");
+    _opt.ny = _get_ival("ui_ny");
+    _opt.S[0] = _get_v2val("ui_s0");
+    _opt.T[0] = _get_v2val("ui_t0");
+    _opt.S[1] = _get_v2val("ui_s1");
+    _opt.T[1] = _get_v2val("ui_t1");
+
+    let _ctx = r2k2zzn.init(_opt.nx, _opt.ny,
+                            _opt.S[0], _opt.T[0],
+                            _opt.S[1], _opt.T[1] );
+
+    let s = r2k2zzn.solve( _ctx );
+
+    console.log(s);
+    console.log(_ctx);
+
+    _opt.paths = _ctx.path;
+
+    let path_txt = "[ " + JSON.stringify(_ctx.path[0]) + ",\n" +
+      "  " + JSON.stringify(_ctx.path[1]) + " ]\n";
+
+    let ele = document.getElementById("ui_path");
+    ele.value = path_txt;
+
+
+
+    two.clear();
+    mk_checkerboard_paths(_opt);
+    two.update();
+
+  }
+
+  else if (btn_id == "ui_btn_dl") {
+    _dl();
   }
 
 }
