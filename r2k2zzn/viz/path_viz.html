@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>R2K2ZZN Path Viz</title>
+
+  <link rel="icon" type="image/png" href="favicon.ico">
+  <script type='text/javascript' src='js/two.js'></script>
+  <script type='text/javascript' src='js/path_viz.js'></script>
+  <link rel='stylesheet' href='css/skeleton.css'>
+
+</head>
+
+<body>
+  <div class='container' id='ui_container'>
+
+    <div class="row" style='margin-top: 5%;'>
+      <div class="eight columns" >
+        <h4>R2K2ZZN Path Viz</h4>
+      </div>
+      <div class="four columns" style='text-align:right;'> &nbsp; </div>
+    </div>
+
+    <div class="row">
+      <div class="row">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="six columns" id='ok'>
+
+        <div class='row'>
+          <div class='one columns'>
+            <span style='float:right;'>nx:</span>
+          </div>
+
+          <div class='two columns'>
+            <input type='text' id='ui_nx' name='nx' style='max-width:100%;'></input>
+          </div>
+
+          <div class='one columns'>
+            <span style='float:right;'>ny:</span>
+          </div>
+
+          <div class='two columns'>
+            <input type='text' id='ui_ny' name='ny' style='max-width:100%;'></input>
+          </div>
+
+          <div class='six columns'>
+            &nbsp;
+          </div>
+        </div>
+
+        <div class='row'>
+          <div class='one columns'>
+            <span style='float:right;'>s0:</span>
+          </div>
+
+          <div class='two columns'>
+            <input type='text' id='ui_s0' name='s0' style='max-width:100%;'></input>
+          </div>
+
+          <div class='one columns'>
+            <span style='float:right;'>t0:</span>
+          </div>
+
+          <div class='two columns'>
+            <input type='text' id='ui_t0' name='t0' style='max-width:100%;'></input>
+          </div>
+
+          <div class='one columns'>
+            <span style='float:right;'>s1:</span>
+          </div>
+
+          <div class='two columns'>
+            <input type='text' id='ui_s1' name='s1' style='max-width:100%;'></input>
+          </div>
+
+          <div class='one columns'>
+            <span style='float:right;'>t1:</span>
+          </div>
+
+          <div class='two columns'>
+            <input type='text' id='ui_t1' name='t1' style='max-width:100%;'></input>
+          </div>
+
+        </div>
+
+        <div class='row'>
+          <div class='twelve columns'>
+            <span>paths</span>
+          </div>
+        </div>
+
+        <div class='row'>
+          <div class='twelve columns'>
+            <textarea class='u-full-width' id='ui_import' style='max-width:100%; height:25em;'></textarea>
+          </div>
+        </div>
+
+        <div class='row'>
+          <div class='six columns'>
+            <input id='ui_btn_render' type='button' value='render' onclick='ui_input("ui_btn_render")'>
+          </div>
+
+          <div class='six columns'>
+            <input id='ui_btn_solve' type='button' value='solve' onclick='ui_input("ui_btn_solve")'>
+          </div>
+        </div>
+
+
+      </div>
+
+      <div class="six columns" id='ui_gfx'>
+        <div id='twojs_canvas' style='width:5000px;height:5000px;'> </div>
+
+      </div>
+    </div>
+
+
+  </div>
+
+</body>
+
+<script>
+  web_init();
+</script>
+<html>
+

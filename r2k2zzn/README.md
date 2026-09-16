@@ -201,8 +201,11 @@ Analysis
 
 | | |
 |---|---|
-| $R$ | Rectangle |
-| $s _ 0, t _ 0, s _ 1, t _ 1$ | start, end of path 0 $(s _ 0, t _ 0)$ and path 1 $(s _ 1, t  _ 1)$ |
+| $G = (V,E)$ | Graph |
+| $V _ {x,y}$ | Vertex $(x,y)$ |
+| $E _ {u,v}$ | Edge $u = (u _ x, u _ y), v = (v _ x, v _ y)$ |
+| $R = R(m,n)$ | Rectangle with width $m$, height $n$ |
+| $s _ 0, t _ 0, s _ 1, t _ 1 \in \mathbb{Z}^2$ | Integral position vectors of start, end of path 0 $(s _ 0, t _ 0)$ and path 1 $(s _ 1, t  _ 1)$ |
 | $c(\cdot)$ | "color" function mapping path or cell locations to color value: $\mathbb{Z} \times \mathbb{Z} \to \{0,1\}$ |
 | $c _ {i,j}$ | $(i+j) (\bmod 2)$ , Shorthand of $c(\cdot)$ for cell location |
 
@@ -233,6 +236,40 @@ $$
 
 If a solution exists, it must be color compatible.
 Color incompatibility implies no r2k2zzn solution can exist but color compatibility does not necessarily imply a solution.
+
+### Boundary Compatibility
+
+If $s _ 0, t _ 0, s _ 1, t _ 1$ are on the boundary and alternate (clockwise or counterclockwise), then no path is
+possible.
+
+
+### $1xn$ Rectangle Compatibility
+
+$$
+\begin{array}{l}
+R(m,n=1) \\
+s _ 0 = V _ {0,0}, \\
+t _ 0 = V _ {k-1,0}, \\
+s _ 1 = V _ {k,0}, \\
+t _ 1 = V _ {m-1,0} \\
+\end{array}
+$$
+
+### $2xn$ Rectangle Compatibility
+
+$$
+\begin{array}{ll}
+ & R(m,n=2) \\
+\text{and}  & \text{ color compatible } \\
+\text{and} & \text{ boundary compatible } \\
+\text{and} & (((s _ {0, x} = t _ {0,x}) \\
+\text{and} & \ \ (s _ {1,x} \ne t _ {1,x})) \\
+\text{or} & \ ((|\delta _ x ( s _ 0 - t _ 0)| = 1 ) \\
+\text{and} & \ \ (|\delta _ x (t _ 1 - t _ 0) | = 1))) \\
+\end{array}
+$$
+
+
 
 ### Peripheral Configurations
 
