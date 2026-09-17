@@ -671,8 +671,70 @@ function r2_compatible(_s0,_t0,_s1,_t1, _w,_h) {
   let ct1 = (t1[0] + t1[1]) % 2;
 
 
+  //  ... +  *  t0 t1 +  *  ...
+  //  ... *  +  s0 s1 *  +  ...
+  //
+  //  ... +  *  t0 *  +  *  ...
+  //  ... *  +  s0 s1 t1 +  ...
+  //
+  //  ... s0 s1 +  *  +  *  ...
+  //  ... *  +  t0 +  *  t1 ...
+  //
+
+  if (s0[1] != t1[1]) {
+    if (s0[0] == (s1[0]-1)) { return 1; }
+    return 0;
+  }
+
+  //  ... +  *  +  *  +  *  +  ...
+  //  ... *  s0 *  +  t0 +  t1 ...
+  //
+
+  // When s0 and t0 have the same color, there's
+  // an odd number cell count that needs to be traversed
+  // in the 2xn rectangle made by the (s0,t0) end points.
+  // This odd count needs to be made up by the (s1,t1) path
+  // invading that area, while making sure there's enough
+  // room to snake around if need be.
+  //
+  // Compatibility takes care of the other conditions that
+  // would preclude it.
+  //
+
+  // NEEDS VALIDATION
+  //
+  if (cs0 == ct0) {
+
+    // edge cases
+    //
+    if ((s0[0] == 0) && (t0[0] == (w-1)) &&
+        (s1[0] == 0) && (t1[0] == (w-1))) { return 1; }
+
+    if ((s0[0] == 0) && (s1[0] == 0) &&
+        (t1[0] != t0[0])) { return 1; }
+
+    if ((t0[0] == (w-1)) && (t1[0] == (w-1)) &&
+        (s1[0] != s0[0])) { return 1; }
+
+    // Make sure start of (s1,t1) is within (s0,t0).
+    // if t1 falls within (s0,t0), t1[0] <= t0[0]-2
+    // since t1 is forced on the opposite y-line as (s0,t0)
+    // from peripheral compatibility, color compatibility
+    // and the edge case checks above.
+    // if (t1[0] > t0[0]), then there will be an opening
+    // to snake around and fill the rest.
+    //
+    if (s1[0] <= t0[0]) { return 1; }
+
+    return 0;
+  }
+
   //WIP!!
 
+  // Here we have s0 and t0 different colors (so c(s1) != c(t1)
+  // as well).
+  // Again, (s0,t0) lie on the same 
+  //
   return 1;
 }
 
