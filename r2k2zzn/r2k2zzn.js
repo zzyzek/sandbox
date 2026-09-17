@@ -69,7 +69,106 @@ function r2k2zzn_gnuplot_print_path(ctx) {
   }
 }
 
-function r2k2zzn_init(w,h, s0,t0, s1,t1) {
+function _swapv2(v) { let t = v[0]; v[0] = v[1]; v[1] = t; }
+
+function _r2k2zzn_normalize(_s0,_t0, _s1,_t1, _w,_h) {
+  let w = _w, h = _h,
+      s0 = [_s0[0], _s0[1]],
+      t0 = [_t0[0], _t0[1]],
+      s1 = [_s1[0], _s1[1]],
+      t1 = [_t1[0], _t1[1]];
+
+  let normalize_info = {
+    "order" : [ "swap_wh", "swap_st0", "swap_st1", "swap_st0st1" ],
+    "swap_wh" : false,
+    "swap_st0" : false,
+    "swap_st1" : false,
+    "swap_st0st1" : false
+  };
+
+  if (_h > _w) {
+    w = _h; h = _w;
+    _swapv2(s0); _swapv2(t0);
+    _swapv2(s1); _swapv2(t1);
+
+    normalize_info.swap_wh = true;
+  }
+
+  if (cmp_v(t0, s0) < 0) {
+    let t = t0; t0 = s0; s0 = t;
+    normalize_info.swap_st0 = true;
+  }
+
+  if (cmp_v(t1,s1) < 0) {
+    let t = t1; t1 = s1; s1 = t;
+    normalize_info.swap_st1 = true;
+  }
+
+  if (cmp_v(s1,s0) < 0) {
+    let t = s0; s0 = s1; s1 = t;
+    t = t0; t0 = t1; t1 = t;
+    normalize_info.swap_st0st1 = true;
+  }
+
+  return {
+    "w": w, "h": h,
+    "s0": s0, "t0": t0,
+    "s1": s1, "t1": t1,
+    "normalize_info": normalize_info
+  };
+
+}
+
+
+function r2k2zzn_init(_w,_h, _s0,_t0, _s1,_t1, normalize) {
+  normalize = ((typeof normalize === "undefined") ? 0 : normalize);
+
+  let normalize_info = {
+    "order" : [ "swap_wh", "swap_st0", "swap_st1", "swap_st0st1" ],
+    "swap_wh" : false,
+    "swap_st0" : false,
+    "swap_st1" : false,
+    "swap_st0st1" : false
+  };
+
+  let w = _w, h = _h,
+      s0 = [_s0[0], _s0[1]],
+      t0 = [_t0[0], _t0[1]],
+      s1 = [_s1[0], _s1[1]],
+      t1 = [_t1[0], _t1[1]];
+
+  if (normalize) {
+
+    if (_h > _w) {
+      w = _h; h = _w;
+      _swapv2(s0); _swapv2(t0);
+      _swapv2(s1); _swapv2(t1);
+
+      normalize_info.swap_wh = true;
+    }
+
+    if (cmp_v(t0, s0) < 0) {
+      let t = t0; t0 = s0; s0 = t;
+      normalize_info.swap_st0 = true;
+    }
+
+    if (cmp_v(t1,s1) < 0) {
+      let t = t1; t1 = s1; s1 = t;
+      normalize_info.swap_st1 = true;
+    }
+
+    if (cmp_v(s1,s0) < 0) {
+      let t = s0; s0 = s1; s1 = t;
+      t = t0; t0 = t1; t1 = t;
+      normalize_info.swap_st0st1 = true;
+    }
+
+  }
+
+  //console.log("w:", w, "h:", h);
+  //console.log("s0:", JSON.stringify(s0), "t0:", JSON.stringify(t0) );
+  //console.log("s1:", JSON.stringify(s1), "t1:", JSON.stringify(t1) );
+
   let ctx = {
     "size": [w,h],
     "s" : [ [s0[0], s0[1]], [s1[0], s1[1]] ],
@@ -81,6 +180,8 @@ function r2k2zzn_init(w,h, s0,t0, s1,t1) {
     "p_idx": -1,
 
     "path_start" : false,
+
+    "normalize_info": normalize_info,
 
     "path_idx" : -1,
 
@@ -494,15 +595,69 @@ function color_compatible(s0,t0,s1,t1,w,h) {
 }
 
 function _peripheral2xy(p_idx, w,h) {
-  let n = (2*w) + (2*(h-1));
+  let n = (2*w) + (2*(h-2));
 
   if ((p_idx < 0) || (p_idx >= n)) { return -1; }
 
   if (p_idx < w) { return [p_idx, 0]; }
-  if (p_idx < (w+h)) { return [w-1, p_idx-w]; }
-  if (p_idx < ((2*w)+h)) { return [(2*w) + (h-1) - p_idx, h-1]; }
-  return [0, 2*w + (2*(h-1)) - p_idx];
+  if (p_idx < (w+(h-1))) { return [w-1, p_idx-(w-1)]; }
+  if (p_idx < ((2*w)+(h-2))) { return [(w) + (h-2) + (w-1) - p_idx, h-1]; }
+  return [0, (2*w) + (2*(h-2))  - p_idx];
 }
+
+function _xy2peripheral(xy, w,h) {
+  if ((xy[0] > 0) && (xy[0] < (w-1)) &&
+      (xy[1] > 0) && (xy[1] < (h-1))) { return -1; }
+
+  if (xy[1] == 0) { return xy[0]; }
+  if (xy[0] == (w-1)) { return xy[1] + (w-1); }
+  if (xy[1] == (h-1)) { return (w) + (h-2) + (w-1) - xy[0]; }
+  if (xy[0] == 0) { return (2*w) + (2*(h-2)) - xy[1]; }
+
+  return -1;
+}
+
+function r1_compatible(_s0,_t0,_s1,_t1, _w,_h) {
+  let info = _r2k2zzn_normalize(_s0,_t0, _s1,_t1, _w,_h);
+
+  let w = info.w, h = info.h,
+      s0 = info.s0, t0 = info.t0,
+      s1 = info.s1, t1 = info.t1;
+
+  if (h != 1) { return 0; }
+  if (w <  4) { return 0; }
+
+  if ((s0[1] != 0) || (t0[1] != 0) ||
+      (s1[1] != 0) || (t1[1] != 0)) { return 0; }      
+
+  if ((s0[0] != 0) || (t1[0] != (w-1))) { return 0; }
+  if (t0[0] != (s1[0]-1)) { return 0; }
+
+  return 1;
+}
+
+function r2_compatible(_s0,_t0,_s1,_t1, _w,_h) {
+  let info = _r2k2zzn_normalize(_s0,_t0, _s1,_t1, _w,_h);
+
+  let w = info.w, h = info.h,
+      s0 = info.s0, t0 = info.t0,
+      s1 = info.s1, t1 = info.t1;
+
+  if (h != 2) { return 0; }
+  if (w <  2) { return 0; }
+
+  if (color_compatible(s0,t0, s1,t1, w,h) == 0) { return 0; }
+  if (corner_compatible(s0,t0, s1,t1, w,h) == 0) { return 0; }
+
+  if ((s0[1] != 0) || (t0[1] != 0) ||
+      (s1[1] != 0) || (t1[1] != 0)) { return 0; }      
+
+  if ((s0[0] != 0) || (t1[0] != (w-1))) { return 0; }
+  if (t0[0] != (s1[0]-1)) { return 0; }
+
+  return 1;
+}
+
 
 // indices into boundary
 // checks to see if there is an alternating sequence
@@ -595,79 +750,6 @@ function corner_compatible(s0,t0, s1,t1, w,h) {
 
   return 1;
 }
-
-
-//DEBUG
-//DEBUG
-
-/*
-function fys(a) {
-  let t, n = a.length;
-  for (let i=0; i<(n-1); i++) {
-    let p = i + Math.floor(Math.random()*(n-i));
-    t = a[i]; a[i] = a[p]; a[p] = t;
-  }
-}
-
-function _corner_compat_test() {
-  let _tv0 = [ [3,0],[0,0],[4,4],[1,4] ];
-  let _tv1 = [ [0,3],[0,1],[6,0],[1,4] ];
-  let _tv2 = [ [0,3],[0,4],[6,0],[1,4] ];
-
-  let _w = 13, _h = 5;
-
-  console.log(">>", _tv0, corner_compatible( _tv0[0],  _tv0[1],  _tv0[2],  _tv0[3],  _w, _h ) );
-  console.log(">>", _tv1, corner_compatible( _tv1[0],  _tv1[1],  _tv1[2],  _tv1[3],  _w, _h ) );
-  console.log(">>", _tv2, corner_compatible( _tv2[0],  _tv2[1],  _tv2[2],  _tv2[3],  _w, _h ) );
-
-}
-
-//_corner_compat_test();
-//process.exit();
-
-let _w = 13, _h = 5;
-let _n = (2*_w) + (2*(_h-1));
-let _periph = [];
-for (let i=0; i<_n; i++) { _periph.push(i); }
-
-let uvuv = [-1,-1,-1,-1];
-let stst = [ [-1,-1], [-1,-1], [-1,-1], [-1,-1] ];
-for (let i=0; i<20; i++) {
-  fys( _periph );
-  for (let j=0; j<4; j++) {
-    uvuv[j] = _periph[j];
-    stst[j] = _peripheral2xy(uvuv[j], _w, _h);
-  }
-
-  console.log("wh:", _w, _h,
-    "uvuv:", JSON.stringify(uvuv),
-    "stst:", JSON.stringify(stst),
-    "corncompat:",
-    corner_compatible( stst[0], stst[1], stst[2], stst[3], _w, _h));
-
-}
-
-process.exit();
-
-function _spot_test() {
-  let wh = [6,6];
-  let stst = [[4,0],[5,1], [5,4], [4,5]];
-
-  console.log(stst);
-  console.log( color_compatible(stst[0], stst[1], stst[2], stst[3], wh[0], wh[1]) );
-  console.log( corner_compatible(stst[0], stst[1], stst[2], stst[3], wh[0], wh[1]) );
-
-
-
-
-}
-
-_spot_test();
-process.exit();
-*/
-
-//DEBUG
-//DEBUG
 
 
 function _enum_peripheral(w,h, _debug) {
@@ -769,7 +851,7 @@ function _enum(w,h, _debug) {
 
       console.log("###", stst);
 
-      let ctx = r2k2zzn_init(w,h, s0,t0, s1,t1);
+      let ctx = r2k2zzn_init(w,h, s0,t0, s1,t1, 1);
       let r = r2k2zzn_solve(ctx);
       //console.log("s0:", s0, "t0:", t0, "s1:", s1, "t1:", t1, ":::", r);
 
@@ -903,6 +985,25 @@ if ((typeof require !== "undefined") &&
         }
 
       }
+    }
+
+    if (op == "init") {
+      let s0 = [stst[0], stst[1]];
+      let t0 = [stst[2], stst[3]];
+      let s1 = [stst[4], stst[5]];
+      let t1 = [stst[6], stst[7]];
+      let ctx = r2k2zzn_init(w,h, s0,t0, s1,t1, 1 );
+      console.log( JSON.stringify(ctx) );
+      return;
+    }
+
+    if (op == "r1") {
+      let s0 = [stst[0], stst[1]];
+      let t0 = [stst[2], stst[3]];
+      let s1 = [stst[4], stst[5]];
+      let t1 = [stst[6], stst[7]];
+      console.log("r1_compatible:", r1_compatible(s0,t0, s1,t1, w,h));
+      return;
     }
 
     if (op == "enum.data") {
