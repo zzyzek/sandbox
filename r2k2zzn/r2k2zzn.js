@@ -649,11 +649,29 @@ function r2_compatible(_s0,_t0,_s1,_t1, _w,_h) {
   if (color_compatible(s0,t0, s1,t1, w,h) == 0) { return 0; }
   if (corner_compatible(s0,t0, s1,t1, w,h) == 0) { return 0; }
 
-  if ((s0[1] != 0) || (t0[1] != 0) ||
-      (s1[1] != 0) || (t1[1] != 0)) { return 0; }      
+  let u0 = _xy2peripheral(s0, w,h);
+  let v0 = _xy2peripheral(t0, w,h);
 
-  if ((s0[0] != 0) || (t1[0] != (w-1))) { return 0; }
-  if (t0[0] != (s1[0]-1)) { return 0; }
+  let u1 = _xy2peripheral(s1, w,h);
+  let v1 = _xy2peripheral(t1, w,h);
+
+  if ((u0 >= 0) && (v0 >= 0) &&
+      (u1 >= 0) && (v1 >= 0)) {
+    if (peripheral_compatible(u0,v0, u1,v1, w,h) == 0) { return 0; }
+  }
+
+  //TODO: r2 criteria
+  // * still working out what a good pattern is for this...
+  //
+
+  let cs0 = (s0[0] + s0[1]) % 2;
+  let ct0 = (t0[0] + t0[1]) % 2;
+
+  let cs1 = (s1[0] + s1[1]) % 2;
+  let ct1 = (t1[0] + t1[1]) % 2;
+
+
+  //WIP!!
 
   return 1;
 }
