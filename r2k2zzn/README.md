@@ -289,6 +289,38 @@ A connected path from $(s _ 0, t _ 1)$ partitions $s _ 1$ from $t _ 1$.
 
 The cell needs to be used by a path but is a dead end for either option.
 
+Notes
+---
+
+###### 2026-09-18
+
+It looks like there are dynamic programming solutions when one of the dimensions is small.
+The DP solutions grow exponentially in the smaller dimension but, if the base is small,
+this means it's reasonable to compute feasibility for $R(m,n<11)$, say.
+
+I was considering brute forcing patterns, so this exchanges pattern enumeration for
+brute force algorithmic checking.
+
+The method I'm looking at is called ["Plug DP"](https://codeforces.com/blog/entry/90841).
+The post talks about dominoes but it can be adapted to Hamiltonian cycles.
+There's a [comment from the author](https://codeforces.com/blog/entry/90841?#comment-859628)
+that talks about multiple circuits and I think this can be adapted to the k=2 ZZN case.
+
+I still need to go through to make sure I understand it.
+
+---
+
+Thinking about the large $R(m,n)$ case that's still feasible but with $s _ 0, t _ 0, s _ 1, t _ 1$ in a "cross" pattern.
+One subdivision that's conceptually simple is subdividing the square into an outer pinwheel, inner pinwheel and rectangle
+in the center.
+
+The center rectangle can absorb the path from two opposite inner pinwheel rectangles and the other two opposite pinwheel
+rectangles can push out to the outer pinwheel rectangles to complete the path.
+
+There's still "pathological" cases to consider, one of which is when some of the endpoints are on the boundary or 1 away.
+
+
+
 
 
 References
