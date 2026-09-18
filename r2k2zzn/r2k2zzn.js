@@ -566,6 +566,32 @@ function mark_stst(M, s0, t0, s1, t1, w,h) {
   }
 }
 
+function sanity_stst(s0,t0, s1,t1, w,h) {
+
+  if ((s0[0] < 0) || (s0[0] >= w) ||
+      (s0[1] < 0) || (s0[1] >= h)) { return 0; }
+
+  if ((t0[0] < 0) || (t0[0] >= w) ||
+      (t0[1] < 0) || (t0[1] >= h)) { return 0; }
+
+  if ((s1[0] < 0) || (s1[0] >= w) ||
+      (s1[1] < 0) || (s1[1] >= h)) { return 0; }
+
+  if ((t1[0] < 0) || (t1[0] >= w) ||
+      (t1[1] < 0) || (t1[1] >= h)) { return 0; }
+
+  if (cmp_v(s0,t0) == 0) { return 0; }
+  if (cmp_v(s0,s1) == 0) { return 0; }
+  if (cmp_v(s0,t1) == 0) { return 0; }
+
+  if (cmp_v(t0,s1) == 0) { return 0; }
+  if (cmp_v(t0,t1) == 0) { return 0; }
+
+  if (cmp_v(s1,t1) == 0) { return 0; }
+
+  return 1;
+}
+
 // if (w*h) even, s0 and t0 must be different parity
 // and s1, t1 must be different parity
 //
@@ -660,9 +686,19 @@ function r2_compatible(_s0,_t0,_s1,_t1, _w,_h) {
     if (peripheral_compatible(u0,v0, u1,v1, w,h) == 0) { return 0; }
   }
 
-  //TODO: r2 criteria
-  // * still working out what a good pattern is for this...
+  // simple edge cases:
   //
+  if ((s0[0] == 0) && (t0[0] == (w-1)) &&
+      (s1[0] == 0) && (t1[0] == (w-1))) { return 1; }
+
+  if ((s0[0] == 0) && (s1[0] == 0) &&
+      (t1[0] != t0[0])) { return 1; }
+
+  if ((t0[0] == (w-1)) && (t1[0] == (w-1)) &&
+      (s1[0] != s0[0])) { return 1; }
+
+  if (s0[0] == s1[0]) { return 0; }
+  if (t0[0] == t1[0]) { return 0; }
 
   let cs0 = (s0[0] + s0[1]) % 2;
   let ct0 = (t0[0] + t0[1]) % 2;
@@ -681,10 +717,11 @@ function r2_compatible(_s0,_t0,_s1,_t1, _w,_h) {
   //  ... *  +  t0 +  *  t1 ...
   //
 
-  if (s0[1] != t1[1]) {
+  if (s0[1] != t0[1]) {
     if (s0[0] == (s1[0]-1)) { return 1; }
     return 0;
   }
+
 
   //  ... +  *  +  *  +  *  +  ...
   //  ... *  s0 *  +  t0 +  t1 ...
@@ -710,12 +747,6 @@ function r2_compatible(_s0,_t0,_s1,_t1, _w,_h) {
     if ((s0[0] == 0) && (t0[0] == (w-1)) &&
         (s1[0] == 0) && (t1[0] == (w-1))) { return 1; }
 
-    if ((s0[0] == 0) && (s1[0] == 0) &&
-        (t1[0] != t0[0])) { return 1; }
-
-    if ((t0[0] == (w-1)) && (t1[0] == (w-1)) &&
-        (s1[0] != s0[0])) { return 1; }
-
     // Make sure start of (s1,t1) is within (s0,t0).
     // if t1 falls within (s0,t0), t1[0] <= t0[0]-2
     // since t1 is forced on the opposite y-line as (s0,t0)
@@ -728,6 +759,16 @@ function r2_compatible(_s0,_t0,_s1,_t1, _w,_h) {
 
     return 0;
   }
+
+  // else c(s0) != c(t0) (e.g. cs0 != ct0)
+  //
+
+  // at this point, we know:
+  // * c(s0) != c(t0)
+  // * c(s1) != c(t1) (to maintain color compatibility)
+  // * if (s0_x < s1_x < t0_x) and
+  //      (s0_x < t1_x < t0_x) then s1_y == t1_y
+
 
   //WIP!!
 
