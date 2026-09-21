@@ -1,0 +1,16 @@
+
+
+For the javascript implementation:
+
+```
+findPath
+  for col:
+    processColumnTracked
+      for row:
+        combinations
+        for combo:
+          resolveCell
+      for branch:
+        canonicalize
+  trace
+```
