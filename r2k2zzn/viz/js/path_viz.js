@@ -174,6 +174,110 @@ function mk_checkerboard_endpoints(opt) {
   two.update();
 }
 
+function mk_paths(opt) {
+  let two = g_fig_ctx.two;
+
+  let sx = opt.sx;
+  let sy = opt.sy;
+
+  let nx = opt.nx;
+  let ny = opt.ny;
+
+  let x_len = opt.x_len;
+  let y_len = opt.y_len;
+
+  let color_scheme = {
+    "red-beige": [ [248,112,116], [248,235,187] ],
+    "purple-light" : [[ 152,119,182], [228,220,242] ],
+    "green-yellow": [  [85,149,100], [236,249, 179] ],
+    "grey-light" : [ [142,162,172], [224,226,231] ]
+  };
+
+  let color = [
+    "rgba(152,119,182,0.5)",
+    "rgba(228,220,242,0.5)"
+  ];
+
+  color = [
+    "rgb(152,119,182)",
+    "rgb(228,220,242)"
+  ];
+
+  let fudge_parity = ((nx*ny)%2);
+  if ("initial_parity" in opt) {
+    fudge_parity = opt.initial_parity;
+  }
+
+  let lw = (("l_width" in opt) ? opt.l_width : 10);
+  let cr = (("c_rad" in opt) ? opt.c_rad : 8.5);
+
+  let path_color = "rgba(60,60,120,1)";
+
+  path_color = "rgba(80,80,140,1)";
+  path_color = "rgb(80,80,140)";
+
+  let path_colors = [
+    "rgb(80,80,140)",
+    "rgb(200,60,50)"
+  ];
+
+  let show_start_circle = false,
+      show_end_circle = false;
+
+
+
+  let paths = opt.paths;
+
+  for (let path_idx=0; path_idx<paths.length; path_idx++) {
+    let _p = paths[path_idx];
+    let w_p = [];
+    for (let idx = 0; idx < _p.length; idx++) {
+      w_p.push( [ sx + _p[idx][0]*x_len, sy + _p[idx][1]*y_len ] );
+    }
+
+    if (w_p.length == 0) { continue; }
+
+    path_color = path_colors[path_idx];
+
+    let np_center = {};
+    if (("nopath" in opt) &&
+        (opt.nopath)) {
+      np_center = w_p.pop();
+    }
+
+    let tv_path = makeTwoVector(w_p);
+    let t_path = two.makePath(tv_path, true);
+
+    t_path.noFill();
+    t_path.linewidth = lw;
+    t_path.stroke = path_color;
+    t_path.cap = 'round';
+    t_path.join = 'round';
+
+    if (show_start_circle) {
+      let start_circle = two.makeCircle( w_p[0][0], w_p[0][1], cr );
+      start_circle.fill = path_color;
+      start_circle.linewidth = 0;
+      start_circle.stroke = path_color;
+    }
+
+    if (show_end_circle) {
+      if (("end_circle" in opt) &&
+          (opt.end_circle)) {
+        let n = w_p.length-1;
+        let end_circle = two.makeCircle( w_p[n][0], w_p[n][1], cr );
+        //end_circle.fill = "rgba(120,120,240,1)";
+        end_circle.fill = path_color;
+        end_circle.linewidth = 0;
+        end_circle.stroke = path_color;
+      }
+    }
+  }
+
+  two.update();
+}
+
+
 function mk_checkerboard_paths(opt) {
   let two = g_fig_ctx.two;
 
@@ -254,6 +358,8 @@ function mk_checkerboard_paths(opt) {
     for (let idx = 0; idx < _p.length; idx++) {
       w_p.push( [ sx + _p[idx][0]*x_len, sy + _p[idx][1]*y_len ] );
     }
+
+    if (w_p.length == 0) { continue; }
 
     path_color = path_colors[path_idx];
 
@@ -409,7 +515,7 @@ function _get_overlay(ctx) {
   return undefined;
 }
 
-function ok() {
+function canvas_init() {
 
   let square_size = 40;
   let sx = 50,
@@ -441,9 +547,44 @@ function ok() {
 
   };
 
-  //mk_checkerboard_paths(opt);
-  
+  let tv = -1, tv2 = [-1,-1];
+
+  tv = _get_ivalu( "ui_nx" );
+  if (typeof tv!== "undefined") { opt.nx = tv; }
+
+  tv = _get_ivalu( "ui_ny" );
+  if (typeof tv!== "undefined") { opt.ny = tv; }
+
+  tv2 = _get_v2valu( "ui_s0" );
+  if (typeof tv2 !== "undefined") { opt.S[0] = tv2; }
+
+  tv2 = _get_v2valu( "ui_t0" );
+  if (typeof tv2 !== "undefined") { opt.T[0] = tv2; }
+
+  tv2 = _get_v2valu( "ui_s1" );
+  if (typeof tv2 !== "undefined") { opt.S[1] = tv2; }
+
+  tv2 = _get_v2valu( "ui_t1" );
+  if (typeof tv2 !== "undefined") { opt.T[1] = tv2; }
+
+ 
   mk_checkerboard_endpoints(opt);
+}
+
+function _get_ui_paths( ui_id ) {
+  let ele = document.getElementById(ui_id);
+  let txt = ele.value;
+
+  let data = [ [], [] ];
+
+  try {
+    data = JSON.parse(txt);
+  }
+  catch (e) {
+    console.log("e:", e);
+  }
+
+  return data;
 }
 
 function _get_ival( ui_id ) {
@@ -452,10 +593,30 @@ function _get_ival( ui_id ) {
   return parseInt(ele.value);
 }
 
+function _get_ivalu( ui_id ) {
+  let ele = document.getElementById(ui_id);
+  if (ele.value == "") { return undefined; }
+  return parseInt(ele.value);
+}
+
 function _get_v2val( ui_id ) {
   let v2 = [0,0];
   let ele = document.getElementById(ui_id);
   let tok = ele.value.trim().replace(/,/g, ' ').replace( /  */g, ' ' ).split(" ");
+  if (tok.length > 0) {
+    v2[0] = parseInt(tok[0]);
+    if (tok.length > 1) {
+      v2[1] = parseInt(tok[1]);
+    }
+  }
+  return v2;
+}
+
+function _get_v2valu( ui_id ) {
+  let v2 = [0,0];
+  let ele = document.getElementById(ui_id);
+  let tok = ele.value.trim().replace(/,/g, ' ').replace( /  */g, ' ' ).split(" ");
+  if (tok.length != 2) { return undefined; }
   if (tok.length > 0) {
     v2[0] = parseInt(tok[0]);
     if (tok.length > 1) {
@@ -502,8 +663,11 @@ function ui_input(btn_id) {
     _opt.S[1] = _get_v2val("ui_s1");
     _opt.T[1] = _get_v2val("ui_t1");
 
+    _opt.paths = _get_ui_paths( "ui_path" );
+
     two.clear();
     mk_checkerboard_endpoints(_opt);
+    mk_paths(_opt);
     two.update();
 
   }
@@ -554,9 +718,6 @@ function web_init() {
   var ele = document.getElementById(CANVAS_ID);
   two.appendTo(ele);
 
-  ok();
+  canvas_init();
   two.update();
-
-  //disp_wh_r2k2zzn(1);
-  //disp_r2k2zzn();
 }
