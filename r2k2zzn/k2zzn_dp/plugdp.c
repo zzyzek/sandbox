@@ -782,13 +782,17 @@ int main(int argc, char **argv) {
         Path p0, p1;
         int feas = find_path(R, C, v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], &p0, &p1);
         if (feas < 0) return 1; /* validate_input already printed why */
-        printf("%d\n", feas);
+        printf("#feas:%d\n", feas);
         if (feas) {
-            printf("path0:");
-            for (int i = 0; i < p0.length; i++) printf(" (%d,%d)", p0.cells[i][0], p0.cells[i][1]);
-            printf("\npath1:");
-            for (int i = 0; i < p1.length; i++) printf(" (%d,%d)", p1.cells[i][0], p1.cells[i][1]);
-            printf("\n");
+            printf("#path0:\n");
+            for (int i = 0; i < p0.length; i++) {
+              printf("%d %d\n", p0.cells[i][0], p0.cells[i][1]);
+            }
+            printf("\n\n\n#path1:\n");
+            for (int i = 0; i < p1.length; i++) {
+              printf("%d %d\n", p1.cells[i][0], p1.cells[i][1]);
+            }
+            printf("\n\n");
             path_free(&p0); path_free(&p1);
         }
         return 0;
