@@ -2,3 +2,6 @@
 
 gcc -O3 plugdp_fast_cli.c plugdp_fast.c -o plugdp_fast
 gcc -O3 plugdp.c -DPLUGDP_TEST_MAIN -o plugdp
+
+gcc -g plugdp_fast_cli.c plugdp_fast.c -o plugdp_fast_d
+gcc -g plugdp.c -DPLUGDP_TEST_MAIN -o plugdp_d
