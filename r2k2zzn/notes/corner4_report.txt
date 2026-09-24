@@ -1,0 +1,30 @@
+Four endpoints in the 8x8 corner sub-region; 369536 parity-compatible patterns up to reflection and color swap.
+Stage 1 (exact, 10x10): FEAS: 368588, INFEAS_CAUGHT: 620, trivial: strong 2-endpoint pair: 468, TOPO: 328, trivial: boundary-only 3-endpoint pattern, fourth on perimeter: 89, trivial: strong 3-endpoint pattern: 42, non-trivial infeasible: 21
+Stage 2 (12x12): still infeasible: 21  (exact: 0, by the sound filter: 21); feasible on 12x12 (interference in 10x10): 0
+== genuine non-trivial 4-endpoint corner patterns (A = one color's two endpoints, B = the other's):
+   .A.A | .B.B
+   .A....AB | .B......
+   .A....A | .B..... | ....... | ....... | ....... | ....... | ....... | B......
+   .A....A | ..B.... | ....... | ....... | ....... | ....... | B......
+   .A.....A | .B...... | ........ | ........ | ........ | ........ | B.......
+   .A.. | .BBA
+   .A.. | ..BA | ..B.
+   .A.. | ..BA | .... | .B..
+   .A. | .BB | ..A
+   .A. | ..B | ..A | .B.
+   .A.. | ...B | ..A. | B...
+   .A | .B | .. | .. | .. | .. | B. | A.
+   ..A | .A. | .B. | B..
+   ..A..B | ...AB.
+   ..A | ..B | AB.
+   ...A..B | ....AB.
+   ...A | .... | .A.. | .B.. | B...
+   ....A..B | .....AB.
+   ......A | ..B.... | .A..... | ....... | ....... | ....... | B......
+   .... | ..AB | .BA.
+   .... | ..AB | .B.. | .A..
+== infeasible on 10x10 only (far-edge interference):
+
+Stage 2 confirmation: all 21 re-solved with the exact solver on 12x12 (./enum exact): all 21 infeasible.
+Per-pattern relation to the known families is in stage2_exact_12x12.txt.
+Edge pattern check: A=(0,k),(1,k+1), B=(0,k+3),(1,k+2) is infeasible mid-edge on 10x16, 12x20 and on the left edge of 16x10.
