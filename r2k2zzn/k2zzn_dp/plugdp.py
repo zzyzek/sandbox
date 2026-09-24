@@ -282,11 +282,6 @@ def is_feasible(rows, num_cols, s0, t0, s1, t1):
     return (EMPTY,) * rows in profiles
 
 
-if __name__ == "__main__":
-    print(is_feasible(3, 4, (0, 0), (1, 2), (0, 1), (2, 2)))   # True
-    print(is_feasible(5, 6, (0, 0), (4, 5), (0, 5), (4, 0)))   # R=5 example
-    print(find_path(3, 4, (0, 0), (1, 2), (0, 1), (2, 2)))     # explicit witness
-
 
 # ---------------------------------------------------------------------------
 # Path construction: not just "is it feasible" but "show me the two paths".
@@ -425,3 +420,9 @@ def find_path(rows, num_cols, s0, t0, s1, t1):
     path0 = trace(s0, t0)
     path1 = trace(s1, t1)
     return path0, path1
+
+if __name__ == "__main__":
+    #print(is_feasible(3, 4, (0, 0), (1, 2), (0, 1), (2, 2)))   # True
+    #print(is_feasible(5, 6, (0, 0), (4, 5), (0, 5), (4, 0)))   # R=5 example
+    #print(find_path(3, 4, (0, 0), (1, 2), (0, 1), (2, 2)))     # explicit witness
+    print(find_path(10, 10, (1, 1), (9, 9), (0, 9), (9, 0)))     # explicit witness

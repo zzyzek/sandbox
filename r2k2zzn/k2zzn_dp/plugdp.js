@@ -284,7 +284,7 @@ function processColumnTracked(profileIn, rows, col, numCols, terminals) {
       if (need > available.length) { continue; }
 
       let combos = combinations(available, need);
-      console.log("combos[r=", row,"]{avail:", available,",need:", need,"}:", combos);
+      //console.log("combos[r=", row,"]{avail:", available,",need:", need,"}:", combos);
 
       //for (const choice of combinations(available, need)) {
       for (const choice of combos) {
@@ -329,20 +329,20 @@ function findPath(rows, numCols, s0, t0, s1, t1) {
 
   for (let col = 0; col < numCols; col++) {
 
-    console.log("\n\n---\ncol:", col);
-    console.log(profiles);
+    //console.log("\n\n---\ncol:", col);
+    //console.log(profiles);
 
     const nextMap = new Map();
     for (const profile of profiles.values()) {
       let CT = processColumnTracked(profile, rows, col, numCols, terminals);
 
-      console.log("  ct:");
-      console.log("  ", CT);
+      //console.log("  ct:");
+      //console.log("  ", CT);
 
       //for (const [destKey, { profile: dest, edges }] of processColumnTracked(profile, rows, col, numCols, terminals)) {
       for (const [destKey, { "profile": dest, "edges": edges }] of CT) {
 
-        console.log("    ", destKey, profile, edges, dest);
+        //console.log("    ", destKey, profile, edges, dest);
 
         if (!nextMap.has(destKey)) {
           nextMap.set(destKey, { "sourceProfile": profile, "edges": edges, "profile": dest });
@@ -356,8 +356,8 @@ function findPath(rows, numCols, s0, t0, s1, t1) {
     if (profiles.size === 0) return null;
   }
 
-  console.log("colN:");
-  console.log(profiles);
+  //console.log("colN:");
+  //console.log(profiles);
 
   const finalKey = profileKey(Array(rows).fill(EMPTY));
   if (!profiles.has(finalKey)) return null;
@@ -423,7 +423,7 @@ function _print_instance(_row, _col, s0, t0, s1, t1) {
   }
 
   for (let r=0; r<_row; r++) {
-    console.log( grid[r].join("") );
+    console.log("#", grid[r].join("") );
   }
 }
 
@@ -434,8 +434,11 @@ if (require.main === module) {
   //console.log(isFeasible(3, 4, [0, 0], [1, 2], [0, 1], [2, 2]));
   //console.log(isFeasible(5, 6, [0, 0], [4, 5], [0, 5], [4, 0]));
 
-  _print_instance(3, 4, [0, 0], [1, 2], [0, 1], [2, 2]);
-  console.log(JSON.stringify(findPath(3, 4, [0, 0], [1, 2], [0, 1], [2, 2])));
+  //_print_instance(3, 4, [0, 0], [1, 2], [0, 1], [2, 2]);
+  //console.log(JSON.stringify(findPath(3, 4, [0, 0], [1, 2], [0, 1], [2, 2])));
+
+  _print_instance(10, 10, [1, 1], [9, 9], [0, 9], [9, 0]);
+  console.log(JSON.stringify(findPath(10, 10, [1, 1], [9, 9], [0, 9], [9, 0])));
 
   //_print_instance(3, 8, [0, 2], [2, 2], [0, 5], [2, 5]);
   //console.log(JSON.stringify(findPath(3, 8, [0, 2], [2, 2], [0, 5], [2, 5])));
