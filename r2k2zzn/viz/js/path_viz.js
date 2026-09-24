@@ -8,6 +8,12 @@
 
 var CANVAS_ID = 'twojs_canvas';
 
+var COLOR = [
+    "rgb(152,119,182)",
+    "rgb(228,220,242)"
+];
+
+
 var g_fig_ctx = {
 
   "uniq_id_base": "customid_",
@@ -99,7 +105,10 @@ function mk_checkerboard_endpoints(opt) {
     "rgb(228,220,242)"
   ];
 
+  color = COLOR;
+
   let fudge_parity = ((nx*ny)%2);
+  fudge_parity = 0;
   if ("initial_parity" in opt) {
     fudge_parity = opt.initial_parity;
   }
@@ -306,6 +315,8 @@ function mk_checkerboard_paths(opt) {
     "rgb(152,119,182)",
     "rgb(228,220,242)"
   ];
+
+  color = COLOR;
 
   let fudge_parity = ((nx*ny)%2);
   if ("initial_parity" in opt) {

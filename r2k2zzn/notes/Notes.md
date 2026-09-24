@@ -33,8 +33,145 @@ The above conditions are necessary but insufficient.
 
 There are some solutions where inference needs to be done.
 
-Here are some examples:
+---
 
-| | |
-|---|---|
-| ![nosol 5x7 0](img/r2k2zzn_nosol_5x7_0.png) | ![nosol 5x7 inference 0](r2k2zzn_nosol_5x7_0_i0.png) |
+Let's settle on terminology: *weakly forbidden patterns* or a *weak forbiddent pattern*.
+This is a pattern that on it's own might not create a contradiction but paired with some
+other pattern might.
+
+For example:
+
+```
+. A .       . B .
+A . .  ...  . . B
+. . .       . . .
+  :           :
+```
+
+The corner is forced but doesn't necessary preclude an answer on it's own.
+When both appear, it's infeasible.
+
+Call a *strongly forbidden pattern* or *strong forbidden pattern* one that is infeasible.
+
+For example:
+
+```
+. A .
+B . . ...
+. . .
+  :
+```
+
+Catalogue of implied weak widgets:
+
+```
+A B .         a A B .         a A .         a A b & .
+@ . . ...     @ . . . ...     a B . ...     a a B . .
+. . .         . . . .         @ . .         a a . . . ...
+  :             :             . . .         @ . . . .
+                                :           . . . . .
+                                                :
+
+
+a A .
+a @ . ...
+B . .
+. . .
+  :
+```
+
+Some enumeration is necessary for the folowing:
+
+```
+A a B .       A b B .
+a a . . ...   a & . . ...
+@ . . .       @ . . .
+. . . .       . . . .
+  :             :
+```
+
+```
+a a A .         b b A .
+a @ . . ...     b & . . ...
+B . . .         B . . .
+. . . .         . . . .
+  :               :
+```
+
+Needs verification but might be a catalogue of strongly forbidden patterns and weakly forbidden
+patterns for 2 endpoints.
+Not confirmed but I think they all appear near the corner.
+
+---
+
+For 3 endpoints, here are some strongly forbidden patterns (excluding 2-endpoint strong forbidden patterns):
+
+```
+. . A .         B A .
+B A . . ...     A . . ...
+. . . .         . . .
+  :               :
+```
+
+Weakly forbidden patterns conditioned on fourth endpoint (`B`) being on perimeter:
+
+```
+.AA...  .AA...  .A.A..  .A..A.  .A..A.  .A...A  .A....  .A....  .A....  .A....
+.B....  ..B...  .B....  .B....  ..B...  .B....  .BA...  ..AB..  ..A...  ..A...
+......  ......  ......  ......  ......  ......  ......  ......  ..B...  ......
+                                                                        .B....
+
+.A.B..  .A....  .A....  .A....  ..A...  ...A..  ....A.  ....A.  .....A
+...A..  ...B..  ......  ......  B.....  BA....  BA....  B.....  BA....
+......  .A....  .AB...  .A....  .A....  ......  ......  .A....  ......
+                        .B....
+```
+
+Worked out:
+
+```
+A a a @ .       a A A .       a A A @ .
+a A B . . ...   a B . . ...   a . B . . ...
+@ . . . .       @ . . .       . . . . .
+. . . . .       . . . .           :
+    :             :
+
+a A a @ .       a A a @ .       a A a @ .
+a B A . . ...   a a A . . ...   a a a . .
+@ & . . .       a a B . .       a A B . . ...
+. . . . .       @ . . . .       @ . . . .
+    :               :           . . . . .
+                                    :
+
+b b A @ .
+B b & . .
+a A . . . ...
+@ . . . .
+. . . . .
+    :
+```
+
+This is the weak 2-forbidden pattern with an extra endpoint at (row=0,col=5):
+
+```
+....A.    bbbbA.
+..B...    bbB&..
+.A.... => aA....
+......    @.....
+          ......
+```
+
+---
+
+Patterns of note:
+
+```
+. . A .
+. . A . ...
+. B . .
+. . . .
+  :
+```
+
+
+
