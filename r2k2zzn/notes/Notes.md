@@ -107,10 +107,20 @@ Not confirmed but I think they all appear near the corner.
 For 3 endpoints, here are some strongly forbidden patterns (excluding 2-endpoint strong forbidden patterns):
 
 ```
+
+A.B...     ..A...     B.A...
+.A....     BA....     ......
+                      A.....
+
+odd/even    odd       odd/even
+```
+
+```
 . . A .         B A .
 B A . . ...     A . . ...
 . . . .         . . .
   :               :
+
 ```
 
 Weakly forbidden patterns conditioned on fourth endpoint (`B`) being on perimeter:
@@ -149,6 +159,14 @@ a A . . . ...
 @ . . . .
 . . . . .
     :
+```
+
+boundary:
+
+```
+A.....   A.....   .AA...   .A..A.   ....A.
+.AB...   .A....   .B....   .B....   BA....
+         ..B...
 ```
 
 This is the weak 2-forbidden pattern with an extra endpoint at (row=0,col=5):
