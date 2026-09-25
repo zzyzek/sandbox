@@ -913,7 +913,9 @@ function render(R, C, paths) {
 if (require.main === module) {
   var args = process.argv.slice(2),
       grid = (args.indexOf("--grid") >= 0),
-      v    = args.filter(function (a) { return a !== "--grid"; }).map(Number);
+      json_out    = (args.indexOf("--json") >= 0),
+      gnuplot_out = (args.indexOf("--gnuplot") >= 0),
+      v    = args.filter(function (a) { return (a !== "--grid") && (a !== "--json") && (a !== "--gnuplot"); }).map(Number);
 
   if (v.length !== 10) {
     console.log("usage: node zzn_solve.js R C s0r s0c t0r t0c s1r s1c t1r t1c [--grid]");
@@ -922,10 +924,41 @@ if (require.main === module) {
 
   var res = solve(v[0], v[1], [v[2], v[3]], [v[4], v[5]], [v[6], v[7]], [v[8], v[9]]);
   if (res.status !== "solved") {
-    console.log(res.status + ": " + res.reason);
+    console.log("#", res.status + ": " + res.reason);
   }
   else {
-    console.log("solved: path lengths " + res.paths[0].length + " and " + res.paths[1].length);
-    if (grid) { console.log(render(v[0], v[1], res.paths)); }
+    if (json_out) {
+      let stst = [
+        [ [v[2], v[3] ], [ v[4], v[5] ] ],
+        [ [v[6], v[7] ], [ v[8], v[9] ] ]
+      ];
+      console.log("{");
+      console.log('  "R" :', v[0], ",");
+      console.log('  "C" :', v[1], ",");
+      console.log('  "S" : ', JSON.stringify(stst), ",");
+      console.log('  "paths": [');
+      console.log('   ', JSON.stringify(res.paths[0]), ',');
+      console.log('   ', JSON.stringify(res.paths[1]) );
+      console.log('  ]');
+      console.log("}");
+    }
+
+    else {
+
+      console.log("# solved: path lengths " + res.paths[0].length + " and " + res.paths[1].length);
+      if (grid) { console.log(render(v[0], v[1], res.paths)); }
+
+      if (gnuplot_out) {
+
+        for (let i=0; i<res.paths.length; i++) {
+          for (let j=0; j<res.paths[i].length; j++) {
+            console.log(res.paths[i][j][0], res.paths[i][j][1]);
+          }
+          console.log("\n\n");
+        }
+
+      }
+
+    }
   }
 }
