@@ -918,7 +918,7 @@ if (require.main === module) {
       v    = args.filter(function (a) { return (a !== "--grid") && (a !== "--json") && (a !== "--gnuplot"); }).map(Number);
 
   if (v.length !== 10) {
-    console.log("usage: node zzn_solve.js R C s0r s0c t0r t0c s1r s1c t1r t1c [--grid]");
+    console.log("usage: node zzn_solve.js R C s0r s0c t0r t0c s1r s1c t1r t1c [--grid|--json|--gnuplot]");
     process.exit(1);
   }
 
