@@ -53,38 +53,65 @@ Statuses:
   - a diagonal is needed in a single row or column;
   - the color count rules it out: a diagonal is needed and both endpoints are off the corner color
     of an odd rectangle.
-- **error** means the search failed, either with no path found or with its budget exhausted. It is
-  not a proof of infeasibility. None occurred in the tests below.
+- **error** means the search failed. It is not a proof of infeasibility. None occurred in the tests
+  below.
 
 ## Algorithm
 
 1. **Frame.** Each rectangle takes the gilbert2d orientation whose canonical endpoints are closest
    to its actual endpoints. For endpoints on the corners of one edge, this is gilbert2d's own frame.
    The cut sizes reproduce gilbert2d's arithmetic, including floor division for negative directions.
-2. **Template.** The rectangle is split with the gilbert2d template for its frame:
-   - if the major side is more than 3/2 of the minor side, it is cut in two (pieces L, R);
-   - otherwise the minor side is halved and the lower half halved again (pieces A, B, C).
+2. **Templates.** A template splits the rectangle into pieces:
+   - kind 2: the major side is cut in two (pieces L, R);
+   - kind 3: the minor side is halved and the lower half halved again (pieces A, B, C).
+
+   gilbert2d uses kind 2 when the major side is more than 3/2 of the minor side, and kind 3
+   otherwise.
 3. **Schedule.** The pieces are visited with s's piece first and t's piece last. Consecutive pieces
    meet at a junction: adjacent cells on either side of the cleave, which become virtual endpoints.
    Junctions nearest the rectangle's outer edge are tried first, which is where gilbert2d puts them.
-4. **One-segment pieces** are solved by the same recursion.
-5. **Both endpoints in one piece.** The path leaves that piece, covers the others and comes back,
-   so the piece holds two segments and is solved with the k=2 ZZN solver.
-   - Counterclockwise loops are tried first, with x pointing right and y up; set
-     `CCW_SIGN`/`GEP_CCW_SIGN` to -1 for screen coordinates.
-   - Before calling the solver, the parity check and the boundary-interleaving check are applied.
-   - If no loop works, the cut is moved (nearest the gilbert2d cut first) so that s and t land in
-     different pieces.
-6. **Diagonal step.** When needed, it goes as late in the schedule as possible: at a junction, or
+   If s and t share a piece, the path can leave it, cover the others and come back (a loop), so that
+   piece holds two segments.
+4. **Recursion first.** Every recursive option is tried before any non-recursive solver:
+   1. the best frame, each piece visited once: its gilbert2d template, then the other template kind,
+      then moved cuts of both, nearest the original cut first;
+   2. loops whose two-segment piece is split by a straight cut into two one-path problems, each
+      solved by the recursion;
+   3. the other seven frames, as in step 1.
+5. **Straight-run control.** Steps 1–3 run twice.
+   - The first round is strict. A plan is rejected if its actual output contains a straight run
+     longer than 6 (`MAX_RUN`), which is the longest gilbert2d itself produces at any size. A cheap
+     shape check skips plans whose thin pieces would force hairpins or lines. gilbert2d's own plan
+     is exempt when the endpoints are the corners of one edge.
+   - The second round has no run limit.
+   - Rectangles 3 or less across skip the strict round, because long runs are forced there.
+6. **Non-recursive solvers, only after all of the above:**
+   - loops whose two-segment piece uses the k=2 ZZN solver, counterclockwise first (x pointing
+     right and y up; set `CCW_SIGN`/`GEP_CCW_SIGN` to -1 for screen coordinates);
+   - for rectangles with a short side of at most 12, the exact plug DP from the ZZN solver. This
+     covers one orthogonal path, or a path with one diagonal step p↘q using the plug DP's two-path
+     case (s→p and q→t);
+   - a direct construction for 3 × (odd) strips whose endpoints are the middle of a short end and
+     the cell next to it.
+7. **Diagonal step.** When needed, it goes as late in the schedule as possible: at a junction, or
    inside a later piece.
-7. **Fallbacks,** for rectangles with a short side of at most 12:
-   - the exact plug DP from the ZZN solver, for one orthogonal path;
-   - for one diagonal step p↘q, the plug DP's two-path case, solving s→p and q→t;
-   - a 3 × (odd) strip with its endpoints at the middle of a short end and the cell next to it
-     needs its diagonal at an endpoint, so it is built directly.
+8. **Bounded work.** Each rectangle's recursive search has a work budget proportional to its area,
+   nested inside its parent's. The strict round also has a global budget. If a rectangle's budget
+   cuts its search short, it runs the plain search (gilbert2d template, ZZN loops, moved cuts)
+   before the exact fallbacks.
 
-The tuning constants are at the top of each file: search budgets, fallback limits, and the number of
-moved cuts.
+The tuning constants are at the top of each file:
+
+| Constant | Meaning |
+|---|---|
+| `MAX_RUN` | run limit in the strict round |
+| `STRICT_TRIES`, `STRICT_BUDGET`, `STRICT_PER_CELL` | caps on strict-round work |
+| `LOCAL_BUDGET`, `LOCAL_PER_CELL` | each rectangle's search budget |
+| `MOVED_CUTS` | how many moved cuts to try |
+| `CALL_BUDGET`, `CALLS_PER_CELL`, `ZZN_BUDGET` | overall search limits |
+| `PLUG_MAX_SIDE`, `DIAG_MAX_AREA`, `DIAG_NARROW` | exact fallback limits |
+
+In C, each constant has a `GEP_` prefix.
 
 ## Testing
 
@@ -101,28 +128,37 @@ Results:
 
 - **Gilbert:** identical to `gilbert2d` in all 5,570 corner-endpoint cases up to 32 × 32 where
   `gilbert2d` returns a valid path. In the other 322 orientations, gilbert2d's own output isn't a
-  valid path (for example, 3 × 5 run from (0,4) to (0,0)). gilbert_ep returns a valid path in all
-  of them.
+  valid path. gilbert_ep returns a valid path in all of them.
 - **Brute force:** zero misses on 16,396 (s, t) pairs, on grids up to area 36. All infeasible
   verdicts agree.
 - **Random sizes and thin strips:** 3,000 random sizes up to 80 × 80 and 3,000 thin strips (2 to 14
   wide, up to 160 long). All either solved or were proven infeasible.
 - **C versus JavaScript:** identical output on all 28,288 instances above. That covers status, path
-  length, diagonal count and path hash. The C code is clean under AddressSanitizer and
-  UndefinedBehaviorSanitizer.
+  length, diagonal count and path hash. The C code compiles with no warnings under `-Wall -Wextra`
+  and is clean under AddressSanitizer and UndefinedBehaviorSanitizer.
+
+Quality:
+
+- **Method share, 3,000 random instances:** 99.6% of cells come from plain recursion and 0.4% from
+  two-segment pieces split by recursion. ZZN produces under 0.1% and plug DP about 0.01%.
+- **Longest straight run:** at most 6 (gilbert2d's own maximum) in all but 9 of 2,591 random
+  instances at least 4 cells across, and all but 21 of 2,386 strip instances at least 4 across.
 
 Timings:
 
 | Case | C | JavaScript |
 |---|---|---|
-| 1024 × 1024, corner endpoints | 0.3 s | 1.9 s |
-| 4096 × 4096, corner endpoints | 4.6 s, 146 MB | 19 s |
-| 4096 × 4096, arbitrary endpoints | 5.1 s | 23 s |
+| 1024 × 1024, corner endpoints | 0.4 s | 2.1 s |
+| 4096 × 4096, corner endpoints | 6.7 s, 146 MB | — |
+| 4096 × 4096, arbitrary endpoints | 7.4 s, 146 MB | 31 s |
+| 3,000 random instances up to 80 × 80 (total) | 3.9 s | 20 s |
 
 ## Known limits
 
-- **Large two-segment pieces are slow.** A ZZN call on a large two-segment piece can be slow, for
-  example about 8 s (C) or 77 s (JS) for one 500 × 500 piece. The time is spent in the pattern
-  catalogue's `outerFaceOrder` and `effectiveAlternation`.
+- **A few long straight runs remain.** Some instances still have runs longer than 6, especially
+  where a diagonal step is needed and no strict plan exists, for example 17 × 62 from (0,33) to
+  (2,33). In rectangles 3 or less across, long runs are forced.
+- **Large two-segment pieces are slow.** When the ZZN solver is reached on a large two-segment
+  piece, it can be slow. That is now rare.
 - **Test coverage.** The tests are sweeps, not proofs. Beyond the brute-force sizes, a failed search
   reports "error" rather than a wrong answer.

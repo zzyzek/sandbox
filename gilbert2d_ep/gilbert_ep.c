@@ -25,12 +25,25 @@
 //   rectangle first, which is where gilbert2d puts them.
 //
 //   A piece holding one path segment is solved by the same recursion. If s and
-//   t fall in the same piece, the path leaves that piece, covers the others
-//   and comes back, so that piece holds two segments (s to the exit, the
-//   re-entry to t); it is solved with the k=2 Zig-Zag Numberlink solver
-//   (zzn_solve.c). Counterclockwise loops are tried before clockwise ones. If
-//   no loop works, the cut is moved (nearest the gilbert2d cut first) so that
-//   s and t land in different pieces.
+//   t fall in the same piece, the path can leave that piece, cover the others
+//   and come back (a loop), so that piece holds two segments.
+//
+//   Recursion is tried in every form before any non-recursive solver:
+//
+//     1. the best frame's gilbert2d template, the other template kind, then
+//        moved cuts of both (nearest the original cut), each piece visited
+//        once,
+//     2. loops whose two-segment piece is split by a straight cut into two
+//        one-path problems, again solved by the recursion,
+//     3. the other seven frames, as in 1.
+//
+//   Steps 1-3 run first strictly, rejecting any plan whose output has a
+//   straight run longer than GEP_MAX_RUN (gilbert2d's own curves never exceed 6),
+//   then without that limit. Only then come loops whose two-segment piece uses
+//   the k=2 Zig-Zag Numberlink solver (zzn_solve.c), and the exact
+//   fallbacks below. Counterclockwise loops are tried before clockwise ones.
+//   Each rectangle's recursive search has a work budget proportional to its
+//   area (within its parent's), so failures deep in the recursion stay cheap.
 //
 //   Each rectangle picks its orientation (frame) so that its canonical
 //   gilbert2d endpoints are as close as possible to its actual endpoints. When
@@ -68,24 +81,43 @@
 #include "zzn_solve.c"
 #undef main
 
-// GEP_CCW_SIGN        orientation convention for "counterclockwise" (see above)
-// GEP_CALL_BUDGET     cap on recursive calls plus plans evaluated, plus ...
-// GEP_CALLS_PER_CELL  ... this many per cell (the plain recursion alone makes
-//                     on the order of one call per cell)
-// GEP_ZZN_BUDGET      cap on k=2 Zig-Zag Numberlink solver calls
-// GEP_PLUG_MAX_SIDE   largest short side for the exact fallbacks
-// GEP_DIAG_MAX_AREA   largest area for the exact fallback with a diagonal step ...
-// GEP_DIAG_NARROW     ... unless the short side is at most this
-// GEP_MOVED_CUTS      how many moved cuts to try when s and t share a piece
+// GEP_CCW_SIGN         orientation convention for "counterclockwise" (see above)
+// GEP_CALL_BUDGET      cap on recursive calls plus plans evaluated, plus ...
+// GEP_CALLS_PER_CELL   ... this many per cell (the plain recursion alone makes
+//                      on the order of one call per cell)
+// GEP_ZZN_BUDGET       cap on k=2 Zig-Zag Numberlink solver calls
+// GEP_PLUG_MAX_SIDE    largest short side for the exact fallbacks
+// GEP_DIAG_MAX_AREA    largest area for the exact fallback with a diagonal step ...
+// GEP_DIAG_NARROW      ... unless the short side is at most this
+// GEP_MOVED_CUTS       how many moved cuts to try when a template fails
+// GEP_MAX_RUN          longest straight run allowed in the first (strict) round
+//                      of the search; gilbert2d's own curves never exceed 6
+// GEP_STRICT_TRIES     solved plans the strict round may reject (for too long a
+//                      run) in one rectangle before giving up on it
+// GEP_STRICT_BUDGET    total calls after which strict rounds stop, plus ...
+// GEP_STRICT_PER_CELL  ... this many per cell (the rest of the search is relaxed)
+// GEP_LOCAL_BUDGET     calls one rectangle's recursive search may use, plus ...
+// GEP_LOCAL_PER_CELL   ... this many per cell of the rectangle (within its
+//                      parent's); past that it goes to the fallbacks
 //
-#define GEP_CCW_SIGN       1
-#define GEP_CALL_BUDGET    4000000L
-#define GEP_CALLS_PER_CELL 4L
-#define GEP_ZZN_BUDGET     1000
-#define GEP_PLUG_MAX_SIDE  12
-#define GEP_DIAG_MAX_AREA  144
-#define GEP_DIAG_NARROW    8
-#define GEP_MOVED_CUTS     8
+#define GEP_CCW_SIGN        1
+#define GEP_CALL_BUDGET     4000000L
+#define GEP_CALLS_PER_CELL  4L
+#define GEP_ZZN_BUDGET      1000
+#define GEP_PLUG_MAX_SIDE   12
+#define GEP_DIAG_MAX_AREA   144
+#define GEP_DIAG_NARROW     8
+#define GEP_MOVED_CUTS      16
+#define GEP_MAX_RUN         6
+#define GEP_STRICT_TRIES    32
+#define GEP_STRICT_BUDGET   20000L
+#define GEP_STRICT_PER_CELL 50L
+#define GEP_LOCAL_BUDGET    2000L
+#define GEP_LOCAL_PER_CELL  100L
+
+#define GEP_LINE     0
+#define GEP_LOOP_REC 1
+#define GEP_LOOP_ZZN 2
 
 #define GEP_OK         0
 #define GEP_INFEASIBLE 1
@@ -174,21 +206,27 @@ static void box_frames(gbox_t B, gframe_t *out) {
   }
 }
 
-// The frame whose canonical endpoints are nearest (Manhattan distance) to s
-// and t. When s and t are the corners of one edge this is the gilbert2d frame
-// running from s to t.
+// The frames of B ordered by how near (Manhattan distance) their canonical
+// endpoints are to s and t, ties in box_frames order. When s and t are the
+// corners of one edge the first is the gilbert2d frame running from s to t.
 //
-static gframe_t choose_frame(gbox_t B, gpt_t s, gpt_t t) {
+static void frames_by_score(gbox_t B, gpt_t s, gpt_t t, gframe_t *out) {
   gframe_t fr[8];
-  int      best = -1, bd = -1, i;
+  int      d[8], used[8] = { 0 }, i, k;
 
   box_frames(B, fr);
   for (i = 0; i < 8; i++) {
     gpt_t e = frame_pt(&fr[i], fr[i].w - 1, 0);
-    int   d = iabs(s.x - fr[i].px) + iabs(s.y - fr[i].py) + iabs(t.x - e.x) + iabs(t.y - e.y);
-    if ( (best < 0) || (d < bd) ) { best = i; bd = d; }
+    d[i] = iabs(s.x - fr[i].px) + iabs(s.y - fr[i].py) + iabs(t.x - e.x) + iabs(t.y - e.y);
   }
-  return fr[best];
+  for (k = 0; k < 8; k++) {
+    int best = -1;
+    for (i = 0; i < 8; i++) {
+      if ( (!used[i]) && ((best < 0) || (d[i] < d[best])) ) { best = i; }
+    }
+    used[best] = 1;
+    out[k]     = fr[best];
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -238,8 +276,12 @@ static int path_excess(gbox_t B, gpt_t a, gpt_t b) {
 // Templates and junctions
 //----------------------------------------------------------------------------
 
+// gilbert: the template is gilbert2d's own for its frame; canonical: and the
+// endpoints are gilbert2d's too (the corners of one edge, in frame order).
+//
 typedef struct {
   int    kind, w2, h2, n;
+  int    gilbert, canonical;
   gbox_t box[3];
 } gtmpl_t;
 
@@ -298,15 +340,39 @@ static gtmpl_t make_template(const gframe_t *F) {
 
   // Long case: two pieces along the major side, preferring an even cut.
   //
+  gtmpl_t T;
+
   if ((2 * w) > (3 * h)) {
     if ( ((w2 % 2) == 1) && (w > 2) ) { w2++; }
-    return template_at(F, 2, w2, 0);
+    T = template_at(F, 2, w2, 0);
   }
 
   // Standard case: lower first, upper, lower second.
   //
-  if ( ((h2 % 2) == 1) && (h > 2) ) { h2++; }
-  return template_at(F, 3, w2, h2);
+  else {
+    if ( ((h2 % 2) == 1) && (h > 2) ) { h2++; }
+    T = template_at(F, 3, w2, h2);
+  }
+  T.gilbert = 1;
+  return T;
+}
+
+// The template of the other kind for frame F, cut at the midpoint the same
+// way (used when the gilbert2d template doesn't work). Returns 0 if there is
+// none.
+//
+static int flipped_template(const gframe_t *F, const gtmpl_t *base, gtmpl_t *out) {
+  int w2 = half(F->w, F->ax + F->ay),
+      h2 = half(F->h, F->bx + F->by);
+
+  if (base->kind == 3) {
+    if ( (w2 < 1) || (w2 >= F->w) ) { return 0; }
+    *out = template_at(F, 2, w2, 0);
+    return 1;
+  }
+  if ( (h2 < 1) || (h2 >= F->h) || (w2 < 1) || (w2 >= F->w) ) { return 0; }
+  *out = template_at(F, 3, w2, h2);
+  return 1;
 }
 
 typedef struct { int d, w2, h2; } gcut_t;
@@ -319,30 +385,48 @@ static int cut_cmp(const void *pa, const void *pb) {
   return 0;
 }
 
-// Moved cuts for when the gilbert2d cut puts s and t in one piece and that
-// fails: the same kind of template with its cut(s) shifted so that s and t
-// land in different pieces, nearest the gilbert2d cut first (at most
-// GEP_MOVED_CUTS of them). Returns the number written to out.
+// Moved cuts, for when the template at its own cut fails: the same kind of
+// template with its cut(s) shifted, only where s and t land in different
+// pieces, nearest the original cut first (at most GEP_MOVED_CUTS of them, the
+// original cut itself excluded). Returns the number written to out.
 //
+static int moved_part(gpt_t l, int w2, int h2) { return ( (l.y >= h2) ? 1 : ( (l.x < w2) ? 0 : 2 ) ); }
+
 static int moved_templates(const gframe_t *F, const gtmpl_t *base, gpt_t s, gpt_t t, gtmpl_t *out) {
-  gpt_t   ls   = frame_uv(F, s),
-          lt   = frame_uv(F, t);
-  gcut_t *cand = xmalloc((size_t)(F->w + 1) * (F->h + 1) * sizeof(gcut_t));
-  int     n    = 0, w2, h2, i;
+  gpt_t   ls  = frame_uv(F, s),
+          lt  = frame_uv(F, t);
+  int     cap = ( (base->kind == 2) ? (F->w + 1) : (GEP_MOVED_CUTS + (4 * (F->w + F->h + 2))) ),
+          n   = 0, w2, h2, d, dh, q, i;
+  gcut_t *cand = xmalloc((size_t)cap * sizeof(gcut_t));
 
   if (base->kind == 2) {
     for (w2 = 1; w2 < F->w; w2++) {
       if ( (ls.x < w2) == (lt.x < w2) ) { continue; }
+      if (w2 == base->w2)                { continue; }
       cand[n].d = iabs(w2 - base->w2); cand[n].w2 = w2; cand[n].h2 = 0; n++;
     }
   }
   else {
-    for (h2 = 1; h2 < F->h; h2++) {
-      for (w2 = 1; w2 < F->w; w2++) {
-        int ps = ( (ls.y >= h2) ? 1 : ( (ls.x < w2) ? 0 : 2 ) ),
-            pt = ( (lt.y >= h2) ? 1 : ( (lt.x < w2) ? 0 : 2 ) );
-        if (ps == pt) { continue; }
-        cand[n].d = iabs(w2 - base->w2) + iabs(h2 - base->h2); cand[n].w2 = w2; cand[n].h2 = h2; n++;
+
+    // Rings of increasing distance from the original cut, stopping once a
+    // ring completes GEP_MOVED_CUTS candidates (the same result as sorting
+    // all of them).
+    //
+    for (d = 1; (d <= (F->w + F->h)) && (n < GEP_MOVED_CUTS); d++) {
+      for (dh = -d; dh <= d; dh++) {
+        int rest = d - iabs(dh),
+            dws[2], nd;
+        h2 = base->h2 + dh;
+        if ( (h2 < 1) || (h2 >= F->h) ) { continue; }
+        if (rest == 0) { dws[0] = 0; nd = 1; }
+        else           { dws[0] = -rest; dws[1] = rest; nd = 2; }
+        for (q = 0; q < nd; q++) {
+          w2 = base->w2 + dws[q];
+          if ( (w2 < 1) || (w2 >= F->w) )                        { continue; }
+          if (moved_part(ls, w2, h2) == moved_part(lt, w2, h2)) { continue; }
+          if (n == cap) { cap *= 2; cand = xrealloc(cand, (size_t)cap * sizeof(gcut_t)); }
+          cand[n].d = d; cand[n].w2 = w2; cand[n].h2 = h2; n++;
+        }
       }
     }
   }
@@ -508,18 +592,100 @@ static int loop_is_ccw(const gtmpl_t *T, const int *sched, const gjunc_t *c0, co
 // truncates what it added.
 //
 
+// A solved (or failed) two-segment piece: key = box, the four endpoints and a
+// flag; p0 = s..xo, p1 = xi..t. Entries are allocated one by one so that
+// pointers to them stay valid while the memo grows.
+//
+#define GEP_MKEY 13
+
 typedef struct {
-  int    key[12];
+  int    key[GEP_MKEY];
   int    ok;
   gpt_t *p0, *p1;
   int    n0, n1;
 } gzmemo_t;
 
 typedef struct {
+  gzmemo_t **e;
+  int        n, cap;
+  int       *slot;
+  size_t     scap;
+} gmemo_t;
+
+static size_t memo_hash(const int *k, size_t cap) {
+  uint64_t h = 1469598103934665603ULL;
+  int      i;
+  for (i = 0; i < GEP_MKEY; i++) { h = (h ^ (uint32_t)k[i]) * 1099511628211ULL; }
+  return (size_t)(h & (cap - 1));
+}
+
+static gzmemo_t *memo_find(const gmemo_t *M, const int *key) {
+  size_t i;
+
+  if (M->scap == 0) { return NULL; }
+  i = memo_hash(key, M->scap);
+  while (M->slot[i]) {
+    gzmemo_t *e = M->e[M->slot[i] - 1];
+    if (memcmp(e->key, key, sizeof(e->key)) == 0) { return e; }
+    i = (i + 1) & (M->scap - 1);
+  }
+  return NULL;
+}
+
+// A new entry for key (not already present), with nothing solved yet.
+//
+static gzmemo_t *memo_add(gmemo_t *M, const int *key) {
+  gzmemo_t *e = xmalloc(sizeof(gzmemo_t));
+  size_t    i;
+  int       j;
+
+  memcpy(e->key, key, sizeof(e->key));
+  e->ok = 0;
+  e->p0 = e->p1 = NULL;
+  e->n0 = e->n1 = 0;
+
+  if (M->n == M->cap) {
+    M->cap = ( (M->cap > 0) ? (2 * M->cap) : 64 );
+    M->e   = xrealloc(M->e, (size_t)M->cap * sizeof(gzmemo_t *));
+  }
+  M->e[M->n++] = e;
+
+  if ((2 * (size_t)M->n) > M->scap) {
+    M->scap = ( (M->scap > 0) ? (2 * M->scap) : 256 );
+    while ((2 * (size_t)M->n) > M->scap) { M->scap *= 2; }
+    free(M->slot);
+    M->slot = xmalloc(M->scap * sizeof(int));
+    memset(M->slot, 0, M->scap * sizeof(int));
+    for (j = 0; j < M->n; j++) {
+      i = memo_hash(M->e[j]->key, M->scap);
+      while (M->slot[i]) { i = (i + 1) & (M->scap - 1); }
+      M->slot[i] = j + 1;
+    }
+    return e;
+  }
+
+  i = memo_hash(key, M->scap);
+  while (M->slot[i]) { i = (i + 1) & (M->scap - 1); }
+  M->slot[i] = M->n;
+  return e;
+}
+
+static void memo_free(gmemo_t *M) {
+  int i;
+  for (i = 0; i < M->n; i++) {
+    free(M->e[i]->p0);
+    free(M->e[i]->p1);
+    free(M->e[i]);
+  }
+  free(M->e);
+  free(M->slot);
+}
+
+typedef struct {
   gpt_t    *path;
   long      n, cap;
 
-  long      calls, call_limit;
+  long      calls, call_limit, strict_limit, local_limit;
   int       zzn_calls, plug_calls, budget_hit;
 
   // Failure cache: open addressing on (box, s, t).
@@ -527,8 +693,8 @@ typedef struct {
   int      *fkey;
   size_t    fcap, fcnt;
 
-  gzmemo_t *zm;
-  int       nzm, capzm;
+  gmemo_t   zm, rm;
+  int       strict_left;
 } gctx_t;
 
 static void push_pt(gctx_t *ctx, gpt_t q) {
@@ -596,6 +762,7 @@ static int gen(gctx_t *ctx, gbox_t B, gpt_t s, gpt_t t);
 
 typedef struct {
   int     k, loop, pref, idx;
+  int     forced, own, allow_zzn, strict;
   int     sched[4];
   gjunc_t jn[3];
 } gplan_t;
@@ -613,13 +780,31 @@ static void plan_seg(const gtmpl_t *T, const gplan_t *P, int i, gpt_t s, gpt_t t
   *b = ( (i == P->k) ? t : P->jn[i].x );
 }
 
-// Fill in loop and pref; returns 0 if the plan is ruled out.
+// The longest straight run a one-path piece is likely to force, from its
+// shape: a 1-wide piece is a single line; in a 2- or 3-wide piece, the part
+// beyond both endpoints along its length has to be covered out and back,
+// which (a hairpin in 2 rows, and in practice in 3) runs its whole length.
+//
+static int forced_run(gbox_t B, gpt_t a, gpt_t b) {
+  int L = imax(B.w, B.h),
+      pa, pb;
+
+  if (imin(B.w, B.h) == 1) { return L; }
+  if (imin(B.w, B.h) > 3)  { return 0; }
+
+  pa = ( (B.w >= B.h) ? (a.x - B.x0) : (a.y - B.y0) );
+  pb = ( (B.w >= B.h) ? (b.x - B.x0) : (b.y - B.y0) );
+  return ( imax(imin(pa, pb), L - 1 - imax(pa, pb)) + 1 );
+}
+
+// Fill in loop, pref and forced; returns 0 if the plan is ruled out.
 //
 static int plan_shape(const gtmpl_t *T, gplan_t *P, gpt_t s, gpt_t t, int need_diag) {
   int ndiag = 0, j, i;
 
-  P->loop = (P->sched[0] == P->sched[P->k]);
-  P->pref = 0;
+  P->loop   = (P->sched[0] == P->sched[P->k]);
+  P->pref   = 0;
+  P->forced = 0;
 
   for (j = 0; j < P->k; j++) {
     if (P->jn[j].diag) { ndiag++; P->pref = (2 * j) + 1; }
@@ -643,20 +828,29 @@ static int plan_shape(const gtmpl_t *T, gplan_t *P, gpt_t s, gpt_t t, int need_d
       ndiag++;
       P->pref = 2 * i;
     }
+    P->forced = imax(P->forced, forced_run(B, a, b));
   }
 
   return (ndiag == ( need_diag ? 1 : 0 ));
 }
 
-static void shape_into(gplans_t *L, const gtmpl_t *T, const int *sched, int k, const gjunc_t *jn, gpt_t s, gpt_t t, int need_diag) {
+static void shape_into(gplans_t *L, const gtmpl_t *T, const int *sched, int k, const gjunc_t *jn, gpt_t s, gpt_t t, int need_diag, int allow_zzn, int strict) {
   gplan_t P;
-  int     j;
+  int     j, all0 = 1;
 
   memset(&P, 0, sizeof(P));
   P.k = k;
   for (j = 0; j <= k; j++) { P.sched[j] = sched[j]; }
-  for (j = 0; j < k; j++)  { P.jn[j] = jn[j]; }
+  for (j = 0; j < k; j++)  { P.jn[j] = jn[j]; if (jn[j].rank != 0) { all0 = 0; } }
   if (!plan_shape(T, &P, s, t, need_diag)) { return; }
+
+  // gilbert2d's own plan is exempt when the endpoints are gilbert2d's (the
+  // template is gilbert2d's, the frame is canonical, every junction at rank 0).
+  //
+  P.own = ( T->gilbert && T->canonical && all0 );
+  if ( strict && (!P.own) && (P.forced > GEP_MAX_RUN) ) { return; }
+  P.allow_zzn = allow_zzn;
+  P.strict    = strict;
 
   if (L->n == L->cap) {
     L->cap = ( (L->cap > 0) ? (2 * L->cap) : 64 );
@@ -716,14 +910,12 @@ static int zzn_quick(gbox_t B, gpt_t s, gpt_t xo, gpt_t xi, gpt_t t) {
 // (memoized). Returns the memo entry, or NULL.
 //
 static gzmemo_t *solve_zzn_piece(gctx_t *ctx, gbox_t B, gpt_t s, gpt_t xo, gpt_t xi, gpt_t t) {
-  int       key[12] = { B.x0, B.y0, B.w, B.h, s.x, s.y, xo.x, xo.y, xi.x, xi.y, t.x, t.y },
+  int       key[GEP_MKEY] = { B.x0, B.y0, B.w, B.h, s.x, s.y, xo.x, xo.y, xi.x, xi.y, t.x, t.y, 0 },
             pts[8], i, k;
   result_t  res;
-  gzmemo_t *m;
+  gzmemo_t *m = memo_find(&ctx->zm, key);
 
-  for (i = 0; i < ctx->nzm; i++) {
-    if (memcmp(ctx->zm[i].key, key, sizeof(key)) == 0) { return ( ctx->zm[i].ok ? &ctx->zm[i] : NULL ); }
-  }
+  if (m != NULL) { return ( m->ok ? m : NULL ); }
 
   ctx->zzn_calls++;
   if (ctx->zzn_calls > GEP_ZZN_BUDGET) { ctx->budget_hit = 1; return NULL; }
@@ -734,15 +926,8 @@ static gzmemo_t *solve_zzn_piece(gctx_t *ctx, gbox_t B, gpt_t s, gpt_t xo, gpt_t
   pts[6] = t.y - B.y0;  pts[7] = t.x - B.x0;
   zzn_solve(B.h, B.w, pts, &res);
 
-  if (ctx->nzm == ctx->capzm) {
-    ctx->capzm = ( (ctx->capzm > 0) ? (2 * ctx->capzm) : 16 );
-    ctx->zm    = xrealloc(ctx->zm, (size_t)ctx->capzm * sizeof(gzmemo_t));
-  }
-  m = &ctx->zm[ctx->nzm++];
-  memcpy(m->key, key, sizeof(key));
+  m     = memo_add(&ctx->zm, key);
   m->ok = (res.status == ZZN_SOLVED);
-  m->p0 = m->p1 = NULL;
-  m->n0 = m->n1 = 0;
   if (!m->ok) { return NULL; }
 
   for (k = 0; k < 2; k++) {
@@ -753,6 +938,135 @@ static gzmemo_t *solve_zzn_piece(gctx_t *ctx, gbox_t B, gpt_t s, gpt_t xo, gpt_t
     free(res.path[k]);
   }
   return m;
+}
+
+typedef struct { int vert, c, longer, idx; long num, den; } gtcut_t;
+
+static int tcut_cmp(const void *pa, const void *pb) {
+  const gtcut_t *a = pa, *b = pb;
+  long           l = a->num * b->den,
+                 r = b->num * a->den;
+
+  if (l != r)                 { return ( (l < r) ? -1 : 1 ); }
+  if (a->longer != b->longer) { return ( (a->longer < b->longer) ? -1 : 1 ); }
+  if (a->vert != b->vert)     { return ( a->vert ? -1 : 1 ); }
+  if (a->c != b->c)           { return ( (a->c < b->c) ? -1 : 1 ); }
+  return 0;
+}
+
+// Solve the two-segment piece B (paths s-xo and xi-t) by recursion: a
+// straight cut with s and xo on one side and xi and t on the other, each side
+// then being an ordinary one-path problem. Cuts whose sides force no long
+// straight run come first (and, with strict set, are the only ones tried);
+// within that, cuts nearest the middle, the longer side's first on ties.
+// Memoized. Returns the memo entry, or NULL.
+//
+static gzmemo_t *rec_two_piece(gctx_t *ctx, gbox_t B, gpt_t s, gpt_t xo, gpt_t xi, gpt_t t, int strict) {
+  int       key[GEP_MKEY] = { B.x0, B.y0, B.w, B.h, s.x, s.y, xo.x, xo.y, xi.x, xi.y, t.x, t.y, strict },
+            n = 0, pass, i, vert, cc;
+  gzmemo_t *m = memo_find(&ctx->rm, key);
+  gtcut_t  *cuts;
+
+  if (m != NULL) { return ( m->ok ? m : NULL ); }
+  if (!zzn_quick(B, s, xo, xi, t)) {
+    memo_add(&ctx->rm, key);
+    return NULL;
+  }
+
+  cuts = xmalloc((size_t)(B.w + B.h) * sizeof(gtcut_t));
+  for (vert = 1; vert >= 0; vert--) {
+    int len   = ( vert ? B.w : B.h ),
+        other = ( vert ? B.h : B.w );
+    for (cc = 1; cc < len; cc++) {
+      int ss  = ( vert ? (s.x < (B.x0 + cc))  : (s.y < (B.y0 + cc)) ),
+          so  = ( vert ? (xo.x < (B.x0 + cc)) : (xo.y < (B.y0 + cc)) ),
+          si  = ( vert ? (xi.x < (B.x0 + cc)) : (xi.y < (B.y0 + cc)) ),
+          st  = ( vert ? (t.x < (B.x0 + cc))  : (t.y < (B.y0 + cc)) );
+      if ( (ss != so) || (si != st) || (ss == si) ) { continue; }
+      cuts[n].vert   = vert;
+      cuts[n].c      = cc;
+      cuts[n].num    = iabs((2 * cc) - len);
+      cuts[n].den    = len;
+      cuts[n].longer = ( (len >= other) ? 0 : 1 );
+      cuts[n].idx    = n;
+      n++;
+    }
+  }
+  if (n > 1) { qsort(cuts, (size_t)n, sizeof(gtcut_t), tcut_cmp); }
+
+  for (pass = 0; pass < ( strict ? 1 : 2 ); pass++) {
+    for (i = 0; i < n; i++) {
+      gbox_t P, Q, tmp;
+      long   start = ctx->n, mid;
+      int    frc;
+
+      if (cuts[i].vert) {
+        P.x0 = B.x0;             P.y0 = B.y0; P.w = cuts[i].c;       P.h = B.h;
+        Q.x0 = B.x0 + cuts[i].c; Q.y0 = B.y0; Q.w = B.w - cuts[i].c; Q.h = B.h;
+      }
+      else {
+        P.x0 = B.x0; P.y0 = B.y0;             P.w = B.w; P.h = cuts[i].c;
+        Q.x0 = B.x0; Q.y0 = B.y0 + cuts[i].c; Q.w = B.w; Q.h = B.h - cuts[i].c;
+      }
+      if (!in_box(P, s)) { tmp = P; P = Q; Q = tmp; }
+
+      frc = imax(forced_run(P, s, xo), forced_run(Q, xi, t));
+      if ( (pass == 0) && (frc > GEP_MAX_RUN) )  { continue; }
+      if ( (pass == 1) && (frc <= GEP_MAX_RUN) ) { continue; }
+      if ( (!compatible(P, s, xo)) || (!compatible(Q, xi, t)) ) { continue; }
+      if ( (!gep_ips_ok(P, s, xo)) || (!gep_ips_ok(Q, xi, t)) ) { continue; }
+
+      if (gen(ctx, P, s, xo)) {
+        mid = ctx->n;
+        if (gen(ctx, Q, xi, t)) {
+          m     = memo_add(&ctx->rm, key);
+          m->ok = 1;
+          m->n0 = (int)(mid - start);
+          m->n1 = (int)(ctx->n - mid);
+          m->p0 = xmalloc((size_t)m->n0 * sizeof(gpt_t));
+          m->p1 = xmalloc((size_t)m->n1 * sizeof(gpt_t));
+          memcpy(m->p0, ctx->path + start, (size_t)m->n0 * sizeof(gpt_t));
+          memcpy(m->p1, ctx->path + mid, (size_t)m->n1 * sizeof(gpt_t));
+          ctx->n = start;
+          free(cuts);
+          return m;
+        }
+      }
+      ctx->n = start;
+      if (ctx->budget_hit) { free(cuts); return NULL; }
+    }
+  }
+
+  free(cuts);
+  memo_add(&ctx->rm, key);
+  return NULL;
+}
+
+// The two-segment piece of a loop plan: by recursion if possible, otherwise
+// (when allowed) with the k=2 ZZN solver.
+//
+static gzmemo_t *solve_two_piece(gctx_t *ctx, gbox_t B, gpt_t s, gpt_t xo, gpt_t xi, gpt_t t, int allow_zzn, int strict) {
+  gzmemo_t *r = rec_two_piece(ctx, B, s, xo, xi, t, strict);
+  if ( (r != NULL) || (!allow_zzn) || ctx->budget_hit ) { return r; }
+  return solve_zzn_piece(ctx, B, s, xo, xi, t);
+}
+
+// Longest straight run (in cells) in the output from index start on.
+//
+static int longest_run(const gctx_t *ctx, long start) {
+  const gpt_t *P    = ctx->path;
+  int          best = ( (ctx->n > start) ? 1 : 0 ),
+               run  = 1;
+  long         i;
+
+  for (i = start + 1; i < ctx->n; i++) {
+    int ok = ( (i >= (start + 2)) &&
+               ((P[i].x - P[i - 1].x) == (P[i - 1].x - P[i - 2].x)) &&
+               ((P[i].y - P[i - 1].y) == (P[i - 1].y - P[i - 2].y)) );
+    run  = ( ok ? (run + 1) : 2 );
+    best = imax(best, run);
+  }
+  return best;
 }
 
 // Solve a plan: the two-segment piece first (if any), then each one-segment
@@ -771,7 +1085,7 @@ static int plan_solve(gctx_t *ctx, const gtmpl_t *T, const gplan_t *P, gpt_t s, 
     gpt_t  a, b, a2, b2;
     plan_seg(T, P, 0, s, t, &B, &a, &b);
     plan_seg(T, P, P->k, s, t, &B, &a2, &b2);
-    zm = solve_zzn_piece(ctx, B, a, b, a2, b2);
+    zm = solve_two_piece(ctx, B, a, b, a2, b2, P->allow_zzn, P->strict);
     if (zm == NULL) { return 0; }
   }
 
@@ -787,6 +1101,15 @@ static int plan_solve(gctx_t *ctx, const gtmpl_t *T, const gplan_t *P, gpt_t s, 
       ctx->n = start;
       return 0;
     }
+  }
+
+  // Strict round: reject the plan if what it produced has a straight run
+  // longer than GEP_MAX_RUN (gilbert2d's own plan excepted).
+  //
+  if ( P->strict && (!P->own) && (longest_run(ctx, start) > GEP_MAX_RUN) ) {
+    ctx->n = start;
+    ctx->strict_left--;
+    return 0;
   }
   return 1;
 }
@@ -812,8 +1135,10 @@ static int try_plans(gctx_t *ctx, const gtmpl_t *T, gplans_t *L, gpt_t s, gpt_t 
 
   qsort(L->p, (size_t)L->n, sizeof(gplan_t), plan_cmp);
   for (i = 0; i < L->n; i++) {
-    if (plan_solve(ctx, T, &L->p[i], s, t)) { ok = 1; break; }
-    if (ctx->budget_hit)                    { break; }
+    if ( L->p[i].strict && ((ctx->strict_left <= 0) || (ctx->calls > ctx->strict_limit)) ) { break; }
+    if (ctx->calls > ctx->local_limit)                                                     { break; }
+    if (plan_solve(ctx, T, &L->p[i], s, t))          { ok = 1; break; }
+    if (ctx->budget_hit)                             { break; }
   }
   L->n = 0;
   return ok;
@@ -822,7 +1147,7 @@ static int try_plans(gctx_t *ctx, const gtmpl_t *T, gplans_t *L, gpt_t s, gpt_t 
 // Plans of a schedule that visits each piece once (one or two junctions), by
 // lowest total junction rank (junctions nearest the outer edges first).
 //
-static int try_line(gctx_t *ctx, const gtmpl_t *T, const int *sc, int k, gjlist_t *J, gpt_t s, gpt_t t, int need_diag) {
+static int try_line(gctx_t *ctx, const gtmpl_t *T, const int *sc, int k, gjlist_t *J, gpt_t s, gpt_t t, int need_diag, int strict) {
   gplans_t L;
   int      m0  = J[0].nrank - 1,
            m1  = ( (k == 2) ? (J[1].nrank - 1) : 0 ),
@@ -839,7 +1164,7 @@ static int try_line(gctx_t *ctx, const gtmpl_t *T, const int *sc, int k, gjlist_
         if (r1 != 0) { continue; }
         for (i = J[0].start[r0]; i < J[0].start[r0 + 1]; i++) {
           jn[0] = J[0].c[i];
-          shape_into(&L, T, sc, 1, jn, s, t, need_diag);
+          shape_into(&L, T, sc, 1, jn, s, t, need_diag, 0, strict);
         }
         continue;
       }
@@ -849,7 +1174,7 @@ static int try_line(gctx_t *ctx, const gtmpl_t *T, const int *sc, int k, gjlist_
         for (j = J[1].start[r1]; j < J[1].start[r1 + 1]; j++) {
           jn[0] = J[0].c[i];
           jn[1] = J[1].c[j];
-          shape_into(&L, T, sc, 2, jn, s, t, need_diag);
+          shape_into(&L, T, sc, 2, jn, s, t, need_diag, 0, strict);
         }
       }
     }
@@ -865,7 +1190,7 @@ static int try_line(gctx_t *ctx, const gtmpl_t *T, const int *sc, int k, gjlist_
 // endpoints of the two-segment piece (its exit and re-entry) are chosen
 // first, nearest the outer edges; the middle junction (kind 3) second.
 //
-static int try_loop(gctx_t *ctx, const gtmpl_t *T, const int *sc, int k, gjlist_t *J, gpt_t s, gpt_t t, int need_diag, int want_ccw) {
+static int try_loop(gctx_t *ctx, const gtmpl_t *T, const int *sc, int k, gjlist_t *J, gpt_t s, gpt_t t, int need_diag, int want_ccw, int allow_zzn, int strict) {
   gbox_t    X   = T->box[sc[0]];
   gjlist_t *J0  = &J[0],
            *JL  = &J[k - 1],
@@ -898,14 +1223,14 @@ static int try_loop(gctx_t *ctx, const gtmpl_t *T, const int *sc, int k, gjlist_
             if (JM == NULL) {
               jn[0] = *c0;
               jn[1] = *cL;
-              shape_into(&L, T, sc, 2, jn, s, t, need_diag);
+              shape_into(&L, T, sc, 2, jn, s, t, need_diag, allow_zzn, strict);
             }
             else {
               for (q = JM->start[mr]; q < JM->start[mr + 1]; q++) {
                 jn[0] = *c0;
                 jn[1] = JM->c[q];
                 jn[2] = *cL;
-                shape_into(&L, T, sc, 3, jn, s, t, need_diag);
+                shape_into(&L, T, sc, 3, jn, s, t, need_diag, allow_zzn, strict);
               }
             }
             res = try_plans(ctx, T, &L, s, t);
@@ -919,11 +1244,19 @@ static int try_loop(gctx_t *ctx, const gtmpl_t *T, const int *sc, int k, gjlist_
   return res;
 }
 
-// Try every plan of template T. Loop schedules are tried counterclockwise
-// first, then clockwise.
+// Try the plans of template T of one kind (mode):
 //
-static int try_template(gctx_t *ctx, const gframe_t *F, const gtmpl_t *T, gpt_t s, gpt_t t, int need_diag) {
+//   GEP_LINE      schedules that visit each piece once,
+//   GEP_LOOP_REC  loop schedules, the two-segment piece solved by recursion only,
+//   GEP_LOOP_ZZN  loop schedules, the two-segment piece may use the ZZN solver.
+//
+// Loops are tried counterclockwise first, then clockwise. With strict set,
+// plans with a piece forcing a straight run longer than GEP_MAX_RUN are
+// skipped, except gilbert2d's own plan.
+//
+static int try_template(gctx_t *ctx, const gframe_t *F, const gtmpl_t *T, gpt_t s, gpt_t t, int need_diag, int mode, int strict) {
   int      sched[2][4], len[2], ns, is = -1, it = -1, i, j, pass, res = 0;
+  int      want_loop = (mode != GEP_LINE);
   gjlist_t J[2][3];
 
   for (i = 0; i < T->n; i++) {
@@ -933,6 +1266,7 @@ static int try_template(gctx_t *ctx, const gframe_t *F, const gtmpl_t *T, gpt_t 
 
   ns = schedules(T, is, it, sched, len);
   for (i = 0; i < ns; i++) {
+    if ((sched[i][0] == sched[i][len[i] - 1]) != want_loop) { continue; }
     for (j = 0; j < (len[i] - 1); j++) { junctions(F, T, sched[i][j], sched[i][j + 1], need_diag, &J[i][j]); }
   }
 
@@ -942,17 +1276,19 @@ static int try_template(gctx_t *ctx, const gframe_t *F, const gtmpl_t *T, gpt_t 
           loop  = (sched[i][0] == sched[i][k]),
           empty = 0;
 
+      if (loop != want_loop) { continue; }
       for (j = 0; j < k; j++) {
         if (J[i][j].n == 0) { empty = 1; }
       }
       if (empty) { continue; }
 
-      if (loop)            { res = try_loop(ctx, T, sched[i], k, J[i], s, t, need_diag, (pass == 0)); }
-      else if (pass == 0)  { res = try_line(ctx, T, sched[i], k, J[i], s, t, need_diag); }
+      if (loop)           { res = try_loop(ctx, T, sched[i], k, J[i], s, t, need_diag, (pass == 0), (mode == GEP_LOOP_ZZN), strict); }
+      else if (pass == 0) { res = try_line(ctx, T, sched[i], k, J[i], s, t, need_diag, strict); }
     }
   }
 
   for (i = 0; i < ns; i++) {
+    if ((sched[i][0] == sched[i][len[i] - 1]) != want_loop) { continue; }
     for (j = 0; j < (len[i] - 1); j++) { jlist_free(&J[i][j]); }
   }
   return res;
@@ -1153,12 +1489,58 @@ static int strip3_path(gctx_t *ctx, gbox_t B, gpt_t s, gpt_t t) {
 // Recursion
 //----------------------------------------------------------------------------
 
+// Each frame is tried as: its gilbert2d template, the other kind of template,
+// then moved cuts of both, each piece visited once.
+//
+static int line_with_moves(gctx_t *ctx, const gframe_t *Fr, const gtmpl_t *base, gpt_t s, gpt_t t, int need_diag, int strict) {
+  gtmpl_t list[GEP_MOVED_CUTS], U;
+  int     hasU, stage, n, m;
+
+  if (ctx->calls > ctx->local_limit) { return 0; }
+
+  // Built lazily: the gilbert2d template usually works outright.
+  //
+  hasU = flipped_template(Fr, base, &U);
+  for (stage = 0; stage < 4; stage++) {
+    n = 0;
+    if      (stage == 0)           { list[n++] = *base; }
+    else if ( (stage == 1) && hasU ) { list[n++] = U; }
+    else if (stage == 2)           { n = moved_templates(Fr, base, s, t, list); }
+    else if ( (stage == 3) && hasU ) { n = moved_templates(Fr, &U, s, t, list); }
+
+    for (m = 0; (m < n) && (ctx->calls <= ctx->local_limit); m++) {
+      if (try_template(ctx, Fr, &list[m], s, t, need_diag, GEP_LINE, strict)) { return 1; }
+      if (ctx->budget_hit)                                                    { return 0; }
+    }
+    if (ctx->calls > ctx->local_limit) { return 0; }
+  }
+  return 0;
+}
+
+// One round of the recursive search (see gen_uncached).
+//
+static int round_search(gctx_t *ctx, const gframe_t *frames, const gtmpl_t *base, gpt_t s, gpt_t t, int need_diag, int strict) {
+  int f;
+
+  if (line_with_moves(ctx, &frames[0], base, s, t, need_diag, strict))             { return 1; }
+  if (ctx->budget_hit)                                                             { return 0; }
+  if (try_template(ctx, &frames[0], base, s, t, need_diag, GEP_LOOP_REC, strict))  { return 1; }
+  if (ctx->budget_hit)                                                             { return 0; }
+  for (f = 1; f < 8; f++) {
+    gtmpl_t T = make_template(&frames[f]);
+    if (line_with_moves(ctx, &frames[f], &T, s, t, need_diag, strict))            { return 1; }
+    if (ctx->budget_hit)                                                           { return 0; }
+  }
+  return 0;
+}
+
 static int gen_uncached(gctx_t *ctx, gbox_t B, gpt_t s, gpt_t t) {
   int      need_diag = !compatible(B, s, t),
-           shared    = 0,
-           i;
-  gframe_t F;
+           saved, found = 0, first, round, cut;
+  long     outer;
+  gframe_t frames[8];
   gtmpl_t  base;
+  gpt_t    Fe;
 
   ctx->calls++;
   if (ctx->calls > ctx->call_limit) { ctx->budget_hit = 1; return 0; }
@@ -1177,23 +1559,58 @@ static int gen_uncached(gctx_t *ctx, gbox_t B, gpt_t s, gpt_t t) {
     return 1;
   }
 
-  F    = choose_frame(B, s, t);
-  base = make_template(&F);
-
-  if (try_template(ctx, &F, &base, s, t, need_diag)) { return 1; }
-  if (ctx->budget_hit)                                { return 0; }
-
-  // If s and t share a piece and the loop failed, move the cut.
+  // Recursion is tried in every form before a non-recursive solver:
   //
-  for (i = 0; i < base.n; i++) {
-    if ( in_box(base.box[i], s) && in_box(base.box[i], t) ) { shared = 1; }
+  //   1. the best frame, each piece visited once: its gilbert2d template,
+  //      the other kind of template, then moved cuts of both,
+  //   2. loops whose two-segment piece is split by recursion,
+  //   3. the other frames, as in 1,
+  //   4. loops using the ZZN solver, then the exact fallbacks.
+  //
+  // Steps 1-3 run twice: first strictly (no straight run longer than
+  // GEP_MAX_RUN, at most GEP_STRICT_TRIES solved plans rejected for one), then
+  // without that restriction. Rectangles 3 or less across skip the strict
+  // round, since long runs are forced there, and so does everything once the
+  // search has used its strict budget. Steps 1-3 together may use
+  // GEP_LOCAL_BUDGET + GEP_LOCAL_PER_CELL * area calls (within the parent's
+  // allowance); step 4 is bounded by the parent's allowance.
+  //
+  frames_by_score(B, s, t, frames);
+  Fe             = frame_pt(&frames[0], frames[0].w - 1, 0);
+  base           = make_template(&frames[0]);
+  base.canonical = ( (frames[0].px == s.x) && (frames[0].py == s.y) && same_pt(Fe, t) );
+
+  saved = ctx->strict_left;
+  outer = ctx->local_limit;
+  first = ( ((imin(B.w, B.h) <= 3) || (ctx->calls > ctx->strict_limit)) ? 1 : 0 );
+
+  ctx->local_limit = ctx->calls + GEP_LOCAL_BUDGET + (GEP_LOCAL_PER_CELL * box_area(B));
+  if (outer < ctx->local_limit) { ctx->local_limit = outer; }
+
+  for (round = first; (round < 2) && (!found) && (!ctx->budget_hit) && (ctx->calls <= ctx->local_limit); round++) {
+    ctx->strict_left = GEP_STRICT_TRIES;
+    found = round_search(ctx, frames, &base, s, t, need_diag, (round == 0));
   }
-  if (shared) {
+  cut              = (ctx->calls > ctx->local_limit);
+  ctx->strict_left = saved;
+  ctx->local_limit = outer;
+  if (found)           { return 1; }
+  if (ctx->budget_hit) { return 0; }
+
+  // Step 4. If the budget cut steps 1-3 short, first the plain search that
+  // needs no extended options: the gilbert2d template, then (around the ZZN
+  // loops) its moved cuts.
+  //
+  if ( cut && try_template(ctx, &frames[0], &base, s, t, need_diag, GEP_LINE, 0) ) { return 1; }
+  if (ctx->budget_hit)                                                             { return 0; }
+  if (try_template(ctx, &frames[0], &base, s, t, need_diag, GEP_LOOP_ZZN, 0))      { return 1; }
+  if (ctx->budget_hit)                                                             { return 0; }
+  if (cut) {
     gtmpl_t mv[GEP_MOVED_CUTS];
-    int     nm = moved_templates(&F, &base, s, t, mv);
-    for (i = 0; i < nm; i++) {
-      if (try_template(ctx, &F, &mv[i], s, t, need_diag)) { return 1; }
-      if (ctx->budget_hit)                                 { return 0; }
+    int     nm = moved_templates(&frames[0], &base, s, t, mv), m;
+    for (m = 0; m < nm; m++) {
+      if (try_template(ctx, &frames[0], &mv[m], s, t, need_diag, GEP_LINE, 0)) { return 1; }
+      if (ctx->budget_hit)                                                      { return 0; }
     }
   }
 
@@ -1285,7 +1702,7 @@ static void gilbert_ep(int w, int h, int x0, int y0, int x1, int y1, gep_result_
   gpt_t       s = mkpt(x0, y0),
               t = mkpt(x1, y1);
   gctx_t      ctx;
-  int         need_diag, ok, i;
+  int         need_diag, ok;
   const char *bad;
 
   memset(res, 0, sizeof(*res));
@@ -1302,7 +1719,9 @@ static void gilbert_ep(int w, int h, int x0, int y0, int x1, int y1, gep_result_
   if ( need_diag && (!diag_count_ok(B, s, t)) ) { res->status = GEP_INFEASIBLE; res->reason = "both endpoints off the corner color of an odd rectangle"; return; }
 
   memset(&ctx, 0, sizeof(ctx));
-  ctx.call_limit = GEP_CALL_BUDGET + (GEP_CALLS_PER_CELL * box_area(B));
+  ctx.call_limit   = GEP_CALL_BUDGET + (GEP_CALLS_PER_CELL * box_area(B));
+  ctx.strict_limit = GEP_STRICT_BUDGET + (GEP_STRICT_PER_CELL * box_area(B));
+  ctx.local_limit  = ctx.call_limit;
   ctx.fcap       = 1024;
   ctx.fkey = xmalloc(ctx.fcap * 9 * sizeof(int));
   memset(ctx.fkey, 0, ctx.fcap * 9 * sizeof(int));
@@ -1310,11 +1729,8 @@ static void gilbert_ep(int w, int h, int x0, int y0, int x1, int y1, gep_result_
   ok = gen(&ctx, B, s, t);
 
   free(ctx.fkey);
-  for (i = 0; i < ctx.nzm; i++) {
-    free(ctx.zm[i].p0);
-    free(ctx.zm[i].p1);
-  }
-  free(ctx.zm);
+  memo_free(&ctx.zm);
+  memo_free(&ctx.rm);
 
   res->calls      = ctx.calls;
   res->zzn_calls  = ctx.zzn_calls;

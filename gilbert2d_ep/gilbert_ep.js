@@ -25,20 +25,39 @@
 //   rectangle first, which is where gilbert2d puts them.
 //
 //   A piece holding one path segment is solved by the same recursion. If s and
-//   t fall in the same piece, the path leaves that piece, covers the others
-//   and comes back, so that piece holds two segments (s to the exit, the
-//   re-entry to t); it is solved with the k=2 Zig-Zag Numberlink solver
-//   (zzn_solve.js). When there is a choice of loop direction, the
-//   counterclockwise one is tried first.
+//   t fall in the same piece, the path can leave that piece, cover the others
+//   and come back (a loop), so that piece holds two segments.
+//
+//   Recursion is tried in every form before any non-recursive solver:
+//
+//     1. the best frame's gilbert2d template, the other template kind, then
+//        moved cuts of both (nearest the original cut), each piece visited
+//        once,
+//     2. loops whose two-segment piece is split by a straight cut into two
+//        one-path problems, again solved by the recursion,
+//     3. the other seven frames, as in 1.
+//
+//   Steps 1-3 run first strictly, rejecting any plan whose output has a
+//   straight run longer than MAX_RUN (gilbert2d's own curves never exceed 6),
+//   then without that limit. Only then come loops whose two-segment piece uses
+//   the k=2 Zig-Zag Numberlink solver (zzn_solve.js), and the exact
+//   fallbacks below. Counterclockwise loops are tried before clockwise ones.
+//   Each rectangle's recursive search has a work budget proportional to its
+//   area (within its parent's), so failures deep in the recursion stay cheap.
 //
 //   Each rectangle picks its orientation (frame) so that its canonical
 //   gilbert2d endpoints are as close as possible to its actual endpoints. When
 //   s and t are the two corners of one edge the frame is exactly the one
 //   gilbert2d would use, and the output is identical to gilbert2d's.
 //
-//   If no junction choice works, a rectangle with a short side of at most
-//   PLUG_MAX_SIDE falls back to an exact single-path solve (plugdp, the
-//   constructive side of the IPS acceptability test).
+//   The diagonal step, when needed, goes as late in the schedule as possible:
+//   at a junction, or inside a later piece.
+//
+//   Fallbacks, for rectangles with a short side of at most PLUG_MAX_SIDE: the
+//   exact plug DP from zzn_solve.js, for one orthogonal path, or for a path
+//   with one diagonal step p-q as the two orthogonal paths s-p and q-t. A
+//   3 x (odd) strip with its endpoints at the middle of a short end and the
+//   cell next to it is built directly.
 //
 // Coordinates are (x, y) with 0 <= x < w, 0 <= y < h. "Counterclockwise" is
 // taken with x pointing right and y pointing up; set CCW_SIGN to -1 for
@@ -60,24 +79,39 @@
 
 var zzn = require("./zzn_solve.js");
 
-// CCW_SIGN        orientation convention for "counterclockwise" (see above)
-// CALL_BUDGET     cap on recursive calls plus plans evaluated, plus ...
-// CALLS_PER_CELL  ... this many per cell (the plain recursion alone makes on
-//                 the order of one call per cell)
-// ZZN_BUDGET      cap on k=2 Zig-Zag Numberlink solver calls
-// PLUG_MAX_SIDE   largest short side for the exact fallbacks
-// DIAG_MAX_AREA   largest area for the exact fallback with a diagonal step ...
-// DIAG_NARROW     ... unless the short side is at most this
-// MOVED_CUTS      how many moved cuts to try when s and t share a piece
+// CCW_SIGN         orientation convention for "counterclockwise" (see above)
+// CALL_BUDGET      cap on recursive calls plus plans evaluated, plus ...
+// CALLS_PER_CELL   ... this many per cell (the plain recursion alone makes on
+//                  the order of one call per cell)
+// ZZN_BUDGET       cap on k=2 Zig-Zag Numberlink solver calls
+// PLUG_MAX_SIDE    largest short side for the exact fallbacks
+// DIAG_MAX_AREA    largest area for the exact fallback with a diagonal step ...
+// DIAG_NARROW      ... unless the short side is at most this
+// MOVED_CUTS       how many moved cuts to try when a template fails
+// MAX_RUN          longest straight run allowed in the first (strict) round of
+//                  the search; gilbert2d's own curves never exceed 6
+// STRICT_TRIES     solved plans the strict round may reject (for too long a
+//                  run) in one rectangle before giving up on it
+// STRICT_BUDGET    total calls after which strict rounds stop, plus ...
+// STRICT_PER_CELL  ... this many per cell (the rest of the search is relaxed)
+// LOCAL_BUDGET     calls one rectangle's recursive search may use, plus ...
+// LOCAL_PER_CELL   ... this many per cell of the rectangle (within its
+//                  parent's); past that it goes to the fallbacks
 //
-var CCW_SIGN       = 1,
-    CALL_BUDGET    = 4000000,
-    CALLS_PER_CELL = 4,
-    ZZN_BUDGET     = 1000,
-    PLUG_MAX_SIDE  = 12,
-    DIAG_MAX_AREA  = 144,
-    DIAG_NARROW    = 8,
-    MOVED_CUTS     = 8;
+var CCW_SIGN        = 1,
+    CALL_BUDGET     = 4000000,
+    CALLS_PER_CELL  = 4,
+    ZZN_BUDGET      = 1000,
+    PLUG_MAX_SIDE   = 12,
+    DIAG_MAX_AREA   = 144,
+    DIAG_NARROW     = 8,
+    MOVED_CUTS      = 16,
+    MAX_RUN         = 6,
+    STRICT_TRIES    = 32,
+    STRICT_BUDGET   = 20000,
+    STRICT_PER_CELL = 50,
+    LOCAL_BUDGET    = 2000,
+    LOCAL_PER_CELL  = 100;
 
 //----------------------------------------------------------------------------
 // Cells, boxes and frames
@@ -157,22 +191,18 @@ function box_frames(B) {
   return lng.concat(sht);
 }
 
-// The frame whose canonical endpoints are nearest (Manhattan distance) to s
-// and t. When s and t are the corners of one edge this is the gilbert2d frame
-// running from s to t.
+// The frames of B ordered by how near (Manhattan distance) their canonical
+// endpoints are to s and t, ties in box_frames order. When s and t are the
+// corners of one edge the first is the gilbert2d frame running from s to t.
 //
-function choose_frame(B, s, t) {
-  var fr   = box_frames(B),
-      best = null,
-      bd   = -1;
+function frames_by_score(B, s, t) {
+  var fr = box_frames(B).map(function (F, i) {
+    var e = frame_pt(F, F.w - 1, 0);
+    return { F: F, i: i, d: (Math.abs(s.x - F.px) + Math.abs(s.y - F.py) + Math.abs(t.x - e.x) + Math.abs(t.y - e.y)) };
+  });
 
-  for (var i = 0; i < fr.length; i++) {
-    var e = frame_pt(fr[i], fr[i].w - 1, 0),
-        d = Math.abs(s.x - fr[i].px) + Math.abs(s.y - fr[i].py) +
-            Math.abs(t.x - e.x) + Math.abs(t.y - e.y);
-    if ( (best === null) || (d < bd) ) { best = fr[i]; bd = d; }
-  }
-  return best;
+  fr.sort(function (a, b) { return ( (a.d !== b.d) ? (a.d - b.d) : (a.i - b.i) ); });
+  return fr.map(function (o) { return o.F; });
 }
 
 //----------------------------------------------------------------------------
@@ -234,6 +264,21 @@ function template_at(F, kind, w2, h2) {
                     local_box(F, w2, 0, w - w2, h2) ] };
 }
 
+// The template of the other kind for frame F, cut at the midpoint the same
+// way (used when the gilbert2d template doesn't work).
+//
+function flipped_template(F, base) {
+  var w2 = half(F.w, F.ax + F.ay),
+      h2 = half(F.h, F.bx + F.by);
+
+  if (base.kind === 3) {
+    if ( (w2 < 1) || (w2 >= F.w) ) { return null; }
+    return template_at(F, 2, w2, 0);
+  }
+  if ( (h2 < 1) || (h2 >= F.h) || (w2 < 1) || (w2 >= F.w) ) { return null; }
+  return template_at(F, 3, w2, h2);
+}
+
 // The gilbert2d template for frame F.
 //
 function make_template(F) {
@@ -246,39 +291,56 @@ function make_template(F) {
   //
   if ((2 * w) > (3 * h)) {
     if ( ((w2 % 2) === 1) && (w > 2) ) { w2++; }
-    return template_at(F, 2, w2, 0);
+    var T2 = template_at(F, 2, w2, 0);
+    T2.gilbert = true;
+    return T2;
   }
 
   // Standard case: lower first, upper, lower second.
   //
   if ( ((h2 % 2) === 1) && (h > 2) ) { h2++; }
-  return template_at(F, 3, w2, h2);
+  var T = template_at(F, 3, w2, h2);
+  T.gilbert = true;
+  return T;
 }
 
-// Moved cuts for when the gilbert2d cut puts s and t in one piece and that
-// fails: the same kind of template with its cut(s) shifted so that s and t
-// land in different pieces, nearest the gilbert2d cut first (at most
-// MOVED_CUTS of them).
+// Moved cuts, for when the template at its own cut fails: the same kind of
+// template with its cut(s) shifted, only where s and t land in different
+// pieces, nearest the original cut first (at most MOVED_CUTS of them, the
+// original cut itself excluded).
 //
 function moved_templates(F, base, s, t) {
   var ls   = frame_uv(F, s),
       lt   = frame_uv(F, t),
       cand = [],
-      w2, h2;
+      w2, h2, d, dh;
+
+  var part = function (l, w2, h2) { return ( (l.v >= h2) ? 1 : ( (l.u < w2) ? 0 : 2 ) ); };
 
   if (base.kind === 2) {
     for (w2 = 1; w2 < F.w; w2++) {
       if ( (ls.u < w2) === (lt.u < w2) ) { continue; }
+      if (w2 === base.w2)                 { continue; }
       cand.push({ d: Math.abs(w2 - base.w2), w2: w2, h2: 0 });
     }
   }
   else {
-    for (h2 = 1; h2 < F.h; h2++) {
-      for (w2 = 1; w2 < F.w; w2++) {
-        var ps = ( (ls.v >= h2) ? 1 : ( (ls.u < w2) ? 0 : 2 ) ),
-            pt = ( (lt.v >= h2) ? 1 : ( (lt.u < w2) ? 0 : 2 ) );
-        if (ps === pt) { continue; }
-        cand.push({ d: (Math.abs(w2 - base.w2) + Math.abs(h2 - base.h2)), w2: w2, h2: h2 });
+
+    // Rings of increasing distance from the original cut, stopping once a
+    // ring completes MOVED_CUTS candidates (the same result as sorting all).
+    //
+    for (d = 1; (d <= (F.w + F.h)) && (cand.length < MOVED_CUTS); d++) {
+      for (dh = -d; dh <= d; dh++) {
+        var rest = d - Math.abs(dh),
+            dws  = ( (rest === 0) ? [0] : [-rest, rest] );
+        h2 = base.h2 + dh;
+        if ( (h2 < 1) || (h2 >= F.h) ) { continue; }
+        for (var q = 0; q < dws.length; q++) {
+          w2 = base.w2 + dws[q];
+          if ( (w2 < 1) || (w2 >= F.w) )                 { continue; }
+          if (part(ls, w2, h2) === part(lt, w2, h2))     { continue; }
+          cand.push({ d: d, w2: w2, h2: h2 });
+        }
       }
     }
   }
@@ -337,7 +399,7 @@ function junctions(F, tmpl, ia, ib, allow_diag) {
           var p  = mkpt(xx, yy),
               rk = junction_rank(F, tmpl, ia, ib, p, q);
           while (buckets.length <= rk[0]) { buckets.push([]); }
-          buckets[rk[0]].push({ x: p, y: q, diag: dg, tie: rk[1] });
+          buckets[rk[0]].push({ x: p, y: q, diag: dg, tie: rk[1], rank: rk[0] });
         }
       }
     }
@@ -393,14 +455,32 @@ function loop_is_ccw(tmpl, sched, c0, cL) {
 // the solve step then recurses.
 //
 
-// Returns null if the plan is ruled out, else { segs, loop, pref }.
+// The longest straight run a one-path piece is likely to force, from its
+// shape: a 1-wide piece is a single line; in a 2- or 3-wide piece, the part
+// beyond both endpoints along its length has to be covered out and back,
+// which (a hairpin in 2 rows, and in practice in 3) runs its whole length.
+//
+function forced_run(B, a, b) {
+  var L  = Math.max(B.w, B.h),
+      pa, pb;
+
+  if (Math.min(B.w, B.h) === 1) { return L; }
+  if (Math.min(B.w, B.h) > 3)   { return 0; }
+
+  pa = ( (B.w >= B.h) ? (a.x - B.x0) : (a.y - B.y0) );
+  pb = ( (B.w >= B.h) ? (b.x - B.x0) : (b.y - B.y0) );
+  return ( Math.max(Math.min(pa, pb), L - 1 - Math.max(pa, pb)) + 1 );
+}
+
+// Returns null if the plan is ruled out, else { segs, loop, pref, forced }.
 //
 function plan_shape(tmpl, sched, jn, s, t, need_diag) {
   var k     = jn.length,
       loop  = (sched[0] === sched[k]),
       segs  = [],
       ndiag = 0,
-      pref  = 0;
+      pref  = 0,
+      frc   = 0;
 
   for (var j = 0; j < k; j++) {
     if (jn[j].diag) { ndiag++; pref = (2 * j) + 1; }
@@ -424,10 +504,11 @@ function plan_shape(tmpl, sched, jn, s, t, need_diag) {
       ndiag++;
       pref = 2 * i;
     }
+    frc = Math.max(frc, forced_run(B, a, b));
   }
 
   if (ndiag !== ( need_diag ? 1 : 0 )) { return null; }
-  return { segs: segs, loop: loop, pref: pref };
+  return { segs: segs, loop: loop, pref: pref, forced: frc };
 }
 
 // Position of a boundary cell going around box B, or -1 for an interior cell
@@ -499,6 +580,80 @@ function solve_zzn_piece(ctx, B, s, xo, xi, t) {
   return out;
 }
 
+// Solve the two-segment piece B (paths s-xo and xi-t) by recursion: a
+// straight cut with s and xo on one side and xi and t on the other, each side
+// then being an ordinary one-path problem. Cuts whose sides force no long
+// straight run come first (and, with strict set, are the only ones tried);
+// within that, cuts nearest the middle, the longer side's first on ties.
+// Memoized. Returns [path0, path1] as flat coordinate lists, or null.
+//
+function rec_two_piece(ctx, B, s, xo, xi, t, strict) {
+  var key  = [B.x0, B.y0, B.w, B.h, s.x, s.y, xo.x, xo.y, xi.x, xi.y, t.x, t.y, ( strict ? 1 : 0 )].join(","),
+      cuts = [],
+      c;
+
+  if (ctx.rmemo.has(key))           { return ctx.rmemo.get(key); }
+  if (!zzn_quick(B, s, xo, xi, t)) { ctx.rmemo.set(key, null); return null; }
+
+  var add = function (vert, c, len, other) {
+    var side = function (q) { return ( vert ? (q.x < (B.x0 + c)) : (q.y < (B.y0 + c)) ); };
+    if ( (side(s) !== side(xo)) || (side(xi) !== side(t)) || (side(s) === side(xi)) ) { return; }
+    cuts.push({ vert: vert, c: c, off: (Math.abs((2 * c) - len) / len), longer: ( (len >= other) ? 0 : 1 ) });
+  };
+  for (c = 1; c < B.w; c++) { add(true, c, B.w, B.h); }
+  for (c = 1; c < B.h; c++) { add(false, c, B.h, B.w); }
+
+  cuts.sort(function (a, b) {
+    if (a.off !== b.off)       { return (a.off - b.off); }
+    if (a.longer !== b.longer) { return (a.longer - b.longer); }
+    if (a.vert !== b.vert)     { return ( a.vert ? -1 : 1 ); }
+    return (a.c - b.c);
+  });
+
+  for (var pass = 0; pass < ( strict ? 1 : 2 ); pass++) {
+  for (var i = 0; i < cuts.length; i++) {
+    var P = ( cuts[i].vert ? { x0: B.x0, y0: B.y0, w: cuts[i].c, h: B.h }
+                           : { x0: B.x0, y0: B.y0, w: B.w, h: cuts[i].c } ),
+        Q = ( cuts[i].vert ? { x0: (B.x0 + cuts[i].c), y0: B.y0, w: (B.w - cuts[i].c), h: B.h }
+                           : { x0: B.x0, y0: (B.y0 + cuts[i].c), w: B.w, h: (B.h - cuts[i].c) } ),
+        start = ctx.ox.length;
+
+    if (!in_box(P, s)) { var tmp = P; P = Q; Q = tmp; }
+    cuts[i].forced = Math.max(forced_run(P, s, xo), forced_run(Q, xi, t));
+    if ( (pass === 0) && (cuts[i].forced > MAX_RUN) )  { continue; }
+    if ( (pass === 1) && (cuts[i].forced <= MAX_RUN) ) { continue; }
+    if ( (!compatible(P, s, xo)) || (!compatible(Q, xi, t)) ) { continue; }
+    if ( (!ips_ok(P, s, xo)) || (!ips_ok(Q, xi, t)) )         { continue; }
+
+    if (gen(ctx, P, s, xo)) {
+      var mid = ctx.ox.length;
+      if (gen(ctx, Q, xi, t)) {
+        var f0 = [], f1 = [], q;
+        for (q = start; q < mid; q++)           { f0.push(ctx.ox[q], ctx.oy[q]); }
+        for (q = mid; q < ctx.ox.length; q++)   { f1.push(ctx.ox[q], ctx.oy[q]); }
+        out_reset(ctx, start);
+        ctx.rmemo.set(key, [f0, f1]);
+        return [f0, f1];
+      }
+    }
+    out_reset(ctx, start);
+    if (ctx.budget_hit) { return null; }
+  }
+  }
+
+  ctx.rmemo.set(key, null);
+  return null;
+}
+
+// The two-segment piece of a loop plan: by recursion if possible, otherwise
+// (when allowed) with the k=2 ZZN solver.
+//
+function solve_two_piece(ctx, B, s, xo, xi, t, allow_zzn, strict) {
+  var r = rec_two_piece(ctx, B, s, xo, xi, t, strict);
+  if ( (r !== null) || (!allow_zzn) || ctx.budget_hit ) { return r; }
+  return solve_zzn_piece(ctx, B, s, xo, xi, t);
+}
+
 // Solve a plan: the two-segment piece first (if any), then each one-segment
 // piece recursively. Appends the whole path and returns true, or returns
 // false having appended nothing.
@@ -514,7 +669,7 @@ function plan_solve(ctx, shape) {
   if (ctx.calls > ctx.call_limit) { ctx.budget_hit = true; return false; }
 
   if (shape.loop) {
-    zp = solve_zzn_piece(ctx, segs[0].box, segs[0].a, segs[0].b, segs[k].a, segs[k].b);
+    zp = solve_two_piece(ctx, segs[0].box, segs[0].a, segs[0].b, segs[k].a, segs[k].b, shape.allow_zzn, shape.strict);
     if (zp === null) { return false; }
   }
 
@@ -529,7 +684,34 @@ function plan_solve(ctx, shape) {
       return false;
     }
   }
+
+  // Strict round: reject the plan if what it produced has a straight run
+  // longer than MAX_RUN (gilbert2d's own plan excepted).
+  //
+  if ( shape.strict && (!shape.own) && (longest_run(ctx, start) > MAX_RUN) ) {
+    out_reset(ctx, start);
+    ctx.strict_left--;
+    return false;
+  }
   return true;
+}
+
+// Longest straight run (in cells) in the output from index start on.
+//
+function longest_run(ctx, start) {
+  var X    = ctx.ox,
+      Y    = ctx.oy,
+      best = ( (X.length > start) ? 1 : 0 ),
+      run  = 1;
+
+  for (var i = start + 1; i < X.length; i++) {
+    var ok = ( (i >= (start + 2)) &&
+               ((X[i] - X[i - 1]) === (X[i - 1] - X[i - 2])) &&
+               ((Y[i] - Y[i - 1]) === (Y[i - 1] - Y[i - 2])) );
+    run  = ( ok ? (run + 1) : 2 );
+    best = Math.max(best, run);
+  }
+  return best;
 }
 
 // Try shaped plans in order: diagonal step as late as possible, then junction
@@ -545,23 +727,35 @@ function try_plans(ctx, plans) {
   });
 
   for (var i = 0; i < plans.length; i++) {
+    if ( plans[i].strict && ((ctx.strict_left <= 0) || (ctx.calls > ctx.strict_limit)) ) { return false; }
+    if (ctx.calls > ctx.local_limit)                                                     { return false; }
     if (plan_solve(ctx, plans[i])) { return true; }
     if (ctx.budget_hit)            { return false; }
   }
   return false;
 }
 
-function shape_into(plans, tmpl, sc, jn, s, t, need_diag) {
+function shape_into(plans, tmpl, sc, jn, s, t, need_diag, allow_zzn, strict) {
   var sh = plan_shape(tmpl, sc, jn, s, t, need_diag);
   if (sh === null) { return; }
-  sh.ties = jn.map(function (c) { return c.tie; });
+
+  // gilbert2d's own plan is exempt when the endpoints are gilbert2d's (the
+  // template is gilbert2d's, the frame is canonical, every junction at rank 0).
+  //
+  var own = ( (tmpl.gilbert === true) && (tmpl.canonical === true) &&
+              jn.every(function (c) { return (c.rank === 0); }) );
+  if ( strict && (!own) && (sh.forced > MAX_RUN) ) { return; }
+  sh.own = own;
+  sh.ties      = jn.map(function (c) { return c.tie; });
+  sh.allow_zzn = allow_zzn;
+  sh.strict    = strict;
   plans.push(sh);
 }
 
 // Plans of a schedule that visits each piece once, by lowest total junction
 // rank (junctions nearest the outer edges first).
 //
-function try_line(ctx, tmpl, sc, J, s, t, need_diag) {
+function try_line(ctx, tmpl, sc, J, s, t, need_diag, strict) {
   var maxr = J.map(function (b) { return (b.length - 1); }),
       top  = maxr.reduce(function (m, n) { return (m + n); }, 0);
 
@@ -575,7 +769,7 @@ function try_line(ctx, tmpl, sc, J, s, t, need_diag) {
         combos.forEach(function (c) { J[j][r].forEach(function (cand) { nxt.push(c.concat([cand])); }); });
         combos = nxt;
       });
-      combos.forEach(function (jn) { shape_into(plans, tmpl, sc, jn, s, t, need_diag); });
+      combos.forEach(function (jn) { shape_into(plans, tmpl, sc, jn, s, t, need_diag, false, strict); });
     });
 
     if (try_plans(ctx, plans)) { return true; }
@@ -588,7 +782,7 @@ function try_line(ctx, tmpl, sc, J, s, t, need_diag) {
 // endpoints of the two-segment piece (its exit and re-entry) are chosen
 // first, nearest the outer edges; the middle junction (kind 3) second.
 //
-function try_loop(ctx, tmpl, sc, J, s, t, need_diag, want_ccw) {
+function try_loop(ctx, tmpl, sc, J, s, t, need_diag, want_ccw, allow_zzn, strict) {
   var k  = J.length,
       X  = tmpl.boxes[sc[0]],
       J0 = J[0],
@@ -620,7 +814,7 @@ function try_loop(ctx, tmpl, sc, J, s, t, need_diag, want_ccw) {
 
             mids.forEach(function (cm) {
               var jn = ( (cm === null) ? [c0, cL] : [c0, cm, cL] );
-              shape_into(plans, tmpl, sc, jn, s, t, need_diag);
+              shape_into(plans, tmpl, sc, jn, s, t, need_diag, allow_zzn, strict);
             });
 
             if (try_plans(ctx, plans)) { return true; }
@@ -654,10 +848,17 @@ function rank_tuples(maxr, sum) {
   return out;
 }
 
-// Try every plan of template tmpl. Loop schedules are tried counterclockwise
-// first, then clockwise.
+// Try the plans of template tmpl of one kind (mode):
 //
-function try_template(ctx, F, tmpl, s, t, need_diag) {
+//   "line"      schedules that visit each piece once,
+//   "loop_rec"  loop schedules, the two-segment piece solved by recursion only,
+//   "loop_zzn"  loop schedules, the two-segment piece may use the ZZN solver.
+//
+// Loops are tried counterclockwise first, then clockwise. With strict set,
+// plans with a piece forcing a straight run longer than MAX_RUN are
+// skipped, except gilbert2d's own plan.
+//
+function try_template(ctx, F, tmpl, s, t, need_diag, mode, strict) {
   var is = -1,
       it = -1;
 
@@ -669,6 +870,7 @@ function try_template(ctx, F, tmpl, s, t, need_diag) {
   var scheds = schedules(tmpl, is, it),
       jcache = scheds.map(function (sc) {
         var out = [];
+        if ((sc[0] === sc[sc.length - 1]) !== (mode !== "line")) { return out; }
         for (var j = 0; j < (sc.length - 1); j++) { out.push(junctions(F, tmpl, sc[j], sc[j + 1], need_diag)); }
         return out;
       });
@@ -680,10 +882,11 @@ function try_template(ctx, F, tmpl, s, t, need_diag) {
           loop = (sc[0] === sc[sc.length - 1]),
           ok   = false;
 
+      if (loop !== (mode !== "line"))                        { continue; }
       if (J.some(function (b) { return (b.length === 0); })) { continue; }
 
-      if (loop)             { ok = try_loop(ctx, tmpl, sc, J, s, t, need_diag, (pass === 0)); }
-      else if (pass === 0)  { ok = try_line(ctx, tmpl, sc, J, s, t, need_diag); }
+      if (loop)            { ok = try_loop(ctx, tmpl, sc, J, s, t, need_diag, (pass === 0), (mode === "loop_zzn"), strict); }
+      else if (pass === 0) { ok = try_line(ctx, tmpl, sc, J, s, t, need_diag, strict); }
 
       if (ok)             { return true; }
       if (ctx.budget_hit) { return false; }
@@ -891,19 +1094,105 @@ function gen_uncached(ctx, B, s, t) {
     return true;
   }
 
-  var F    = choose_frame(B, s, t),
-      base = make_template(F);
-
-  if (try_template(ctx, F, base, s, t, need_diag)) { return true; }
-  if (ctx.budget_hit)                               { return false; }
-
-  // If s and t share a piece and the loop failed, move the cut.
+  // Recursion is tried in every form before a non-recursive solver:
   //
-  if (base.boxes.some(function (bx) { return ( in_box(bx, s) && in_box(bx, t) ); })) {
+  //   1. the best frame, each piece visited once: its gilbert2d template,
+  //      the other kind of template, then moved cuts of both,
+  //   2. loops whose two-segment piece is split by recursion,
+  //   3. the other frames, as in 1,
+  //   4. loops using the ZZN solver, then the exact fallbacks.
+  //
+  // Steps 1-3 run twice: first strictly (no straight run longer than MAX_RUN,
+  // at most STRICT_TRIES solved plans rejected for one), then without that
+  // restriction. Rectangles 3 or less across skip the strict round, since
+  // long runs are forced there, and so does everything once the search has
+  // used its strict budget. Steps 1-3 together may use LOCAL_BUDGET +
+  // LOCAL_PER_CELL * area calls (within the parent's allowance); step 4 is
+  // bounded by the parent's allowance.
+  //
+  var frames = frames_by_score(B, s, t),
+      F      = frames[0],
+      Fe     = frame_pt(F, F.w - 1, 0),
+      base   = make_template(F),
+      strict = true,
+      saved  = ctx.strict_left,
+      found  = false,
+      round;
+
+  base.canonical = ( (F.px === s.x) && (F.py === s.y) && same_pt(Fe, t) );
+
+  var attempt = function (Fr, T, mode) {
+    return try_template(ctx, Fr, T, s, t, need_diag, mode, strict);
+  };
+
+  var line_with_moves = function (Fr) {
+    if (ctx.calls > ctx.local_limit) { return false; }
+
+    var T = ( (Fr === F) ? base : make_template(Fr) ),
+        U = flipped_template(Fr, T),
+        m;
+
+    // Built lazily: the gilbert2d template usually works outright.
+    //
+    var tries = [
+      function () { return [T]; },
+      function () { return ( (U === null) ? [] : [U] ); },
+      function () { return moved_templates(Fr, T, s, t); },
+      function () { return ( (U === null) ? [] : moved_templates(Fr, U, s, t) ); }
+    ];
+
+    for (var k = 0; k < tries.length; k++) {
+      var list = tries[k]();
+      for (m = 0; (m < list.length) && (ctx.calls <= ctx.local_limit); m++) {
+        if (attempt(Fr, list[m], "line")) { return true; }
+        if (ctx.budget_hit)                { return false; }
+      }
+      if (ctx.calls > ctx.local_limit) { return false; }
+    }
+    return false;
+  };
+
+  var round_search = function () {
+    if (line_with_moves(F))           { return true; }
+    if (ctx.budget_hit)               { return false; }
+    if (attempt(F, base, "loop_rec")) { return true; }
+    if (ctx.budget_hit)               { return false; }
+    for (var f = 1; f < frames.length; f++) {
+      if (line_with_moves(frames[f])) { return true; }
+      if (ctx.budget_hit)             { return false; }
+    }
+    return false;
+  };
+
+  var first    = ( ((Math.min(B.w, B.h) <= 3) || (ctx.calls > ctx.strict_limit)) ? 1 : 0 ),
+      outer    = ctx.local_limit;
+
+  ctx.local_limit = Math.min(outer, ctx.calls + LOCAL_BUDGET + (LOCAL_PER_CELL * B.w * B.h));
+  for (round = first; (round < 2) && (!found) && (!ctx.budget_hit) && (ctx.calls <= ctx.local_limit); round++) {
+    strict          = (round === 0);
+    ctx.strict_left = STRICT_TRIES;
+    found           = round_search();
+  }
+  var cut = (ctx.calls > ctx.local_limit);
+  ctx.strict_left = saved;
+  ctx.local_limit = outer;
+  if (found)          { return true; }
+  if (ctx.budget_hit) { return false; }
+
+  // Step 4. If the budget cut steps 1-3 short, first the plain search that
+  // needs no extended options: the gilbert2d template, then (around the ZZN
+  // loops) its moved cuts.
+  //
+  strict = false;
+  if ( cut && attempt(F, base, "line") ) { return true; }
+  if (ctx.budget_hit)                    { return false; }
+  if (attempt(F, base, "loop_zzn"))      { return true; }
+  if (ctx.budget_hit)                    { return false; }
+  if (cut) {
     var mv = moved_templates(F, base, s, t);
-    for (var i = 0; i < mv.length; i++) {
-      if (try_template(ctx, F, mv[i], s, t, need_diag)) { return true; }
-      if (ctx.budget_hit)                                { return false; }
+    for (var m = 0; m < mv.length; m++) {
+      if (attempt(F, mv[m], "line")) { return true; }
+      if (ctx.budget_hit)             { return false; }
     }
   }
 
@@ -978,8 +1267,10 @@ function gilbert_ep(w, h, x0, y0, x1, y1) {
   if ( need_diag && (!diag_count_ok(B, s, t)) ) { return { status: "infeasible", reason: "both endpoints off the corner color of an odd rectangle" }; }
 
   var ctx = { calls: 0, call_limit: (CALL_BUDGET + (CALLS_PER_CELL * w * h)),
+              strict_limit: (STRICT_BUDGET + (STRICT_PER_CELL * w * h)),
+              local_limit: (CALL_BUDGET + (CALLS_PER_CELL * w * h)),
               zzn_calls: 0, plug_calls: 0, budget_hit: false,
-              fail: new Map(), zmemo: new Map(), ox: [], oy: [] },
+              fail: new Map(), zmemo: new Map(), rmemo: new Map(), ox: [], oy: [], strict_left: 0 },
       stats = function () { return { calls: ctx.calls, zzn_calls: ctx.zzn_calls, plug_calls: ctx.plug_calls }; };
 
   if (!gen(ctx, B, s, t)) {
