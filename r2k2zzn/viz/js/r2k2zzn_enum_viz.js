@@ -151,15 +151,19 @@ function mk_checkerboard_endpoints(opt) {
     let s_p = [ sx + spos[0]*x_len, sy + spos[1]*y_len ];
     let t_p = [ sx + tpos[0]*x_len, sy + tpos[1]*y_len ];
 
-    let start_circle = two.makeCircle( s_p[0], s_p[1], cr );
-    start_circle.fill = ep_color;
-    start_circle.linewidth = 0;
-    start_circle.stroke = ep_color;
+    if ((spos[0] >= 0) && (spos[1] >= 0)) {
+      let start_circle = two.makeCircle( s_p[0], s_p[1], cr );
+      start_circle.fill = ep_color;
+      start_circle.linewidth = 0;
+      start_circle.stroke = ep_color;
+    }
 
-    let end_circle = two.makeCircle( t_p[0], t_p[1], cr );
-    end_circle.fill = ep_color;
-    end_circle.linewidth = 0;
-    end_circle.stroke = ep_color;
+    if ((tpos[0] >= 0) && (tpos[1] >= 0)) {
+      let end_circle = two.makeCircle( t_p[0], t_p[1], cr );
+      end_circle.fill = ep_color;
+      end_circle.linewidth = 0;
+      end_circle.stroke = ep_color;
+    }
   }
 
   if (("overlay" in opt) &&
@@ -213,27 +217,32 @@ function mk_checkerboard_paths(opt) {
   }
 
 
-  for (let iy = 0; iy < ny; iy++) {
-    for (let ix = 0; ix < nx; ix++) {
+  if (("show_checkerboard" in opt) &&
+      (opt.show_checkerboard)) {
 
-      let parity = (ix+iy +fudge_parity)%2;
+    for (let iy = 0; iy < ny; iy++) {
+      for (let ix = 0; ix < nx; ix++) {
 
-      let x = sx + ix*x_len;
-      let y = sy + iy*y_len;
-      let rect = new Two.Rectangle( x,y, x_len, y_len );
-      rect.linewidth = 0.5;
+        let parity = (ix+iy +fudge_parity)%2;
 
-      rect.stroke = "rgba(0,0,0,0.4)";
-      rect.fill = "rgba(255, 200, 200, 1)";
-      rect.fill = color[ parity ];
+        let x = sx + ix*x_len;
+        let y = sy + iy*y_len;
+        let rect = new Two.Rectangle( x,y, x_len, y_len );
+        rect.linewidth = 0.5;
 
-      rect.stroke = "rgb(0,0,0)";
-      rect.fill = color[parity];
-      rect.opacity = 0.5;
+        rect.stroke = "rgba(0,0,0,0.4)";
+        rect.fill = "rgba(255, 200, 200, 1)";
+        rect.fill = color[ parity ];
 
-      two.add(rect);
+        rect.stroke = "rgb(0,0,0)";
+        rect.fill = color[parity];
+        rect.opacity = 0.5;
 
+        two.add(rect);
+
+      }
     }
+
   }
 
   let lw = (("l_width" in opt) ? opt.l_width : 10);
@@ -246,14 +255,21 @@ function mk_checkerboard_paths(opt) {
 
   let path_colors = [
     "rgb(80,80,140)",
+    "rgb(200,60,50)",
+    "rgb(80,80,140)",
     "rgb(200,60,50)"
   ];
+
+  let show_endpoints = (("show_endpoints" in opt) ? op.show_endpoints : false);
 
 
   let paths = opt.paths;
 
   for (let path_idx=0; path_idx<paths.length; path_idx++) {
     let _p = paths[path_idx];
+
+    if (_p.length==0) { continue; }
+
     let w_p = [];
     for (let idx = 0; idx < _p.length; idx++) {
       w_p.push( [ sx + _p[idx][0]*x_len, sy + _p[idx][1]*y_len ] );
@@ -276,19 +292,21 @@ function mk_checkerboard_paths(opt) {
     t_path.cap = 'round';
     t_path.join = 'round';
 
-    let start_circle = two.makeCircle( w_p[0][0], w_p[0][1], cr );
-    start_circle.fill = path_color;
-    start_circle.linewidth = 0;
-    start_circle.stroke = path_color;
+    if (show_endpoints) {
+      let start_circle = two.makeCircle( w_p[0][0], w_p[0][1], cr );
+      start_circle.fill = path_color;
+      start_circle.linewidth = 0;
+      start_circle.stroke = path_color;
 
-    if (("end_circle" in opt) &&
-        (opt.end_circle)) {
-      let n = w_p.length-1;
-      let end_circle = two.makeCircle( w_p[n][0], w_p[n][1], cr );
-      //end_circle.fill = "rgba(120,120,240,1)";
-      end_circle.fill = path_color;
-      end_circle.linewidth = 0;
-      end_circle.stroke = path_color;
+      if (("end_circle" in opt) &&
+          (opt.end_circle)) {
+        let n = w_p.length-1;
+        let end_circle = two.makeCircle( w_p[n][0], w_p[n][1], cr );
+        //end_circle.fill = "rgba(120,120,240,1)";
+        end_circle.fill = path_color;
+        end_circle.linewidth = 0;
+        end_circle.stroke = path_color;
+      }
     }
   }
 
@@ -327,6 +345,46 @@ function disp_r2k2zzn() {
 
 }
 */
+
+function disp_pattern(wh, stst, paths, _disp_opt) {
+  paths = ((typeof paths === "undefined") ? [ [], [] ] : paths );
+
+  let square_size = _disp_opt.square_size;
+  let cur_x = _disp_opt.sx;
+  let cur_y = _disp_opt.sy;
+
+  //let dx = (wh[0]*square_size*6/5),
+  //    dy = (wh[1]*square_size*6/5);
+
+
+  let l_width = square_size / 3,
+      c_rad = square_size * 17/60;
+
+  let _osx = _disp_opt.sx,
+      _osy = _disp_opt.sy;
+
+  let _opt = {
+    "show_checkerboard": true,
+
+    "S": [ stst[0], stst[2] ],
+    "T": [ stst[1], stst[3] ],
+
+    "l_width" : l_width,
+    "c_rad": c_rad,
+    "end_circle":true,
+    "sx": cur_x, "sy": cur_y,
+    "nx": wh[0], "ny": wh[1],
+    "x_len": square_size, "y_len": square_size,
+    "paths": paths
+  };
+
+  mk_checkerboard_endpoints(_opt);
+
+  _opt.show_checkerboard = false;
+  mk_checkerboard_paths(_opt);
+
+}
+
 
 function disp_wh_r2k2zzn(wh_idx) {
   let square_size = 8;
@@ -559,6 +617,100 @@ function web_init() {
   var ele = document.getElementById(CANVAS_ID);
   two.appendTo(ele);
 
-  disp_wh_r2k2zzn(1);
+  let _osx = 50,
+      _osy = 50;
+
+  let _ss = 8;
+  let disp_opt = {
+    "square_size" : _ss,
+    "sx": _osx, "sy": _osy
+  };
+  let _opt = disp_opt;
+
+  let max_h = -1;
+
+
+  let pat_T = [
+    { "name": "T1", "wh": [5,3], "stst" : [ [0,0],[4,2], [4,0],[0,2] ], "paths": [[],[]] },
+    { "name": "T2", "wh": [4,4], "stst" : [ [1,1],[2,2], [2,1],[1,2] ], "paths": [[],[]] },
+  ];
+
+  for (let i=0; i<pat_T.length; i++) {
+    disp_pattern( pat_T[i].wh, pat_T[i].stst, pat_T[i].paths, _opt );
+    _opt.sx += _ss*pat_T[i].wh[0] + (2*_ss);
+
+    if (max_h < pat_T[i].wh[1]) { max_h = pat_T[i].wh[1]; }
+  }
+
+
+  //_opt.sx += _ss*pat_T[0].wh[0] + (2*_ss);
+  //disp_pattern( pat_T[1].wh, pat_T[1].stst, pat_T[1].paths, _opt );
+
+
+  //---
+
+  _opt.sx = _osx;
+  _opt.sy += _ss*max_h + (2*_ss);
+  max_h = -1;
+
+  let pat_L = [
+    { "name": "L1", "wh": [3,3], "stst" : [ [0,1],[1,0], [0,0],[-1,-1] ], "paths": [[],[]] },
+    { "name": "L2", "wh": [3,3], "stst" : [ [0,1],[-1,-1], [1,0],[-1,-1] ], "paths": [[],[]] },
+    { "name": "L3", "wh": [4,3], "stst" : [ [2,0],[1,1], [0,1],[-1,-1] ], "paths": [[],[]] },
+    { "name": "L4", "wh": [4,3], "stst" : [ [0,0],[1,1], [2,0],[-1,-1] ], "paths": [[],[]] },
+    { "name": "L5", "wh": [4,4], "stst" : [ [2,0],[0,2], [0,0],[-1,-1] ], "paths": [[],[]] },
+    { "name": "L6", "wh": [8,3], "stst" : [ [1,0],[0,1], [6,0],[7,1] ], "paths": [[],[]] },
+  ];
+
+  for (let i=0; i<pat_L.length; i++) {
+    disp_pattern( pat_L[i].wh, pat_L[i].stst, pat_L[i].paths, _opt );
+    _opt.sx += _ss*pat_L[i].wh[0] + (2*_ss);
+
+    if (max_h < pat_L[i].wh[1]) { max_h = pat_L[i].wh[1]; }
+  }
+
+  //---
+
+  _opt.sx = _osx;
+  _opt.sy += _ss*max_h + (2*_ss);
+  max_h = -1;
+
+  let pat_E = [
+    { "name": "E1", "wh": [8,3], "stst" : [ [2,0],[3,1], [4,1],[5,0] ], "paths": [[],[]] },
+  ];
+
+  for (let i=0; i<pat_E.length; i++) {
+    disp_pattern( pat_E[i].wh, pat_E[i].stst, pat_E[i].paths, _opt );
+    _opt.sx += _ss*pat_E[i].wh[0] + (2*_ss);
+
+    if (max_h < pat_E[i].wh[1]) { max_h = pat_E[i].wh[1]; }
+  }
+
+  //---
+
+  _opt.sx = _osx;
+  _opt.sy += _ss*max_h + (2*_ss);
+  max_h = -1;
+
+  let pat_R = [
+    { "name": "R1.0", "wh": [3,4], "stst" : [ [1,0],[-1,-1], [-1,-1],[-1,-1] ], "paths": [[ [1,0],[0,0],[0,1] ],[]] },
+    { "name": "R2.0", "wh": [5,5], "stst" : [ [0,0],[1,1], [-1,-1],[-1,-1] ], "paths": [[ [0,0],[1,0],[2,0]], [], [  [1,1], [0,1], [0,2] ],[]] },
+    { "name": "R2.1", "wh": [5,5], "stst" : [ [0,0],[1,1], [-1,-1],[-1,-1] ], "paths": [[ [0,0],[0,1],[0,2]], [], [  [1,1], [1,0], [2,0] ],[]] },
+    { "name": "R3.0", "wh": [6,6], "stst" : [ [1,2],[2,1], [-1,-1],[-1,-1] ], "paths": [ [[2,1],[1,1],[0,1],[0,0],[1,0],[2,0],[3,0]], [[1,2],[0,2],[0,3]]] },
+    { "name": "R3.1", "wh": [6,6], "stst" : [ [1,2],[2,1], [-1,-1],[-1,-1] ], "paths": [ [[2,1],[2,0],[3,0]], [[1,2],[1,1],[1,0],[0,0],[0,1],[0,2],[0,3]] ] },
+  ];
+
+  for (let i=0; i<pat_R.length; i++) {
+    disp_pattern( pat_R[i].wh, pat_R[i].stst, pat_R[i].paths, _opt );
+    _opt.sx += _ss*pat_R[i].wh[0] + (2*_ss);
+
+    if (max_h < pat_R[i].wh[1]) { max_h = pat_R[i].wh[1]; }
+  }
+
+
+
+  two.update();
+
+  //disp_wh_r2k2zzn(1);
   //disp_r2k2zzn();
 }
