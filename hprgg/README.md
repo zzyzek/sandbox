@@ -135,7 +135,7 @@ then $\text{HamPath}(R,s,t)$.
 
 > *Lemma 3.2.5*: $\text{Acceptable}(R(5,4),s,t) \to \text{ HamPath}(R(5,4),s,t)$.
 
-> *Lemma 3.2.6*: $\text{Acceptable}(R,s,t) \to \text{ HamPath}(R,s,t)$.
+> *Lemma 3.2.6*: $(\text{Acceptable}(R,s,t) \text{ and } \text{Prime}(R,s,t)) \to \text{ HamPath}(R,s,t)$.
 
 > *Theorem 3.2*: $\text{Acceptable}(R,s,t) \iff \text{ HamPath}(R,s,t)$.
 
