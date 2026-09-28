@@ -121,8 +121,7 @@ $1\cross n$, $2 \cross n$ and $3 \cross n$ compatible.
 
 > *Theorem 3.1*: If a Hamiltonian path exists from $s$ to $t$ in $G$, then $(G,s,t)$ is acceptable.
 
-Note: $\text{HamPath}(G,s,t) \to \text{ Acceptable}(G,s,t)$, proving that acceptability is necessary for a Hamiltonian path
-but, at this point, acceptability is insufficient to provie Hamiltonicity.
+Note: $\text{HamPath}(G,s,t) \to \text{ Acceptable}(G,s,t)$. At this point, acceptability is necessary but insufficient for existence of a Hamiltonian path.
 
 > *Lemma 3.2.1*: If $\text{Acceptable}(R,s,t)$, $S$ strips $R$ and $\text{HamPath}(R-S,s,t)$ then $\text{HamPath}(R,s,t)$.
 
