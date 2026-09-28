@@ -111,13 +111,13 @@ Note that $(R,s,t)$ can be both acceptable and prime.
 
 ### Proof Structure (IPS)
 
-A Hamiltonian path is *forbidden* if it is not $1\cross n$, $2 \cross n$ or $3 \cross n$ compatible.
+A Hamiltonian path is *forbidden* if it is not $1\times n$, $2 \times n$ or $3 \times n$ compatible.
 
 > *Lemma 3.1*: If $(G,s,t)$ is forbidden, then there is no Hamiltonian path from $s$ to $t$ in $G$.
 
 A Hamiltonian path is *acceptable* if it is color compatible and not forbidden.
 That is, a Hamiltonian path is *acceptable* if it is color compatible,
-$1\cross n$, $2 \cross n$ and $3 \cross n$ compatible.
+$1\times n$, $2 \times n$ and $3 \times n$ compatible.
 
 > *Theorem 3.1*: If a Hamiltonian path exists from $s$ to $t$ in $G$, then $(G,s,t)$ is acceptable.
 
