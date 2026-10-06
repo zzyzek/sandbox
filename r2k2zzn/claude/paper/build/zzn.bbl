@@ -1,0 +1,43 @@
+\begin{thebibliography}{1}
+
+\bibitem{adcock15}
+Aaron~B. Adcock, Erik~D. Demaine, Martin~L. Demaine, Michael~P. O'Brien, Felix
+  Reidl, Fernando~S{\'a}nchez Villaamil, and Blair~D. Sullivan.
+\newblock Zig-zag {Numberlink} is {NP}-complete.
+\newblock {\em Journal of Information Processing}, 23(3):239--245, 2015.
+\newblock arXiv:1410.5845.
+
+\bibitem{lean4}
+Leonardo de~Moura and Sebastian Ullrich.
+\newblock The {Lean} 4 theorem prover and programming language.
+\newblock In {\em Automated Deduction -- CADE 28}, volume 12699 of {\em Lecture
+  Notes in Computer Science}, pages 625--635, 2021.
+
+\bibitem{ips82}
+Alon Itai, Christos~H. Papadimitriou, and Jayme~Luiz Szwarcfiter.
+\newblock Hamilton paths in grid graphs.
+\newblock {\em SIAM Journal on Computing}, 11(4):676--686, 1982.
+
+\bibitem{lynch75}
+James~F. Lynch.
+\newblock The equivalence of theorem proving and the interconnection problem.
+\newblock {\em ACM SIGDA Newsletter}, 5(3):31--36, 1975.
+
+\bibitem{rs95}
+Neil Robertson and Paul~D. Seymour.
+\newblock Graph minors. {XIII}. the disjoint paths problem.
+\newblock {\em Journal of Combinatorial Theory, Series B}, 63(1):65--110, 1995.
+
+\bibitem{mathlib20}
+{The mathlib Community}.
+\newblock The {Lean} mathematical library.
+\newblock In {\em Proceedings of the 9th ACM SIGPLAN International Conference
+  on Certified Programs and Proofs (CPP)}, pages 367--381, 2020.
+
+\bibitem{umans97}
+Christopher Umans and William Lenhart.
+\newblock Hamiltonian cycles in solid grid graphs.
+\newblock In {\em Proceedings of the 38th Annual Symposium on Foundations of
+  Computer Science (FOCS)}, pages 496--505, 1997.
+
+\end{thebibliography}

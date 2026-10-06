@@ -713,6 +713,7 @@ function web_init() {
   _opt.sy += _ss*max_h + (2*_ss);
   max_h = -1;
 
+  //WIP!!
   let pat_C = [
     { "name": "C1", "wh": [5,4], "stst" : [ [1,0],[3,0], [1,1],[3,1] ], "paths": [[ [1,0],[0,0],[0,1] ],[], [[3,0],[2,0],[2,1]] ] },
     { "name": "C2", "wh": [8,4], "stst" : [ [1,0],[6,0], [1,1],[7,0] ], "paths": [[ [1,0],[0,0],[0,1] ],[] ] },
@@ -731,6 +732,25 @@ function web_init() {
     _opt.sx += _ss*pat_C[i].wh[0] + (2*_ss);
 
     if (max_h < pat_C[i].wh[1]) { max_h = pat_C[i].wh[1]; }
+  }
+
+  //---
+
+  _opt.sx = _osx;
+  _opt.sy += _ss*max_h + (2*_ss);
+  max_h = -1;
+
+  let pat_D = [
+    { "name": "D1", "wh": [5,5], "stst" : [ [0,0],[1,0], [1,1],[0,2] ], "paths": [[],[]] },
+    { "name": "D2", "wh": [7,5], "stst" : [ [0,0],[4,1], [2,0],[3,1] ], "paths": [[],[]] },
+    { "name": "D3", "wh": [7,5], "stst" : [ [0,0],[3,2], [2,0],[3,1] ], "paths": [[],[]] },
+  ];
+
+  for (let i=0; i<pat_D.length; i++) {
+    disp_pattern( pat_D[i].wh, pat_D[i].stst, pat_D[i].paths, _opt );
+    _opt.sx += _ss*pat_D[i].wh[0] + (2*_ss);
+
+    if (max_h < pat_D[i].wh[1]) { max_h = pat_D[i].wh[1]; }
   }
 
 
