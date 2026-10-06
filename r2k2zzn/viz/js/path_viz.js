@@ -692,19 +692,51 @@ function ui_input(btn_id) {
     _opt.S[1] = _get_v2val("ui_s1");
     _opt.T[1] = _get_v2val("ui_t1");
 
-    let _ctx = r2k2zzn.init(_opt.nx, _opt.ny,
-                            _opt.S[0], _opt.T[0],
-                            _opt.S[1], _opt.T[1] );
+    //let _ctx = r2k2zzn.init(_opt.nx, _opt.ny,
+    //                        _opt.S[0], _opt.T[0],
+    //                        _opt.S[1], _opt.T[1] );
+    //let s = r2k2zzn.solve( _ctx );
+    //_opt.paths = _ctx.path;
+    //
+    //let path_txt = "[ " + JSON.stringify(_ctx.path[0]) + ",\n" +
+    //  "  " + JSON.stringify(_ctx.path[1]) + " ]\n";
+    //
+    //console.log(s);
+    //console.log(_ctx);
 
-    let s = r2k2zzn.solve( _ctx );
+    // solver expects in [row,column], so entries are flipped
+    // from how we think about them in the viz.
+    //
+    let I = {
+      "R" : _opt.ny,
+      "C" : _opt.nx,
+      "s0": [ _opt.S[0][1], _opt.S[0][0] ],
+      "t0": [ _opt.T[0][1], _opt.T[0][0] ],
+      "s1": [ _opt.S[1][1], _opt.S[1][0] ],
+      "t1": [ _opt.T[1][1], _opt.T[1][0] ]
+    };
+    let s = zzn.solve(I);
+    _opt.paths = [ [], [] ];
 
-    console.log(s);
-    console.log(_ctx);
+    let path_txt = "[ [], [] ]";
+    if (s !== null) {
 
-    _opt.paths = _ctx.path;
+      // flip path back for viz
+      //
+      let viz_path = [ [], [] ];
+      for (let k=0; k<2; k++) {
+        for (let i=0; i<s[k].length; i++) {
+          viz_path[k].push( [ s[k][i][1], s[k][i][0] ] );
+        }
+      }
 
-    let path_txt = "[ " + JSON.stringify(_ctx.path[0]) + ",\n" +
-      "  " + JSON.stringify(_ctx.path[1]) + " ]\n";
+      _opt.paths = viz_path;
+      //path_txt = "[ " + JSON.stringify(s[0]) + ",\n" +
+      //  "  " + JSON.stringify(s[1]) + " ]\n";
+      path_txt = "[ " + JSON.stringify(viz_path[0]) + ",\n" +
+        "  " + JSON.stringify(viz_path[1]) + " ]\n";
+    }
+
 
     let ele = document.getElementById("ui_path");
     ele.value = path_txt;
