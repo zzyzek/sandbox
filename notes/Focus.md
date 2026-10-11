@@ -5,6 +5,20 @@ Current Focus
 
 | Task | Effort | Priority | Notes | Block |
 |---|---|---|---|---|
+| Rectangular 2D $k=2$ zig-zag numberlink (R2K2-ZZN) | `1` | `e` | solved, paper needs publishing | |
+| st-Gilbert | `3` | `a` | mostly done, needs special case handling for forced diagonal move | |
+| 3D Relative Neighborhood Graph, Convex Hull Heuristic | `a` | `a` | a.s. $O(n)$ relative neighborhood graph for random 3D points, formal verification (?) | |
+| MIRPRP Writeup | `7` | `3` | With agentic coding, priorities have changed | |
+| cloister and liminal interface method (POMS) | `c` | `8` | simple first, get some artifacts | Composotile |
+| Solid grid graph s-t HP | `f` | `a` | some progress. Currently in progress | |
+| Template optimizations (POMS) | `b` | `5` | Can't do larger models without it | Composotile |
+| Compositile | `7` | `6` | Can't do larger models without it | |
+| West Hubbard | `a` | `3` | blocking on understanding external rays | |
+
+###### 2026-03-22
+
+| Task | Effort | Priority | Notes | Block |
+|---|---|---|---|---|
 | Rectangular 2D $k=2$ zig-zag numberlink (R2K2-ZZN) | `d` | `b` | More general problem needed for st-Gilbert  | |
 | st-Gilbert | `9` | `a` | blocking on some type of R2K2-ZZN result | R2KK2-ZZN |
 | 3D Relative Neighborhood Graph, Convex Hull Heuristic | `a` | `a` | a.s. $O(n)$ relative neighborhood graph for random 3D points | |
