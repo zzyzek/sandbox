@@ -1,7 +1,7 @@
 Current Focus
 ---
 
-###### 2026-03-22
+###### 2026-10-11
 
 | Task | Effort | Priority | Notes | Block |
 |---|---|---|---|---|
@@ -13,7 +13,8 @@ Current Focus
 | Solid grid graph s-t HP | `f` | `a` | some progress. Currently in progress | |
 | Template optimizations (POMS) | `b` | `5` | Can't do larger models without it | Composotile |
 | Compositile | `7` | `6` | Can't do larger models without it | |
-| West Hubbard | `a` | `3` | blocking on understanding external rays | |
+| West Hubbard | `a` | `4` | blocking on understanding external rays | |
+| birb | `a` | `3` | flocking with angular momentum | |
 
 ###### 2026-03-22
 
