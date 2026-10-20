@@ -10,7 +10,7 @@ Current Focus
 | 3D Relative Neighborhood Graph, Convex Hull Heuristic | `a` | `a` | a.s. $O(n)$ relative neighborhood graph for random 3D points, formal verification (?) | |
 | MIRPRP Writeup | `7` | `3` | With agentic coding, priorities have changed | |
 | cloister and liminal interface method (POMS) | `c` | `8` | simple first, get some artifacts | Composotile |
-| Solid grid graph s-t HP | `f` | `a` | some progress. Currently in progress | |
+| Solid grid graph s-t HP | `2` | `f` | completed, paper editing, publishing | |
 | Template optimizations (POMS) | `b` | `5` | Can't do larger models without it | Composotile |
 | Compositile | `7` | `6` | Can't do larger models without it | |
 | West Hubbard | `a` | `4` | blocking on understanding external rays | |
