@@ -1,20 +1,35 @@
 Current Focus
 ---
 
+###### 2026-10-31
+
+| Task                                                  | Effort | Priority | Notes                  | Block |
+|-------------------------------------------------------|-----|-----|--------------------------------|---|
+| Rectangular 2D $k=2$ zig-zag numberlink (R2K2-ZZN)    | `7` | `f` | solved, optimization for Palomar registry, paper edit, paper submission | |
+| Elementary Cellular Automata Classification           | `f` | `a` | 70/88 classified, 54 thought to be TME but unknonwn, no plan for 30 |
+| st-Gilbert                                            | `3` | `7` | mostly done, needs special case handling for forced diagonal move | |
+| 3D Relative Neighborhood Graph, Convex Hull Heuristic | `7` | `a` | Lean verification, reference implementation, write paper, submit (?) | |
+| cloister and liminal interface method (POMS)          | `c` | `8` | simple first, get some artifacts | Composotile |
+| Solid grid graph s-t HP                               | `2` | `9` | completed, paper editing, publishing | |
+| Template optimizations (POMS)                         | `b` | `5` | Can't do larger models without it | Composotile |
+| Compositile                                           | `7` | `6` | Can't do larger models without it | |
+| West Hubbard                                          | `a` | `4` | blocking on understanding external rays | |
+| birb                                                  | `a` | `3` | flocking with angular momentum | |
+
 ###### 2026-10-11
 
-| Task | Effort | Priority | Notes | Block |
-|---|---|---|---|---|
-| Rectangular 2D $k=2$ zig-zag numberlink (R2K2-ZZN) | `1` | `e` | solved, paper needs publishing | |
-| st-Gilbert | `3` | `a` | mostly done, needs special case handling for forced diagonal move | |
+| Task                                                  | Effort | Priority | Notes                  | Block |
+|-------------------------------------------------------|-----|-----|--------------------------------|---|
+| Rectangular 2D $k=2$ zig-zag numberlink (R2K2-ZZN)    | `1` | `e` | solved, paper needs publishing | |
+| st-Gilbert                                            | `3` | `a` | mostly done, needs special case handling for forced diagonal move | |
 | 3D Relative Neighborhood Graph, Convex Hull Heuristic | `a` | `a` | a.s. $O(n)$ relative neighborhood graph for random 3D points, formal verification (?) | |
-| MIRPRP Writeup | `7` | `3` | With agentic coding, priorities have changed | |
-| cloister and liminal interface method (POMS) | `c` | `8` | simple first, get some artifacts | Composotile |
-| Solid grid graph s-t HP | `2` | `f` | completed, paper editing, publishing | |
-| Template optimizations (POMS) | `b` | `5` | Can't do larger models without it | Composotile |
-| Compositile | `7` | `6` | Can't do larger models without it | |
-| West Hubbard | `a` | `4` | blocking on understanding external rays | |
-| birb | `a` | `3` | flocking with angular momentum | |
+| MIRPRP Writeup                                        | `7` | `3` | With agentic coding, priorities have changed | |
+| cloister and liminal interface method (POMS)          | `c` | `8` | simple first, get some artifacts | Composotile |
+| Solid grid graph s-t HP                               | `2` | `f` | completed, paper editing, publishing | |
+| Template optimizations (POMS)                         | `b` | `5` | Can't do larger models without it | Composotile |
+| Compositile                                           | `7` | `6` | Can't do larger models without it | |
+| West Hubbard                                          | `a` | `4` | blocking on understanding external rays | |
+| birb                                                  | `a` | `3` | flocking with angular momentum | |
 
 ###### 2026-03-22
 
