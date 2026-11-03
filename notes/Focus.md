@@ -10,7 +10,7 @@ Current Focus
 | st-Gilbert                                            | `3` | `7` | mostly done, needs special case handling for forced diagonal move | |
 | 3D Relative Neighborhood Graph, Convex Hull Heuristic | `7` | `a` | Lean verification, reference implementation, write paper, submit (?) | |
 | cloister and liminal interface method (POMS)          | `c` | `8` | simple first, get some artifacts | Composotile |
-| Solid grid graph s-t HP                               | `2` | `9` | completed, paper editing, publishing | |
+| Solid grid graph s-t HP                               | `6` | `9` | completed, paper editing, publishing | |
 | Template optimizations (POMS)                         | `b` | `5` | Can't do larger models without it | Composotile |
 | Compositile                                           | `7` | `6` | Can't do larger models without it | |
 | West Hubbard                                          | `a` | `4` | blocking on understanding external rays | |
